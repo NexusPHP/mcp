@@ -167,7 +167,7 @@ double `start()`. `TransportAlreadyClosedException` means use after `close()`. S
 
 ## Diagnostic message conventions
 
-Every `Assert::that(...)` chain and bare `ExpectationFailedException` in `Core/Schema/` follows a fixed shape.
+Every `Assert::that(...)` chain and bare `\InvalidArgumentException` in `Core/Schema/` follows a fixed shape.
 Consumers can parse the messages programmatically, and non-PHP clients can recognise the structure.
 
 ### Field labels
@@ -255,19 +255,6 @@ nested objects.
    `'"error.data" is missing the required "elicitations" key.'`.
 5. Value mismatches against a constant use Assert's lazy `{value}` and `{other}` template tokens instead of
    `\sprintf`, so the comparand renders through `var_export` at exception-render time.
-6. Bare `new ExpectationFailedException($template, $context)` constructions pre-`var_export` the value tokens in
-   the context array, to match Assert's auto-rendering. Example from `MessageDiscriminator::buildUnknownTypeError()`:
-
-   ```php
-   return new ExpectationFailedException(
-       '{context} "type" must be one of "{allowed}", {value} given.',
-       [
-           'context' => $context,
-           'allowed' => implode('", "', $allowedTypes),
-           'value' => var_export($given, true),
-       ],
-   );
-   ```
 
 ### Schema violations
 

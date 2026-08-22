@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\JsonRpc;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\JsonRpc\InputRequestDispatcher;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequest;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
@@ -44,7 +43,7 @@ final class InputRequestDispatcherTest extends AbstractMcpTestCase
 
     public function testDecodeRejectsAMissingMethod(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('each "result.inputRequests" entry is missing the required "method" key.');
 
         InputRequestDispatcher::decode(['params' => []]);

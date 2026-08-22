@@ -15,7 +15,6 @@ namespace Nexus\Mcp\Tests\Client\Auth;
 
 use Amp\Http\Client\Request;
 use Amp\NullCancellation;
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Client\Auth\AccessToken;
 use Nexus\Mcp\Client\Auth\ClientRegistration;
 use Nexus\Mcp\Client\Auth\TokenEndpoint;
@@ -179,7 +178,7 @@ final class TokenEndpointTest extends AbstractMcpTestCase
     #[DataProvider('provideASecretBearingMethodRequiresASecretCases')]
     public function testASecretBearingMethodRequiresASecret(TokenEndpointAuthMethod $method): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(\sprintf('Client "the-client" must carry a secret to authenticate with "%s".', $method->value));
 
         self::exchange(new RecordingHttpClient(), new ClientRegistration('the-client', self::ISSUER, null, $method));
@@ -262,7 +261,7 @@ final class TokenEndpointTest extends AbstractMcpTestCase
 
     public function testRefreshRejectsATokenWithNoRefreshToken(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('The access token carries no refresh token to redeem.');
 
         (new TokenEndpoint(new RecordingHttpClient()))->refresh(
@@ -403,7 +402,7 @@ final class TokenEndpointTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())->willAnswerJson(['token_type' => 'Bearer']);
 
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Token response must carry a "access_token" value.');
 
         self::exchange($http);
@@ -421,7 +420,7 @@ final class TokenEndpointTest extends AbstractMcpTestCase
 
     public function testAServerWithNoTokenEndpointIsRefused(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" publishes no token endpoint.');
 
         self::exchange(new RecordingHttpClient(), metadata: new AuthorizationServerMetadata(self::ISSUER));
@@ -499,7 +498,7 @@ final class TokenEndpointTest extends AbstractMcpTestCase
 
     public function testAPrivateKeyJwtClientWithoutAnAssertionIsRefused(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Client "the-client" must carry a "client_assertion" parameter to authenticate with "private_key_jwt".');
 
         (new TokenEndpoint(new RecordingHttpClient()))->requestToken(

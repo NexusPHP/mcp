@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\UriTemplate;
 
 use Nexus\Assert\Assert;
-use Nexus\Assert\ExpectationFailedException;
 
 /**
  * Enforces the subset of RFC 6570 that `Matcher` can reverse-match: Level 1 `{name}` expressions over
@@ -34,7 +33,7 @@ final class Validator
     /**
      * @param non-empty-string $context Label prefix for the error message (e.g. "ResourceTemplate")
      *
-     * @throws ExpectationFailedException
+     * @throws \InvalidArgumentException
      */
     public static function validate(string $template, string $context): void
     {

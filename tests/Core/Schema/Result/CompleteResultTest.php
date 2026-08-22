@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\Result;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CompleteResult;
@@ -122,7 +121,7 @@ final class CompleteResultTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonListValues(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"result.completion.values" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
@@ -131,7 +130,7 @@ final class CompleteResultTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonStringValueElement(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('each "result.completion.values" must be a string, int given.');
 
         // @phpstan-ignore argument.type
@@ -140,7 +139,7 @@ final class CompleteResultTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonIntTotal(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"result.completion.total" must be an int, string given.');
 
         // @phpstan-ignore argument.type
@@ -149,7 +148,7 @@ final class CompleteResultTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonBoolHasMore(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"result.completion.hasMore" must be a bool, string given.');
 
         // @phpstan-ignore argument.type
@@ -162,7 +161,7 @@ final class CompleteResultTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         CompleteResult::fromArray($payload);

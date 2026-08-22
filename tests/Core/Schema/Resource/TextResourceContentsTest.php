@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\Resource;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\MetaObject\PayloadMetaObject;
 use Nexus\Mcp\Core\Schema\Resource\ResourceContents;
 use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
@@ -56,7 +55,7 @@ final class TextResourceContentsTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsUriViolatingRfc3986(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageMatches('/\Aresource contents "uri" must be a valid RFC 3986/');
 
         new TextResourceContents(uri: 'not-a-uri', text: 'hello');
@@ -64,7 +63,7 @@ final class TextResourceContentsTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsEmptyMimeType(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('resource contents "mimeType" must be a non-empty string or null.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -147,7 +146,7 @@ final class TextResourceContentsTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         TextResourceContents::fromArray($payload);

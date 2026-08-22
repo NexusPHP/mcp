@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Validation;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Enum\Role;
 use Nexus\Mcp\Core\Validation\EnumValueValidator;
@@ -46,7 +45,7 @@ final class EnumValueValidatorTest extends AbstractMcpTestCase
 
     public function testParseThrowsForUnknownStringValue(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageMatches('/^Test "role" must be one of \[\'user\', \'assistant\'\], \'observer\' given\.$/');
 
         EnumValueValidator::parse(Role::class, 'observer', 'Test "role"');
@@ -54,7 +53,7 @@ final class EnumValueValidatorTest extends AbstractMcpTestCase
 
     public function testParseThrowsForUnknownIntValue(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageMatches('/^Test "code" must be one of \[-32700, -32600, -32601, -32602, -32603, -32020, -32021, -32022\], 0 given\.$/');
 
         EnumValueValidator::parse(ProtocolErrorCode::class, 0, 'Test "code"');
@@ -62,7 +61,7 @@ final class EnumValueValidatorTest extends AbstractMcpTestCase
 
     public function testParseRejectsIntValueForStringBackedEnum(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageMatches('/^Test "role" must be one of \[\'user\', \'assistant\'\], 1 given\.$/');
 
         EnumValueValidator::parse(Role::class, 1, 'Test "role"');
@@ -70,7 +69,7 @@ final class EnumValueValidatorTest extends AbstractMcpTestCase
 
     public function testParseRejectsStringValueForIntBackedEnum(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageMatches('/^Test "code" must be one of \\[-32700, -32600, -32601, -32602, -32603, -32020, -32021, -32022\\], \'-32700\' given\\.$/');
 
         EnumValueValidator::parse(ProtocolErrorCode::class, '-32700', 'Test "code"');
@@ -79,7 +78,7 @@ final class EnumValueValidatorTest extends AbstractMcpTestCase
     #[DataProvider('provideParseRejectsValueWithNonBackingTypeCases')]
     public function testParseRejectsValueWithNonBackingType(mixed $value, string $expectedRendered): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageMatches(\sprintf('/^Test "role" must be one of \[\'user\', \'assistant\'\], %s given\.$/', $expectedRendered));
 
         EnumValueValidator::parse(Role::class, $value, 'Test "role"');

@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\Elicitation;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Elicitation\BooleanSchema;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequestedSchema;
 use Nexus\Mcp\Core\Schema\Elicitation\EnumOption;
@@ -193,7 +192,7 @@ final class ElicitRequestedSchemaTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsEmptyPropertyName(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('each "requestedSchema.properties" key must be an int or non-empty string.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -202,7 +201,7 @@ final class ElicitRequestedSchemaTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonPrimitivePropertyValue(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
 
         // @phpstan-ignore argument.type
         new ElicitRequestedSchema(properties: ['x' => 42]);
@@ -210,7 +209,7 @@ final class ElicitRequestedSchemaTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonListRequired(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"requestedSchema.required" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
@@ -219,7 +218,7 @@ final class ElicitRequestedSchemaTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsEmptyRequiredEntry(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('each "requestedSchema.required" must be a non-empty string.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -228,7 +227,7 @@ final class ElicitRequestedSchemaTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsEmptySchema(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"requestedSchema.$schema" must be a non-empty string or null.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -241,7 +240,7 @@ final class ElicitRequestedSchemaTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         ElicitRequestedSchema::fromArray($payload);

@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Extension\Apps\Schema;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Extension\Apps\Schema\UiResourceCsp;
 use Nexus\Mcp\Extension\Apps\Schema\UiResourceMeta;
 use Nexus\Mcp\Extension\Apps\Schema\UiResourcePermissions;
@@ -118,7 +117,7 @@ final class UiResourceMetaTest extends AbstractMcpTestCase
 
     public function testRejectsAnEmptyDomain(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"_meta.ui.domain" must be a non-empty string or null.');
 
         // @phpstan-ignore argument.type
@@ -128,7 +127,7 @@ final class UiResourceMetaTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsMalformedInputCases')]
     public function testFromArrayRejectsMalformedInput(mixed $value, string $key, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         UiResourceMeta::fromArray([$key => $value]);

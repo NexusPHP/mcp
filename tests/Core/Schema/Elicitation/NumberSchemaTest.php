@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\Elicitation;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Elicitation\NumberSchema;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -135,7 +134,7 @@ final class NumberSchemaTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsUnknownType(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('number schema "type" must be one of [\'number\', \'integer\'].');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -144,7 +143,7 @@ final class NumberSchemaTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsEmptyTitle(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('number schema "title" must be a non-empty string or null.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -153,7 +152,7 @@ final class NumberSchemaTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsEmptyDescription(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('number schema "description" must be a non-empty string or null.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -166,7 +165,7 @@ final class NumberSchemaTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         NumberSchema::fromArray($payload);

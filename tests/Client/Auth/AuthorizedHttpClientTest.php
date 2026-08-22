@@ -19,7 +19,6 @@ use Amp\Http\Client\Interceptor\TooManyRedirectsException;
 use Amp\Http\Client\Request;
 use Amp\Http\Client\Response;
 use Amp\NullCancellation;
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Client\Auth\AccessToken;
 use Nexus\Mcp\Client\Auth\AuthorizationOptions;
 use Nexus\Mcp\Client\Auth\AuthorizedHttpClient;
@@ -1173,7 +1172,7 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testAClientWithNeitherAUserAuthorizationNorAGrantStrategyIsRefused(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('The client needs a user authorization or a grant strategy to obtain tokens, and neither was given.');
 
         new AuthorizedHttpClient(
@@ -1186,7 +1185,7 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testAUserAuthorizationWithoutARedirectUriIsRefused(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('A user authorization needs a redirect URI, and the authorization options carry none.');
 
         new AuthorizedHttpClient(
@@ -1199,7 +1198,7 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testAClientWithBothAUserAuthorizationAndAGrantStrategyIsRefused(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('A user authorization and a grant strategy were both given, and the client can run only one.');
 
         new AuthorizedHttpClient(

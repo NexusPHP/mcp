@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Extension\Auth\ClientCredentials;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Extension\Auth\ClientCredentials\ClientSecretCredential;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -37,7 +36,7 @@ final class ClientSecretCredentialTest extends AbstractMcpTestCase
 
     public function testAnEmptyClientIdIsRefused(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"clientId" must be a non-empty string.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -46,7 +45,7 @@ final class ClientSecretCredentialTest extends AbstractMcpTestCase
 
     public function testAnEmptySecretIsRefused(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"clientSecret" must be a non-empty string.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)

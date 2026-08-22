@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Validation;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Validation\Rfc6570UriTemplateValidator;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -77,7 +76,7 @@ final class Rfc6570UriTemplateValidatorTest extends AbstractMcpTestCase
     #[DataProvider('provideRejectsInvalidUriTemplateCases')]
     public function testRejectsInvalidUriTemplate(string $uriTemplate, string $context, string $messagePattern): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageMatches($messagePattern);
 
         Rfc6570UriTemplateValidator::validate($uriTemplate, $context);

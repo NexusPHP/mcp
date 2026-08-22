@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\Result;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\SubscriptionsListenResultMetaObject;
@@ -58,7 +57,7 @@ final class SubscriptionsListenResultTest extends AbstractMcpTestCase
 
     public function testFromArrayRejectsAMissingMeta(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"result" is missing the required "_meta" key.');
 
         SubscriptionsListenResult::fromArray(['resultType' => 'complete']);
@@ -66,7 +65,7 @@ final class SubscriptionsListenResultTest extends AbstractMcpTestCase
 
     public function testFromArrayRejectsANonObjectMeta(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"result._meta" must be an object, string given.');
 
         SubscriptionsListenResult::fromArray(['_meta' => 'nope']);
@@ -74,7 +73,7 @@ final class SubscriptionsListenResultTest extends AbstractMcpTestCase
 
     public function testFromArrayRejectsAnIntKeyedMeta(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"result._meta" must be a string-keyed object.');
 
         SubscriptionsListenResult::fromArray(['_meta' => ['nope']]);

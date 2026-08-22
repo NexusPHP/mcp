@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\Error;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\ClientCapabilities;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Error;
@@ -108,7 +107,7 @@ final class MissingRequiredClientCapabilityErrorTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         MissingRequiredClientCapabilityError::fromArray($payload);

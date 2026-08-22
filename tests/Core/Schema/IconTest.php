@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -76,7 +75,7 @@ final class IconTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsStringKeyedSizes(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"icons.sizes" must be a list of strings or null, array given.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -86,7 +85,7 @@ final class IconTest extends AbstractMcpTestCase
     #[DataProvider('provideIconSrcValidationCases')]
     public function testIconSrcValidation(string $src, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -166,7 +165,7 @@ final class IconTest extends AbstractMcpTestCase
     #[DataProvider('provideIconRejectsInvalidMimeTypesCases')]
     public function testIconRejectsInvalidMimeTypes(string $mimeType, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -218,7 +217,7 @@ final class IconTest extends AbstractMcpTestCase
     #[DataProvider('provideIconRejectsInvalidSizesCases')]
     public function testIconRejectsInvalidSizes(array $sizes, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -347,7 +346,7 @@ final class IconTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         Icon::fromArray($payload);

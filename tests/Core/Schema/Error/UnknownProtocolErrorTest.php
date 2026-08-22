@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\Error;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Error;
 use Nexus\Mcp\Core\Schema\Error\UnknownProtocolError;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
@@ -49,7 +48,7 @@ final class UnknownProtocolErrorTest extends AbstractMcpTestCase
 
     public function testRejectsCodeThatMapsToKnownProtocolErrorCase(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('code -32603 maps to a known protocol error code.');
 
         new UnknownProtocolError(code: -32_603, message: 'Internal error');
@@ -85,7 +84,7 @@ final class UnknownProtocolErrorTest extends AbstractMcpTestCase
 
     public function testFromArrayRejectsMissingMessage(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"error" is missing the required "message" key.');
 
         UnknownProtocolError::fromArray(['code' => 42]);
@@ -93,7 +92,7 @@ final class UnknownProtocolErrorTest extends AbstractMcpTestCase
 
     public function testFromArrayRejectsNonStringMessage(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"error.message" must be a non-empty string, int given.');
 
         UnknownProtocolError::fromArray(['code' => 42, 'message' => 1]);
@@ -101,7 +100,7 @@ final class UnknownProtocolErrorTest extends AbstractMcpTestCase
 
     public function testFromArrayRejectsMissingCode(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"error" is missing the required "code" key.');
 
         UnknownProtocolError::fromArray([]);
@@ -109,7 +108,7 @@ final class UnknownProtocolErrorTest extends AbstractMcpTestCase
 
     public function testFromArrayRejectsNonIntCode(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"error.code" must be an integer, string given.');
 
         UnknownProtocolError::fromArray(['code' => 'oops']);

@@ -21,7 +21,6 @@ use Amp\Http\Server\RequestHandler\ClosureRequestHandler;
 use Amp\Http\Server\Response;
 use Amp\Http\Server\SocketHttpServer;
 use Nexus\Assert\Assert;
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Client\ClientBuilder;
 use Nexus\Mcp\Client\Transport\StreamableHttpClientTransport;
 use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
@@ -136,7 +135,7 @@ $handler = new ClosureRequestHandler(static function (Request $request) use ($cl
         }
 
         return jsonError(404, sprintf('No route for "%s".', $path));
-    } catch (ExpectationFailedException $exception) {
+    } catch (InvalidArgumentException $exception) {
         return jsonError(400, $exception->getMessage());
     } catch (Throwable $throwable) {
         return jsonError(500, $throwable->getMessage());

@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Extension\Apps\Client;
 
 use Nexus\Assert\Assert;
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Client\Client;
 use Nexus\Mcp\Core\Exception\RuntimeException;
 use Nexus\Mcp\Core\SafeDisplay;
@@ -103,7 +102,7 @@ final readonly class AppClient implements AppClientInterface
         foreach ($result->tools as $tool) {
             try {
                 $uiMeta = $this->resolveToolMeta($tool);
-            } catch (ExpectationFailedException) {
+            } catch (\InvalidArgumentException) {
                 continue;
             }
 

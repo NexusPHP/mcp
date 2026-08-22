@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\Result;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\Resource\BlobResourceContents;
@@ -222,7 +221,7 @@ final class ReadResourceResultTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonListContents(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"result.contents" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
@@ -231,7 +230,7 @@ final class ReadResourceResultTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonResourceContentsElement(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
 
         // @phpstan-ignore argument.type
         new ReadResourceResult(contents: [42], ttlMs: 0, cacheScope: CacheScope::Private);
@@ -239,7 +238,7 @@ final class ReadResourceResultTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNegativeTtl(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"result.ttlMs" must be a non-negative integer, -1 given.');
 
         new ReadResourceResult(contents: [], ttlMs: -1, cacheScope: CacheScope::Private);
@@ -251,7 +250,7 @@ final class ReadResourceResultTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         ReadResourceResult::fromArray($payload);

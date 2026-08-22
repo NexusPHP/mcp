@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Extension\Tasks\Schema\Request;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitResult;
 use Nexus\Mcp\Core\Schema\Enum\ElicitAction;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
@@ -90,7 +89,7 @@ final class UpdateTaskRequestTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         UpdateTaskRequest::fromArray($payload);

@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Elicitation;
 
 use Nexus\Assert\Assert;
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Arrayable;
 
 /**
@@ -141,10 +140,10 @@ final readonly class ElicitRequestedSchema implements Arrayable
             NumberSchema::TYPE === $type, NumberSchema::TYPE_INTEGER === $type => NumberSchema::fromArray($data),
             UntitledMultiSelectEnumSchema::TYPE === $type => self::parseArraySchema($data),
             StringSchema::TYPE === $type => self::parseStringSchema($data),
-            default => throw new ExpectationFailedException(
-                '"requestedSchema.primitiveSchema" has unknown "type" {value}.',
-                ['value' => var_export($type, true)],
-            ),
+            default => throw new \InvalidArgumentException(\sprintf(
+                '"requestedSchema.primitiveSchema" has unknown "type" %s.',
+                var_export($type, true),
+            )),
         };
     }
 

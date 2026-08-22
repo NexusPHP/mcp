@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema;
 
 use Nexus\Assert\Assert;
-use Nexus\Assert\ExpectationFailedException;
 
 /**
  * Decode-side coercion to PHP `float` for spec `"type": "number"` fields.
@@ -26,7 +25,7 @@ trait ParsesNumber
     /**
      * @param non-empty-string $message
      *
-     * @throws ExpectationFailedException
+     * @throws \InvalidArgumentException
      */
     private static function parseNumber(mixed $value, string $message): float
     {

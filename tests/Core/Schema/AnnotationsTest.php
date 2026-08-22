@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Annotations;
 use Nexus\Mcp\Core\Schema\Enum\Role;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
@@ -40,7 +39,7 @@ final class AnnotationsTest extends AbstractMcpTestCase
 
     public function testAnnotationsValidatesAudienceRoleInstances(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
 
         new Annotations(audience: ['user']); // @phpstan-ignore argument.type
     }
@@ -153,7 +152,7 @@ final class AnnotationsTest extends AbstractMcpTestCase
 
     public function testAnnotationsFromArrayRejectsInvalidAudienceValue(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('each "annotations.audience" must be one of [\'user\', \'assistant\'], \'invalid-role\' given.');
 
         Annotations::fromArray(['audience' => ['invalid-role']]);
@@ -161,7 +160,7 @@ final class AnnotationsTest extends AbstractMcpTestCase
 
     public function testAnnotationsFromArrayRejectsNonStringAudienceEntry(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('each "annotations.audience" must be one of [\'user\', \'assistant\'], 42 given.');
 
         Annotations::fromArray(['audience' => [42]]);

@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\Elicitation;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Elicitation\EnumOption;
 use Nexus\Mcp\Core\Schema\Elicitation\TitledSingleSelectEnumSchema;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
@@ -98,7 +97,7 @@ final class TitledSingleSelectEnumSchemaTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonListOneOf(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('titled single select enum schema "oneOf" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
@@ -107,7 +106,7 @@ final class TitledSingleSelectEnumSchemaTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonEnumOptionEntry(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
 
         // @phpstan-ignore argument.type
         new TitledSingleSelectEnumSchema(oneOf: [42]);
@@ -115,7 +114,7 @@ final class TitledSingleSelectEnumSchemaTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsEmptyTitle(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('titled single select enum schema "title" must be a non-empty string or null.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -124,7 +123,7 @@ final class TitledSingleSelectEnumSchemaTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsEmptyDescription(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('titled single select enum schema "description" must be a non-empty string or null.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -137,7 +136,7 @@ final class TitledSingleSelectEnumSchemaTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         TitledSingleSelectEnumSchema::fromArray($payload);

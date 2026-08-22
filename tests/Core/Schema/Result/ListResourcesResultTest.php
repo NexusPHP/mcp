@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\Result;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
@@ -224,7 +223,7 @@ final class ListResourcesResultTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonListResources(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"result.resources" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
@@ -233,7 +232,7 @@ final class ListResourcesResultTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonResourceElement(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
 
         // @phpstan-ignore argument.type
         new ListResourcesResult(resources: [42], ttlMs: 0, cacheScope: CacheScope::Private);
@@ -241,7 +240,7 @@ final class ListResourcesResultTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNegativeTtl(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"result.ttlMs" must be a non-negative integer, -1 given.');
 
         new ListResourcesResult(resources: [], ttlMs: -1, cacheScope: CacheScope::Private);
@@ -253,7 +252,7 @@ final class ListResourcesResultTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         ListResourcesResult::fromArray($payload);

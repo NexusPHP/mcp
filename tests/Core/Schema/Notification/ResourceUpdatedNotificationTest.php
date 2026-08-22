@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\Notification;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\Notification;
 use Nexus\Mcp\Core\Schema\Notification\ResourceUpdatedNotification;
@@ -80,7 +79,7 @@ final class ResourceUpdatedNotificationTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         ResourceUpdatedNotification::fromArray($payload);

@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Validation;
 
 use Nexus\Assert\Assert;
-use Nexus\Assert\ExpectationFailedException;
 
 /**
  * Enforces the RFC 6570 URI Template shape on a string: ASCII-printable only, an RFC 3986 scheme prefix, and
@@ -29,7 +28,7 @@ final class Rfc6570UriTemplateValidator
     /**
      * @param non-empty-string $context Label prefix for the error message (e.g. "ResourceTemplate", "ResourceTemplateReference")
      *
-     * @throws ExpectationFailedException
+     * @throws \InvalidArgumentException
      *
      * @phpstan-assert non-empty-string $uriTemplate
      */

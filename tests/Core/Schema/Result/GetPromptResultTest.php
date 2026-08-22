@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\Result;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Enum\Role;
 use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
@@ -137,7 +136,7 @@ final class GetPromptResultTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonListMessages(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"result.messages" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
@@ -146,7 +145,7 @@ final class GetPromptResultTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonPromptMessageElement(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
 
         // @phpstan-ignore argument.type
         new GetPromptResult(messages: [42]);
@@ -154,7 +153,7 @@ final class GetPromptResultTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsEmptyDescription(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"result.description" must be a non-empty string or null.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -167,7 +166,7 @@ final class GetPromptResultTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         GetPromptResult::fromArray($payload);

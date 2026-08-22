@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Error;
 
 use Nexus\Assert\Assert;
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Error;
 
@@ -33,10 +32,7 @@ final readonly class UnknownProtocolError extends Error
     public function __construct(int $code, string $message, mixed $data = null)
     {
         if (ProtocolErrorCode::tryFrom($code) !== null) {
-            throw new ExpectationFailedException(
-                'code {value} maps to a known protocol error code.',
-                ['value' => var_export($code, true)],
-            );
+            throw new \InvalidArgumentException(\sprintf('code %d maps to a known protocol error code.', $code));
         }
 
         parent::__construct(code: $code, message: $message, data: $data);

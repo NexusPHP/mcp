@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Resource;
 
 use Amp\NullCancellation;
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Icon;
@@ -383,7 +382,7 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
 
     public function testConstructorRefusesAnUnconventionalName(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('resource template "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.');
 
         new ResourceTemplateStore(['mem://{p}' => self::entry(new ResourceTemplate(name: 'Project Files', uriTemplate: 'mem://{p}'))]);
@@ -391,7 +390,7 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
 
     public function testAddRefusesAnUnconventionalName(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('resource template "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.');
 
         (new ResourceTemplateStore())->addResourceTemplate(new ResourceTemplate(name: 'Project Files', uriTemplate: 'mem://{p}'), new ClosureTemplatedResourceReader(static fn(): never => throw new \LogicException('unreachable')));
@@ -399,7 +398,7 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
 
     public function testConstructorRefusesANonConservativeIconSrc(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('resource template "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.');
 
         new ResourceTemplateStore(['mem://{p}' => self::entry(new ResourceTemplate(name: 't', uriTemplate: 'mem://{p}', icons: [new Icon(src: 'ftp://example.com/icon.png')]))]);
@@ -407,7 +406,7 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
 
     public function testAddRefusesANonConservativeIconSrc(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('resource template "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.');
 
         (new ResourceTemplateStore())->addResourceTemplate(new ResourceTemplate(name: 't', uriTemplate: 'mem://{p}', icons: [new Icon(src: 'ftp://example.com/icon.png')]), new ClosureTemplatedResourceReader(static fn(): never => throw new \LogicException('unreachable')));

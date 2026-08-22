@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Validation;
 
 use Nexus\Assert\Assert;
-use Nexus\Assert\ExpectationFailedException;
 
 /**
  * Enforces the RFC 3986 absolute-URI shape on a string: ASCII-printable only, with a scheme plus optional
@@ -29,7 +28,7 @@ final class Rfc3986UriValidator
     /**
      * @param non-empty-string $context Label prefix for the error message (e.g. "Resource", "ResourceContents")
      *
-     * @throws ExpectationFailedException
+     * @throws \InvalidArgumentException
      *
      * @phpstan-assert non-empty-string $uri
      */

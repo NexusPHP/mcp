@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Extension;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Exception\LogicException;
 use Nexus\Mcp\Core\Extension\ExtensionCollection;
 use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
@@ -110,7 +109,7 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
     {
         $collection = new ExtensionCollection();
 
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Extension "com.example/feature" may only decorate spec-registry request methods, and \'acme/lookup\' is not one.');
 
         $collection->add(new StubExtension(identifier: 'com.example/feature'), requestDecorators: [
@@ -185,7 +184,7 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
 
     public function testAddRejectsAMalformedIdentifier(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(
             'Extension identifier must be "{vendor-prefix}/{name}" following the "_meta" key grammar with a mandatory prefix, \'tasks\' given.',
         );
@@ -217,7 +216,7 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
 
     public function testAddRejectsListShapedSettings(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Extension "com.example/feature" settings must be a string-keyed object.');
 
         (new ExtensionCollection())->add(new StubExtension(
@@ -228,7 +227,7 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
 
     public function testAddRejectsARequestClassDeclaringADifferentMethod(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(
             'Request class "Nexus\Mcp\Tests\Fixtures\Core\TestClientRequest" must declare the method "acme/lookup" it is registered for, \'tests/test-client-request\' declared.',
         );
@@ -242,7 +241,7 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
 
     public function testAddRejectsANotificationClassDeclaringADifferentMethod(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(
             'Notification class "Nexus\Mcp\Tests\Fixtures\Core\TestNotification" must declare the method "acme/ping" it is registered for, \'tests/test-notification\' declared.',
         );
@@ -256,7 +255,7 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
 
     public function testAddRejectsARequestClassWithoutTheClientMarkerWhenRequired(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(
             'Extension "com.example/feature" request class "Nexus\Mcp\Tests\Fixtures\Core\TestRequest" must implement "Nexus\Mcp\Core\Schema\Request\ClientRequest" for the server to dispatch it.',
         );
@@ -281,7 +280,7 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
 
     public function testAddRejectsARequestClassWithoutAHandler(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(
             'Extension "com.example/feature" must declare its request classes and request handlers under the same method keys.',
         );
@@ -294,7 +293,7 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
 
     public function testAddRejectsARequestHandlerWithoutAClass(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(
             'Extension "com.example/feature" must declare its request classes and request handlers under the same method keys.',
         );
@@ -307,7 +306,7 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
 
     public function testAddRejectsANotificationClassWithoutAHandler(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(
             'Extension "com.example/feature" must declare its notification classes and notification handlers under the same method keys.',
         );
@@ -320,7 +319,7 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
 
     public function testAddRejectsANotificationHandlerWithoutAClass(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(
             'Extension "com.example/feature" must declare its notification classes and notification handlers under the same method keys.',
         );
@@ -518,7 +517,7 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
                 ],
             ), outboundRequests: ['acme/lookup']);
             self::fail('The spec-owned method must be rejected.');
-        } catch (ExpectationFailedException) {
+        } catch (\InvalidArgumentException) {
         }
 
         self::assertNull($collection->findRequestOwner(TestRequest::getMethod()));

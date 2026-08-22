@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Extension\Apps\Schema;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Arrayable;
 
 /**
@@ -85,7 +84,7 @@ final readonly class UiResourcePermissions implements Arrayable
      * @param array<string, mixed> $data
      * @param non-empty-string     $slot
      *
-     * @throws ExpectationFailedException
+     * @throws \InvalidArgumentException
      */
     private static function parseRequested(array $data, string $slot): bool
     {
@@ -96,10 +95,11 @@ final readonly class UiResourcePermissions implements Arrayable
         $value = $data[$slot];
 
         if (! \is_array($value) && ! $value instanceof \stdClass) {
-            throw new ExpectationFailedException(
-                \sprintf('"_meta.ui.permissions.%s" must be an object, {type} given.', $slot),
-                ['type' => get_debug_type($value)],
-            );
+            throw new \InvalidArgumentException(\sprintf(
+                '"_meta.ui.permissions.%s" must be an object, %s given.',
+                $slot,
+                get_debug_type($value),
+            ));
         }
 
         return true;

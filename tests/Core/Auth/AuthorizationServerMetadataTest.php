@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Auth;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Auth\AuthorizationServerMetadata;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -100,7 +99,7 @@ final class AuthorizationServerMetadataTest extends AbstractMcpTestCase
 
     public function testFromArrayRejectsAnAbsentIssuer(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Authorization Server Metadata must carry a "issuer" value.');
 
         AuthorizationServerMetadata::fromArray([]);
@@ -108,7 +107,7 @@ final class AuthorizationServerMetadataTest extends AbstractMcpTestCase
 
     public function testFromArrayRejectsAMistypedEndpoint(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Authorization Server Metadata "token_endpoint" must be a non-empty string, int given.');
 
         AuthorizationServerMetadata::fromArray([

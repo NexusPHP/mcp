@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\RequestParams;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequestedSchema;
 use Nexus\Mcp\Core\Schema\Elicitation\StringSchema;
 use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestFormParams;
@@ -110,7 +109,7 @@ final class ElicitRequestFormParamsTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsEmptyMessage(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"params.message" must be a non-empty string.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -119,7 +118,7 @@ final class ElicitRequestFormParamsTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsWrongMode(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"params.mode" must be \'form\', \'url\' given.');
 
         new ElicitRequestFormParams(
@@ -136,7 +135,7 @@ final class ElicitRequestFormParamsTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         ElicitRequestFormParams::fromArray($payload);

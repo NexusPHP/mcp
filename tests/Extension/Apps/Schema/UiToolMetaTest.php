@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Extension\Apps\Schema;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Extension\Apps\Schema\Enum\ToolVisibility;
 use Nexus\Mcp\Extension\Apps\Schema\UiToolMeta;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
@@ -65,7 +64,7 @@ final class UiToolMetaTest extends AbstractMcpTestCase
 
     public function testRejectsAResourceUriOutsideTheUiScheme(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"_meta.ui.resourceUri" must start with "ui://".');
 
         new UiToolMeta(resourceUri: 'https://example.com/panel');
@@ -73,7 +72,7 @@ final class UiToolMetaTest extends AbstractMcpTestCase
 
     public function testRejectsANonListVisibilityArray(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"_meta.ui.visibility" must be a list, array given.');
 
         // @phpstan-ignore argument.type
@@ -82,7 +81,7 @@ final class UiToolMetaTest extends AbstractMcpTestCase
 
     public function testRejectsAVisibilityEntryThatIsNotAToolVisibility(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('each "_meta.ui.visibility" must be a tool visibility, string given.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -106,7 +105,7 @@ final class UiToolMetaTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsMalformedInputCases')]
     public function testFromArrayRejectsMalformedInput(mixed $value, string $key, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         UiToolMeta::fromArray([$key => $value]);

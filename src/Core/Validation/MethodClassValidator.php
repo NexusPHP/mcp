@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Validation;
 
 use Nexus\Assert\Assert;
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 
@@ -29,7 +28,7 @@ final class MethodClassValidator
      * @param class-string<JsonRpcNotification<non-empty-string>>|class-string<JsonRpcRequest<non-empty-string>> $class
      * @param non-empty-string                                                                                   $method
      *
-     * @throws ExpectationFailedException
+     * @throws \InvalidArgumentException
      */
     public static function validate(string $class, string $method, bool $isNotification = false): void
     {

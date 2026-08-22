@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\JsonRpc;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\JsonRpc\MessageDiscriminator;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -36,7 +35,7 @@ final class MessageDiscriminatorTest extends AbstractMcpTestCase
 
     public function testReadTypeRejectsMissingType(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('prompt message "content" data missing "type".');
 
         MessageDiscriminator::readType(['text' => 'hello'], 'prompt message "content"');
@@ -44,7 +43,7 @@ final class MessageDiscriminatorTest extends AbstractMcpTestCase
 
     public function testReadTypeRejectsNonStringType(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"params.ref" "type" must be a string, int given.');
 
         MessageDiscriminator::readType(['type' => 1], '"params.ref"');

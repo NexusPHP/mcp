@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\Result;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequest;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequestedSchema;
 use Nexus\Mcp\Core\Schema\Elicitation\StringSchema;
@@ -180,7 +179,7 @@ final class InputRequiredResultTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonInputRequestEntry(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('each "result.inputRequests" entry must be an InputRequest, string given.');
 
         // @phpstan-ignore argument.type
@@ -189,7 +188,7 @@ final class InputRequiredResultTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsArrayInputRequestEntry(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('each "result.inputRequests" entry must be an InputRequest, array given.');
 
         // @phpstan-ignore argument.type
@@ -232,7 +231,7 @@ final class InputRequiredResultTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         InputRequiredResult::fromArray($payload);
@@ -295,7 +294,7 @@ final class InputRequiredResultTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsAnEmptyInputRequestKey(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('each "result.inputRequests" key must be an int or non-empty string.');
 
         // @phpstan-ignore argument.type

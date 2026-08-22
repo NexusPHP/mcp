@@ -16,7 +16,6 @@ namespace Nexus\Mcp\Tests\Extension\Auth\Enterprise;
 use Amp\Cancellation;
 use Amp\Http\Client\Request;
 use Amp\NullCancellation;
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Client\Auth\AuthorizationOptions;
 use Nexus\Mcp\Client\Auth\ClientRegistrar;
 use Nexus\Mcp\Client\Auth\ClientRegistration;
@@ -219,7 +218,7 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
 
     public function testAnEmptyIdpTokenEndpointIsRefused(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"idpTokenEndpoint" must be a non-empty string.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -251,7 +250,7 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
 
     public function testAnEmptyIdpClientIdIsRefused(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"idpClientId" must be a non-empty string or null.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)

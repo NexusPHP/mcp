@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Auth;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Auth\ScopeSet;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -40,7 +39,7 @@ final class ScopeSetTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsAnEmptyScope(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Each scope must be a non-empty string, string given.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)

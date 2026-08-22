@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\RequestParams;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
@@ -55,7 +54,7 @@ final class EmptyRequestParamsTest extends AbstractMcpTestCase
 
     public function testFromArrayRequiresMeta(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"params" is missing the required "_meta" key.');
 
         EmptyRequestParams::fromArray([]);

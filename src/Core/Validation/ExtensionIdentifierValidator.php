@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Validation;
 
 use Nexus\Assert\Assert;
-use Nexus\Assert\ExpectationFailedException;
 
 /**
  * Enforces the SEP-2133 extension identifier format: dot-separated vendor-prefix
@@ -31,7 +30,7 @@ final class ExtensionIdentifierValidator
     /**
      * @phpstan-assert non-empty-string $identifier
      *
-     * @throws ExpectationFailedException
+     * @throws \InvalidArgumentException
      */
     public static function validate(string $identifier): void
     {

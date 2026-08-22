@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Resource;
 
 use Amp\NullCancellation;
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Icon;
@@ -250,7 +249,7 @@ final class ResourceStoreTest extends AbstractMcpTestCase
 
     public function testConstructorRefusesAnUnconventionalName(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('resource "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.');
 
         new ResourceStore(['file:///x' => new ResourceEntry(new Resource(name: 'Project Files', uri: 'file:///x'), self::makeReader())]);
@@ -258,7 +257,7 @@ final class ResourceStoreTest extends AbstractMcpTestCase
 
     public function testAddRefusesAnUnconventionalName(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('resource "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.');
 
         (new ResourceStore())->addResource(new Resource(name: 'Project Files', uri: 'file:///x'), self::makeReader());
@@ -266,7 +265,7 @@ final class ResourceStoreTest extends AbstractMcpTestCase
 
     public function testConstructorRefusesANonConservativeIconSrc(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('resource "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.');
 
         new ResourceStore(['file:///x' => new ResourceEntry(new Resource(name: 'r', uri: 'file:///x', icons: [new Icon(src: 'ftp://example.com/icon.png')]), self::makeReader())]);
@@ -274,7 +273,7 @@ final class ResourceStoreTest extends AbstractMcpTestCase
 
     public function testAddRefusesANonConservativeIconSrc(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('resource "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.');
 
         (new ResourceStore())->addResource(new Resource(name: 'r', uri: 'file:///x', icons: [new Icon(src: 'ftp://example.com/icon.png')]), self::makeReader());

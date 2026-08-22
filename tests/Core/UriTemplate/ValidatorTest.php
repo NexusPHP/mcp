@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\UriTemplate;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\UriTemplate\Validator;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -59,7 +58,7 @@ final class ValidatorTest extends AbstractMcpTestCase
     #[DataProvider('provideRejectsLevel2OrHigherExpressionCases')]
     public function testRejectsLevel2OrHigherExpression(string $template): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageMatches('/^ResourceTemplate URI template must use only RFC 6570 Level 1 simple-name expressions/');
 
         Validator::validate($template, 'ResourceTemplate');
@@ -105,7 +104,7 @@ final class ValidatorTest extends AbstractMcpTestCase
     {
         $name = str_repeat('a', 33);
 
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(\sprintf(
             'ResourceTemplate URI template variable names must be at most 32 characters, got "file:///{%s}".',
             $name,
@@ -116,7 +115,7 @@ final class ValidatorTest extends AbstractMcpTestCase
 
     public function testRejectsAdjacentExpressions(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageMatches('/^ResourceTemplate URI template must include literal text between adjacent expressions, got "file:\/\/\/{a}{b}"\.$/');
 
         Validator::validate('file:///{a}{b}', 'ResourceTemplate');
@@ -124,7 +123,7 @@ final class ValidatorTest extends AbstractMcpTestCase
 
     public function testContextLabelIsInterpolatedIntoErrorMessage(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageMatches('/^Custom label URI template must use only RFC 6570 Level 1 simple-name expressions/');
 
         Validator::validate('file:///{+path}', 'Custom label');

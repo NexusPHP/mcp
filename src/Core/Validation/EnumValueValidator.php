@@ -13,8 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Validation;
 
-use Nexus\Assert\ExpectationFailedException;
-
 /**
  * Parses a value into a backed enum case.
  *
@@ -30,7 +28,7 @@ final class EnumValueValidator
      *
      * @return T
      *
-     * @throws ExpectationFailedException
+     * @throws \InvalidArgumentException
      */
     public static function parse(string $enumClass, mixed $value, string $context): \BackedEnum
     {
@@ -46,16 +44,14 @@ final class EnumValueValidator
             }
         }
 
-        throw new ExpectationFailedException(
-            '{context} must be one of [{cases}], {value} given.',
-            [
-                'context' => $context,
-                'cases' => implode(', ', array_map(
-                    static fn(\BackedEnum $case): string => var_export($case->value, true),
-                    $enumClass::cases(),
-                )),
-                'value' => var_export($value, true),
-            ],
-        );
+        throw new \InvalidArgumentException(\sprintf(
+            '%s must be one of [%s], %s given.',
+            $context,
+            implode(', ', array_map(
+                static fn(\BackedEnum $case): string => var_export($case->value, true),
+                $enumClass::cases(),
+            )),
+            var_export($value, true),
+        ));
     }
 }

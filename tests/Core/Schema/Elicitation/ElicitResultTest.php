@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\Elicitation;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitResult;
 use Nexus\Mcp\Core\Schema\Enum\ElicitAction;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
@@ -117,7 +116,7 @@ final class ElicitResultTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsEmptyContentKey(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('each elicit result "content" key must be an int or non-empty string.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -126,7 +125,7 @@ final class ElicitResultTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonScalarContentValue(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('elicit result "x" must be a string, int, float, bool, or list of strings, non-list array given.');
 
         // @phpstan-ignore argument.type
@@ -153,7 +152,7 @@ final class ElicitResultTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsListWithNonStringEntries(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('each elicit result "x" list entry must be a string, int given.');
 
         // @phpstan-ignore argument.type
@@ -166,7 +165,7 @@ final class ElicitResultTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         ElicitResult::fromArray($payload);

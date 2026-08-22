@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\MetaObject;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
@@ -78,7 +77,7 @@ final class SubscriptionsListenResultMetaObjectTest extends AbstractMcpTestCase
 
     public function testFromArrayRejectsAMissingSubscriptionId(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"result._meta" is missing the required "io.modelcontextprotocol/subscriptionId" key.');
 
         SubscriptionsListenResultMetaObject::fromArray(['vendor' => 'acme']);
@@ -87,7 +86,7 @@ final class SubscriptionsListenResultMetaObjectTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsANonScalarSubscriptionIdCases')]
     public function testFromArrayRejectsANonScalarSubscriptionId(mixed $value): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageMatches('/^"_meta\.io\.modelcontextprotocol\/subscriptionId" must be an int or a non-empty string, /');
 
         SubscriptionsListenResultMetaObject::fromArray(['io.modelcontextprotocol/subscriptionId' => $value]);

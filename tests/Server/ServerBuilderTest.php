@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Server;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Exception\LogicException;
 use Nexus\Mcp\Core\Handler\AbstractContext;
 use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
@@ -1240,7 +1239,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
     public function testAddRequestHandlerRejectsAClassWithoutTheClientMarker(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(
             'Request class "Nexus\Mcp\Tests\Fixtures\Core\TestRequest" must implement "Nexus\Mcp\Core\Schema\Request\ClientRequest" for the server to dispatch it.',
         );
@@ -1252,7 +1251,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
     public function testAddRequestHandlerRejectsAClassDeclaringADifferentMethod(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(
             'Request class "Nexus\Mcp\Tests\Fixtures\Core\TestClientRequest" must declare the method "acme/snapshot" it is registered for, \'tests/test-client-request\' declared.',
         );
@@ -1340,7 +1339,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
     public function testAddNotificationHandlerRejectsAClassDeclaringADifferentMethod(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(
             'Notification class "Nexus\Mcp\Tests\Fixtures\Core\TestNotification" must declare the method "acme/snapshot-done" it is registered for, \'tests/test-notification\' declared.',
         );
@@ -1530,7 +1529,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             ->enableExtension(self::buildTextWrappingExtension('com.example/feature', 'outer'))
         ;
 
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Extension "com.example/feature" decorates "tools/call", but no handler serves that method.');
 
         $builder->build();
@@ -1551,7 +1550,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             ))
         ;
 
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Extension "com.example/feature" decorator for "tools/call" must return a request handler, string given.');
 
         $builder->build();
@@ -1748,7 +1747,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
     public function testEnableExtensionRejectsARequestClassWithoutTheClientMarker(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(
             'Extension "com.example/feature" request class "Nexus\Mcp\Tests\Fixtures\Core\TestRequest" must implement "Nexus\Mcp\Core\Schema\Request\ClientRequest" for the server to dispatch it.',
         );
@@ -2747,7 +2746,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     #[DataProvider('provideRegisteringAnUnconventionalNameIsRefusedCases')]
     public function testRegisteringAnUnconventionalNameIsRefused(\Closure $register, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         $register(new ServerBuilder());
@@ -2797,7 +2796,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     #[DataProvider('provideRegisteringANonConservativeIconSrcIsRefusedCases')]
     public function testRegisteringANonConservativeIconSrcIsRefused(\Closure $register, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         $register(new ServerBuilder());
@@ -2858,7 +2857,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
         $builder = (new ServerBuilder())->register($source);
 
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('serverInfo "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.');
 
         $builder->build();

@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Extension\Auth\Enterprise;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Extension\Auth\Enterprise\IdentityAssertion;
 use Nexus\Mcp\Extension\Auth\Enterprise\IdentityAssertionType;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
@@ -38,7 +37,7 @@ final class IdentityAssertionTest extends AbstractMcpTestCase
 
     public function testAnEmptyTokenIsRefused(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"token" must be a non-empty string.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)

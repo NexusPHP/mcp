@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Extension\Apps\Schema;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Extension\Apps\Schema\UiResourceCsp;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -77,7 +76,7 @@ final class UiResourceCspTest extends AbstractMcpTestCase
 
     public function testRejectsANonListDomainArray(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"_meta.ui.csp.connectDomains" must be a list, array given.');
 
         // @phpstan-ignore argument.type
@@ -100,7 +99,7 @@ final class UiResourceCspTest extends AbstractMcpTestCase
     #[DataProvider('provideRejectsAMalformedDomainEntryCases')]
     public function testRejectsAMalformedDomainEntry(\Closure $construct, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         $construct();
@@ -139,7 +138,7 @@ final class UiResourceCspTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsMalformedInputCases')]
     public function testFromArrayRejectsMalformedInput(mixed $value, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         UiResourceCsp::fromArray(['connectDomains' => $value]);

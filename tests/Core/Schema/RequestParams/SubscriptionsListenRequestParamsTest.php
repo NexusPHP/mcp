@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\RequestParams;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\RequestParams;
 use Nexus\Mcp\Core\Schema\RequestParams\SubscriptionsListenRequestParams;
@@ -102,7 +101,7 @@ final class SubscriptionsListenRequestParamsTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         SubscriptionsListenRequestParams::fromArray($payload);

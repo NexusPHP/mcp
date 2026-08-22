@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\Tool;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\BaseMetadata;
 use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Schema\MetaObject\PayloadMetaObject;
@@ -162,7 +161,7 @@ final class ToolTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsEmptyDescription(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Tool description must be a non-empty string or null.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -171,7 +170,7 @@ final class ToolTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonIconEntry(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
 
         // @phpstan-ignore argument.type
         new Tool(name: 'read-file', inputSchema: ['type' => 'object'], icons: [42]);
@@ -199,7 +198,7 @@ final class ToolTest extends AbstractMcpTestCase
     #[DataProvider('provideConstructorRejectsInvalidSchemaEnvelopeCases')]
     public function testConstructorRejectsInvalidSchemaEnvelope(array $schema, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         new Tool(name: 'read-file', inputSchema: $schema);
@@ -319,7 +318,7 @@ final class ToolTest extends AbstractMcpTestCase
 
     public function testConstructorValidatesOutputSchemaKnownKeywords(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('tool "outputSchema" "properties" must be an object, string given.');
 
         new Tool(name: 'read-file', inputSchema: ['type' => 'object'], outputSchema: ['properties' => 'oops']);
@@ -331,7 +330,7 @@ final class ToolTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         Tool::fromArray($payload);

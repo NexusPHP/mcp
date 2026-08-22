@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\RequestParams;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitResult;
 use Nexus\Mcp\Core\Schema\Enum\ElicitAction;
 use Nexus\Mcp\Core\Schema\ProgressToken;
@@ -184,7 +183,7 @@ final class ReadResourceRequestParamsTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonObjectInputResponseEntry(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('each "params.inputResponses" entry must be an InputResponse, string given.');
 
         // @phpstan-ignore argument.type
@@ -193,7 +192,7 @@ final class ReadResourceRequestParamsTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsListKeyedInputResponseEntry(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('each "params.inputResponses" entry must be an InputResponse, array given.');
 
         // @phpstan-ignore argument.type
@@ -206,7 +205,7 @@ final class ReadResourceRequestParamsTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         ReadResourceRequestParams::fromArray($payload);
@@ -266,7 +265,7 @@ final class ReadResourceRequestParamsTest extends AbstractMcpTestCase
     #[DataProvider('provideConstructorRejectsAMalformedUriCases')]
     public function testConstructorRejectsAMalformedUri(string $uri, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -326,7 +325,7 @@ final class ReadResourceRequestParamsTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsAnEmptyInputResponseKey(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('each "params.inputResponses" key must be an int or non-empty string.');
 
         new ReadResourceRequestParams(

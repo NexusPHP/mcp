@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\JsonRpc;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\ContentBlock;
 use Nexus\Mcp\Core\Schema\ContentBlock\AudioContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\EmbeddedResource;
@@ -42,7 +41,7 @@ final class ContentBlockDispatcher
      *
      * @return AudioContent|EmbeddedResource|ImageContent|ResourceLink|TextContent
      *
-     * @throws ExpectationFailedException
+     * @throws \InvalidArgumentException
      */
     public static function fromArray(array $data, string $context): ContentBlock
     {

@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Extension\Auth\ClientCredentials;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Extension\Auth\ClientCredentials\PrivateKeyJwtCredential;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -44,7 +43,7 @@ final class PrivateKeyJwtCredentialTest extends AbstractMcpTestCase
 
     public function testAnEmptyClientIdIsRefused(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"clientId" must be a non-empty string.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -53,7 +52,7 @@ final class PrivateKeyJwtCredentialTest extends AbstractMcpTestCase
 
     public function testAnEmptyKeyIsRefused(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"privateKeyPem" must be a non-empty string.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -62,7 +61,7 @@ final class PrivateKeyJwtCredentialTest extends AbstractMcpTestCase
 
     public function testAnEmptyAlgorithmIsRefused(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"algorithm" must be a non-empty string.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -71,7 +70,7 @@ final class PrivateKeyJwtCredentialTest extends AbstractMcpTestCase
 
     public function testAnEmptyKeyIdIsRefused(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"keyId" must be a non-empty string or null.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)

@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\Result;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\ContentBlock\AudioContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\ImageContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
@@ -159,7 +158,7 @@ final class CallToolResultTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonListContent(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"result.content" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
@@ -168,7 +167,7 @@ final class CallToolResultTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonContentBlockEntry(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
 
         // @phpstan-ignore argument.type
         new CallToolResult(content: [42]);
@@ -213,7 +212,7 @@ final class CallToolResultTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         CallToolResult::fromArray($payload);

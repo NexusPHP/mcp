@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\Result;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
@@ -199,7 +198,7 @@ final class DiscoverResultTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonStringSupportedVersion(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('each "result.supportedVersions" must be a non-empty string.');
 
         new DiscoverResult(
@@ -213,7 +212,7 @@ final class DiscoverResultTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsEmptyStringSupportedVersion(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('each "result.supportedVersions" must be a non-empty string.');
 
         new DiscoverResult(
@@ -227,7 +226,7 @@ final class DiscoverResultTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsEmptyInstructions(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"result.instructions" must be a non-empty string or null.');
 
         new DiscoverResult(
@@ -242,7 +241,7 @@ final class DiscoverResultTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNegativeTtl(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"result.ttlMs" must be a non-negative integer, -1 given.');
 
         new DiscoverResult(
@@ -259,7 +258,7 @@ final class DiscoverResultTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         DiscoverResult::fromArray($payload);

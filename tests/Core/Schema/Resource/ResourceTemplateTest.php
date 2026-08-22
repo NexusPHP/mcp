@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\Resource;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Annotations;
 use Nexus\Mcp\Core\Schema\BaseMetadata;
 use Nexus\Mcp\Core\Schema\Icon;
@@ -159,7 +158,7 @@ final class ResourceTemplateTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsEmptyUriTemplate(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('resource template "uriTemplate" must be a non-empty string.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -168,7 +167,7 @@ final class ResourceTemplateTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsInvalidUriTemplate(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageMatches('/\Aresource template "uriTemplate" must be a valid RFC 6570/');
 
         new ResourceTemplate(name: 'my-template', uriTemplate: 'not-a-template');
@@ -176,7 +175,7 @@ final class ResourceTemplateTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsEmptyDescription(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('resource template "description" must be a non-empty string or null.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -185,7 +184,7 @@ final class ResourceTemplateTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsEmptyMimeType(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('resource template "mimeType" must be a non-empty string or null.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -194,7 +193,7 @@ final class ResourceTemplateTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonIconElement(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
 
         // @phpstan-ignore argument.type
         new ResourceTemplate(name: 'my-template', uriTemplate: 'file:///tmp/{name}', icons: [42]);
@@ -206,7 +205,7 @@ final class ResourceTemplateTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         ResourceTemplate::fromArray($payload);

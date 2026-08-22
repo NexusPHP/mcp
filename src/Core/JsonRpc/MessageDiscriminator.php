@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\JsonRpc;
 
 use Nexus\Assert\Assert;
-use Nexus\Assert\ExpectationFailedException;
 
 /**
  * Shared helpers for JSON shapes that discriminate concrete subtypes by a `type` field.
@@ -43,15 +42,13 @@ final class MessageDiscriminator
      * @param non-empty-string                 $context
      * @param non-empty-list<non-empty-string> $allowedTypes
      */
-    public static function buildUnknownTypeError(string $context, array $allowedTypes, string $given): ExpectationFailedException
+    public static function buildUnknownTypeError(string $context, array $allowedTypes, string $given): \InvalidArgumentException
     {
-        return new ExpectationFailedException(
-            '{context} "type" must be one of "{allowed}", {value} given.',
-            [
-                'context' => $context,
-                'allowed' => implode('", "', $allowedTypes),
-                'value' => var_export($given, true),
-            ],
-        );
+        return new \InvalidArgumentException(\sprintf(
+            '%s "type" must be one of "%s", \'%s\' given.',
+            $context,
+            implode('", "', $allowedTypes),
+            $given,
+        ));
     }
 }

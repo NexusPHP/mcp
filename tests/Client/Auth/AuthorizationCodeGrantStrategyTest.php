@@ -15,7 +15,6 @@ namespace Nexus\Mcp\Tests\Client\Auth;
 
 use Amp\Http\Client\Request;
 use Amp\NullCancellation;
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Client\Auth\AuthorizationCodeGrantStrategy;
 use Nexus\Mcp\Client\Auth\AuthorizationOptions;
 use Nexus\Mcp\Client\Auth\ClientRegistrar;
@@ -73,7 +72,7 @@ final class AuthorizationCodeGrantStrategyTest extends AbstractMcpTestCase
 
     public function testGrantRefusesToRunWithoutARedirectUri(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('The authorization-code grant needs a redirect URI, and the authorization options carry none.');
 
         (new AuthorizationCodeGrantStrategy(new ScriptedUserAuthorization()))->grant(

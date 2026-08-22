@@ -15,7 +15,6 @@ namespace Nexus\Mcp\Tests\Client\Transport;
 
 use Amp\DeferredFuture;
 use Amp\Http\Client\HttpException;
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Client\Transport\StreamableHttpClientTransport;
 use Nexus\Mcp\Core\Exception\OutboundRequestFailedException;
 use Nexus\Mcp\Core\Exception\ResponseTooLargeException;
@@ -1045,7 +1044,7 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
 
     public function testRejectsAnEmptyEndpoint(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Streamable HTTP client endpoint must be a non-empty string.');
 
         // @phpstan-ignore argument.type

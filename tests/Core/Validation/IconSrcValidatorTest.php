@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Validation;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Validation\IconSrcValidator;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
@@ -62,7 +61,7 @@ final class IconSrcValidatorTest extends AbstractMcpTestCase
     #[DataProvider('provideRejectsANonConservativeSrcCases')]
     public function testRejectsANonConservativeSrc(string $src): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(\sprintf(
             'tool "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'%s\' given.',
             $src,
@@ -92,7 +91,7 @@ final class IconSrcValidatorTest extends AbstractMcpTestCase
 
     public function testEveryIconInTheListIsChecked(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('prompt "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/b.png\' given.');
 
         IconSrcValidator::validate([

@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\RequestParams;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\Prompt\PromptReference;
 use Nexus\Mcp\Core\Schema\RequestParams;
@@ -224,7 +223,7 @@ final class CompleteRequestParamsTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonStringArgumentName(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"params.argument.name" must be a string, int given.');
 
         new CompleteRequestParams(
@@ -237,7 +236,7 @@ final class CompleteRequestParamsTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonStringArgumentValue(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"params.argument.value" must be a string, int given.');
 
         new CompleteRequestParams(
@@ -263,7 +262,7 @@ final class CompleteRequestParamsTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonStringContextArgumentValue(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('each "params.context.arguments" must be a string, int given.');
 
         new CompleteRequestParams(
@@ -281,7 +280,7 @@ final class CompleteRequestParamsTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         CompleteRequestParams::fromArray($payload);

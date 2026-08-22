@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\Elicitation;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Elicitation\EnumOption;
 use Nexus\Mcp\Core\Schema\Elicitation\TitledMultiSelectEnumSchema;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
@@ -108,7 +107,7 @@ final class TitledMultiSelectEnumSchemaTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonListItems(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('titled multi-select enum schema "items" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
@@ -117,7 +116,7 @@ final class TitledMultiSelectEnumSchemaTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonEnumOptionEntry(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
 
         // @phpstan-ignore argument.type
         new TitledMultiSelectEnumSchema(items: [42]);
@@ -125,7 +124,7 @@ final class TitledMultiSelectEnumSchemaTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsEmptyTitle(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('titled multi-select enum schema "title" must be a non-empty string or null.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -134,7 +133,7 @@ final class TitledMultiSelectEnumSchemaTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsEmptyDescription(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('titled multi-select enum schema "description" must be a non-empty string or null.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -143,7 +142,7 @@ final class TitledMultiSelectEnumSchemaTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNegativeMinItems(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('titled multi-select enum schema "minItems" must be a non-negative integer or null.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -152,7 +151,7 @@ final class TitledMultiSelectEnumSchemaTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNegativeMaxItems(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('titled multi-select enum schema "maxItems" must be a non-negative integer or null.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -161,7 +160,7 @@ final class TitledMultiSelectEnumSchemaTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonListDefault(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('titled multi-select enum schema "default" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
@@ -174,7 +173,7 @@ final class TitledMultiSelectEnumSchemaTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         TitledMultiSelectEnumSchema::fromArray($payload);

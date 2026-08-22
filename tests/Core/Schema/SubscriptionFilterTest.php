@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\SubscriptionFilter;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -40,7 +39,7 @@ final class SubscriptionFilterTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonListResourceSubscriptions(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"notifications.resourceSubscriptions" must be a list, non-list array given.');
 
         new SubscriptionFilter(resourceSubscriptions: ['a' => 'file:///x']); // @phpstan-ignore argument.type
@@ -48,7 +47,7 @@ final class SubscriptionFilterTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonStringResourceSubscriptionEntry(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('each "notifications.resourceSubscriptions" must be a string, int given.');
 
         new SubscriptionFilter(resourceSubscriptions: [42]); // @phpstan-ignore argument.type
@@ -129,7 +128,7 @@ final class SubscriptionFilterTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         SubscriptionFilter::fromArray($payload);

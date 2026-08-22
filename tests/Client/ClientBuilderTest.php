@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Client;
 
 use Amp\CancelledException;
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Client\ClientBuilder;
 use Nexus\Mcp\Core\Exception\LogicException;
 use Nexus\Mcp\Core\Handler\AbstractContext;
@@ -135,7 +134,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
 
     public function testSetClientInfoRefusesANonConservativeIconSrc(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('clientInfo "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.');
 
         (new ClientBuilder())->setClientInfo('demo', '1.0.0', icons: [new Icon(src: 'ftp://example.com/icon.png')]);
@@ -324,7 +323,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
 
     public function testAddRequestHandlerRejectsAClassDeclaringADifferentMethod(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(
             'Request class "Nexus\Mcp\Tests\Fixtures\Core\TestRequest" must declare the method "vendor/custom" it is registered for, \'tests/test-request\' declared.',
         );
@@ -336,7 +335,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
 
     public function testAddNotificationHandlerRejectsAClassDeclaringADifferentMethod(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(
             'Notification class "Nexus\Mcp\Tests\Fixtures\Core\TestNotification" must declare the method "vendor/custom-done" it is registered for, \'tests/test-notification\' declared.',
         );
@@ -348,7 +347,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
 
     public function testAddRequestHandlerKeepsTheRegistryClassForASpecMethod(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(
             'Request method "server/discover" is defined by the MCP specification and keeps its registry envelope class, \'Nexus\\\\Mcp\\\\Tests\\\\Fixtures\\\\Core\\\\DiscoverLookalikeRequest\' given.',
         );
@@ -360,7 +359,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
 
     public function testAddNotificationHandlerKeepsTheRegistryClassForASpecMethod(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(
             'Notification method "notifications/progress" is defined by the MCP specification and keeps its registry envelope class, \'Nexus\\\\Mcp\\\\Tests\\\\Fixtures\\\\Core\\\\ProgressLookalikeNotification\' given.',
         );

@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\ContentBlock;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Annotations;
 use Nexus\Mcp\Core\Schema\ContentBlock\ImageContent;
 use Nexus\Mcp\Core\Schema\MetaObject\PayloadMetaObject;
@@ -110,7 +109,7 @@ final class ImageContentTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsEmptyData(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('image content "data" must be a non-empty string.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -119,7 +118,7 @@ final class ImageContentTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsEmptyMimeType(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('image content "mimeType" must be a non-empty string.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -132,7 +131,7 @@ final class ImageContentTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         ImageContent::fromArray($payload);

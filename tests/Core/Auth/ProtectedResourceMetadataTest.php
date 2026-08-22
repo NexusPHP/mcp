@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Auth;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Auth\ProtectedResourceMetadata;
 use Nexus\Mcp\Core\Auth\ResourceIdentifier;
 use Nexus\Mcp\Core\Auth\ScopeSet;
@@ -81,7 +80,7 @@ final class ProtectedResourceMetadataTest extends AbstractMcpTestCase
 
     public function testFromArrayRejectsAnAbsentResource(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Protected Resource Metadata must carry a "resource" value.');
 
         ProtectedResourceMetadata::fromArray(['authorization_servers' => ['https://auth.example.com']]);

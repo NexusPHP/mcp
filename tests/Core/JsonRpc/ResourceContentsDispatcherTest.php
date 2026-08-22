@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\JsonRpc;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\JsonRpc\ResourceContentsDispatcher;
 use Nexus\Mcp\Core\Schema\Resource\BlobResourceContents;
 use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
@@ -53,7 +52,7 @@ final class ResourceContentsDispatcherTest extends AbstractMcpTestCase
 
     public function testFromArrayRejectsBothTextAndBlob(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('embedded resource resource data must not have both "text" and "blob".');
 
         ResourceContentsDispatcher::fromArray(
@@ -64,7 +63,7 @@ final class ResourceContentsDispatcherTest extends AbstractMcpTestCase
 
     public function testFromArrayRejectsMissingDiscriminator(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('ReadResourceResult contents data must have either "text" or "blob".');
 
         ResourceContentsDispatcher::fromArray(['uri' => 'file:///x'], 'ReadResourceResult contents');

@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\Elicitation;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Elicitation\LegacyTitledEnumSchema;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -81,7 +80,7 @@ final class LegacyTitledEnumSchemaTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonListEnum(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('legacy titled enum schema "enum" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
@@ -90,7 +89,7 @@ final class LegacyTitledEnumSchemaTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsEmptyEnumEntry(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('each legacy titled enum schema "enum" must be a non-empty string.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -99,7 +98,7 @@ final class LegacyTitledEnumSchemaTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsEmptyTitle(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('legacy titled enum schema "title" must be a non-empty string or null.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -108,7 +107,7 @@ final class LegacyTitledEnumSchemaTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsEmptyDescription(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('legacy titled enum schema "description" must be a non-empty string or null.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -117,7 +116,7 @@ final class LegacyTitledEnumSchemaTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonListEnumNames(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('legacy titled enum schema "enumNames" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
@@ -126,7 +125,7 @@ final class LegacyTitledEnumSchemaTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsEmptyEnumNamesEntry(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('each legacy titled enum schema "enumNames" must be a non-empty string.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -139,7 +138,7 @@ final class LegacyTitledEnumSchemaTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         LegacyTitledEnumSchema::fromArray($payload);

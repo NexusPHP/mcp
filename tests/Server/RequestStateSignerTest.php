@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Server;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Server\RequestStateSigner;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -180,7 +179,7 @@ final class RequestStateSignerTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsAnEmptySecret(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('The request-state signing secret must be a non-empty string.');
 
         new RequestStateSigner('');
@@ -188,7 +187,7 @@ final class RequestStateSignerTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsAnUnavailableAlgorithm(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('The request-state signing algorithm "rot13" is not available.');
 
         new RequestStateSigner('secret', 'rot13');

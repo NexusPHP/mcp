@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Extension\Apps\Server;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Annotations;
 use Nexus\Mcp\Extension\Apps\Schema\UiResourceCsp;
 use Nexus\Mcp\Extension\Apps\Schema\UiResourceMeta;
@@ -92,7 +91,7 @@ final class UiResourceTest extends AbstractMcpTestCase
 
     public function testRejectsAUriOutsideTheUiScheme(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('UI resource "uri" must start with "ui://".');
 
         new UiResource(name: 'panel', uri: 'https://example.com/panel');

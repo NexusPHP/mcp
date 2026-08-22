@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\RequestParams;
 
 use Nexus\Assert\Assert;
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\JsonRpc\MessageDiscriminator;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\RequestMetaObject;
@@ -157,7 +156,7 @@ final readonly class CompleteRequestParams extends RequestParams
     /**
      * @param array<string, mixed> $data
      *
-     * @throws ExpectationFailedException
+     * @throws \InvalidArgumentException
      */
     private static function dispatchRef(array $data): PromptReference|ResourceTemplateReference
     {

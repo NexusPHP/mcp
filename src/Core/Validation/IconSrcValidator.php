@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Validation;
 
 use Nexus\Assert\Assert;
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Icon;
 
 /**
@@ -30,7 +29,7 @@ final class IconSrcValidator
      * @param null|list<Icon>  $icons
      * @param non-empty-string $context Label prefix for the error message (e.g. "tool")
      *
-     * @throws ExpectationFailedException
+     * @throws \InvalidArgumentException
      */
     public static function validate(?array $icons, string $context): void
     {

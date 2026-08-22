@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Validation;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Validation\IdentifierNameValidator;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -63,7 +62,7 @@ final class IdentifierNameValidatorTest extends AbstractMcpTestCase
     #[DataProvider('provideRejectsInvalidNameCases')]
     public function testRejectsInvalidName(string $name): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageMatches('/\Aresource "name" must be 1-128 characters/');
 
         IdentifierNameValidator::validate($name, 'resource "name"');
@@ -105,7 +104,7 @@ final class IdentifierNameValidatorTest extends AbstractMcpTestCase
     #[DataProvider('provideContextPrefixAppearsInErrorMessageCases')]
     public function testContextPrefixAppearsInErrorMessage(string $name, string $context, string $messagePattern): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageMatches($messagePattern);
 
         IdentifierNameValidator::validate($name, $context);

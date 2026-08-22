@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\RequestParams;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitResult;
 use Nexus\Mcp\Core\Schema\Enum\ElicitAction;
 use Nexus\Mcp\Core\Schema\ProgressToken;
@@ -152,7 +151,7 @@ final class CallToolRequestParamsTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsAnEmptyName(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"params.name" must be a non-empty string, string given.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -248,7 +247,7 @@ final class CallToolRequestParamsTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonObjectInputResponseEntry(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('each "params.inputResponses" entry must be an InputResponse, string given.');
 
         // @phpstan-ignore argument.type
@@ -257,7 +256,7 @@ final class CallToolRequestParamsTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsListKeyedInputResponseEntry(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('each "params.inputResponses" entry must be an InputResponse, array given.');
 
         // @phpstan-ignore argument.type
@@ -270,7 +269,7 @@ final class CallToolRequestParamsTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         CallToolRequestParams::fromArray($payload);
@@ -349,7 +348,7 @@ final class CallToolRequestParamsTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsAnEmptyInputResponseKey(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('each "params.inputResponses" key must be an int or non-empty string.');
 
         new CallToolRequestParams(

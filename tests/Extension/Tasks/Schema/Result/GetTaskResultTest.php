@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Extension\Tasks\Schema\Result;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequest;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequestedSchema;
 use Nexus\Mcp\Core\Schema\Elicitation\StringSchema;
@@ -281,7 +280,7 @@ final class GetTaskResultTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsListShapedResultPayload(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"result.result" must be a string-keyed object.');
 
         new GetTaskResult(
@@ -296,7 +295,7 @@ final class GetTaskResultTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsListShapedErrorPayload(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"result.error" must be a string-keyed object.');
 
         new GetTaskResult(
@@ -330,7 +329,7 @@ final class GetTaskResultTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         GetTaskResult::fromArray($payload);
@@ -487,7 +486,7 @@ final class GetTaskResultTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsANonInputRequestEntry(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('each "result.inputRequests" entry must be an InputRequest, string given.');
 
         new GetTaskResult(
@@ -503,7 +502,7 @@ final class GetTaskResultTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsAnEmptyInputRequestKey(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('each "result.inputRequests" key must be an int or non-empty string.');
 
         new GetTaskResult(

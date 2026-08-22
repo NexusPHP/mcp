@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\NotificationParams;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\MetaObject\NotificationMetaObject;
 use Nexus\Mcp\Core\Schema\NotificationParams;
 use Nexus\Mcp\Core\Schema\NotificationParams\SubscriptionsAcknowledgedNotificationParams;
@@ -95,7 +94,7 @@ final class SubscriptionsAcknowledgedNotificationParamsTest extends AbstractMcpT
     #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         SubscriptionsAcknowledgedNotificationParams::fromArray($payload);

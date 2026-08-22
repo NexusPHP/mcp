@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Extension\Apps\Client;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Client\ClientBuilder;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\Result\ListToolsResult;
@@ -55,7 +54,7 @@ final class AppsClientExtensionTest extends AbstractMcpTestCase
 
     public function testRejectsANonListMimeTypeArray(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"mimeTypes" must be a list, array given.');
 
         // @phpstan-ignore argument.type
@@ -64,7 +63,7 @@ final class AppsClientExtensionTest extends AbstractMcpTestCase
 
     public function testRejectsAnEmptyMimeTypeList(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"mimeTypes" must not be empty.');
 
         new AppsClientExtension(mimeTypes: []);
@@ -72,7 +71,7 @@ final class AppsClientExtensionTest extends AbstractMcpTestCase
 
     public function testRejectsAMalformedMimeType(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('each "mimeTypes" must be a non-empty string, string given.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)

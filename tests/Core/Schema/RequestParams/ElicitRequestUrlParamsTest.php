@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\RequestParams;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestUrlParams;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -85,7 +84,7 @@ final class ElicitRequestUrlParamsTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsEmptyMessage(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"params.message" must be a non-empty string.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -94,7 +93,7 @@ final class ElicitRequestUrlParamsTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsEmptyUrl(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"params.url" must be a non-empty string.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -103,7 +102,7 @@ final class ElicitRequestUrlParamsTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsInvalidUrl(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"params.url" must be a valid URL.');
 
         new ElicitRequestUrlParams(message: 'm', mode: 'url', url: 'not a url');
@@ -111,7 +110,7 @@ final class ElicitRequestUrlParamsTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsWrongMode(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"params.mode" must be \'url\', \'form\' given.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -124,7 +123,7 @@ final class ElicitRequestUrlParamsTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         ElicitRequestUrlParams::fromArray($payload);

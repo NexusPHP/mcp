@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Validation;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Validation\MethodClassValidator;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\TestNotification;
@@ -39,7 +38,7 @@ final class MethodClassValidatorTest extends AbstractMcpTestCase
 
     public function testARequestClassDeclaringADifferentMethodIsRejected(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(
             'Request class "Nexus\Mcp\Tests\Fixtures\Core\TestRequest" must declare the method "acme/lookup" it is registered for, \'tests/test-request\' declared.',
         );
@@ -49,7 +48,7 @@ final class MethodClassValidatorTest extends AbstractMcpTestCase
 
     public function testANotificationClassDeclaringADifferentMethodIsRejected(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(
             'Notification class "Nexus\Mcp\Tests\Fixtures\Core\TestNotification" must declare the method "acme/ping" it is registered for, \'tests/test-notification\' declared.',
         );

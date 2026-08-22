@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\Result;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Cursor;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
@@ -164,7 +163,7 @@ final class ListPromptsResultTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonListPrompts(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"result.prompts" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type
@@ -173,7 +172,7 @@ final class ListPromptsResultTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonPromptElement(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
 
         // @phpstan-ignore argument.type
         new ListPromptsResult(prompts: [42], ttlMs: 0, cacheScope: CacheScope::Private);
@@ -181,7 +180,7 @@ final class ListPromptsResultTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNegativeTtl(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"result.ttlMs" must be a non-negative integer, -1 given.');
 
         new ListPromptsResult(prompts: [], ttlMs: -1, cacheScope: CacheScope::Private);
@@ -193,7 +192,7 @@ final class ListPromptsResultTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         ListPromptsResult::fromArray($payload);

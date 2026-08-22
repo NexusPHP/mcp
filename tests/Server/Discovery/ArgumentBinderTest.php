@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Discovery;
 
 use Amp\NullCancellation;
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Exception\LogicException;
 use Nexus\Mcp\Core\Schema\RequestId;
@@ -364,7 +363,7 @@ final class ArgumentBinderTest extends AbstractMcpTestCase
             $this->bind('requiredString', []);
         } catch (InvalidParamsException $e) {
             self::assertSame(7, $e->requestId?->id);
-            self::assertInstanceOf(ExpectationFailedException::class, $e->getPrevious());
+            self::assertInstanceOf(\InvalidArgumentException::class, $e->getPrevious());
 
             return;
         }

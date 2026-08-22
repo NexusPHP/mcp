@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\Prompt;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\ContentBlock\AudioContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\EmbeddedResource;
 use Nexus\Mcp\Core\Schema\ContentBlock\ImageContent;
@@ -139,7 +138,7 @@ final class PromptMessageTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         PromptMessage::fromArray($payload);

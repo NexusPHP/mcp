@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Auth;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Auth\MetadataReader;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -43,7 +42,7 @@ final class MetadataReaderTest extends AbstractMcpTestCase
     #[DataProvider('provideReadStringRejectsANonStringCases')]
     public function testReadStringRejectsANonString(mixed $value, string $type): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(\sprintf('Test Metadata "issuer" must be a non-empty string, %s given.', $type));
 
         MetadataReader::readString(['issuer' => $value], 'issuer', self::LABEL);
@@ -70,7 +69,7 @@ final class MetadataReaderTest extends AbstractMcpTestCase
 
     public function testReadRequiredStringRejectsAnAbsentField(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Test Metadata must carry a "issuer" value.');
 
         MetadataReader::readRequiredString([], 'issuer', self::LABEL);
@@ -97,7 +96,7 @@ final class MetadataReaderTest extends AbstractMcpTestCase
     #[DataProvider('provideReadStringListRejectsANonListCases')]
     public function testReadStringListRejectsANonList(mixed $value, string $type): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(\sprintf('Test Metadata "scopes_supported" must be a list, %s given.', $type));
 
         MetadataReader::readStringList(['scopes_supported' => $value], 'scopes_supported', self::LABEL);
@@ -117,7 +116,7 @@ final class MetadataReaderTest extends AbstractMcpTestCase
 
     public function testReadStringListRejectsANonStringEntry(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Test Metadata "scopes_supported" must hold only non-empty strings, int given.');
 
         MetadataReader::readStringList(['scopes_supported' => ['files:read', 42]], 'scopes_supported', self::LABEL);
@@ -141,7 +140,7 @@ final class MetadataReaderTest extends AbstractMcpTestCase
     #[DataProvider('provideReadIntRejectsANonIntegerCases')]
     public function testReadIntRejectsANonInteger(mixed $value, string $type): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(\sprintf('Test Metadata "expires_in" must be an integer, %s given.', $type));
 
         MetadataReader::readInt(['expires_in' => $value], 'expires_in', self::LABEL);
@@ -182,7 +181,7 @@ final class MetadataReaderTest extends AbstractMcpTestCase
 
     public function testReadBoolRejectsANonBoolean(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Test Metadata "client_id_metadata_document_supported" must be a boolean, string given.');
 
         MetadataReader::readBool(['client_id_metadata_document_supported' => 'true'], 'client_id_metadata_document_supported', self::LABEL);
@@ -227,7 +226,7 @@ final class MetadataReaderTest extends AbstractMcpTestCase
 
     public function testReadErrorFieldRejectsANonString(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Test Metadata "error_description" must be a non-empty string, int given.');
 
         MetadataReader::readErrorField(['error_description' => 5], 'error_description', self::LABEL);

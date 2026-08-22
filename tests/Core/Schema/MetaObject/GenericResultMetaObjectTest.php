@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\MetaObject;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
@@ -108,7 +107,7 @@ final class GenericResultMetaObjectTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsAMalformedServerInfoCases')]
     public function testFromArrayRejectsAMalformedServerInfo(mixed $value, string $message): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($message);
 
         GenericResultMetaObject::fromArray([ResultMetaObject::SERVER_INFO_KEY => $value]);

@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Server\Validation;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Server\Validation\SchemaViolation;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -64,7 +63,7 @@ final class SchemaViolationTest extends AbstractMcpTestCase
     #[DataProvider('provideAPointerOffTheRfc6901GrammarIsRefusedCases')]
     public function testAPointerOffTheRfc6901GrammarIsRefused(string $pointer): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(\sprintf('Schema violation pointer must be an RFC 6901 JSON pointer, \'%s\' given.', $pointer));
 
         new SchemaViolation($pointer, 'x');
@@ -86,7 +85,7 @@ final class SchemaViolationTest extends AbstractMcpTestCase
 
     public function testAnEmptyMessageIsRefused(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Schema violation message must be a non-empty string, string given.');
 
         // @phpstan-ignore argument.type

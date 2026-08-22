@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\JsonRpc;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Resource\BlobResourceContents;
 use Nexus\Mcp\Core\Schema\Resource\ResourceContents;
 use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
@@ -31,7 +30,7 @@ final class ResourceContentsDispatcher
      *
      * @return BlobResourceContents|TextResourceContents
      *
-     * @throws ExpectationFailedException
+     * @throws \InvalidArgumentException
      */
     public static function fromArray(array $data, string $context): ResourceContents
     {
@@ -39,10 +38,7 @@ final class ResourceContentsDispatcher
         $hasBlob = \array_key_exists('blob', $data);
 
         if ($hasText && $hasBlob) {
-            throw new ExpectationFailedException(
-                '{context} data must not have both "text" and "blob".',
-                ['context' => $context],
-            );
+            throw new \InvalidArgumentException(\sprintf('%s data must not have both "text" and "blob".', $context));
         }
 
         if ($hasText) {
@@ -53,9 +49,6 @@ final class ResourceContentsDispatcher
             return BlobResourceContents::fromArray($data);
         }
 
-        throw new ExpectationFailedException(
-            '{context} data must have either "text" or "blob".',
-            ['context' => $context],
-        );
+        throw new \InvalidArgumentException(\sprintf('%s data must have either "text" or "blob".', $context));
     }
 }

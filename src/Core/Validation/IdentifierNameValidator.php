@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Validation;
 
 use Nexus\Assert\Assert;
-use Nexus\Assert\ExpectationFailedException;
 
 /**
  * Enforces the format the spec recommends for every handle the SDK authors, never on a decode path since
@@ -31,7 +30,7 @@ final class IdentifierNameValidator
      *
      * @phpstan-assert non-empty-string $name
      *
-     * @throws ExpectationFailedException
+     * @throws \InvalidArgumentException
      */
     public static function validate(string $name, string $context): void
     {

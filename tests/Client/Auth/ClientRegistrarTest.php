@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Client\Auth;
 
 use Amp\NullCancellation;
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Client\Auth\AuthorizationOptions;
 use Nexus\Mcp\Client\Auth\ClientRegistrar;
 use Nexus\Mcp\Client\Auth\ClientRegistration;
@@ -289,7 +288,7 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
 
     public function testRegistrationWithoutARedirectUriIsRefused(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Dynamic Client Registration needs a redirect URI, and the authorization options carry none.');
 
         self::resolve(
@@ -326,7 +325,7 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())->willAnswerJson([]);
 
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Client registration response must carry a "client_id" value.');
 
         self::resolve($http, self::metadata(registrationEndpoint: 'https://auth.example.com/register'), self::options());

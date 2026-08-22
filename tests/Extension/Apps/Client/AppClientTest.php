@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Extension\Apps\Client;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Client\Client;
 use Nexus\Mcp\Client\ClientBuilder;
 use Nexus\Mcp\Core\Exception\RuntimeException;
@@ -91,7 +90,7 @@ final class AppClientTest extends AbstractMcpTestCase
         [$app] = self::buildAppClient();
         $tool = self::buildTool(['ui' => 'ui://demo/panel']);
 
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('tool "_meta.ui" must be an array, string given.');
 
         $app->resolveToolMeta($tool);
@@ -102,7 +101,7 @@ final class AppClientTest extends AbstractMcpTestCase
         [$app] = self::buildAppClient();
         $tool = self::buildTool(['ui/resourceUri' => 123]);
 
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('tool "_meta" key "ui/resourceUri" must be a non-empty string, int given.');
 
         $app->resolveToolMeta($tool);
@@ -156,7 +155,7 @@ final class AppClientTest extends AbstractMcpTestCase
             meta: new PayloadMetaObject(extras: ['ui' => [true]]),
         );
 
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('resource "_meta.ui" must be a string-keyed object.');
 
         $app->resolveResourceMeta($resource);
@@ -367,7 +366,7 @@ final class AppClientTest extends AbstractMcpTestCase
     {
         [$app] = self::buildAppClient();
 
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('UI resource "uri" must start with "ui://".');
 
         $app->readAppResource('https://example.com/panel');
@@ -375,7 +374,7 @@ final class AppClientTest extends AbstractMcpTestCase
 
     public function testRejectsANonListMimeTypeArray(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"mimeTypes" must be a list, array given.');
 
         // @phpstan-ignore argument.type
@@ -384,7 +383,7 @@ final class AppClientTest extends AbstractMcpTestCase
 
     public function testRejectsAnEmptyMimeTypeList(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"mimeTypes" must not be empty.');
 
         new AppClient(self::buildBareClient(), mimeTypes: []);
@@ -392,7 +391,7 @@ final class AppClientTest extends AbstractMcpTestCase
 
     public function testRejectsAMalformedMimeType(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('each "mimeTypes" must be a non-empty string, string given.');
 
         // @phpstan-ignore argument.type

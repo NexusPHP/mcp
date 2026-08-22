@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Client\Auth;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Client\Auth\AuthorizationRedirect;
 use Nexus\Mcp\Client\Auth\AuthorizationRequest;
 use Nexus\Mcp\Client\Auth\PkcePair;
@@ -123,7 +122,7 @@ final class AuthorizationRequestTest extends AbstractMcpTestCase
 
     public function testBuildRejectsAServerWithNoAuthorizationEndpoint(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" publishes no authorization endpoint.');
 
         AuthorizationRequest::build(

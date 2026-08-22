@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\JsonRpc;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\JsonRpc\ContentBlockDispatcher;
 use Nexus\Mcp\Core\Schema\ContentBlock\AudioContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\EmbeddedResource;
@@ -64,7 +63,7 @@ final class ContentBlockDispatcherTest extends AbstractMcpTestCase
 
     public function testFromArrayRejectsUnknownType(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('prompt message "content" "type" must be one of "text", "image", "audio", "resource_link", "resource", \'unknown\' given.');
 
         ContentBlockDispatcher::fromArray(['type' => 'unknown'], 'prompt message "content"');
@@ -72,7 +71,7 @@ final class ContentBlockDispatcherTest extends AbstractMcpTestCase
 
     public function testFromArrayPropagatesContextToReadType(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('CallToolResult content data missing "type".');
 
         ContentBlockDispatcher::fromArray(['text' => 'oops'], 'CallToolResult content');

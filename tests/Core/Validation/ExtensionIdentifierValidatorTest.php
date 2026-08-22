@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Validation;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Validation\ExtensionIdentifierValidator;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -61,7 +60,7 @@ final class ExtensionIdentifierValidatorTest extends AbstractMcpTestCase
     #[DataProvider('provideInvalidIdentifierIsRejectedCases')]
     public function testInvalidIdentifierIsRejected(string $identifier, string $exported): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(\sprintf(
             'Extension identifier must be "{vendor-prefix}/{name}" following the "_meta" key grammar with a mandatory prefix, %s given.',
             $exported,

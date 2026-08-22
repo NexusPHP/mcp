@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Extension\Apps\Schema;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Extension\Apps\Schema\UiResourcePermissions;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -79,7 +78,7 @@ final class UiResourcePermissionsTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsANonObjectValueCases')]
     public function testFromArrayRejectsANonObjectValue(mixed $value, string $slot, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         UiResourcePermissions::fromArray([$slot => $value]);

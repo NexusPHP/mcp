@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Extension\Tasks\Schema\RequestParams;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitResult;
 use Nexus\Mcp\Core\Schema\Enum\ElicitAction;
 use Nexus\Mcp\Core\Schema\RequestParams;
@@ -155,7 +154,7 @@ final class UpdateTaskRequestParamsTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonResponseEntry(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('each "params.inputResponses" entry must be an InputResponse or an object, string given.');
 
         // @phpstan-ignore argument.type
@@ -164,7 +163,7 @@ final class UpdateTaskRequestParamsTest extends AbstractMcpTestCase
 
     public function testConstructorValidatesEntriesAfterAnInputResponse(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('each "params.inputResponses" entry must be an InputResponse or an object, string given.');
 
         new UpdateTaskRequestParams(
@@ -177,7 +176,7 @@ final class UpdateTaskRequestParamsTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsAListKeyedRawEntry(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('each "params.inputResponses" entry must be an InputResponse or a string-keyed object.');
 
         // @phpstan-ignore argument.type
@@ -190,7 +189,7 @@ final class UpdateTaskRequestParamsTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         UpdateTaskRequestParams::fromArray($payload);
@@ -258,7 +257,7 @@ final class UpdateTaskRequestParamsTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsAnEmptyInputResponseKey(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('each "params.inputResponses" key must be an int or non-empty string.');
 
         new UpdateTaskRequestParams(

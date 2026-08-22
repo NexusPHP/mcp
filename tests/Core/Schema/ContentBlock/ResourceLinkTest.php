@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Schema\ContentBlock;
 
-use Nexus\Assert\ExpectationFailedException;
 use Nexus\Mcp\Core\Schema\Annotations;
 use Nexus\Mcp\Core\Schema\BaseMetadata;
 use Nexus\Mcp\Core\Schema\ContentBlock\ResourceLink;
@@ -169,7 +168,7 @@ final class ResourceLinkTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsUriViolatingRfc3986(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageMatches('/\Aresource link "uri" must be a valid RFC 3986/');
 
         new ResourceLink(name: 'my-link', uri: 'not-a-uri');
@@ -177,7 +176,7 @@ final class ResourceLinkTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsEmptyDescription(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('resource link "description" must be a non-empty string or null.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -186,7 +185,7 @@ final class ResourceLinkTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsEmptyMimeType(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('resource link "mimeType" must be a non-empty string or null.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
@@ -195,7 +194,7 @@ final class ResourceLinkTest extends AbstractMcpTestCase
 
     public function testConstructorRejectsNonIconElement(): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
 
         // @phpstan-ignore argument.type
         new ResourceLink(name: 'my-link', uri: 'file:///tmp/x', icons: [42]);
@@ -207,7 +206,7 @@ final class ResourceLinkTest extends AbstractMcpTestCase
     #[DataProvider('provideFromArrayRejectsInvalidInputCases')]
     public function testFromArrayRejectsInvalidInput(array $payload, string $expectedMessage): void
     {
-        $this->expectException(ExpectationFailedException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
         ResourceLink::fromArray($payload);
