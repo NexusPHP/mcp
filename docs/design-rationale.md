@@ -61,6 +61,13 @@ Schema classes are value objects locked to the MCP shape. Internal micro-DRY is 
 abstraction layer over byte-identical, spec-fixed structures. Spec-covered edge cases are treated as required, not
 optional: failed discovery, malformed envelopes, and out-of-order notifications.
 
+## Liberal decode, conservative authoring
+
+Where the spec leaves a field wider than good practice, the SDK decodes the full spec shape and holds the narrow
+form only where it authors the value itself. A peer's one odd value must not make the envelope it rides in
+undecodable, and the judgement about what to do with that value belongs to the host that renders, opens, or
+otherwise acts on it.
+
 ## Empty optional strings are absent
 
 The spec types most optional descriptive strings as `?: string`, so an empty string is technically a legal value.
