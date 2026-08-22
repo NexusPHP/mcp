@@ -19,6 +19,7 @@ use Amp\Http\Client\Interceptor\TooManyRedirectsException;
 use Amp\Http\Client\Request;
 use Amp\Http\Client\Response;
 use Amp\NullCancellation;
+use Amp\Sync\Semaphore;
 use Nexus\Mcp\Client\Auth\AccessToken;
 use Nexus\Mcp\Client\Auth\AuthorizationOptions;
 use Nexus\Mcp\Client\Auth\AuthorizedHttpClient;
@@ -28,6 +29,7 @@ use Nexus\Mcp\Client\Auth\InsufficientScopePolicy;
 use Nexus\Mcp\Client\Exception\InsufficientScopeException;
 use Nexus\Mcp\Client\Exception\RedirectRefusedException;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
+use Nexus\Mcp\Tests\Fixtures\Client\Auth\RetainingSemaphore;
 use Nexus\Mcp\Tests\Fixtures\Client\Auth\ScriptedGrantStrategy;
 use Nexus\Mcp\Tests\Fixtures\Client\Auth\ScriptedUserAuthorization;
 use Nexus\Mcp\Tests\Fixtures\Client\Http\DelegatingInterceptor;
@@ -1091,6 +1093,27 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
         self::assertSame('Bearer the-renewed-token', $http->readRequest(4)->getHeader('Authorization'));
     }
 
+    public function testARenewalHoldsTheInjectedLock(): void
+    {
+        $tokens = new InMemoryTokenStore();
+        $tokens->write(self::RESOURCE, new AccessToken('the-stored-token', 'https://auth.test', time() - 1, 'the-refresh-token'));
+        $http = (new RecordingHttpClient())
+            ->willAnswerJson($this->buildResourceDocument())
+            ->willAnswerJson($this->buildServerDocument())
+            ->willAnswerJson(['client_id' => 'the-client'])
+            ->willAnswerJson(['access_token' => 'the-renewed-token', 'token_type' => 'Bearer'])
+            ->willAnswerJson(['ok' => true])
+        ;
+        $semaphore = new RetainingSemaphore();
+
+        $response = $this->buildClient($http, null, $tokens, lock: $semaphore)->request($this->buildMcpRequest(), new NullCancellation());
+
+        self::assertSame(200, $response->getStatus());
+        self::assertCount(1, $semaphore->minted, 'The renewal must take the caller-supplied permit, not a private one.');
+        self::assertSame(1, $semaphore->released);
+        self::assertFalse($semaphore->isHeld());
+    }
+
     public function testATokenWellClearOfTheLeewayIsPresentedAsItIs(): void
     {
         $tokens = new InMemoryTokenStore();
@@ -1223,6 +1246,7 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
         ?ArrayLogger $logger = null,
         int $maxScopeUpgrades = 2,
         InsufficientScopePolicy $policy = InsufficientScopePolicy::Reauthorize,
+        ?Semaphore $lock = null,
     ): AuthorizedHttpClient {
         return new AuthorizedHttpClient(
             self::RESOURCE,
@@ -1237,6 +1261,7 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
             $tokens,
             $registrations,
             $logger ?? new ArrayLogger(),
+            lock: $lock,
         );
     }
 

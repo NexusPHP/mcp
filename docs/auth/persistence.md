@@ -33,3 +33,14 @@ A registration the authorization server stops recognising is dropped from the st
 An expired one heals on the next request instead of bricking the client.
 
 Store both confidentially. They are credentials.
+
+## Sharing a store across workers
+
+Grants and renewals run under a lock so that one client never redeems a refresh token twice. That lock is an
+`Amp\Sync\Semaphore`, and the default spans one process only. Two workers sharing a persisted token store can
+therefore both renew the same token, which an authorization server with reuse detection treats as theft and
+answers by revoking the whole grant.
+
+Pass a cross-process semaphore as the `lock` argument of `AuthorizedHttpClient` whenever the store is shared, for
+example `Amp\Sync\PosixSemaphore`. Holding it, a worker re-reads the store before renewing, so the second worker
+finds the token the first one just obtained and presents it instead.
