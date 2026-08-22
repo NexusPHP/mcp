@@ -75,7 +75,7 @@ $endpoint = new SecuredHttpEndpoint(
     responseFactory: $factory,
     streamFactory: $factory,
     allowedHosts: ['mcp.example.com'],             // optional, beyond-spec
-    maxBodyBytes: 1_048_576,                       // optional
+    maxBodyBytes: 1_048_576,                       // optional, the default, null for no cap
     toolStore: $tools,                             // required if any tool declares x-mcp-header
     authentication: $bearerMiddleware,             // optional, makes this an OAuth resource server
 );
@@ -111,7 +111,7 @@ run outermost-first in this order:
 | `CorsMiddleware` | `204` to a preflight | Beyond-spec. Reflects an allowed `Origin`, and always emits the `Vary` keys it turns on so a shared cache cannot replay one origin's answer to another. |
 | `DnsRebindingProtectionMiddleware` | `403` | The spec's `Origin` MUST. Also carries an opt-in `Host` allow-list. Both match case-insensitively. |
 | Your `authentication` middleware | `401` | Added only when you pass one. `BearerAuthenticationMiddleware` is the bundled implementation. It runs before anything reads the body, so an unauthorized request is turned away unparsed. See [authorization](../authorization.md). |
-| `RequestBodySizeLimitMiddleware` | `413` | Added only when you pass a cap. It runs above every stage below it that reads the body, so an oversized one is refused before it is buffered or decoded. A body whose size the host does not report is read only up to one byte past the cap, so it is held to the same limit without being buffered. |
+| `RequestBodySizeLimitMiddleware` | `413` | Caps the body at `SecuredHttpEndpoint::DEFAULT_MAX_BODY_BYTES` (1 MiB) unless you pass another cap, or `null` for none. It runs above every stage below it that reads the body, so an oversized one is refused before it is buffered or decoded. A body whose size the host does not report is read only up to one byte past the cap, so it is held to the same limit without being buffered. |
 | `ParameterHeaderValidationMiddleware` | `400` `-32020` | The spec's server-side `Mcp-Param-{Name}` MUST. Added only when you pass a tool store. Bindings are cached, and the cache is dropped whenever the store reports a list change. It buffers the body once and re-seats it, so a host whose body stream cannot rewind still delivers a whole envelope to the transport. |
 
 To compose your own order, or to add middleware of your own, use `MiddlewarePipeline` directly:

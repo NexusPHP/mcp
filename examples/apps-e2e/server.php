@@ -137,7 +137,6 @@ $endpoint = new SecuredHttpEndpoint(
     responseFactory: $psr17,
     streamFactory: $psr17,
     allowedHosts: [APPS_SERVER_ADDRESS, 'localhost:8941'],
-    maxBodyBytes: 1_048_576,
     logger: $logger,
 );
 

@@ -112,11 +112,25 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
         self::assertSame(413, $response->getStatusCode());
     }
 
-    public function testOmitsTheBodySizeCapByDefault(): void
+    public function testCapsTheBodyAtOneMebibyteByDefault(): void
+    {
+        $handler = self::handler();
+        $endpoint = self::endpoint($handler, ['*']);
+
+        self::assertSame(200, $endpoint->handle(self::request(null, 1_048_576))->getStatusCode());
+        self::assertTrue($handler->called);
+
+        $handler->called = false;
+
+        self::assertSame(413, $endpoint->handle(self::request(null, 1_048_577))->getStatusCode());
+        self::assertFalse($handler->called);
+    }
+
+    public function testANullCapDisablesTheBodySizeLimit(): void
     {
         $handler = self::handler();
 
-        $response = self::endpoint($handler, ['*'])->handle(self::request(null, 2_048));
+        $response = self::endpoint($handler, ['*'], maxBodyBytes: null)->handle(self::request(null, 1_048_577));
 
         self::assertTrue($handler->called);
         self::assertSame(200, $response->getStatusCode());
@@ -227,7 +241,7 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
         RecordingRequestHandler $handler,
         array $allowedOrigins,
         array $allowedHosts = [],
-        ?int $maxBodyBytes = null,
+        ?int $maxBodyBytes = SecuredHttpEndpoint::DEFAULT_MAX_BODY_BYTES,
         ?ToolStoreInterface $toolStore = null,
         ?BearerAuthenticationMiddleware $authentication = null,
     ): SecuredHttpEndpoint {

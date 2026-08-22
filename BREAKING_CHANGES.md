@@ -6,6 +6,13 @@ for *when* breaking changes may land and how they are communicated lives in
 
 ## v0.15.0 to Unreleased
 
+### `SecuredHttpEndpoint` caps the request body at 1 MiB by default
+
+`maxBodyBytes` defaulted to `null`, so the recommended middleware stack shipped without a body cap and relied on
+the host's own limit. It now defaults to `SecuredHttpEndpoint::DEFAULT_MAX_BODY_BYTES` (1 MiB), and a larger
+body is refused with `413`. A deployment that accepts larger bodies passes its own cap, or `null` to restore the
+uncapped behaviour.
+
 ### `InMemoryTaskStore` holds at most 10 000 records
 
 A `null` ttl retained every record forever, and every `createTask()` swept the whole store. The store now takes
