@@ -135,9 +135,8 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
 
         $transport->handle($this->makePost('{not json}'));
 
-        $matches = $logger->recordsMatching(LogLevel::WARNING, '{label} transport rejected a malformed JSON body.');
+        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Streamable HTTP server transport rejected a malformed JSON body.');
         self::assertCount(1, $matches);
-        self::assertSame('Streamable HTTP server', $matches[0]['context']['label'] ?? null);
         self::assertInstanceOf(\JsonException::class, $matches[0]['context']['exception'] ?? null);
         self::assertCount(1, $errors);
         self::assertInstanceOf(\JsonException::class, $errors[0]);
@@ -154,9 +153,8 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
 
         $transport->handle($this->makePost('[1,2,3]'));
 
-        $matches = $logger->recordsMatching(LogLevel::WARNING, '{label} transport rejected a non-object envelope.');
+        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Streamable HTTP server transport rejected a non-object envelope.');
         self::assertCount(1, $matches);
-        self::assertSame('Streamable HTTP server', $matches[0]['context']['label'] ?? null);
         self::assertInstanceOf(\InvalidArgumentException::class, $matches[0]['context']['exception'] ?? null);
         self::assertCount(1, $errors);
         self::assertInstanceOf(\InvalidArgumentException::class, $errors[0]);
@@ -426,9 +424,9 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
 
         self::assertSame(202, $response->getStatusCode());
         self::assertSame([], $received, 'A foreign id space must never reach the cancellation registry.');
-        $records = $logger->recordsMatching(LogLevel::DEBUG, '{label} transport ignored a client cancellation notification: the response stream is the signal on this transport.');
+        $records = $logger->recordsMatching(LogLevel::DEBUG, 'Streamable HTTP server transport ignored a client cancellation notification: the response stream is the signal on this transport.');
         self::assertCount(1, $records);
-        self::assertSame(['label' => 'Streamable HTTP server'], $records[0]['context']);
+        self::assertSame([], $records[0]['context']);
     }
 
     public function testValidNotificationIsEmittedAndAcceptedWith202(): void
@@ -899,10 +897,10 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
 
         $transport->send(new ToolListChangedNotification(params: new EmptyNotificationParams()));
 
-        $records = $logger->recordsMatching(LogLevel::DEBUG, '{label} transport dropped a notification with no related request to stream it to.');
+        $records = $logger->recordsMatching(LogLevel::DEBUG, 'Streamable HTTP server transport dropped a notification with no related request to stream it to.');
         self::assertCount(1, $records);
-        self::assertSame(['label' => 'Streamable HTTP server'], $records[0]['context']);
-        self::assertCount(0, $logger->recordsMatching(LogLevel::WARNING, '{label} transport dropped an unexpected server-initiated request.'));
+        self::assertSame([], $records[0]['context']);
+        self::assertCount(0, $logger->recordsMatching(LogLevel::WARNING, 'Streamable HTTP server transport dropped an unexpected server-initiated request.'));
     }
 
     public function testSendDropsServerInitiatedRequest(): void
@@ -915,9 +913,9 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
             params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create()),
         ));
 
-        $records = $logger->recordsMatching(LogLevel::WARNING, '{label} transport dropped an unexpected server-initiated request.');
+        $records = $logger->recordsMatching(LogLevel::WARNING, 'Streamable HTTP server transport dropped an unexpected server-initiated request.');
         self::assertCount(1, $records);
-        self::assertSame(['label' => 'Streamable HTTP server'], $records[0]['context']);
+        self::assertSame([], $records[0]['context']);
     }
 
     public function testSendDropsResponseWithoutAnId(): void
@@ -927,10 +925,10 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
 
         $transport->send(new JsonRpcErrorResponse(id: null, error: new InternalError(message: 'boom')));
 
-        $records = $logger->recordsMatching(LogLevel::WARNING, '{label} transport discarded a response that carries no id to correlate.');
+        $records = $logger->recordsMatching(LogLevel::WARNING, 'Streamable HTTP server transport discarded a response that carries no id to correlate.');
         self::assertCount(1, $records);
-        self::assertSame(['label' => 'Streamable HTTP server'], $records[0]['context']);
-        self::assertCount(0, $logger->recordsMatching(LogLevel::WARNING, '{label} transport dropped an unexpected server-initiated request.'));
+        self::assertSame([], $records[0]['context']);
+        self::assertCount(0, $logger->recordsMatching(LogLevel::WARNING, 'Streamable HTTP server transport dropped an unexpected server-initiated request.'));
     }
 
     #[DataProvider('provideAThrowingListenerUnwindsItsSinkCases')]
@@ -951,9 +949,9 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
 
         $transport->send(new JsonRpcErrorResponse(id: new RequestId(id: 1), error: new InternalError(message: 'boom')));
 
-        $records = $logger->recordsMatching(LogLevel::WARNING, '{label} transport discarded an orphan response with no in-flight request.');
+        $records = $logger->recordsMatching(LogLevel::WARNING, 'Streamable HTTP server transport discarded an orphan response with no in-flight request.');
         self::assertCount(1, $records, 'A sink left registered by a throwing listener would route this response instead of orphaning it.');
-        self::assertSame(['label' => 'Streamable HTTP server'], $records[0]['context']);
+        self::assertSame([], $records[0]['context']);
     }
 
     /**
@@ -981,9 +979,9 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
         self::assertSame(ProtocolErrorCode::InternalError->value, $this->readErrorPayload($response)['code'] ?? null);
         self::assertSame('The response could not be encoded.', $this->readErrorPayload($response)['message'] ?? null);
 
-        $records = $logger->recordsMatching(LogLevel::ERROR, '{label} transport replaced a response JSON cannot encode with an internal error: {reason}.');
+        $records = $logger->recordsMatching(LogLevel::ERROR, 'Streamable HTTP server transport replaced a response JSON cannot encode with an internal error: {reason}.');
         self::assertCount(1, $records);
-        self::assertSame(['label' => 'Streamable HTTP server', 'reason' => 'Malformed UTF-8 characters, possibly incorrectly encoded'], $records[0]['context']);
+        self::assertSame(['reason' => 'Malformed UTF-8 characters, possibly incorrectly encoded'], $records[0]['context']);
     }
 
     public function testAStreamedResponseJsonCannotEncodeIsFramedAsAnInternalError(): void
@@ -1133,7 +1131,7 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
 
         self::assertCount(
             1,
-            $logger->recordsMatching(LogLevel::WARNING, '{label} transport discarded an orphan response with no in-flight request.'),
+            $logger->recordsMatching(LogLevel::WARNING, 'Streamable HTTP server transport discarded an orphan response with no in-flight request.'),
             'A sink registered before its response was built would route this into a stream nobody holds.',
         );
     }
@@ -1323,8 +1321,8 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
 
         $transport->send(new JsonRpcErrorResponse(id: new RequestId(id: $id), error: new InternalError(message: 'boom')));
 
-        self::assertCount(1, $logger->recordsMatching(LogLevel::WARNING, '{label} transport discarded an orphan response with no in-flight request.'));
-        self::assertCount(0, $logger->recordsMatching(LogLevel::WARNING, '{label} transport dropped an unexpected server-initiated request.'));
+        self::assertCount(1, $logger->recordsMatching(LogLevel::WARNING, 'Streamable HTTP server transport discarded an orphan response with no in-flight request.'));
+        self::assertCount(0, $logger->recordsMatching(LogLevel::WARNING, 'Streamable HTTP server transport dropped an unexpected server-initiated request.'));
     }
 
     /**
@@ -1381,9 +1379,9 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
         $logger = new ArrayLogger();
         $this->makeTransport($logger);
 
-        $matches = $logger->recordsMatching(LogLevel::INFO, '{label} transport started.');
+        $matches = $logger->recordsMatching(LogLevel::INFO, 'Streamable HTTP server transport started.');
         self::assertCount(1, $matches);
-        self::assertSame(['label' => 'Streamable HTTP server'], $matches[0]['context']);
+        self::assertSame([], $matches[0]['context']);
     }
 
     public function testCloseLogsTheClosureOnce(): void
@@ -1394,9 +1392,9 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
         $transport->close();
         $transport->close();
 
-        $matches = $logger->recordsMatching(LogLevel::INFO, '{label} transport closed.');
+        $matches = $logger->recordsMatching(LogLevel::INFO, 'Streamable HTTP server transport closed.');
         self::assertCount(1, $matches);
-        self::assertSame(['label' => 'Streamable HTTP server'], $matches[0]['context']);
+        self::assertSame([], $matches[0]['context']);
     }
 
     public function testAConcurrentCloseStillReturnsWhenACloseListenerThrows(): void
@@ -1656,9 +1654,9 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
         self::assertSame(200, $response->getStatusCode());
         self::assertSame('application/json', $response->getHeaderLine('Content-Type'));
         self::assertArrayHasKey('result', $this->decode($response));
-        $records = $logger->recordsMatching(LogLevel::DEBUG, '{label} transport dropped a notification: the JSON response mode cannot stream it.');
+        $records = $logger->recordsMatching(LogLevel::DEBUG, 'Streamable HTTP server transport dropped a notification: the JSON response mode cannot stream it.');
         self::assertCount(1, $records);
-        self::assertSame(['label' => 'Streamable HTTP server'], $records[0]['context']);
+        self::assertSame([], $records[0]['context']);
     }
 
     public function testStreamEmitsKeepAliveFramesWhileTheHandlerIsBusy(): void
@@ -1686,12 +1684,12 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
 
         self::assertSame(
             [],
-            $logger->recordsMatching(LogLevel::WARNING, '{label} transport discarded an orphan response with no in-flight request.'),
+            $logger->recordsMatching(LogLevel::WARNING, 'Streamable HTTP server transport discarded an orphan response with no in-flight request.'),
             'A disconnect cancels the request, so no response is produced for the transport to orphan.',
         );
-        $records = $logger->recordsMatching(LogLevel::DEBUG, '{label} transport dropped a notification for a request that is no longer in flight.');
+        $records = $logger->recordsMatching(LogLevel::DEBUG, 'Streamable HTTP server transport dropped a notification for a request that is no longer in flight.');
         self::assertCount(1, $records);
-        self::assertSame(['label' => 'Streamable HTTP server'], $records[0]['context']);
+        self::assertSame([], $records[0]['context']);
     }
 
     public function testAGracefullyEndedStreamDoesNotCancelAnything(): void
@@ -1813,9 +1811,9 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
         })->await();
 
         self::assertCount(1, $cancelled, 'An overflowed stream abandons its request as a disconnect would.');
-        $records = $logger->recordsMatching(LogLevel::WARNING, '{label} transport abandoned a stream whose reader fell at least {limit} bytes behind.');
+        $records = $logger->recordsMatching(LogLevel::WARNING, 'Streamable HTTP server transport abandoned a stream whose reader fell at least {limit} bytes behind.');
         self::assertCount(1, $records);
-        self::assertSame(['label' => 'Streamable HTTP server', 'limit' => 1], $records[0]['context']);
+        self::assertSame(['limit' => 1], $records[0]['context']);
     }
 
     public function testAStreamWhoseReaderKeepsUpIsNotAbandoned(): void

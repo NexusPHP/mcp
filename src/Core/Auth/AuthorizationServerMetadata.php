@@ -21,8 +21,6 @@ namespace Nexus\Mcp\Core\Auth;
  */
 final readonly class AuthorizationServerMetadata
 {
-    private const string LABEL = 'Authorization Server Metadata';
-
     /**
      * @param non-empty-string            $issuer
      * @param null|non-empty-string       $authorizationEndpoint
@@ -55,21 +53,22 @@ final readonly class AuthorizationServerMetadata
      */
     public static function fromArray(array $data): self
     {
-        $scopes = MetadataReader::readStringList($data, 'scopes_supported', self::LABEL);
+        $reader = new MetadataReader('Authorization Server Metadata');
+        $scopes = $reader->readStringList($data, 'scopes_supported');
 
         return new self(
-            MetadataReader::readRequiredString($data, 'issuer', self::LABEL),
-            MetadataReader::readString($data, 'authorization_endpoint', self::LABEL),
-            MetadataReader::readString($data, 'token_endpoint', self::LABEL),
-            MetadataReader::readString($data, 'registration_endpoint', self::LABEL),
+            $reader->readRequiredString($data, 'issuer'),
+            $reader->readString($data, 'authorization_endpoint'),
+            $reader->readString($data, 'token_endpoint'),
+            $reader->readString($data, 'registration_endpoint'),
             null === $scopes ? null : ScopeSet::fromList($scopes),
-            MetadataReader::readStringList($data, 'code_challenge_methods_supported', self::LABEL),
-            MetadataReader::readBool($data, 'authorization_response_iss_parameter_supported', self::LABEL),
-            MetadataReader::readBool($data, 'client_id_metadata_document_supported', self::LABEL),
-            MetadataReader::readStringList($data, 'token_endpoint_auth_methods_supported', self::LABEL),
-            MetadataReader::readStringList($data, 'token_endpoint_auth_signing_alg_values_supported', self::LABEL),
-            MetadataReader::readStringList($data, 'grant_types_supported', self::LABEL),
-            MetadataReader::readStringList($data, 'authorization_grant_profiles_supported', self::LABEL),
+            $reader->readStringList($data, 'code_challenge_methods_supported'),
+            $reader->readBool($data, 'authorization_response_iss_parameter_supported'),
+            $reader->readBool($data, 'client_id_metadata_document_supported'),
+            $reader->readStringList($data, 'token_endpoint_auth_methods_supported'),
+            $reader->readStringList($data, 'token_endpoint_auth_signing_alg_values_supported'),
+            $reader->readStringList($data, 'grant_types_supported'),
+            $reader->readStringList($data, 'authorization_grant_profiles_supported'),
         );
     }
 }

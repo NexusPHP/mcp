@@ -504,7 +504,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
 
         self::assertSame([], $logger->recordsMatching(
             LogLevel::WARNING,
-            '{label} transport respawning the peer after an unexpected exit (code {exitCode}), attempt {attempt} of {budget}.',
+            'Supervised client transport respawning the peer after an unexpected exit (code {exitCode}), attempt {attempt} of {budget}.',
         ));
     }
 
@@ -695,7 +695,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
             static fn(array $record): mixed => $record['context']['attempt'] ?? null,
             $logger->recordsMatching(
                 LogLevel::WARNING,
-                '{label} transport respawning the peer after an unexpected exit (code {exitCode}), attempt {attempt} of {budget}.',
+                'Supervised client transport respawning the peer after an unexpected exit (code {exitCode}), attempt {attempt} of {budget}.',
             ),
         );
 
@@ -935,9 +935,9 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
             EventLoop::run();
         }
 
-        $matches = $logger->recordsMatching(LogLevel::ERROR, '{label} transport exhausted its restart budget of {budget}.');
+        $matches = $logger->recordsMatching(LogLevel::ERROR, 'Supervised client transport exhausted its restart budget of {budget}.');
         self::assertCount(1, $matches);
-        self::assertSame(['label' => 'Supervised client', 'budget' => 1], $matches[0]['context']);
+        self::assertSame(['budget' => 1], $matches[0]['context']);
     }
 
     public function testRespawnIsLogged(): void
@@ -952,11 +952,11 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
 
         $matches = $logger->recordsMatching(
             LogLevel::WARNING,
-            '{label} transport respawning the peer after an unexpected exit (code {exitCode}), attempt {attempt} of {budget}.',
+            'Supervised client transport respawning the peer after an unexpected exit (code {exitCode}), attempt {attempt} of {budget}.',
         );
         self::assertCount(1, $matches);
         self::assertSame(
-            ['label' => 'Supervised client', 'exitCode' => 9, 'attempt' => 1, 'budget' => 3],
+            ['exitCode' => 9, 'attempt' => 1, 'budget' => 3],
             $matches[0]['context'],
         );
     }
@@ -973,7 +973,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
 
         $matches = $logger->recordsMatching(
             LogLevel::WARNING,
-            '{label} transport respawning the peer after an unexpected exit (code {exitCode}), attempt {attempt} of {budget}.',
+            'Supervised client transport respawning the peer after an unexpected exit (code {exitCode}), attempt {attempt} of {budget}.',
         );
         self::assertCount(1, $matches);
         self::assertSame('unknown', $matches[0]['context']['exitCode'] ?? null);
@@ -1045,7 +1045,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
 
         $matches = $logger->recordsMatching(
             LogLevel::WARNING,
-            '{label} transport respawning the peer after an unexpected exit (code {exitCode}), attempt {attempt} of {budget}.',
+            'Supervised client transport respawning the peer after an unexpected exit (code {exitCode}), attempt {attempt} of {budget}.',
         );
         self::assertSame(3, $matches[0]['context']['budget'] ?? null);
     }

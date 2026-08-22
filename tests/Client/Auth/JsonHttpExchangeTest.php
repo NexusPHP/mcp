@@ -39,7 +39,7 @@ final class JsonHttpExchangeTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())->willAnswerJson(['issuer' => 'https://auth.example.com'], 201);
 
-        [$status, $payload] = (new JsonHttpExchange($http))->send(new Request(self::URL), new NullCancellation());
+        [$status, $payload] = (new JsonHttpExchange($http, 'token endpoint'))->send(new Request(self::URL), new NullCancellation());
 
         self::assertSame(201, $status);
         self::assertSame('{"issuer":"https:\/\/auth.example.com"}', $payload);
@@ -50,7 +50,7 @@ final class JsonHttpExchangeTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())->willAnswerJson([]);
 
-        (new JsonHttpExchange($http, 2.5))->send(new Request(self::URL), new NullCancellation());
+        (new JsonHttpExchange($http, 'token endpoint', 2.5))->send(new Request(self::URL), new NullCancellation());
 
         self::assertSame(2.5, $http->readRequest()->getTransferTimeout());
         self::assertSame(2.5, $http->readRequest()->getInactivityTimeout());
@@ -60,7 +60,7 @@ final class JsonHttpExchangeTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())->willAnswerJson([]);
 
-        (new JsonHttpExchange($http))->send(new Request(self::URL), new NullCancellation());
+        (new JsonHttpExchange($http, 'token endpoint'))->send(new Request(self::URL), new NullCancellation());
 
         self::assertSame(10.0, $http->readRequest()->getTransferTimeout());
     }
@@ -72,7 +72,7 @@ final class JsonHttpExchangeTest extends AbstractMcpTestCase
         $this->expectException(RedirectRefusedException::class);
         $this->expectExceptionMessageIs('The request to "https://auth.example.com/token" was answered from "http://127.0.0.1:6379/token" after a redirect. Credentials are never carried across one.');
 
-        (new JsonHttpExchange($http))->send(new Request(self::URL), new NullCancellation());
+        (new JsonHttpExchange($http, 'token endpoint'))->send(new Request(self::URL), new NullCancellation());
     }
 
     public function testAnOversizedAnswerIsRefused(): void
@@ -82,7 +82,7 @@ final class JsonHttpExchangeTest extends AbstractMcpTestCase
         $this->expectException(ResponseTooLargeException::class);
         $this->expectExceptionMessageIs('The response exceeded the 65536 byte limit the client accepts.');
 
-        (new JsonHttpExchange($http))->send(new Request(self::URL), new NullCancellation());
+        (new JsonHttpExchange($http, 'token endpoint'))->send(new Request(self::URL), new NullCancellation());
     }
 
     public function testAnAnswerAtTheByteCapIsRead(): void
@@ -90,16 +90,15 @@ final class JsonHttpExchangeTest extends AbstractMcpTestCase
         $payload = str_pad('{"a":"', JsonHttpExchange::MAX_RESPONSE_BYTES - 2, 'x').'"}';
         $http = (new RecordingHttpClient())->willAnswerJson($payload);
 
-        self::assertSame($payload, (new JsonHttpExchange($http))->send(new Request(self::URL), new NullCancellation())[1]);
+        self::assertSame($payload, (new JsonHttpExchange($http, 'token endpoint'))->send(new Request(self::URL), new NullCancellation())[1]);
     }
 
     public function testEveryMemberOfADecodedObjectIsReturned(): void
     {
         self::assertSame(
             ['issuer' => 'https://auth.example.com', 'token_endpoint' => self::URL, 'scopes_supported' => ['files:read']],
-            JsonHttpExchange::decode(
+            (new JsonHttpExchange(new RecordingHttpClient(), 'token endpoint'))->decode(
                 '{"issuer":"https://auth.example.com","token_endpoint":"https://auth.example.com/token","scopes_supported":["files:read"]}',
-                'token endpoint',
             ),
         );
     }
@@ -110,7 +109,7 @@ final class JsonHttpExchangeTest extends AbstractMcpTestCase
         $this->expectException(MalformedAuthorizationResponseException::class);
         $this->expectExceptionMessageIs('The token endpoint answered with a payload that is not a JSON object.');
 
-        JsonHttpExchange::decode($payload, 'token endpoint');
+        (new JsonHttpExchange(new RecordingHttpClient(), 'token endpoint'))->decode($payload);
     }
 
     /**
@@ -130,7 +129,7 @@ final class JsonHttpExchangeTest extends AbstractMcpTestCase
     public function testANonJsonPayloadKeepsTheDecodingFailureAsItsCause(): void
     {
         try {
-            JsonHttpExchange::decode('not json at all', 'token endpoint');
+            (new JsonHttpExchange(new RecordingHttpClient(), 'token endpoint'))->decode('not json at all');
             self::fail('The payload should have been refused.');
         } catch (MalformedAuthorizationResponseException $e) {
             self::assertInstanceOf(\JsonException::class, $e->getPrevious());

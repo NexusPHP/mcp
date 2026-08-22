@@ -142,11 +142,11 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
 
         $matches = $logger->recordsMatching(
             LogLevel::INFO,
-            '{label} transport spawned subprocess. Command: {command} ({argumentCount} arguments, PID {pid}).',
+            'Stdio client transport spawned subprocess. Command: {command} ({argumentCount} arguments, PID {pid}).',
         );
         self::assertCount(1, $matches);
         self::assertSame(
-            ['label' => 'Stdio client', 'command' => 'mcp-server', 'argumentCount' => 1, 'pid' => 4_242],
+            ['command' => 'mcp-server', 'argumentCount' => 1, 'pid' => 4_242],
             $matches[0]['context'],
         );
     }
@@ -284,12 +284,12 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
         $lifecycle = array_values(array_filter(
             $logger->records,
             static fn(array $record): bool => \in_array($record['message'], [
-                '{label} transport spawned subprocess. Command: {command} ({argumentCount} arguments, PID {pid}).',
+                'Stdio client transport spawned subprocess. Command: {command} ({argumentCount} arguments, PID {pid}).',
                 '{label} transport started.',
             ], true),
         ));
         self::assertCount(2, $lifecycle);
-        self::assertSame('{label} transport spawned subprocess. Command: {command} ({argumentCount} arguments, PID {pid}).', $lifecycle[0]['message']);
+        self::assertSame('Stdio client transport spawned subprocess. Command: {command} ({argumentCount} arguments, PID {pid}).', $lifecycle[0]['message']);
         self::assertSame('{label} transport started.', $lifecycle[1]['message']);
 
         $transport->close();
@@ -303,9 +303,9 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
         $transport->close();
         delay(0);
 
-        $matches = $logger->recordsMatching(LogLevel::DEBUG, '{label} transport stopped watching for the subprocess exit.');
+        $matches = $logger->recordsMatching(LogLevel::DEBUG, 'Stdio client transport stopped watching for the subprocess exit.');
         self::assertCount(1, $matches);
-        self::assertSame(['label' => 'Stdio client'], $matches[0]['context']);
+        self::assertSame([], $matches[0]['context']);
     }
 
     public function testDeliversAnEnvelopeReadFromTheSubprocessStdout(): void
@@ -427,10 +427,10 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
 
         $matches = $logger->recordsMatching(
             LogLevel::WARNING,
-            '{label} transport subprocess exited unexpectedly (code {exitCode}).',
+            'Stdio client transport subprocess exited unexpectedly (code {exitCode}).',
         );
         self::assertCount(1, $matches);
-        self::assertSame(['label' => 'Stdio client', 'exitCode' => 4], $matches[0]['context']);
+        self::assertSame(['exitCode' => 4], $matches[0]['context']);
     }
 
     public function testAnExitReportingNoStatusIsNotifiedAndLoggedAsUnknown(): void
@@ -459,10 +459,10 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
 
         $matches = $logger->recordsMatching(
             LogLevel::WARNING,
-            '{label} transport subprocess exited unexpectedly (code {exitCode}).',
+            'Stdio client transport subprocess exited unexpectedly (code {exitCode}).',
         );
         self::assertCount(1, $matches);
-        self::assertSame(['label' => 'Stdio client', 'exitCode' => 'unknown'], $matches[0]['context']);
+        self::assertSame(['exitCode' => 'unknown'], $matches[0]['context']);
     }
 
     public function testAnIntentionalCloseSilencesAnExitThatArrivesAfterwards(): void
@@ -484,7 +484,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
         self::assertSame(0, $notified);
         self::assertSame([], $logger->recordsMatching(
             LogLevel::WARNING,
-            '{label} transport subprocess exited unexpectedly (code {exitCode}).',
+            'Stdio client transport subprocess exited unexpectedly (code {exitCode}).',
         ));
     }
 
@@ -528,9 +528,9 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
 
         self::assertSame(8, $second->getFuture()->await());
 
-        $matches = $logger->recordsMatching(LogLevel::WARNING, '{label} transport exit listener threw.');
+        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Stdio client transport exit listener threw.');
         self::assertCount(1, $matches);
-        self::assertSame(['label' => 'Stdio client', 'exception' => $failure], $matches[0]['context']);
+        self::assertSame(['exception' => $failure], $matches[0]['context']);
 
         $transport->close();
     }

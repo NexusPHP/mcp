@@ -31,12 +31,12 @@ final class MetadataReaderTest extends AbstractMcpTestCase
 
     public function testReadStringReturnsNullWhenTheFieldIsAbsent(): void
     {
-        self::assertNull(MetadataReader::readString([], 'issuer', self::LABEL));
+        self::assertNull((new MetadataReader(self::LABEL))->readString([], 'issuer'));
     }
 
     public function testReadStringReturnsThePresentValue(): void
     {
-        self::assertSame('https://auth.example.com', MetadataReader::readString(['issuer' => 'https://auth.example.com'], 'issuer', self::LABEL));
+        self::assertSame('https://auth.example.com', (new MetadataReader(self::LABEL))->readString(['issuer' => 'https://auth.example.com'], 'issuer'));
     }
 
     #[DataProvider('provideReadStringRejectsANonStringCases')]
@@ -45,7 +45,7 @@ final class MetadataReaderTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(\sprintf('Test Metadata "issuer" must be a non-empty string, %s given.', $type));
 
-        MetadataReader::readString(['issuer' => $value], 'issuer', self::LABEL);
+        (new MetadataReader(self::LABEL))->readString(['issuer' => $value], 'issuer');
     }
 
     /**
@@ -64,7 +64,7 @@ final class MetadataReaderTest extends AbstractMcpTestCase
 
     public function testReadRequiredStringReturnsThePresentValue(): void
     {
-        self::assertSame('https://auth.example.com', MetadataReader::readRequiredString(['issuer' => 'https://auth.example.com'], 'issuer', self::LABEL));
+        self::assertSame('https://auth.example.com', (new MetadataReader(self::LABEL))->readRequiredString(['issuer' => 'https://auth.example.com'], 'issuer'));
     }
 
     public function testReadRequiredStringRejectsAnAbsentField(): void
@@ -72,24 +72,24 @@ final class MetadataReaderTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Test Metadata must carry a "issuer" value.');
 
-        MetadataReader::readRequiredString([], 'issuer', self::LABEL);
+        (new MetadataReader(self::LABEL))->readRequiredString([], 'issuer');
     }
 
     public function testReadStringListReturnsNullWhenTheFieldIsAbsent(): void
     {
-        self::assertNull(MetadataReader::readStringList([], 'scopes_supported', self::LABEL));
+        self::assertNull((new MetadataReader(self::LABEL))->readStringList([], 'scopes_supported'));
     }
 
     public function testReadStringListReturnsAnEmptyList(): void
     {
-        self::assertSame([], MetadataReader::readStringList(['scopes_supported' => []], 'scopes_supported', self::LABEL));
+        self::assertSame([], (new MetadataReader(self::LABEL))->readStringList(['scopes_supported' => []], 'scopes_supported'));
     }
 
     public function testReadStringListReturnsThePresentValues(): void
     {
         self::assertSame(
             ['files:read', 'files:write'],
-            MetadataReader::readStringList(['scopes_supported' => ['files:read', 'files:write']], 'scopes_supported', self::LABEL),
+            (new MetadataReader(self::LABEL))->readStringList(['scopes_supported' => ['files:read', 'files:write']], 'scopes_supported'),
         );
     }
 
@@ -99,7 +99,7 @@ final class MetadataReaderTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(\sprintf('Test Metadata "scopes_supported" must be a list, %s given.', $type));
 
-        MetadataReader::readStringList(['scopes_supported' => $value], 'scopes_supported', self::LABEL);
+        (new MetadataReader(self::LABEL))->readStringList(['scopes_supported' => $value], 'scopes_supported');
     }
 
     /**
@@ -119,22 +119,22 @@ final class MetadataReaderTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Test Metadata "scopes_supported" must hold only non-empty strings, int given.');
 
-        MetadataReader::readStringList(['scopes_supported' => ['files:read', 42]], 'scopes_supported', self::LABEL);
+        (new MetadataReader(self::LABEL))->readStringList(['scopes_supported' => ['files:read', 42]], 'scopes_supported');
     }
 
     public function testReadIntReturnsNullWhenTheFieldIsAbsent(): void
     {
-        self::assertNull(MetadataReader::readInt([], 'expires_in', self::LABEL));
+        self::assertNull((new MetadataReader(self::LABEL))->readInt([], 'expires_in'));
     }
 
     public function testReadIntReturnsThePresentValue(): void
     {
-        self::assertSame(3_600, MetadataReader::readInt(['expires_in' => 3_600], 'expires_in', self::LABEL));
+        self::assertSame(3_600, (new MetadataReader(self::LABEL))->readInt(['expires_in' => 3_600], 'expires_in'));
     }
 
     public function testReadIntKeepsAZeroLifetimeDistinctFromAnAbsentOne(): void
     {
-        self::assertSame(0, MetadataReader::readInt(['expires_in' => 0], 'expires_in', self::LABEL));
+        self::assertSame(0, (new MetadataReader(self::LABEL))->readInt(['expires_in' => 0], 'expires_in'));
     }
 
     #[DataProvider('provideReadIntRejectsANonIntegerCases')]
@@ -143,7 +143,7 @@ final class MetadataReaderTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(\sprintf('Test Metadata "expires_in" must be an integer, %s given.', $type));
 
-        MetadataReader::readInt(['expires_in' => $value], 'expires_in', self::LABEL);
+        (new MetadataReader(self::LABEL))->readInt(['expires_in' => $value], 'expires_in');
     }
 
     /**
@@ -160,13 +160,13 @@ final class MetadataReaderTest extends AbstractMcpTestCase
 
     public function testReadBoolReturnsNullWhenTheFieldIsAbsent(): void
     {
-        self::assertNull(MetadataReader::readBool([], 'client_id_metadata_document_supported', self::LABEL));
+        self::assertNull((new MetadataReader(self::LABEL))->readBool([], 'client_id_metadata_document_supported'));
     }
 
     #[DataProvider('provideReadBoolCases')]
     public function testReadBool(bool $value): void
     {
-        self::assertSame($value, MetadataReader::readBool(['client_id_metadata_document_supported' => $value], 'client_id_metadata_document_supported', self::LABEL));
+        self::assertSame($value, (new MetadataReader(self::LABEL))->readBool(['client_id_metadata_document_supported' => $value], 'client_id_metadata_document_supported'));
     }
 
     /**
@@ -184,13 +184,13 @@ final class MetadataReaderTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Test Metadata "client_id_metadata_document_supported" must be a boolean, string given.');
 
-        MetadataReader::readBool(['client_id_metadata_document_supported' => 'true'], 'client_id_metadata_document_supported', self::LABEL);
+        (new MetadataReader(self::LABEL))->readBool(['client_id_metadata_document_supported' => 'true'], 'client_id_metadata_document_supported');
     }
 
     #[DataProvider('provideReadErrorFieldCases')]
     public function testReadErrorField(string $value, ?string $expected): void
     {
-        self::assertSame($expected, MetadataReader::readErrorField(['error_description' => $value], 'error_description', self::LABEL));
+        self::assertSame($expected, (new MetadataReader(self::LABEL))->readErrorField(['error_description' => $value], 'error_description'));
     }
 
     /**
@@ -221,7 +221,7 @@ final class MetadataReaderTest extends AbstractMcpTestCase
 
     public function testReadErrorFieldTreatsAnAbsentKeyAsNamingNothing(): void
     {
-        self::assertNull(MetadataReader::readErrorField([], 'error_description', self::LABEL));
+        self::assertNull((new MetadataReader(self::LABEL))->readErrorField([], 'error_description'));
     }
 
     public function testReadErrorFieldRejectsANonString(): void
@@ -229,6 +229,6 @@ final class MetadataReaderTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Test Metadata "error_description" must be a non-empty string, int given.');
 
-        MetadataReader::readErrorField(['error_description' => 5], 'error_description', self::LABEL);
+        (new MetadataReader(self::LABEL))->readErrorField(['error_description' => 5], 'error_description');
     }
 }

@@ -197,9 +197,9 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
         $this->exchange($transport, new JsonRpcErrorResponse(id: new RequestId(id: 1), error: new InternalError(message: 'boom')));
 
         self::assertSame([], $http->requests, 'A response must never reach the endpoint.');
-        $matches = $logger->recordsMatching(LogLevel::WARNING, '{label} transport dropped an outbound response, which a client must not send.');
+        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Streamable HTTP client transport dropped an outbound response, which a client must not send.');
         self::assertCount(1, $matches);
-        self::assertSame(['label' => 'Streamable HTTP client'], $matches[0]['context']);
+        self::assertSame([], $matches[0]['context']);
     }
 
     public function testKeepsSlashesAndUnicodeUnescapedInTheBody(): void
@@ -288,6 +288,23 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
         yield 'undecodable json' => ['{not json'];
 
         yield 'json that is not an envelope' => ['[1, 2]'];
+    }
+
+    public function testAResponseEnvelopeCarryingAnIntegerKeyIsRefused(): void
+    {
+        $http = (new RecordingHttpClient())->willAnswerJson('{"jsonrpc":"2.0","id":1,"error":{"code":-32600,"message":"no"},"0":"x"}', status: 400);
+        $transport = $this->makeTransport($http);
+        $faults = $this->captureFaults($transport);
+
+        $this->exchange($transport, $this->discoverRequest());
+
+        $fault = $faults->readFault();
+
+        self::assertInstanceOf(OutboundRequestFailedException::class, $fault);
+        self::assertSame(
+            'Streamable HTTP client received a response envelope that is not a string-keyed object.',
+            $fault->getPrevious()?->getMessage(),
+        );
     }
 
     public function testAListenerFaultOnAFrameIsNotMistakenForAnUnreadableOne(): void
@@ -915,10 +932,10 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
         $logger = new ArrayLogger();
         $this->makeTransport(new RecordingHttpClient(), logger: $logger);
 
-        $matches = $logger->recordsMatching(LogLevel::INFO, '{label} transport started. Endpoint: {endpoint}.');
+        $matches = $logger->recordsMatching(LogLevel::INFO, 'Streamable HTTP client transport started. Endpoint: {endpoint}.');
         self::assertCount(1, $matches);
         self::assertSame(
-            ['label' => 'Streamable HTTP client', 'endpoint' => 'https://mcp.test/mcp'],
+            ['endpoint' => 'https://mcp.test/mcp'],
             $matches[0]['context'],
         );
     }
@@ -1037,9 +1054,9 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
 
         $transport->close();
 
-        $matches = $logger->recordsMatching(LogLevel::INFO, '{label} transport closed.');
+        $matches = $logger->recordsMatching(LogLevel::INFO, 'Streamable HTTP client transport closed.');
         self::assertCount(1, $matches);
-        self::assertSame(['label' => 'Streamable HTTP client'], $matches[0]['context']);
+        self::assertSame([], $matches[0]['context']);
     }
 
     public function testRejectsAnEmptyEndpoint(): void

@@ -20,7 +20,7 @@ use Nexus\Assert\Assert;
  *
  * @internal
  */
-final class MetadataReader
+final readonly class MetadataReader
 {
     /**
      * @see https://datatracker.ietf.org/doc/html/rfc6749#appendix-A.7
@@ -30,18 +30,25 @@ final class MetadataReader
     private const int MAX_ERROR_FIELD_LENGTH = 200;
 
     /**
+     * @param non-empty-string $label Document name the field messages open with
+     */
+    public function __construct(private string $label)
+    {
+    }
+
+    /**
      * @param array<string, mixed> $data
      *
      * @return null|non-empty-string
      */
-    public static function readString(array $data, string $key, string $label): ?string
+    public function readString(array $data, string $key): ?string
     {
         if (! \array_key_exists($key, $data)) {
             return null;
         }
 
         $value = $data[$key];
-        Assert::that($value)->isNonEmptyString(\sprintf('%s "%s" must be a non-empty string, {type} given.', $label, $key));
+        Assert::that($value)->isNonEmptyString(\sprintf('%s "%s" must be a non-empty string, {type} given.', $this->label, $key));
 
         return $value;
     }
@@ -51,10 +58,10 @@ final class MetadataReader
      *
      * @return non-empty-string
      */
-    public static function readRequiredString(array $data, string $key, string $label): string
+    public function readRequiredString(array $data, string $key): string
     {
-        $value = self::readString($data, $key, $label);
-        Assert::that($value)->isNonEmptyString(\sprintf('%s must carry a "%s" value.', $label, $key));
+        $value = $this->readString($data, $key);
+        Assert::that($value)->isNonEmptyString(\sprintf('%s must carry a "%s" value.', $this->label, $key));
 
         return $value;
     }
@@ -66,14 +73,14 @@ final class MetadataReader
      *
      * @return null|non-empty-string
      */
-    public static function readErrorField(array $data, string $key, string $label): ?string
+    public function readErrorField(array $data, string $key): ?string
     {
         if (! \array_key_exists($key, $data)) {
             return null;
         }
 
         $value = $data[$key];
-        Assert::that($value)->isNonEmptyString(\sprintf('%s "%s" must be a non-empty string, {type} given.', $label, $key));
+        Assert::that($value)->isNonEmptyString(\sprintf('%s "%s" must be a non-empty string, {type} given.', $this->label, $key));
         $held = substr((string) preg_replace(self::ERROR_FIELD_GRAMMAR, '', $value), 0, self::MAX_ERROR_FIELD_LENGTH);
 
         return '' === $held ? null : $held;
@@ -84,19 +91,19 @@ final class MetadataReader
      *
      * @return null|list<non-empty-string>
      */
-    public static function readStringList(array $data, string $key, string $label): ?array
+    public function readStringList(array $data, string $key): ?array
     {
         if (! \array_key_exists($key, $data)) {
             return null;
         }
 
         $entries = $data[$key];
-        Assert::that($entries)->isList(\sprintf('%s "%s" must be a list, {type} given.', $label, $key));
+        Assert::that($entries)->isList(\sprintf('%s "%s" must be a list, {type} given.', $this->label, $key));
 
         $values = [];
 
         foreach ($entries as $entry) {
-            Assert::that($entry)->isNonEmptyString(\sprintf('%s "%s" must hold only non-empty strings, {type} given.', $label, $key));
+            Assert::that($entry)->isNonEmptyString(\sprintf('%s "%s" must hold only non-empty strings, {type} given.', $this->label, $key));
             $values[] = $entry;
         }
 
@@ -106,14 +113,14 @@ final class MetadataReader
     /**
      * @param array<string, mixed> $data
      */
-    public static function readInt(array $data, string $key, string $label): ?int
+    public function readInt(array $data, string $key): ?int
     {
         if (! \array_key_exists($key, $data)) {
             return null;
         }
 
         $value = $data[$key];
-        Assert::that($value)->isInt(\sprintf('%s "%s" must be an integer, {type} given.', $label, $key));
+        Assert::that($value)->isInt(\sprintf('%s "%s" must be an integer, {type} given.', $this->label, $key));
 
         return $value;
     }
@@ -121,14 +128,14 @@ final class MetadataReader
     /**
      * @param array<string, mixed> $data
      */
-    public static function readBool(array $data, string $key, string $label): ?bool
+    public function readBool(array $data, string $key): ?bool
     {
         if (! \array_key_exists($key, $data)) {
             return null;
         }
 
         $value = $data[$key];
-        Assert::that($value)->isBool(\sprintf('%s "%s" must be a boolean, {type} given.', $label, $key));
+        Assert::that($value)->isBool(\sprintf('%s "%s" must be a boolean, {type} given.', $this->label, $key));
 
         return $value;
     }

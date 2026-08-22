@@ -20,8 +20,6 @@ namespace Nexus\Mcp\Core\Auth;
  */
 final readonly class ProtectedResourceMetadata
 {
-    private const string LABEL = 'Protected Resource Metadata';
-
     /**
      * @var non-empty-list<non-empty-string>
      */
@@ -40,7 +38,7 @@ final readonly class ProtectedResourceMetadata
         public ?string $resourceName = null,
     ) {
         if ([] === $authorizationServers) {
-            throw new \InvalidArgumentException(\sprintf('%s must name at least one authorization server.', self::LABEL));
+            throw new \InvalidArgumentException('Protected Resource Metadata must name at least one authorization server.');
         }
 
         $this->authorizationServers = $authorizationServers;
@@ -51,14 +49,15 @@ final readonly class ProtectedResourceMetadata
      */
     public static function fromArray(array $data): self
     {
-        $scopes = MetadataReader::readStringList($data, 'scopes_supported', self::LABEL);
+        $reader = new MetadataReader('Protected Resource Metadata');
+        $scopes = $reader->readStringList($data, 'scopes_supported');
 
         return new self(
-            new ResourceIdentifier(MetadataReader::readRequiredString($data, 'resource', self::LABEL)),
-            MetadataReader::readStringList($data, 'authorization_servers', self::LABEL) ?? [],
+            new ResourceIdentifier($reader->readRequiredString($data, 'resource')),
+            $reader->readStringList($data, 'authorization_servers') ?? [],
             null === $scopes ? null : ScopeSet::fromList($scopes),
-            MetadataReader::readStringList($data, 'bearer_methods_supported', self::LABEL),
-            MetadataReader::readString($data, 'resource_name', self::LABEL),
+            $reader->readStringList($data, 'bearer_methods_supported'),
+            $reader->readString($data, 'resource_name'),
         );
     }
 

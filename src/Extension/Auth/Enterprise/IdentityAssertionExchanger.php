@@ -34,9 +34,8 @@ use Nexus\Mcp\Core\SafeDisplay;
  */
 final readonly class IdentityAssertionExchanger
 {
-    private const string LABEL = 'Token exchange response';
-
     private JsonHttpExchange $exchange;
+    private MetadataReader $reader;
 
     /**
      * @param non-empty-string      $tokenEndpoint The enterprise IdP's token endpoint
@@ -50,7 +49,8 @@ final readonly class IdentityAssertionExchanger
         SecureEndpoint $secureEndpoint = new SecureEndpoint(),
     ) {
         $secureEndpoint->verifyAuthorizationServerUrl($tokenEndpoint, 'IdP token endpoint');
-        $this->exchange = new JsonHttpExchange($client, $timeout);
+        $this->exchange = new JsonHttpExchange($client, 'IdP token endpoint', $timeout);
+        $this->reader = new MetadataReader('Token exchange response');
     }
 
     /**
@@ -85,7 +85,7 @@ final readonly class IdentityAssertionExchanger
         [$status, $payload] = $this->exchange->send($request, $cancellation);
 
         try {
-            $data = JsonHttpExchange::decode($payload, 'IdP token endpoint');
+            $data = $this->exchange->decode($payload);
         } catch (MalformedAuthorizationResponseException $e) {
             if (HttpStatus::Ok->value === $status) {
                 throw $e;
@@ -98,8 +98,8 @@ final readonly class IdentityAssertionExchanger
         }
 
         if ($status >= HttpStatus::BadRequest->value) {
-            $error = MetadataReader::readErrorField($data, 'error', self::LABEL) ?? 'invalid_request';
-            $description = MetadataReader::readErrorField($data, 'error_description', self::LABEL);
+            $error = $this->reader->readErrorField($data, 'error') ?? 'invalid_request';
+            $description = $this->reader->readErrorField($data, 'error_description');
 
             throw new RuntimeException(\sprintf(
                 'The enterprise IdP refused the token exchange with "%s"%s',
@@ -108,7 +108,7 @@ final readonly class IdentityAssertionExchanger
             ));
         }
 
-        $issuedType = MetadataReader::readRequiredString($data, 'issued_token_type', self::LABEL);
+        $issuedType = $this->reader->readRequiredString($data, 'issued_token_type');
 
         if (EnterpriseAuthorization::ID_JAG_TOKEN_TYPE !== $issuedType) {
             throw new RuntimeException(\sprintf(
@@ -117,6 +117,6 @@ final readonly class IdentityAssertionExchanger
             ));
         }
 
-        return MetadataReader::readRequiredString($data, 'access_token', self::LABEL);
+        return $this->reader->readRequiredString($data, 'access_token');
     }
 }
