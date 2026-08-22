@@ -11,6 +11,7 @@ $subscriptions = new SubscriptionStore(
     resourceSubscriptions: true,
     maxSubscriptions: 1024,
     maxSubscriptionsPerPeer: 256,
+    maxResourceSubscriptionsPerStream: 256,
 );
 
 $builder->setSubscriptionStore($subscriptions);
@@ -26,6 +27,11 @@ before any acknowledgement, so the client never sees a stream it does not have.
 shared budget. It defaults to `DEFAULT_MAX_SUBSCRIPTIONS_PER_PEER` (256). The peer is the verified token's OAuth
 client ID, or its subject when the token names no client. On an unprotected endpoint, requests carry no identity,
 so only the server-wide cap applies.
+
+`maxResourceSubscriptionsPerStream` bounds how many resource URIs one stream may watch. It defaults to
+`DEFAULT_MAX_RESOURCE_SUBSCRIPTIONS_PER_STREAM` (256). A listen request naming more is refused the same way, and a
+client that needs more opens another stream. The cap counts the URIs the store honours, so it does not apply when
+`resourceSubscriptions` is off.
 
 ## What a listen is acknowledged with
 

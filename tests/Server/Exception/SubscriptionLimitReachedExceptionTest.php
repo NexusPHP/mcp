@@ -39,6 +39,14 @@ final class SubscriptionLimitReachedExceptionTest extends AbstractMcpTestCase
         self::assertSame(7, $exception->requestId?->id);
     }
 
+    public function testMessageNamesThePerStreamResourceBudget(): void
+    {
+        $exception = new SubscriptionLimitReachedException(256, perStream: true);
+
+        self::assertSame('Subscription limit reached: this server watches at most 256 resource URIs per stream.', $exception->getMessage());
+        self::assertSame(['limit' => 256], $exception->errorData);
+    }
+
     public function testCarriesTheLimitAsErrorData(): void
     {
         self::assertSame(['limit' => 4], (new SubscriptionLimitReachedException(4))->errorData);

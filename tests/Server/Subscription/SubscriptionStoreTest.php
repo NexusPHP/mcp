@@ -460,6 +460,104 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
         self::assertSame([], $this->readMethodsOf($sender), 'A refused stream is never acknowledged.');
     }
 
+    public function testOpeningAStreamNamingTooManyResourceUrisIsRefusedBeforeAnySlotIsSpent(): void
+    {
+        $store = new SubscriptionStore(resourceSubscriptions: true, maxSubscriptions: 1, maxSubscriptionsPerPeer: 1, maxResourceSubscriptionsPerStream: 1);
+        $sender = new RecordingSender();
+
+        try {
+            $store->open(new RequestId(id: 1), new SubscriptionFilter(resourceSubscriptions: ['file:///a', 'file:///b']), $sender, peer: 'alice');
+            self::fail('The store must refuse a stream naming more URIs than one may watch.');
+        } catch (SubscriptionLimitReachedException $e) {
+            self::assertSame('Subscription limit reached: this server watches at most 1 resource URIs per stream.', $e->getMessage());
+            self::assertSame(ProtocolErrorCode::InternalError, $e::getErrorCode());
+        }
+
+        self::assertSame([], $this->readMethodsOf($sender), 'A refused stream is never acknowledged.');
+
+        $entry = $store->open(new RequestId(id: 2), new SubscriptionFilter(resourceSubscriptions: ['file:///a']), new RecordingSender(), peer: 'alice');
+
+        self::assertFalse($entry->closed->isComplete(), 'A refused stream spends neither the server-wide nor the per-peer slot.');
+    }
+
+    public function testAResourceListTheServerCannotHonourDoesNotCountAgainstTheStreamBudget(): void
+    {
+        $store = new SubscriptionStore(maxResourceSubscriptionsPerStream: 1);
+
+        $entry = $store->open(new RequestId(id: 1), new SubscriptionFilter(resourceSubscriptions: ['file:///a', 'file:///b']), new RecordingSender());
+
+        self::assertFalse($entry->closed->isComplete());
+        self::assertNull($entry->honoured->resourceSubscriptions);
+    }
+
+    public function testAStreamNamingAUriTwiceHearsItsUpdateOnce(): void
+    {
+        $store = new SubscriptionStore(resourceSubscriptions: true);
+        $sender = new RecordingSender();
+        $store->open(new RequestId(id: 1), new SubscriptionFilter(resourceSubscriptions: ['file:///a', 'file:///a']), $sender);
+
+        $store->emitResourceUpdated('file:///a');
+        delay(0.0);
+
+        self::assertSame(
+            ['notifications/subscriptions/acknowledged', 'notifications/resources/updated'],
+            $this->readMethodsOf($sender),
+        );
+    }
+
+    public function testClosingOneWatcherOfAUriLeavesTheOtherHearingIt(): void
+    {
+        $store = new SubscriptionStore(resourceSubscriptions: true);
+        $leaving = new RecordingSender();
+        $staying = new RecordingSender();
+        $entry = $store->open(new RequestId(id: 1), new SubscriptionFilter(resourceSubscriptions: ['file:///a']), $leaving);
+        $store->open(new RequestId(id: 2), new SubscriptionFilter(resourceSubscriptions: ['file:///a']), $staying);
+
+        $store->close($entry);
+        $store->emitResourceUpdated('file:///a');
+        delay(0.0);
+
+        self::assertSame(
+            ['notifications/subscriptions/acknowledged', 'notifications/cancelled'],
+            $this->readMethodsOf($leaving),
+        );
+        self::assertSame(
+            ['notifications/subscriptions/acknowledged', 'notifications/resources/updated'],
+            $this->readMethodsOf($staying),
+        );
+    }
+
+    public function testDiscardingAStreamStopsItsResourceUpdates(): void
+    {
+        $store = new SubscriptionStore(resourceSubscriptions: true);
+        $sender = new RecordingSender();
+        $entry = $store->open(new RequestId(id: 1), new SubscriptionFilter(resourceSubscriptions: ['file:///a']), $sender);
+
+        $store->discard($entry);
+        $store->emitResourceUpdated('file:///a');
+        delay(0.0);
+
+        self::assertSame(['notifications/subscriptions/acknowledged'], $this->readMethodsOf($sender));
+    }
+
+    public function testDiscardingAStreamAnotherStoreOwnsLeavesThisStoreIntact(): void
+    {
+        $other = new SubscriptionStore(resourceSubscriptions: true);
+        $foreign = $other->open(new RequestId(id: 1), new SubscriptionFilter(resourceSubscriptions: ['file:///a']), new RecordingSender());
+        $store = new SubscriptionStore(resourceSubscriptions: true);
+        $sender = new RecordingSender();
+        $store->open(new RequestId(id: 2), new SubscriptionFilter(resourceSubscriptions: ['file:///a']), $sender);
+
+        $store->discard($foreign);
+        $store->emitResourceUpdated('file:///a');
+        delay(0.0);
+
+        self::assertSame(
+            ['notifications/subscriptions/acknowledged', 'notifications/resources/updated'],
+            $this->readMethodsOf($sender),
+        );
+    }
+
     public function testDistinctPeersSpendSeparateBudgets(): void
     {
         $store = new SubscriptionStore(maxSubscriptionsPerPeer: 1);
@@ -634,6 +732,26 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
         yield 'zero' => [0, 'The maximum open subscriptions per peer must be a positive integer, 0 given.'];
 
         yield 'negative' => [-1, 'The maximum open subscriptions per peer must be a positive integer, -1 given.'];
+    }
+
+    #[DataProvider('provideThePerStreamResourceSubscriptionLimitMustBePositiveCases')]
+    public function testThePerStreamResourceSubscriptionLimitMustBePositive(mixed $limit, string $expectedMessage): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs($expectedMessage);
+
+        // @phpstan-ignore argument.type
+        new SubscriptionStore(maxResourceSubscriptionsPerStream: $limit);
+    }
+
+    /**
+     * @return iterable<string, array{mixed, string}>
+     */
+    public static function provideThePerStreamResourceSubscriptionLimitMustBePositiveCases(): iterable
+    {
+        yield 'zero' => [0, 'The maximum resource subscriptions per stream must be a positive integer, 0 given.'];
+
+        yield 'negative' => [-1, 'The maximum resource subscriptions per stream must be a positive integer, -1 given.'];
     }
 
     public function testAStreamOpenedAfterTheDrainIsSettledAtOnce(): void

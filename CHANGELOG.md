@@ -17,6 +17,9 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Changed
 
+- `SubscriptionStore` refuses a listen naming more than `maxResourceSubscriptionsPerStream` resource URIs
+  (default 256), and delivers a resource update by index rather than by scanning every stream. See
+  BREAKING_CHANGES.md.
 - `SecuredHttpEndpoint` caps the request body at 1 MiB by default. Pass `maxBodyBytes: null` to remove the
   cap. See BREAKING_CHANGES.md.
 - The SDK's own validation failures are plain `\InvalidArgumentException`s. Only `Assert` raises

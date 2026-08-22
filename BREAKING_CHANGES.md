@@ -6,6 +6,14 @@ for *when* breaking changes may land and how they are communicated lives in
 
 ## v0.15.0 to Unreleased
 
+### A stream watches at most 256 resource URIs
+
+`SubscriptionStore` honoured a `resourceSubscriptions` list of any length and scanned every stream's list on
+every resource update. It now takes `maxResourceSubscriptionsPerStream` (default
+`SubscriptionStore::DEFAULT_MAX_RESOURCE_SUBSCRIPTIONS_PER_STREAM`, 256): a listen naming more URIs is refused
+with `-32603` (`SubscriptionLimitReachedException`, `data.limit`) before any slot is spent, and a client that
+needs more opens another stream. A deployment whose clients watch more URIs per stream raises the cap.
+
 ### `SecuredHttpEndpoint` caps the request body at 1 MiB by default
 
 `maxBodyBytes` defaulted to `null`, so the recommended middleware stack shipped without a body cap and relied on
