@@ -31,10 +31,10 @@ final class CorsMiddlewareTest extends AbstractMcpTestCase
 {
     public function testPreflightFromAllowedOriginReturns204WithCorsHeaders(): void
     {
-        $handler = $this->recordingHandler();
+        $handler = $this->buildRecordingHandler();
 
-        $response = $this->middleware(['https://app.test'])
-            ->process($this->preflightRequest('https://app.test', 'Content-Type, MCP-Protocol-Version'), $handler)
+        $response = $this->buildMiddleware(['https://app.test'])
+            ->process($this->buildPreflightRequest('https://app.test', 'Content-Type, MCP-Protocol-Version'), $handler)
         ;
 
         self::assertFalse($handler->called);
@@ -48,10 +48,10 @@ final class CorsMiddlewareTest extends AbstractMcpTestCase
 
     public function testPreflightWithoutRequestedHeadersOmitsAllowHeaders(): void
     {
-        $handler = $this->recordingHandler();
+        $handler = $this->buildRecordingHandler();
 
-        $response = $this->middleware(['https://app.test'])
-            ->process($this->preflightRequest('https://app.test'), $handler)
+        $response = $this->buildMiddleware(['https://app.test'])
+            ->process($this->buildPreflightRequest('https://app.test'), $handler)
         ;
 
         self::assertSame(204, $response->getStatusCode());
@@ -62,10 +62,10 @@ final class CorsMiddlewareTest extends AbstractMcpTestCase
 
     public function testPreflightFromDisallowedOriginReturns204WithoutGrant(): void
     {
-        $handler = $this->recordingHandler();
+        $handler = $this->buildRecordingHandler();
 
-        $response = $this->middleware(['https://app.test'])
-            ->process($this->preflightRequest('https://evil.test'), $handler)
+        $response = $this->buildMiddleware(['https://app.test'])
+            ->process($this->buildPreflightRequest('https://evil.test'), $handler)
         ;
 
         self::assertFalse($handler->called);
@@ -78,10 +78,10 @@ final class CorsMiddlewareTest extends AbstractMcpTestCase
 
     public function testPreflightWithWildcardReflectsRequestOrigin(): void
     {
-        $handler = $this->recordingHandler();
+        $handler = $this->buildRecordingHandler();
 
-        $response = $this->middleware(['*'])
-            ->process($this->preflightRequest('https://any.test'), $handler)
+        $response = $this->buildMiddleware(['*'])
+            ->process($this->buildPreflightRequest('https://any.test'), $handler)
         ;
 
         self::assertSame(204, $response->getStatusCode());
@@ -90,10 +90,10 @@ final class CorsMiddlewareTest extends AbstractMcpTestCase
 
     public function testPreflightMaxAgeReflectsConfiguredValue(): void
     {
-        $handler = $this->recordingHandler();
+        $handler = $this->buildRecordingHandler();
 
-        $response = $this->middleware(['https://app.test'], 120)
-            ->process($this->preflightRequest('https://app.test'), $handler)
+        $response = $this->buildMiddleware(['https://app.test'], 120)
+            ->process($this->buildPreflightRequest('https://app.test'), $handler)
         ;
 
         self::assertSame('120', $response->getHeaderLine('Access-Control-Max-Age'));
@@ -101,10 +101,10 @@ final class CorsMiddlewareTest extends AbstractMcpTestCase
 
     public function testDecoratesResponseForAllowedOrigin(): void
     {
-        $handler = $this->recordingHandler();
+        $handler = $this->buildRecordingHandler();
 
-        $response = $this->middleware(['https://app.test'])
-            ->process($this->request('POST', 'https://app.test'), $handler)
+        $response = $this->buildMiddleware(['https://app.test'])
+            ->process($this->buildRequest('POST', 'https://app.test'), $handler)
         ;
 
         self::assertTrue($handler->called);
@@ -115,10 +115,10 @@ final class CorsMiddlewareTest extends AbstractMcpTestCase
 
     public function testDoesNotDecorateResponseForDisallowedOrigin(): void
     {
-        $handler = $this->recordingHandler();
+        $handler = $this->buildRecordingHandler();
 
-        $response = $this->middleware(['https://app.test'])
-            ->process($this->request('POST', 'https://evil.test'), $handler)
+        $response = $this->buildMiddleware(['https://app.test'])
+            ->process($this->buildRequest('POST', 'https://evil.test'), $handler)
         ;
 
         self::assertTrue($handler->called);
@@ -128,9 +128,9 @@ final class CorsMiddlewareTest extends AbstractMcpTestCase
 
     public function testPassesThroughRequestWithoutOrigin(): void
     {
-        $handler = $this->recordingHandler();
+        $handler = $this->buildRecordingHandler();
 
-        $response = $this->middleware(['*'])->process($this->request(), $handler);
+        $response = $this->buildMiddleware(['*'])->process($this->buildRequest(), $handler);
 
         self::assertTrue($handler->called);
         self::assertFalse($response->hasHeader('Access-Control-Allow-Origin'));
@@ -139,10 +139,10 @@ final class CorsMiddlewareTest extends AbstractMcpTestCase
 
     public function testOptionsWithoutRequestedMethodIsNotPreflight(): void
     {
-        $handler = $this->recordingHandler();
+        $handler = $this->buildRecordingHandler();
 
-        $response = $this->middleware(['https://app.test'])
-            ->process($this->request('OPTIONS', 'https://app.test'), $handler)
+        $response = $this->buildMiddleware(['https://app.test'])
+            ->process($this->buildRequest('OPTIONS', 'https://app.test'), $handler)
         ;
 
         self::assertTrue($handler->called);
@@ -153,7 +153,7 @@ final class CorsMiddlewareTest extends AbstractMcpTestCase
     /**
      * @param list<non-empty-string> $allowedOrigins
      */
-    private function middleware(array $allowedOrigins, ?int $maxAge = null): CorsMiddleware
+    private function buildMiddleware(array $allowedOrigins, ?int $maxAge = null): CorsMiddleware
     {
         $factory = new Psr17Factory();
 
@@ -162,7 +162,7 @@ final class CorsMiddlewareTest extends AbstractMcpTestCase
             : new CorsMiddleware($allowedOrigins, $factory, $maxAge);
     }
 
-    private function preflightRequest(?string $origin, ?string $requestedHeaders = null): ServerRequestInterface
+    private function buildPreflightRequest(?string $origin, ?string $requestedHeaders = null): ServerRequestInterface
     {
         $request = (new Psr17Factory())->createServerRequest('OPTIONS', 'https://mcp.test/')
             ->withHeader('Access-Control-Request-Method', 'POST')
@@ -179,14 +179,14 @@ final class CorsMiddlewareTest extends AbstractMcpTestCase
         return $request;
     }
 
-    private function request(string $method = 'POST', ?string $origin = null): ServerRequestInterface
+    private function buildRequest(string $method = 'POST', ?string $origin = null): ServerRequestInterface
     {
         $request = (new Psr17Factory())->createServerRequest($method, 'https://mcp.test/');
 
         return null === $origin ? $request : $request->withHeader('Origin', $origin);
     }
 
-    private function recordingHandler(): RecordingRequestHandler
+    private function buildRecordingHandler(): RecordingRequestHandler
     {
         return new RecordingRequestHandler((new Psr17Factory())->createResponse(200));
     }

@@ -145,13 +145,13 @@ final class SourceClassConventionsRule implements Rule
 
         if ($reflection->isTrait()) {
             return str_ends_with($name, 'Trait')
-                ? [$this->namingError('Trait "%s" must NOT use the *Trait suffix.', $class)]
+                ? [$this->buildNamingError('Trait "%s" must NOT use the *Trait suffix.', $class)]
                 : [];
         }
 
         if ($reflection->isEnum()) {
             return str_ends_with($name, 'Enum')
-                ? [$this->namingError('Enum "%s" must NOT use the *Enum suffix.', $class)]
+                ? [$this->buildNamingError('Enum "%s" must NOT use the *Enum suffix.', $class)]
                 : [];
         }
 
@@ -162,13 +162,13 @@ final class SourceClassConventionsRule implements Rule
         if ($reflection->isInterface()) {
             return str_ends_with($name, 'Interface')
                 ? []
-                : [$this->namingError('Interface "%s" outside src/Core/Schema/ must use the *Interface suffix.', $class)];
+                : [$this->buildNamingError('Interface "%s" outside src/Core/Schema/ must use the *Interface suffix.', $class)];
         }
 
         if ($reflection->isAbstract()) {
             return str_starts_with($name, 'Abstract')
                 ? []
-                : [$this->namingError('Abstract class "%s" outside src/Core/Schema/ must use the Abstract* prefix.', $class)];
+                : [$this->buildNamingError('Abstract class "%s" outside src/Core/Schema/ must use the Abstract* prefix.', $class)];
         }
 
         if ($reflection->isFinal()) {
@@ -178,7 +178,7 @@ final class SourceClassConventionsRule implements Rule
         $docComment = $reflection->getDocComment();
 
         if (! \is_string($docComment) || ! str_contains($docComment, '@no-final')) {
-            return [$this->namingError(
+            return [$this->buildNamingError(
                 'Concrete class "%s" outside src/Core/Schema/ is not final. Its docblock must carry @no-final.',
                 $class,
             )];
@@ -187,7 +187,7 @@ final class SourceClassConventionsRule implements Rule
         return [];
     }
 
-    private function namingError(string $template, ClassReflection $class): IdentifierRuleError
+    private function buildNamingError(string $template, ClassReflection $class): IdentifierRuleError
     {
         return RuleErrorBuilder::message(\sprintf($template, $class->getName()))
             ->identifier('nexusMcp.classNaming')
@@ -323,13 +323,13 @@ final class SourceClassConventionsRule implements Rule
         $allowed = ['__construct', '__destruct', '__wakeup'];
 
         foreach ($reflection->getInterfaces() as $interface) {
-            $allowed = [...$allowed, ...$this->publicMethodNames($interface)];
+            $allowed = [...$allowed, ...$this->listPublicMethodNames($interface)];
         }
 
         $parent = $reflection->getParentClass();
 
         while (false !== $parent) {
-            $allowed = [...$allowed, ...$this->publicMethodNames($parent)];
+            $allowed = [...$allowed, ...$this->listPublicMethodNames($parent)];
             $parent = $parent->getParentClass();
         }
 
@@ -363,7 +363,7 @@ final class SourceClassConventionsRule implements Rule
      *
      * @return list<string>
      */
-    private function publicMethodNames(\ReflectionClass $reflection): array
+    private function listPublicMethodNames(\ReflectionClass $reflection): array
     {
         $names = [];
 

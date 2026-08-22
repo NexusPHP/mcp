@@ -50,7 +50,7 @@ final class TokenEndpointTest extends AbstractMcpTestCase
 
     public function testItPostsTheGrantBodyAsAForm(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson($this->tokenResponse());
+        $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse());
 
         $this->exchange($http);
 
@@ -71,7 +71,7 @@ final class TokenEndpointTest extends AbstractMcpTestCase
 
     public function testExchangeCodeReadsTheIssuedToken(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson($this->tokenResponse([
+        $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse([
             'refresh_token' => 'the-refresh-token',
             'scope' => 'files:read files:write',
         ]));
@@ -85,7 +85,7 @@ final class TokenEndpointTest extends AbstractMcpTestCase
 
     public function testExchangeCodeTurnsTheLifetimeIntoAnExpiryTimestamp(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson($this->tokenResponse(['expires_in' => 3_600]));
+        $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse(['expires_in' => 3_600]));
 
         $before = time();
         $token = $this->exchange($http);
@@ -97,7 +97,7 @@ final class TokenEndpointTest extends AbstractMcpTestCase
 
     public function testExchangeCodeHoldsAnAbsurdLifetimeToOneTheClockCanCarry(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson($this->tokenResponse(['expires_in' => \PHP_INT_MAX]));
+        $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse(['expires_in' => \PHP_INT_MAX]));
 
         $before = time();
         $token = $this->exchange($http);
@@ -109,14 +109,14 @@ final class TokenEndpointTest extends AbstractMcpTestCase
 
     public function testExchangeCodeLeavesTheExpiryUnknownWhenTheServerNamesNoLifetime(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson($this->tokenResponse());
+        $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse());
 
         self::assertNull($this->exchange($http)->expiresAt);
     }
 
     public function testExchangeCodeFallsBackToTheRequestedScopesWhenTheResponseNamesNone(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson($this->tokenResponse());
+        $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse());
 
         $token = $this->exchange($http, scopes: new ScopeSet(['files:read']));
 
@@ -125,14 +125,14 @@ final class TokenEndpointTest extends AbstractMcpTestCase
 
     public function testExchangeCodeIssuesNoRefreshTokenWhenTheServerSentNone(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson($this->tokenResponse());
+        $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse());
 
         self::assertNull($this->exchange($http)->refreshToken);
     }
 
     public function testClientSecretBasicAuthenticatesInTheHeader(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson($this->tokenResponse());
+        $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse());
 
         $this->exchange($http, new ClientRegistration('the client', self::ISSUER, 'se cret', TokenEndpointAuthMethod::ClientSecretBasic));
 
@@ -144,7 +144,7 @@ final class TokenEndpointTest extends AbstractMcpTestCase
 
     public function testClientSecretPostAuthenticatesInTheBody(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson($this->tokenResponse());
+        $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse());
 
         $this->exchange($http, new ClientRegistration('the-client', self::ISSUER, 'the-secret', TokenEndpointAuthMethod::ClientSecretPost));
 
@@ -156,7 +156,7 @@ final class TokenEndpointTest extends AbstractMcpTestCase
 
     public function testTheTimeoutBoundsBothTheTransferAndTheStall(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson($this->tokenResponse());
+        $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse());
 
         $this->exchange($http, timeout: 2.5);
 
@@ -166,7 +166,7 @@ final class TokenEndpointTest extends AbstractMcpTestCase
 
     public function testAPublicClientSendsNoSecret(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson($this->tokenResponse());
+        $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse());
 
         $this->exchange($http);
 
@@ -196,10 +196,10 @@ final class TokenEndpointTest extends AbstractMcpTestCase
 
     public function testRefreshSendsTheRefreshTokenGrant(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson($this->tokenResponse());
+        $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse());
 
         (new TokenEndpoint($http))->refresh(
-            $this->metadata(),
+            $this->buildMetadata(),
             new ClientRegistration('the-client', self::ISSUER),
             new AccessToken('the-old-token', self::ISSUER, refreshToken: 'the-refresh-token', scopes: ['files:read']),
             new ResourceIdentifier(self::RESOURCE),
@@ -216,10 +216,10 @@ final class TokenEndpointTest extends AbstractMcpTestCase
 
     public function testRefreshKeepsTheEarlierScopesWhenTheResponseNamesNone(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson($this->tokenResponse());
+        $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse());
 
         $token = (new TokenEndpoint($http))->refresh(
-            $this->metadata(),
+            $this->buildMetadata(),
             new ClientRegistration('the-client', self::ISSUER),
             new AccessToken('the-old-token', self::ISSUER, refreshToken: 'the-refresh-token', scopes: ['files:read']),
             new ResourceIdentifier(self::RESOURCE),
@@ -231,10 +231,10 @@ final class TokenEndpointTest extends AbstractMcpTestCase
 
     public function testRefreshKeepsTheEarlierRefreshTokenWhenTheResponseRotatesNone(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson($this->tokenResponse());
+        $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse());
 
         $token = (new TokenEndpoint($http))->refresh(
-            $this->metadata(),
+            $this->buildMetadata(),
             new ClientRegistration('the-client', self::ISSUER),
             new AccessToken('the-old-token', self::ISSUER, refreshToken: 'the-refresh-token'),
             new ResourceIdentifier(self::RESOURCE),
@@ -246,10 +246,10 @@ final class TokenEndpointTest extends AbstractMcpTestCase
 
     public function testRefreshTakesTheRotatedRefreshTokenOverTheEarlierOne(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson($this->tokenResponse(['refresh_token' => 'the-rotated-token']));
+        $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse(['refresh_token' => 'the-rotated-token']));
 
         $token = (new TokenEndpoint($http))->refresh(
-            $this->metadata(),
+            $this->buildMetadata(),
             new ClientRegistration('the-client', self::ISSUER),
             new AccessToken('the-old-token', self::ISSUER, refreshToken: 'the-refresh-token'),
             new ResourceIdentifier(self::RESOURCE),
@@ -265,7 +265,7 @@ final class TokenEndpointTest extends AbstractMcpTestCase
         $this->expectExceptionMessageIs('The access token carries no refresh token to redeem.');
 
         (new TokenEndpoint(new RecordingHttpClient()))->refresh(
-            $this->metadata(),
+            $this->buildMetadata(),
             new ClientRegistration('the-client', self::ISSUER),
             new AccessToken('the-old-token', self::ISSUER),
             new ResourceIdentifier(self::RESOURCE),
@@ -383,7 +383,7 @@ final class TokenEndpointTest extends AbstractMcpTestCase
 
     public function testANonBearerTokenTypeIsRefused(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson($this->tokenResponse(['token_type' => 'DPoP']));
+        $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse(['token_type' => 'DPoP']));
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('The token request failed with "unsupported_token_type": MCP clients can only present bearer tokens, "DPoP" given.');
@@ -393,7 +393,7 @@ final class TokenEndpointTest extends AbstractMcpTestCase
 
     public function testTheTokenTypeIsMatchedCaseInsensitively(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson($this->tokenResponse(['token_type' => 'bearer']));
+        $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse(['token_type' => 'bearer']));
 
         self::assertSame('the-access-token', $this->exchange($http)->value);
     }
@@ -450,10 +450,10 @@ final class TokenEndpointTest extends AbstractMcpTestCase
 
     public function testRequestTokenRedeemsTheCallerBuiltGrant(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson($this->tokenResponse());
+        $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse());
 
         $token = (new TokenEndpoint($http))->requestToken(
-            $this->metadata(),
+            $this->buildMetadata(),
             new ClientRegistration('the-client', self::ISSUER, 'the-secret', TokenEndpointAuthMethod::ClientSecretBasic),
             ['grant_type' => 'client_credentials', 'resource' => self::RESOURCE],
             new ScopeSet(['files:read']),
@@ -473,10 +473,10 @@ final class TokenEndpointTest extends AbstractMcpTestCase
 
     public function testAPrivateKeyJwtClientAuthenticatesThroughItsAssertionAlone(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson($this->tokenResponse());
+        $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse());
 
         (new TokenEndpoint($http))->requestToken(
-            $this->metadata(),
+            $this->buildMetadata(),
             new ClientRegistration('the-client', self::ISSUER, null, TokenEndpointAuthMethod::PrivateKeyJwt),
             [
                 'grant_type' => 'client_credentials',
@@ -502,7 +502,7 @@ final class TokenEndpointTest extends AbstractMcpTestCase
         $this->expectExceptionMessageIs('Client "the-client" must carry a "client_assertion" parameter to authenticate with "private_key_jwt".');
 
         (new TokenEndpoint(new RecordingHttpClient()))->requestToken(
-            $this->metadata(),
+            $this->buildMetadata(),
             new ClientRegistration('the-client', self::ISSUER, null, TokenEndpointAuthMethod::PrivateKeyJwt),
             ['grant_type' => 'client_credentials'],
             new ScopeSet(),
@@ -512,7 +512,7 @@ final class TokenEndpointTest extends AbstractMcpTestCase
 
     public function testAHostileTokenTypeIsBoundedAndEscapedInTheRefusal(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson($this->tokenResponse(['token_type' => str_repeat('D', 200)."\x1b"]));
+        $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse(['token_type' => str_repeat('D', 200)."\x1b"]));
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs(\sprintf(
@@ -531,7 +531,7 @@ final class TokenEndpointTest extends AbstractMcpTestCase
         float $timeout = 10.0,
     ): AccessToken {
         return (new TokenEndpoint($http, $timeout))->requestToken(
-            $metadata ?? $this->metadata(),
+            $metadata ?? $this->buildMetadata(),
             $registration ?? new ClientRegistration('the-client', self::ISSUER),
             [
                 'grant_type' => 'authorization_code',
@@ -545,7 +545,7 @@ final class TokenEndpointTest extends AbstractMcpTestCase
         );
     }
 
-    private function metadata(): AuthorizationServerMetadata
+    private function buildMetadata(): AuthorizationServerMetadata
     {
         return new AuthorizationServerMetadata(self::ISSUER, tokenEndpoint: 'https://auth.example.com/token');
     }
@@ -555,7 +555,7 @@ final class TokenEndpointTest extends AbstractMcpTestCase
      *
      * @return array<string, mixed>
      */
-    private function tokenResponse(array $overrides = []): array
+    private function buildTokenResponse(array $overrides = []): array
     {
         return ['access_token' => 'the-access-token', 'token_type' => 'Bearer', ...$overrides];
     }

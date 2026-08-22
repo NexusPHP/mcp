@@ -70,7 +70,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         $http = $this->scriptFullFlow();
         $user = new ScriptedUserAuthorization();
 
-        $token = $this->coordinator($http, $user)->reauthorize(null, null, new NullCancellation());
+        $token = $this->buildCoordinator($http, $user)->reauthorize(null, null, new NullCancellation());
 
         self::assertSame('the-access-token', $token->value);
         self::assertSame([
@@ -86,7 +86,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     {
         $http = $this->scriptFullFlow(['authorization_servers' => [self::ISSUER, 'https://spare-auth.example.com']]);
 
-        $this->coordinator($http, new ScriptedUserAuthorization())->reauthorize(null, null, new NullCancellation());
+        $this->buildCoordinator($http, new ScriptedUserAuthorization())->reauthorize(null, null, new NullCancellation());
 
         self::assertSame(
             'https://auth.example.com/.well-known/oauth-authorization-server',
@@ -98,7 +98,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     {
         $store = new InMemoryTokenStore();
 
-        $this->coordinator($this->scriptFullFlow(), new ScriptedUserAuthorization(), $store)->reauthorize(null, null, new NullCancellation());
+        $this->buildCoordinator($this->scriptFullFlow(), new ScriptedUserAuthorization(), $store)->reauthorize(null, null, new NullCancellation());
 
         $token = $store->read(self::RESOURCE);
         self::assertSame('the-access-token', $token?->value);
@@ -109,7 +109,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     {
         $user = new ScriptedUserAuthorization();
 
-        $this->coordinator($this->scriptFullFlow(['scopes_supported' => ['files:read']]), $user)->reauthorize(
+        $this->buildCoordinator($this->scriptFullFlow(['scopes_supported' => ['files:read']]), $user)->reauthorize(
             null,
             new WwwAuthenticateChallenge('Bearer', ['scope' => 'files:write']),
             new NullCancellation(),
@@ -122,7 +122,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     {
         $user = new ScriptedUserAuthorization();
 
-        $this->coordinator($this->scriptFullFlow(['scopes_supported' => ['files:read', 'files:write']]), $user)->reauthorize(null, null, new NullCancellation());
+        $this->buildCoordinator($this->scriptFullFlow(['scopes_supported' => ['files:read', 'files:write']]), $user)->reauthorize(null, null, new NullCancellation());
 
         self::assertSame(['files:read', 'files:write'], $user->readRequestedScopes());
     }
@@ -131,7 +131,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     {
         $user = new ScriptedUserAuthorization();
 
-        $this->coordinator($this->scriptFullFlow(), $user)->reauthorize(null, null, new NullCancellation());
+        $this->buildCoordinator($this->scriptFullFlow(), $user)->reauthorize(null, null, new NullCancellation());
 
         self::assertSame([], $user->readRequestedScopes());
     }
@@ -141,7 +141,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         $user = new ScriptedUserAuthorization();
         $http = $this->scriptFullFlow(['scopes_supported' => ['files:read', 'files:write', 'files:admin']]);
 
-        $this->coordinator($http, $user, defaultScopes: ['files:read'])->reauthorize(null, null, new NullCancellation());
+        $this->buildCoordinator($http, $user, defaultScopes: ['files:read'])->reauthorize(null, null, new NullCancellation());
 
         self::assertSame(['files:read'], $user->readRequestedScopes());
     }
@@ -150,7 +150,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     {
         $user = new ScriptedUserAuthorization();
 
-        $this->coordinator($this->scriptFullFlow(), $user, defaultScopes: ['files:read'])->reauthorize(null, null, new NullCancellation());
+        $this->buildCoordinator($this->scriptFullFlow(), $user, defaultScopes: ['files:read'])->reauthorize(null, null, new NullCancellation());
 
         self::assertSame(['files:read'], $user->readRequestedScopes());
     }
@@ -159,7 +159,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     {
         $user = new ScriptedUserAuthorization();
 
-        $this->coordinator($this->scriptFullFlow(), $user, defaultScopes: ['files:read'])->reauthorize(
+        $this->buildCoordinator($this->scriptFullFlow(), $user, defaultScopes: ['files:read'])->reauthorize(
             null,
             new WwwAuthenticateChallenge('Bearer', ['scope' => 'files:write']),
             new NullCancellation(),
@@ -172,7 +172,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     {
         $user = new ScriptedUserAuthorization();
 
-        $this->coordinator($this->scriptFullFlow(['scopes_supported' => ['files:read']]), $user)->upgradeScopes(null, new ScopeSet(['files:write']), null, new NullCancellation());
+        $this->buildCoordinator($this->scriptFullFlow(['scopes_supported' => ['files:read']]), $user)->upgradeScopes(null, new ScopeSet(['files:write']), null, new NullCancellation());
 
         self::assertSame(['files:read', 'files:write'], $user->readRequestedScopes());
     }
@@ -184,7 +184,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         $store->write(self::RESOURCE, $refused);
         $user = new ScriptedUserAuthorization();
 
-        $this->coordinator($this->scriptFullFlow(), $user, $store)->reauthorize(
+        $this->buildCoordinator($this->scriptFullFlow(), $user, $store)->reauthorize(
             $refused,
             new WwwAuthenticateChallenge('Bearer', ['scope' => 'files:write']),
             new NullCancellation(),
@@ -198,7 +198,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         $user = new ScriptedUserAuthorization();
         $http = $this->scriptFullFlow(serverOverrides: ['scopes_supported' => ['files:read', 'offline_access']]);
 
-        $this->coordinator($http, $user, offlineAccess: true)->reauthorize(null, null, new NullCancellation());
+        $this->buildCoordinator($http, $user, offlineAccess: true)->reauthorize(null, null, new NullCancellation());
 
         self::assertSame(['offline_access'], $user->readRequestedScopes());
     }
@@ -208,7 +208,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         $user = new ScriptedUserAuthorization();
         $http = $this->scriptFullFlow(serverOverrides: ['scopes_supported' => ['files:read']]);
 
-        $this->coordinator($http, $user, offlineAccess: true)->reauthorize(null, null, new NullCancellation());
+        $this->buildCoordinator($http, $user, offlineAccess: true)->reauthorize(null, null, new NullCancellation());
 
         self::assertSame([], $user->readRequestedScopes());
     }
@@ -218,7 +218,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         $user = new ScriptedUserAuthorization();
         $http = $this->scriptFullFlow(serverOverrides: ['scopes_supported' => ['files:read', 'offline_access']]);
 
-        $this->coordinator($http, $user)->reauthorize(null, null, new NullCancellation());
+        $this->buildCoordinator($http, $user)->reauthorize(null, null, new NullCancellation());
 
         self::assertSame([], $user->readRequestedScopes());
     }
@@ -230,14 +230,14 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
 
         $this->expectException(InvalidAuthorizationResponseException::class);
 
-        $this->coordinator($http, $user)->reauthorize(null, null, new NullCancellation());
+        $this->buildCoordinator($http, $user)->reauthorize(null, null, new NullCancellation());
     }
 
     public function testAuthorizeLogsTheServerItAuthorizedAgainst(): void
     {
         $logger = new ArrayLogger();
 
-        $this->coordinator($this->scriptFullFlow(), new ScriptedUserAuthorization(), logger: $logger)->reauthorize(null, null, new NullCancellation());
+        $this->buildCoordinator($this->scriptFullFlow(), new ScriptedUserAuthorization(), logger: $logger)->reauthorize(null, null, new NullCancellation());
 
         self::assertSame(
             [['level' => LogLevel::INFO, 'message' => 'Authorized {resource} at {issuer}.', 'context' => [
@@ -254,7 +254,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
             ->willAnswerJson(['error' => 'invalid_grant'], 400)
         ;
         $logger = new ArrayLogger();
-        $coordinator = $this->coordinator($http, new ScriptedUserAuthorization(), logger: $logger);
+        $coordinator = $this->buildCoordinator($http, new ScriptedUserAuthorization(), logger: $logger);
         $coordinator->reauthorize(null, null, new NullCancellation());
 
         $coordinator->fetchToken(new NullCancellation());
@@ -272,7 +272,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     public function testATokenLapsingInsideTheLeewayIsTreatedAsSpent(): void
     {
         $store = new InMemoryTokenStore();
-        $coordinator = $this->coordinator($this->scriptFullFlow(tokenOverrides: ['expires_in' => 30]), new ScriptedUserAuthorization(), $store);
+        $coordinator = $this->buildCoordinator($this->scriptFullFlow(tokenOverrides: ['expires_in' => 30]), new ScriptedUserAuthorization(), $store);
         $coordinator->reauthorize(null, null, new NullCancellation());
 
         self::assertNull($coordinator->fetchToken(new NullCancellation()));
@@ -281,7 +281,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     public function testATokenLapsingBeyondTheLeewayIsStillUsable(): void
     {
         $store = new InMemoryTokenStore();
-        $coordinator = $this->coordinator($this->scriptFullFlow(tokenOverrides: ['expires_in' => 90]), new ScriptedUserAuthorization(), $store);
+        $coordinator = $this->buildCoordinator($this->scriptFullFlow(tokenOverrides: ['expires_in' => 90]), new ScriptedUserAuthorization(), $store);
         $coordinator->reauthorize(null, null, new NullCancellation());
 
         self::assertSame('the-access-token', $coordinator->fetchToken(new NullCancellation())?->value);
@@ -289,7 +289,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
 
     public function testFetchTokenReturnsNullBeforeAnyAuthorization(): void
     {
-        self::assertNull($this->coordinator(new RecordingHttpClient(), new ScriptedUserAuthorization())->fetchToken(new NullCancellation()));
+        self::assertNull($this->buildCoordinator(new RecordingHttpClient(), new ScriptedUserAuthorization())->fetchToken(new NullCancellation()));
     }
 
     public function testAStoredTokenIsCheckedAgainstTheResourceBeforeItIsPresented(): void
@@ -298,7 +298,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         $store->write(self::RESOURCE, new AccessToken('from-an-earlier-run', self::ISSUER));
         $http = $this->scriptDiscoveryOnly();
 
-        $coordinator = $this->coordinator($http, new ScriptedUserAuthorization(), $store);
+        $coordinator = $this->buildCoordinator($http, new ScriptedUserAuthorization(), $store);
 
         self::assertSame('from-an-earlier-run', $coordinator->fetchToken(new NullCancellation())?->value);
         self::assertCount(2, $http->requests);
@@ -311,12 +311,12 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         $http = (new RecordingHttpClient())
             ->willAnswerJson([], 404)
             ->willAnswerJson([], 404)
-            ->willAnswerJson($this->resourceDocument())
-            ->willAnswerJson($this->serverDocument())
+            ->willAnswerJson($this->buildResourceDocument())
+            ->willAnswerJson($this->buildServerDocument())
             ->willAnswerJson(['client_id' => 'the-registered-client'])
             ->willAnswerJson(['access_token' => 'the-new-token', 'token_type' => 'Bearer'])
         ;
-        $coordinator = $this->coordinator($http, new ScriptedUserAuthorization(), $store);
+        $coordinator = $this->buildCoordinator($http, new ScriptedUserAuthorization(), $store);
 
         self::assertNull($coordinator->fetchToken(new NullCancellation()));
 
@@ -335,7 +335,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         $store = new InMemoryTokenStore();
         $store->write(self::RESOURCE, new AccessToken('from-an-earlier-run', self::ISSUER));
         $http = $this->scriptDiscoveryOnly();
-        $coordinator = $this->coordinator($http, new ScriptedUserAuthorization(), $store);
+        $coordinator = $this->buildCoordinator($http, new ScriptedUserAuthorization(), $store);
         $coordinator->fetchToken(new NullCancellation());
 
         self::assertSame('from-an-earlier-run', $coordinator->fetchToken(new NullCancellation())?->value);
@@ -344,9 +344,9 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
 
     public function testASpentTokenFromAServerTheResourceLeftIsDroppedRatherThanRenewed(): void
     {
-        $store = $this->storeHoldingATokenFromAFormerServer();
+        $store = $this->buildStoreHoldingATokenFromAFormerServer();
         $http = $this->scriptDiscoveryOnly();
-        $coordinator = $this->coordinator($http, new ScriptedUserAuthorization(), $store);
+        $coordinator = $this->buildCoordinator($http, new ScriptedUserAuthorization(), $store);
 
         self::assertNull($coordinator->fetchToken(new NullCancellation()));
         self::assertNull($store->read(self::RESOURCE));
@@ -357,10 +357,10 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     {
         $logger = new ArrayLogger();
 
-        $this->coordinator(
+        $this->buildCoordinator(
             $this->scriptDiscoveryOnly(),
             new ScriptedUserAuthorization(),
-            $this->storeHoldingATokenFromAFormerServer(),
+            $this->buildStoreHoldingATokenFromAFormerServer(),
             $logger,
         )->fetchToken(new NullCancellation());
 
@@ -376,7 +376,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
 
     public function testFetchTokenReturnsTheStoredToken(): void
     {
-        $coordinator = $this->coordinator($this->scriptFullFlow(), new ScriptedUserAuthorization());
+        $coordinator = $this->buildCoordinator($this->scriptFullFlow(), new ScriptedUserAuthorization());
         $coordinator->reauthorize(null, null, new NullCancellation());
 
         self::assertSame('the-access-token', $coordinator->fetchToken(new NullCancellation())?->value);
@@ -385,7 +385,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     public function testFetchTokenKeepsAnUnexpiredToken(): void
     {
         $store = new InMemoryTokenStore();
-        $coordinator = $this->coordinator($this->scriptFullFlow(tokenOverrides: ['expires_in' => 3_600]), new ScriptedUserAuthorization(), $store);
+        $coordinator = $this->buildCoordinator($this->scriptFullFlow(tokenOverrides: ['expires_in' => 3_600]), new ScriptedUserAuthorization(), $store);
         $coordinator->reauthorize(null, null, new NullCancellation());
 
         self::assertSame('the-access-token', $coordinator->fetchToken(new NullCancellation())?->value);
@@ -397,7 +397,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
             ->willAnswerJson(['access_token' => 'the-renewed-token', 'token_type' => 'Bearer'])
         ;
         $store = new InMemoryTokenStore();
-        $coordinator = $this->coordinator($http, new ScriptedUserAuthorization(), $store);
+        $coordinator = $this->buildCoordinator($http, new ScriptedUserAuthorization(), $store);
         $coordinator->reauthorize(null, null, new NullCancellation());
 
         self::assertSame('the-renewed-token', $coordinator->fetchToken(new NullCancellation())?->value);
@@ -410,7 +410,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
             ->willAnswerJson(['access_token' => 'the-renewed-token', 'token_type' => 'Bearer', 'expires_in' => 1])
             ->willAnswerJson(['access_token' => 'the-re-renewed-token', 'token_type' => 'Bearer'])
         ;
-        $coordinator = $this->coordinator($http, new ScriptedUserAuthorization());
+        $coordinator = $this->buildCoordinator($http, new ScriptedUserAuthorization());
         $coordinator->reauthorize(null, null, new NullCancellation());
         $coordinator->fetchToken(new NullCancellation());
 
@@ -420,7 +420,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     public function testFetchTokenDropsASpentTokenThatCannotBeRenewed(): void
     {
         $store = new InMemoryTokenStore();
-        $coordinator = $this->coordinator($this->scriptFullFlow(tokenOverrides: ['expires_in' => 1]), new ScriptedUserAuthorization(), $store);
+        $coordinator = $this->buildCoordinator($this->scriptFullFlow(tokenOverrides: ['expires_in' => 1]), new ScriptedUserAuthorization(), $store);
         $coordinator->reauthorize(null, null, new NullCancellation());
 
         self::assertNull($coordinator->fetchToken(new NullCancellation()));
@@ -433,7 +433,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
             ->willAnswerJson(['error' => 'invalid_grant'], 400)
         ;
         $store = new InMemoryTokenStore();
-        $coordinator = $this->coordinator($http, new ScriptedUserAuthorization(), $store);
+        $coordinator = $this->buildCoordinator($http, new ScriptedUserAuthorization(), $store);
         $coordinator->reauthorize(null, null, new NullCancellation());
 
         self::assertNull($coordinator->fetchToken(new NullCancellation()));
@@ -444,13 +444,13 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     {
         $gate = new DeferredFuture();
         $http = (new RecordingHttpClient())
-            ->willAnswerJson($this->resourceDocument(), gate: $gate->getFuture())
-            ->willAnswerJson($this->serverDocument())
+            ->willAnswerJson($this->buildResourceDocument(), gate: $gate->getFuture())
+            ->willAnswerJson($this->buildServerDocument())
             ->willAnswerJson(['client_id' => 'the-registered-client'])
             ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer'])
         ;
         $user = new ScriptedUserAuthorization();
-        $coordinator = $this->coordinator($http, $user);
+        $coordinator = $this->buildCoordinator($http, $user);
 
         $first = async(static fn(): AccessToken => $coordinator->reauthorize(null, null, new NullCancellation()));
         $second = async(static fn(): AccessToken => $coordinator->reauthorize(null, null, new NullCancellation()));
@@ -466,12 +466,12 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     {
         $gate = new DeferredFuture();
         $http = (new RecordingHttpClient())
-            ->willAnswerJson($this->resourceDocument(), gate: $gate->getFuture())
-            ->willAnswerJson($this->serverDocument())
+            ->willAnswerJson($this->buildResourceDocument(), gate: $gate->getFuture())
+            ->willAnswerJson($this->buildServerDocument())
             ->willAnswerJson(['client_id' => 'the-registered-client'])
             ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer'])
         ;
-        $coordinator = $this->coordinator($http, new ScriptedUserAuthorization());
+        $coordinator = $this->buildCoordinator($http, new ScriptedUserAuthorization());
 
         /** @var Future<AccessToken> $holder */
         $holder = async(static fn(): AccessToken => $coordinator->reauthorize(null, null, new NullCancellation()));
@@ -498,12 +498,12 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     {
         $gate = new DeferredFuture();
         $http = (new RecordingHttpClient())
-            ->willAnswerJson($this->resourceDocument(), gate: $gate->getFuture())
-            ->willAnswerJson($this->serverDocument())
+            ->willAnswerJson($this->buildResourceDocument(), gate: $gate->getFuture())
+            ->willAnswerJson($this->buildServerDocument())
             ->willAnswerJson(['client_id' => 'the-registered-client'])
             ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer'])
         ;
-        $coordinator = $this->coordinator($http, new ScriptedUserAuthorization());
+        $coordinator = $this->buildCoordinator($http, new ScriptedUserAuthorization());
 
         /** @var Future<AccessToken> $holder */
         $holder = async(static fn(): AccessToken => $coordinator->reauthorize(null, null, new NullCancellation()));
@@ -528,13 +528,13 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     {
         $gate = new DeferredFuture();
         $http = (new RecordingHttpClient())
-            ->willAnswerJson($this->resourceDocument(), gate: $gate->getFuture())
-            ->willAnswerJson($this->serverDocument())
+            ->willAnswerJson($this->buildResourceDocument(), gate: $gate->getFuture())
+            ->willAnswerJson($this->buildServerDocument())
             ->willAnswerJson(['client_id' => 'the-registered-client'])
             ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer'])
         ;
         $semaphore = new RetainingSemaphore();
-        $coordinator = $this->coordinator($http, new ScriptedUserAuthorization(), lock: $semaphore);
+        $coordinator = $this->buildCoordinator($http, new ScriptedUserAuthorization(), lock: $semaphore);
 
         /** @var Future<AccessToken> $holder */
         $holder = async(static fn(): AccessToken => $coordinator->reauthorize(null, null, new NullCancellation()));
@@ -555,15 +555,15 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     {
         $gate = new DeferredFuture();
         $http = $this->scriptFullFlow(tokenOverrides: ['access_token' => 'the-first-token'])
-            ->willAnswerJson($this->resourceDocument(), gate: $gate->getFuture())
-            ->willAnswerJson($this->serverDocument())
+            ->willAnswerJson($this->buildResourceDocument(), gate: $gate->getFuture())
+            ->willAnswerJson($this->buildServerDocument())
             ->willAnswerJson(['access_token' => 'the-second-token', 'token_type' => 'Bearer'])
-            ->willAnswerJson($this->resourceDocument())
-            ->willAnswerJson($this->serverDocument())
+            ->willAnswerJson($this->buildResourceDocument())
+            ->willAnswerJson($this->buildServerDocument())
             ->willAnswerJson(['access_token' => 'the-third-token', 'token_type' => 'Bearer'])
         ;
         $user = new ScriptedUserAuthorization();
-        $coordinator = $this->coordinator($http, $user);
+        $coordinator = $this->buildCoordinator($http, $user);
 
         $first = $coordinator->reauthorize(null, null, new NullCancellation());
 
@@ -600,7 +600,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
                 ]));
             }
         };
-        $coordinator = $this->coordinator($this->scriptFullFlow(), $user, $store);
+        $coordinator = $this->buildCoordinator($this->scriptFullFlow(), $user, $store);
         $user->coordinator = $coordinator;
 
         $token = $coordinator->upgradeScopes(
@@ -622,7 +622,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
             ->willAnswerJson(['access_token' => 'the-renewed-token', 'token_type' => 'Bearer'], gate: $gate->getFuture())
         ;
         $store = new InMemoryTokenStore();
-        $coordinator = $this->coordinator($http, new ScriptedUserAuthorization(), $store);
+        $coordinator = $this->buildCoordinator($http, new ScriptedUserAuthorization(), $store);
         $coordinator->reauthorize(null, null, new NullCancellation());
 
         $first = async(static fn(): ?AccessToken => $coordinator->fetchToken(new NullCancellation()));
@@ -647,7 +647,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
             ->willAnswerJson(['access_token' => 'the-spent-renewal', 'token_type' => 'Bearer', 'expires_in' => 1], gate: $gate->getFuture())
             ->willAnswerJson(['access_token' => 'the-usable-renewal', 'token_type' => 'Bearer'])
         ;
-        $coordinator = $this->coordinator($http, new ScriptedUserAuthorization());
+        $coordinator = $this->buildCoordinator($http, new ScriptedUserAuthorization());
         $coordinator->reauthorize(null, null, new NullCancellation());
 
         $first = async(static fn(): ?AccessToken => $coordinator->fetchToken(new NullCancellation()));
@@ -668,7 +668,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     public function testATokenAnotherProcessWroteIsCheckedAgainstTheIssuerDiscoveryFound(): void
     {
         $store = new InMemoryTokenStore();
-        $coordinator = $this->coordinator($this->scriptDiscoveryOnly(), new ScriptedUserAuthorization(), $store);
+        $coordinator = $this->buildCoordinator($this->scriptDiscoveryOnly(), new ScriptedUserAuthorization(), $store);
         $store->write(self::RESOURCE, new AccessToken('from-this-process', self::ISSUER));
         $coordinator->fetchToken(new NullCancellation());
 
@@ -682,7 +682,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     {
         $store = new InMemoryTokenStore();
         $store->write(self::RESOURCE, new AccessToken('from-an-earlier-run', self::ISSUER, scopes: ['files:read', 'files:write']));
-        $coordinator = $this->coordinator($this->scriptFullFlow(), new ScriptedUserAuthorization(), $store);
+        $coordinator = $this->buildCoordinator($this->scriptFullFlow(), new ScriptedUserAuthorization(), $store);
 
         $token = $coordinator->upgradeScopes(null, new ScopeSet(['files:write']), null, new NullCancellation());
 
@@ -692,7 +692,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     public function testReadGrantedScopesReportsWhatTheStoredTokenCarries(): void
     {
         $http = $this->scriptFullFlow(['scopes_supported' => ['files:read', 'files:write']]);
-        $coordinator = $this->coordinator($http, new ScriptedUserAuthorization());
+        $coordinator = $this->buildCoordinator($http, new ScriptedUserAuthorization());
         $coordinator->reauthorize(null, null, new NullCancellation());
 
         self::assertSame(['files:read', 'files:write'], $coordinator->readGrantedScopes()->values);
@@ -700,7 +700,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
 
     public function testReadGrantedScopesIsEmptyBeforeAnyAuthorization(): void
     {
-        $coordinator = $this->coordinator(new RecordingHttpClient(), new ScriptedUserAuthorization());
+        $coordinator = $this->buildCoordinator(new RecordingHttpClient(), new ScriptedUserAuthorization());
 
         self::assertSame([], $coordinator->readGrantedScopes()->values);
     }
@@ -711,7 +711,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
             ->willAnswerJson(['error' => 'server_error'], 500)
         ;
         $store = new InMemoryTokenStore();
-        $coordinator = $this->coordinator($http, new ScriptedUserAuthorization(), $store);
+        $coordinator = $this->buildCoordinator($http, new ScriptedUserAuthorization(), $store);
         $coordinator->reauthorize(null, null, new NullCancellation());
 
         try {
@@ -728,13 +728,13 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     {
         $http = $this->scriptFullFlow(tokenOverrides: ['expires_in' => 1, 'refresh_token' => 'the-refresh-token'])
             ->willAnswerJson(['error' => 'invalid_client'], 401)
-            ->willAnswerJson($this->resourceDocument())
-            ->willAnswerJson($this->serverDocument())
+            ->willAnswerJson($this->buildResourceDocument())
+            ->willAnswerJson($this->buildServerDocument())
             ->willAnswerJson(['client_id' => 'the-second-client'])
             ->willAnswerJson(['access_token' => 'the-second-token', 'token_type' => 'Bearer'])
         ;
         $registrations = new InMemoryClientRegistrationStore();
-        $coordinator = $this->coordinator($http, new ScriptedUserAuthorization(), registrations: $registrations);
+        $coordinator = $this->buildCoordinator($http, new ScriptedUserAuthorization(), registrations: $registrations);
         $coordinator->reauthorize(null, null, new NullCancellation());
 
         self::assertNull($coordinator->fetchToken(new NullCancellation()));
@@ -749,7 +749,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     {
         $http = $this->scriptFullFlow()->willAnswerJson(['error' => 'invalid_client'], 401);
         $registrations = new InMemoryClientRegistrationStore();
-        $coordinator = $this->coordinator($http, new ScriptedUserAuthorization(), registrations: $registrations);
+        $coordinator = $this->buildCoordinator($http, new ScriptedUserAuthorization(), registrations: $registrations);
         $coordinator->reauthorize(null, null, new NullCancellation());
 
         try {
@@ -768,12 +768,12 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     public function testASpentTokenThatCannotBeRenewedStillLeavesItsScopesToTheNextGrant(): void
     {
         $http = $this->scriptFullFlow(tokenOverrides: ['expires_in' => 1, 'scope' => 'files:read'])
-            ->willAnswerJson($this->resourceDocument())
-            ->willAnswerJson($this->serverDocument())
+            ->willAnswerJson($this->buildResourceDocument())
+            ->willAnswerJson($this->buildServerDocument())
             ->willAnswerJson(['access_token' => 'the-second-token', 'token_type' => 'Bearer'])
         ;
         $user = new ScriptedUserAuthorization();
-        $coordinator = $this->coordinator($http, $user);
+        $coordinator = $this->buildCoordinator($http, $user);
         $coordinator->reauthorize(null, null, new NullCancellation());
 
         self::assertNull($coordinator->fetchToken(new NullCancellation()));
@@ -790,7 +790,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         $http = (new RecordingHttpClient())->willAnswerJson([], 404)->willAnswerJson([], 404);
         $logger = new ArrayLogger();
 
-        $coordinator = $this->coordinator($http, new ScriptedUserAuthorization(), $store, $logger);
+        $coordinator = $this->buildCoordinator($http, new ScriptedUserAuthorization(), $store, $logger);
 
         self::assertNull($coordinator->fetchToken(new NullCancellation()));
 
@@ -812,14 +812,14 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         $other = 'https://other.example.com/mcp';
         $theirHttp = (new RecordingHttpClient())
             ->willAnswerJson(['resource' => $other, 'authorization_servers' => [self::ISSUER]], gate: $gate->getFuture())
-            ->willAnswerJson($this->serverDocument())
+            ->willAnswerJson($this->buildServerDocument())
             ->willAnswerJson(['client_id' => 'the-registered-client'])
             ->willAnswerJson(['access_token' => 'the-other-token', 'token_type' => 'Bearer'])
         ;
         $store = new InMemoryTokenStore();
         $user = new ScriptedUserAuthorization();
-        $theirs = $this->coordinator($theirHttp, $user, $store, resource: $other);
-        $ours = $this->coordinator($this->scriptFullFlow(), $user, $store);
+        $theirs = $this->buildCoordinator($theirHttp, $user, $store, resource: $other);
+        $ours = $this->buildCoordinator($this->scriptFullFlow(), $user, $store);
 
         $first = async(static fn(): AccessToken => $theirs->reauthorize(null, null, new NullCancellation()));
         delay(0);
@@ -840,7 +840,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     {
         $user = new ScriptedUserAuthorization();
 
-        $this->coordinator($this->scriptFullFlow(), $user, defaultScopes: ['files:read'])->reauthorize(
+        $this->buildCoordinator($this->scriptFullFlow(), $user, defaultScopes: ['files:read'])->reauthorize(
             null,
             new WwwAuthenticateChallenge('Bearer', ['scope' => '']),
             new NullCancellation(),
@@ -854,7 +854,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         $user = new ScriptedUserAuthorization();
         $http = $this->scriptFullFlow(['scopes_supported' => ['files:read', 'offline_access']]);
 
-        $this->coordinator($http, $user)->reauthorize(null, null, new NullCancellation());
+        $this->buildCoordinator($http, $user)->reauthorize(null, null, new NullCancellation());
 
         self::assertSame(['files:read'], $user->readRequestedScopes());
     }
@@ -866,7 +866,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
             ['access_token' => 'the-wide-token', 'token_type' => 'Bearer'],
             gate: $gate->getFuture(),
         );
-        $coordinator = $this->coordinator($http, new ScriptedUserAuthorization());
+        $coordinator = $this->buildCoordinator($http, new ScriptedUserAuthorization());
         $presented = $coordinator->reauthorize(null, null, new NullCancellation());
 
         $order = [];
@@ -895,7 +895,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
             ->willAnswerJson(['access_token' => 'the-wide-token', 'token_type' => 'Bearer'])
         ;
         $user = new ScriptedUserAuthorization();
-        $coordinator = $this->coordinator($http, $user);
+        $coordinator = $this->buildCoordinator($http, $user);
 
         $presented = $coordinator->reauthorize(null, null, new NullCancellation());
 
@@ -921,7 +921,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
             )
         ;
         $user = new ScriptedUserAuthorization();
-        $coordinator = $this->coordinator($http, $user);
+        $coordinator = $this->buildCoordinator($http, $user);
         $presented = $coordinator->reauthorize(null, null, new NullCancellation());
 
         $first = async(static fn(): AccessToken => $coordinator->upgradeScopes($presented, new ScopeSet(['files:admin']), null, new NullCancellation()));
@@ -937,12 +937,12 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     {
         $store = new InMemoryTokenStore();
         $http = $this->scriptFullFlow(['scopes_supported' => ['files:read', 'files:write']])
-            ->willAnswerJson($this->resourceDocument())
-            ->willAnswerJson($this->serverDocument())
+            ->willAnswerJson($this->buildResourceDocument())
+            ->willAnswerJson($this->buildServerDocument())
             ->willAnswerJson(['access_token' => 'the-second-token', 'token_type' => 'Bearer'])
         ;
         $user = new ScriptedUserAuthorization();
-        $coordinator = $this->coordinator($http, $user, $store);
+        $coordinator = $this->buildCoordinator($http, $user, $store);
         $refused = $coordinator->reauthorize(null, null, new NullCancellation());
 
         self::assertSame('the-second-token', $coordinator->reauthorize($refused, null, new NullCancellation())->value);
@@ -952,15 +952,15 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     public function testAGrantThatOmitsAScopeGrantedEarlierStopsAskingForIt(): void
     {
         $http = $this->scriptFullFlow(tokenOverrides: ['scope' => 'files:read files:write'])
-            ->willAnswerJson($this->resourceDocument())
-            ->willAnswerJson($this->serverDocument())
+            ->willAnswerJson($this->buildResourceDocument())
+            ->willAnswerJson($this->buildServerDocument())
             ->willAnswerJson(['access_token' => 'the-second-token', 'token_type' => 'Bearer', 'scope' => 'files:read'])
-            ->willAnswerJson($this->resourceDocument())
-            ->willAnswerJson($this->serverDocument())
+            ->willAnswerJson($this->buildResourceDocument())
+            ->willAnswerJson($this->buildServerDocument())
             ->willAnswerJson(['access_token' => 'the-third-token', 'token_type' => 'Bearer', 'scope' => 'files:read'])
         ;
         $user = new ScriptedUserAuthorization();
-        $coordinator = $this->coordinator($http, $user);
+        $coordinator = $this->buildCoordinator($http, $user);
 
         $first = $coordinator->reauthorize(null, null, new NullCancellation());
         $second = $coordinator->reauthorize($first, null, new NullCancellation());
@@ -976,7 +976,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         $refused = new AccessToken('from-an-earlier-run', self::ISSUER);
         $store->write(self::RESOURCE, $refused);
 
-        $this->coordinator($this->scriptFullFlow(), new ScriptedUserAuthorization(), $store)->reauthorize($refused, null, new NullCancellation());
+        $this->buildCoordinator($this->scriptFullFlow(), new ScriptedUserAuthorization(), $store)->reauthorize($refused, null, new NullCancellation());
 
         self::assertSame('the-access-token', $store->read(self::RESOURCE)?->value);
     }
@@ -984,11 +984,11 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     public function testReauthorizingReadsTheMetadataAfresh(): void
     {
         $http = $this->scriptFullFlow()
-            ->willAnswerJson($this->resourceDocument())
-            ->willAnswerJson($this->serverDocument())
+            ->willAnswerJson($this->buildResourceDocument())
+            ->willAnswerJson($this->buildServerDocument())
             ->willAnswerJson(['access_token' => 'the-second-token', 'token_type' => 'Bearer'])
         ;
-        $coordinator = $this->coordinator($http, new ScriptedUserAuthorization());
+        $coordinator = $this->buildCoordinator($http, new ScriptedUserAuthorization());
         $refused = $coordinator->reauthorize(null, null, new NullCancellation());
 
         self::assertSame('the-second-token', $coordinator->reauthorize($refused, null, new NullCancellation())->value);
@@ -998,7 +998,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     public function testAStepUpReusesWhatDiscoveryAlreadyFound(): void
     {
         $http = $this->scriptFullFlow()->willAnswerJson(['access_token' => 'the-second-token', 'token_type' => 'Bearer']);
-        $coordinator = $this->coordinator($http, new ScriptedUserAuthorization());
+        $coordinator = $this->buildCoordinator($http, new ScriptedUserAuthorization());
         $presented = $coordinator->reauthorize(null, null, new NullCancellation());
 
         self::assertSame(
@@ -1014,7 +1014,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
             ->willAnswerJson('<html>Bad Gateway</html>', 502)
         ;
         $store = new InMemoryTokenStore();
-        $coordinator = $this->coordinator($http, new ScriptedUserAuthorization(), $store);
+        $coordinator = $this->buildCoordinator($http, new ScriptedUserAuthorization(), $store);
         $coordinator->reauthorize(null, null, new NullCancellation());
 
         try {
@@ -1033,7 +1033,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
             ->willAnswerJson('<html>All good, honest</html>')
         ;
         $store = new InMemoryTokenStore();
-        $coordinator = $this->coordinator($http, new ScriptedUserAuthorization(), $store);
+        $coordinator = $this->buildCoordinator($http, new ScriptedUserAuthorization(), $store);
         $coordinator->reauthorize(null, null, new NullCancellation());
 
         self::assertNull($coordinator->fetchToken(new NullCancellation()));
@@ -1047,7 +1047,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         $http = $this->scriptDiscoveryOnly();
         $strategy = new ScriptedGrantStrategy(true, new AccessToken('the-fresh-token', self::ISSUER, null, null, ['files:read']));
 
-        $token = $this->coordinator($http, $strategy, $store)->fetchToken(new NullCancellation());
+        $token = $this->buildCoordinator($http, $strategy, $store)->fetchToken(new NullCancellation());
 
         self::assertNotNull($token);
         self::assertSame('the-fresh-token', $token->value);
@@ -1062,7 +1062,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         $http = $this->scriptDiscoveryOnly();
         $strategy = new ScriptedGrantStrategy(true, new AccessToken('the-fresh-token', self::ISSUER));
 
-        $this->coordinator($http, $strategy, $store)->fetchToken(new NullCancellation());
+        $this->buildCoordinator($http, $strategy, $store)->fetchToken(new NullCancellation());
 
         self::assertSame([
             'https://mcp.example.com/.well-known/oauth-protected-resource/mcp',
@@ -1077,7 +1077,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         $http = $this->scriptDiscoveryOnly();
         $strategy = new ScriptedGrantStrategy(true, new AccessToken('the-fresh-token', self::ISSUER));
 
-        $token = $this->coordinator($http, $strategy, $store)->fetchToken(new NullCancellation());
+        $token = $this->buildCoordinator($http, $strategy, $store)->fetchToken(new NullCancellation());
 
         self::assertSame('the-fresh-token', $token?->value);
         self::assertCount(1, $strategy->contexts);
@@ -1091,7 +1091,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         $http = $this->scriptDiscoveryOnly();
 
         try {
-            $this->coordinator($http, new ScriptedGrantStrategy(true), $store)->fetchToken(new NullCancellation());
+            $this->buildCoordinator($http, new ScriptedGrantStrategy(true), $store)->fetchToken(new NullCancellation());
             self::fail('The renewal should have propagated.');
         } catch (\OutOfBoundsException $e) {
             self::assertSame('No token was scripted for this grant.', $e->getMessage());
@@ -1099,7 +1099,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         }
     }
 
-    private function storeHoldingATokenFromAFormerServer(): InMemoryTokenStore
+    private function buildStoreHoldingATokenFromAFormerServer(): InMemoryTokenStore
     {
         $store = new InMemoryTokenStore();
         $store->write(self::RESOURCE, new AccessToken(
@@ -1115,15 +1115,15 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     private function scriptDiscoveryOnly(): RecordingHttpClient
     {
         return (new RecordingHttpClient())
-            ->willAnswerJson($this->resourceDocument())
-            ->willAnswerJson($this->serverDocument())
+            ->willAnswerJson($this->buildResourceDocument())
+            ->willAnswerJson($this->buildServerDocument())
         ;
     }
 
     /**
      * @param list<non-empty-string> $defaultScopes
      */
-    private function coordinator(
+    private function buildCoordinator(
         RecordingHttpClient $http,
         GrantStrategyInterface|UserAuthorizationInterface $user,
         ?InMemoryTokenStore $tokens = null,
@@ -1164,8 +1164,8 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         array $tokenOverrides = [],
     ): RecordingHttpClient {
         return (new RecordingHttpClient())
-            ->willAnswerJson($this->resourceDocument($resourceOverrides))
-            ->willAnswerJson($this->serverDocument($serverOverrides))
+            ->willAnswerJson($this->buildResourceDocument($resourceOverrides))
+            ->willAnswerJson($this->buildServerDocument($serverOverrides))
             ->willAnswerJson(['client_id' => 'the-registered-client'])
             ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer', ...$tokenOverrides])
         ;
@@ -1176,7 +1176,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
      *
      * @return array<string, mixed>
      */
-    private function resourceDocument(array $overrides = []): array
+    private function buildResourceDocument(array $overrides = []): array
     {
         return ['resource' => self::RESOURCE, 'authorization_servers' => [self::ISSUER], ...$overrides];
     }
@@ -1186,7 +1186,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
      *
      * @return array<string, mixed>
      */
-    private function serverDocument(array $overrides = []): array
+    private function buildServerDocument(array $overrides = []): array
     {
         return [
             'issuer' => self::ISSUER,

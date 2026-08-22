@@ -41,8 +41,8 @@ final class ListResourceTemplatesRequestHandlerTest extends AbstractMcpTestCase
     public function testReturnsAllRegisteredTemplatesWhenCursorIsNull(): void
     {
         $store = new ResourceTemplateStore([
-            'file:///{x}.alpha' => $this->entry(new ResourceTemplate(name: 'alpha', uriTemplate: 'file:///{x}.alpha')),
-            'file:///{x}.beta' => $this->entry(new ResourceTemplate(name: 'beta', uriTemplate: 'file:///{x}.beta')),
+            'file:///{x}.alpha' => $this->buildEntry(new ResourceTemplate(name: 'alpha', uriTemplate: 'file:///{x}.alpha')),
+            'file:///{x}.beta' => $this->buildEntry(new ResourceTemplate(name: 'beta', uriTemplate: 'file:///{x}.beta')),
         ]);
         $handler = new ListResourceTemplatesRequestHandler($store);
 
@@ -60,9 +60,9 @@ final class ListResourceTemplatesRequestHandlerTest extends AbstractMcpTestCase
     {
         $store = new ResourceTemplateStore(
             [
-                'file:///{x}.a' => $this->entry(new ResourceTemplate(name: 'a', uriTemplate: 'file:///{x}.a')),
-                'file:///{x}.b' => $this->entry(new ResourceTemplate(name: 'b', uriTemplate: 'file:///{x}.b')),
-                'file:///{x}.c' => $this->entry(new ResourceTemplate(name: 'c', uriTemplate: 'file:///{x}.c')),
+                'file:///{x}.a' => $this->buildEntry(new ResourceTemplate(name: 'a', uriTemplate: 'file:///{x}.a')),
+                'file:///{x}.b' => $this->buildEntry(new ResourceTemplate(name: 'b', uriTemplate: 'file:///{x}.b')),
+                'file:///{x}.c' => $this->buildEntry(new ResourceTemplate(name: 'c', uriTemplate: 'file:///{x}.c')),
             ],
             pageSize: 2,
         );
@@ -87,7 +87,7 @@ final class ListResourceTemplatesRequestHandlerTest extends AbstractMcpTestCase
         );
     }
 
-    private function entry(ResourceTemplate $template): ResourceTemplateEntry
+    private function buildEntry(ResourceTemplate $template): ResourceTemplateEntry
     {
         return new ResourceTemplateEntry(
             $template,

@@ -39,7 +39,7 @@ final class ReflectedTemplatedResourceReaderTest extends AbstractMcpTestCase
     {
         $result = $this->read('templatedResult', 'mem://users/42', ['id' => '42']);
 
-        self::assertSame('profile', $this->firstText($result));
+        self::assertSame('profile', $this->readFirstText($result));
     }
 
     public function testWrapsStringAndBindsTemplateVariable(): void
@@ -58,7 +58,7 @@ final class ReflectedTemplatedResourceReaderTest extends AbstractMcpTestCase
     {
         $result = $this->read('templatedUri', 'mem://users/42', ['id' => '42']);
 
-        self::assertSame('mem://users/42#42', $this->firstText($result));
+        self::assertSame('mem://users/42#42', $this->readFirstText($result));
     }
 
     public function testThrowsOnUnsupportedReturn(): void
@@ -84,7 +84,7 @@ final class ReflectedTemplatedResourceReaderTest extends AbstractMcpTestCase
         return $result;
     }
 
-    private function firstText(ReadResourceResult $result): string
+    private function readFirstText(ReadResourceResult $result): string
     {
         $contents = $result->contents[0] ?? null;
 

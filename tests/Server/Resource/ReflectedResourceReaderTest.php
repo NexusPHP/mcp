@@ -39,7 +39,7 @@ final class ReflectedResourceReaderTest extends AbstractMcpTestCase
     {
         $result = $this->read('resourceResult', 'mem://anything');
 
-        self::assertSame('body', $this->firstText($result));
+        self::assertSame('body', $this->readFirstText($result));
     }
 
     public function testWrapsStringAsTextResourceContentsBoundToUri(): void
@@ -76,7 +76,7 @@ final class ReflectedResourceReaderTest extends AbstractMcpTestCase
         return $result;
     }
 
-    private function firstText(ReadResourceResult $result): string
+    private function readFirstText(ReadResourceResult $result): string
     {
         $contents = $result->contents[0] ?? null;
 

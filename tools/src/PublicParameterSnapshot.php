@@ -46,7 +46,7 @@ final class PublicParameterSnapshot
     {
         $snapshot = [];
 
-        foreach (self::sourceClasses() as $class) {
+        foreach (self::listSourceClasses() as $class) {
             $reflection = new \ReflectionClass($class);
 
             if (! $reflection->isFinal() || self::isMarkedInternal($reflection->getDocComment())) {
@@ -92,7 +92,7 @@ final class PublicParameterSnapshot
     /**
      * @return list<class-string>
      */
-    private static function sourceClasses(): array
+    private static function listSourceClasses(): array
     {
         $directory = realpath(self::SOURCE_DIRECTORY);
 

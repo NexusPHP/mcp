@@ -416,7 +416,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     {
         $server = (new ServerBuilder())->setServerInfo('demo-srv', '2.3.4')->build();
 
-        $info = $this->serverInfoFor($server);
+        $info = $this->readServerInfoFor($server);
 
         self::assertSame('demo-srv', $info->name);
         self::assertSame('2.3.4', $info->version);
@@ -541,7 +541,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             ->build()
         ;
 
-        self::assertSame('demo-srv', $this->serverInfoFor($server)->name);
+        self::assertSame('demo-srv', $this->readServerInfoFor($server)->name);
     }
 
     public function testNameAndVersionDisclosureTrimsTheIdentityOnResultsOtherThanDiscover(): void
@@ -570,7 +570,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             ->build()
         ;
 
-        $info = $this->serverInfoFor($server);
+        $info = $this->readServerInfoFor($server);
 
         self::assertSame('Demo', $info->title);
         self::assertSame('A demo.', $info->description);
@@ -819,19 +819,19 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
         $tools = $this->dispatch($server, 'tools/list');
         self::assertInstanceOf(ListToolsResult::class, $tools);
-        self::assertSame(['add', 'greet_user'], $this->sorted(array_map(static fn(Tool $tool): string => $tool->name, $tools->tools)));
+        self::assertSame(['add', 'greet_user'], $this->sortNames(array_map(static fn(Tool $tool): string => $tool->name, $tools->tools)));
 
         $prompts = $this->dispatch($server, 'prompts/list');
         self::assertInstanceOf(ListPromptsResult::class, $prompts);
-        self::assertSame(['compose', 'labelled', 'outline', 'ping_prompt'], $this->sorted(array_map(static fn(Prompt $prompt): string => $prompt->name, $prompts->prompts)));
+        self::assertSame(['compose', 'labelled', 'outline', 'ping_prompt'], $this->sortNames(array_map(static fn(Prompt $prompt): string => $prompt->name, $prompts->prompts)));
 
         $resources = $this->dispatch($server, 'resources/list');
         self::assertInstanceOf(ListResourcesResult::class, $resources);
-        self::assertSame(['app_config', 'defaults'], $this->sorted(array_map(static fn(Resource $resource): string => $resource->name, $resources->resources)));
+        self::assertSame(['app_config', 'defaults'], $this->sortNames(array_map(static fn(Resource $resource): string => $resource->name, $resources->resources)));
 
         $templates = $this->dispatch($server, 'resources/templates/list');
         self::assertInstanceOf(ListResourceTemplatesResult::class, $templates);
-        self::assertSame(['fileTemplate', 'user_profile'], $this->sorted(array_map(static fn(ResourceTemplate $template): string => $template->name, $templates->resourceTemplates)));
+        self::assertSame(['fileTemplate', 'user_profile'], $this->sortNames(array_map(static fn(ResourceTemplate $template): string => $template->name, $templates->resourceTemplates)));
     }
 
     public function testRegisterWiresAnExecutableTool(): void
@@ -872,7 +872,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         $tools = $this->dispatch($server, 'tools/list');
 
         self::assertInstanceOf(ListToolsResult::class, $tools);
-        self::assertSame(['add', 'greet_user', 'ping'], $this->sorted(array_map(static fn(Tool $tool): string => $tool->name, $tools->tools)));
+        self::assertSame(['add', 'greet_user', 'ping'], $this->sortNames(array_map(static fn(Tool $tool): string => $tool->name, $tools->tools)));
     }
 
     public function testRegisterReturnsTheBuilderForChaining(): void
@@ -890,7 +890,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         ;
 
         $result = $this->discoverResultFor($server);
-        $info = $this->serverInfoFor($server);
+        $info = $this->readServerInfoFor($server);
 
         self::assertSame('described-server', $info->name);
         self::assertSame('2.3.4', $info->version);
@@ -909,14 +909,14 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             ->build()
         ;
 
-        $info = $this->serverInfoFor($server);
+        $info = $this->readServerInfoFor($server);
 
         self::assertSame('explicit-server', $info->name);
         self::assertSame('9.9.9', $info->version);
         self::assertSame('Described Server', $info->title);
         self::assertSame('A server described entirely by attributes.', $info->description);
         self::assertSame('https://nexus.test', $info->websiteUrl);
-        self::assertSame('https://nexus.test/icon.svg', $this->firstIcon($info)->src);
+        self::assertSame('https://nexus.test/icon.svg', $this->readFirstIcon($info)->src);
     }
 
     public function testExplicitServerInfoFieldsTakePrecedencePerField(): void
@@ -927,12 +927,12 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             ->build()
         ;
 
-        $info = $this->serverInfoFor($server);
+        $info = $this->readServerInfoFor($server);
 
         self::assertSame('Explicit Title', $info->title);
         self::assertSame('Explicit description.', $info->description);
         self::assertSame('https://explicit.test', $info->websiteUrl);
-        self::assertSame('https://explicit.test/icon.svg', $this->firstIcon($info)->src);
+        self::assertSame('https://explicit.test/icon.svg', $this->readFirstIcon($info)->src);
     }
 
     public function testAttributeWithoutInstructionsLeavesThemNull(): void
@@ -941,7 +941,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         $server = (new ServerBuilder())->register($source)->build();
 
         self::assertNull($this->discoverResultFor($server)->instructions);
-        self::assertSame('minimal', $this->serverInfoFor($server)->name);
+        self::assertSame('minimal', $this->readServerInfoFor($server)->name);
     }
 
     public function testRegisterRejectsEmptyInstructionsFromAttribute(): void
@@ -964,7 +964,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             }
         };
 
-        $info = $this->serverInfoFor(
+        $info = $this->readServerInfoFor(
             (new ServerBuilder())->register(new SelfDescribingServer(), $extra)->build(),
         );
 
@@ -2283,7 +2283,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
         self::assertSame(
             [],
-            $this->acknowledgedNotificationsFor($server),
+            $this->readAcknowledgedNotificationsFor($server),
             'A type the tool store cannot report must not be promised on the stream.',
         );
     }
@@ -2301,7 +2301,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
         self::assertSame(
             ['toolsListChanged' => true, 'promptsListChanged' => true, 'resourcesListChanged' => true],
-            $this->acknowledgedNotificationsFor($server),
+            $this->readAcknowledgedNotificationsFor($server),
         );
     }
 
@@ -2320,7 +2320,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
         self::assertSame(
             ['resourcesListChanged' => true],
-            $this->acknowledgedNotificationsFor($server),
+            $this->readAcknowledgedNotificationsFor($server),
         );
     }
 
@@ -2339,7 +2339,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
         self::assertSame(
             ['resourcesListChanged' => true],
-            $this->acknowledgedNotificationsFor($server),
+            $this->readAcknowledgedNotificationsFor($server),
         );
     }
 
@@ -2392,7 +2392,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
     public function testAdvertisesResourceSubscribeAlongsideAListenStore(): void
     {
-        $server = $this->builderWithResource()
+        $server = $this->makeBuilderWithResource()
             ->setSubscriptionStore(new SubscriptionStore(resourcesListChanged: true, resourceSubscriptions: true))
             ->build()
         ;
@@ -2604,7 +2604,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     public function testAMutatedResourceListReachesAnOpenSubscription(): void
     {
         $subscriptions = new SubscriptionStore(resourcesListChanged: true);
-        $builder = $this->builderWithResource()->setSubscriptionStore($subscriptions);
+        $builder = $this->makeBuilderWithResource()->setSubscriptionStore($subscriptions);
         $builder->build();
 
         $sender = new RecordingSender();
@@ -2630,7 +2630,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
     public function testPromptStoreAssemblesTheRegisteredEntries(): void
     {
-        $store = $this->builderWithPrompt()->getPromptStore();
+        $store = $this->makeBuilderWithPrompt()->getPromptStore();
 
         self::assertInstanceOf(PromptStoreInterface::class, $store);
 
@@ -2649,7 +2649,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
     public function testTheServedPromptStoreIsTheSameInstanceTheAccessorReturns(): void
     {
-        $builder = $this->builderWithPrompt();
+        $builder = $this->makeBuilderWithPrompt();
         $builder->build();
 
         self::assertSame($builder->getPromptStore(), $builder->getPromptStore());
@@ -2662,7 +2662,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
     public function testResourceStoreAssemblesTheRegisteredEntries(): void
     {
-        $store = $this->builderWithResource()->getResourceStore();
+        $store = $this->makeBuilderWithResource()->getResourceStore();
 
         self::assertInstanceOf(ResourceStoreInterface::class, $store);
 
@@ -2674,7 +2674,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
     public function testResourceStoreIsAssembledWhenOnlyTemplatesAreRegistered(): void
     {
-        $store = $this->builderWithResourceTemplate()->getResourceStore();
+        $store = $this->makeBuilderWithResourceTemplate()->getResourceStore();
 
         self::assertInstanceOf(ResourceStoreInterface::class, $store);
 
@@ -2693,7 +2693,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
     public function testTheServedResourceStoreIsTheSameInstanceTheAccessorReturns(): void
     {
-        $builder = $this->builderWithResource();
+        $builder = $this->makeBuilderWithResource();
         $builder->build();
 
         self::assertSame($builder->getResourceStore(), $builder->getResourceStore());
@@ -2706,7 +2706,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
     public function testResourceTemplateStoreAssemblesTheRegisteredEntries(): void
     {
-        $store = $this->builderWithResourceTemplate()->getResourceTemplateStore();
+        $store = $this->makeBuilderWithResourceTemplate()->getResourceTemplateStore();
 
         self::assertInstanceOf(ResourceTemplateStoreInterface::class, $store);
 
@@ -2734,7 +2734,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
     public function testTheServedResourceTemplateStoreIsTheSameInstanceTheAccessorReturns(): void
     {
-        $builder = $this->builderWithResourceTemplate();
+        $builder = $this->makeBuilderWithResourceTemplate();
         $builder->build();
 
         self::assertSame($builder->getResourceTemplateStore(), $builder->getResourceTemplateStore());
@@ -3153,7 +3153,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
      *
      * @return array<array-key, mixed>
      */
-    private function acknowledgedNotificationsFor(Server $server): array
+    private function readAcknowledgedNotificationsFor(Server $server): array
     {
         return $this->discoverAndAcknowledgementFor($server)[1];
     }
@@ -3260,7 +3260,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         );
     }
 
-    private function builderWithPrompt(): ServerBuilder
+    private function makeBuilderWithPrompt(): ServerBuilder
     {
         return (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
@@ -3271,7 +3271,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         ;
     }
 
-    private function builderWithResource(): ServerBuilder
+    private function makeBuilderWithResource(): ServerBuilder
     {
         return (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
@@ -3286,7 +3286,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         ;
     }
 
-    private function builderWithResourceTemplate(): ServerBuilder
+    private function makeBuilderWithResourceTemplate(): ServerBuilder
     {
         return (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
@@ -3315,14 +3315,14 @@ final class ServerBuilderTest extends AbstractMcpTestCase
      *
      * @return list<string>
      */
-    private function sorted(array $names): array
+    private function sortNames(array $names): array
     {
         sort($names);
 
         return $names;
     }
 
-    private function firstIcon(Implementation $info): Icon
+    private function readFirstIcon(Implementation $info): Icon
     {
         $icon = ($info->icons ?? [])[0] ?? null;
 
@@ -3340,7 +3340,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         return $result;
     }
 
-    private function serverInfoFor(Server $server): Implementation
+    private function readServerInfoFor(Server $server): Implementation
     {
         $serverInfo = $this->discoverResultFor($server)->meta->serverInfo;
 

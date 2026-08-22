@@ -51,7 +51,7 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
 
         $running = async(fn(): SubscriptionsListenResult => $handler->handle(
             $this->listenRequest(1),
-            $this->contextFor(1, $sender),
+            $this->buildContextFor(1, $sender),
         ));
 
         delay(0.0);
@@ -70,7 +70,7 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
 
         $running = async(fn(): SubscriptionsListenResult => $handler->handle(
             $this->listenRequest(1),
-            $this->contextFor(1, new RecordingSender()),
+            $this->buildContextFor(1, new RecordingSender()),
         ));
         delay(0.0);
         $store->closeAll();
@@ -117,14 +117,14 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
 
         $running = async(fn(): SubscriptionsListenResult => $handler->handle(
             $this->listenRequest(1),
-            $this->authorizedContextFor(1, new RecordingSender(), clientId: 'cli-1', subject: 'sub-a'),
+            $this->buildAuthorizedContextFor(1, new RecordingSender(), clientId: 'cli-1', subject: 'sub-a'),
         ));
         delay(0.0);
 
         try {
             $handler->handle(
                 $this->listenRequest(2),
-                $this->authorizedContextFor(2, new RecordingSender(), clientId: 'cli-1', subject: 'sub-b'),
+                $this->buildAuthorizedContextFor(2, new RecordingSender(), clientId: 'cli-1', subject: 'sub-b'),
             );
             self::fail('A second stream for the same OAuth client must be refused.');
         } catch (SubscriptionLimitReachedException $e) {
@@ -142,7 +142,7 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
 
         $running = async(fn(): SubscriptionsListenResult => $handler->handle(
             $this->listenRequest(1),
-            $this->authorizedContextFor(1, new RecordingSender(), clientId: null, subject: 'sub-1'),
+            $this->buildAuthorizedContextFor(1, new RecordingSender(), clientId: null, subject: 'sub-1'),
         ));
         delay(0.0);
 
@@ -151,7 +151,7 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
         try {
             $handler->handle(
                 $this->listenRequest(2),
-                $this->authorizedContextFor(2, new RecordingSender(), clientId: null, subject: 'sub-1'),
+                $this->buildAuthorizedContextFor(2, new RecordingSender(), clientId: null, subject: 'sub-1'),
             );
         } finally {
             $store->closeAll();
@@ -200,7 +200,7 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
                     meta: RequestMetaObjectFactory::create(),
                 ),
             ),
-            $this->contextFor(1, $sender),
+            $this->buildContextFor(1, $sender),
         ));
         delay(0.0);
         $store->closeAll();
@@ -231,7 +231,7 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
                     meta: RequestMetaObjectFactory::create(),
                 ),
             ),
-            $this->contextFor(1, $sender),
+            $this->buildContextFor(1, $sender),
         ));
         delay(0.0);
         $store->closeAll();
@@ -265,7 +265,7 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
     /**
      * @param int|non-empty-string $id
      */
-    private function contextFor(int|string $id, RecordingSender $sender): ServerContext
+    private function buildContextFor(int|string $id, RecordingSender $sender): ServerContext
     {
         return new ServerContext(
             new RequestId(id: $id),
@@ -280,7 +280,7 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
      * @param null|non-empty-string $clientId
      * @param null|non-empty-string $subject
      */
-    private function authorizedContextFor(int|string $id, RecordingSender $sender, ?string $clientId, ?string $subject): ServerContext
+    private function buildAuthorizedContextFor(int|string $id, RecordingSender $sender, ?string $clientId, ?string $subject): ServerContext
     {
         return new ServerContext(
             new RequestId(id: $id),

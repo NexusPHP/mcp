@@ -241,7 +241,7 @@ final class ValidationErrorFormatterTest extends AbstractMcpTestCase
     {
         return array_map(
             static fn(SchemaViolation $violation): string => $violation->message,
-            $this->violations($data, $schema),
+            $this->collectViolations($data, $schema),
         );
     }
 
@@ -250,7 +250,7 @@ final class ValidationErrorFormatterTest extends AbstractMcpTestCase
      *
      * @return list<SchemaViolation>
      */
-    private function violations(mixed $data, array $schema): array
+    private function collectViolations(mixed $data, array $schema): array
     {
         $validator = new Validator(max_errors: 8);
         $error = $validator->validate(Helper::toJSON($data), (object) Helper::toJSON($schema))->error();
@@ -271,7 +271,7 @@ final class ValidationErrorFormatterTest extends AbstractMcpTestCase
     {
         return array_map(
             static fn(SchemaViolation $violation): array => $violation->toArray(),
-            $this->violations($data, $schema),
+            $this->collectViolations($data, $schema),
         );
     }
 }

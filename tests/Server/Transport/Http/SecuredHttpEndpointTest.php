@@ -39,9 +39,9 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
 {
     public function testForwardsAnAllowedRequestAndDecoratesTheResponse(): void
     {
-        $handler = $this->handler();
+        $handler = $this->buildHandler();
 
-        $response = $this->endpoint($handler, ['https://app.test'])->handle($this->request('https://app.test'));
+        $response = $this->buildEndpoint($handler, ['https://app.test'])->handle($this->buildRequest('https://app.test'));
 
         self::assertTrue($handler->called);
         self::assertSame(200, $response->getStatusCode());
@@ -50,9 +50,9 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
 
     public function testRejectsADisallowedOriginWith403(): void
     {
-        $handler = $this->handler();
+        $handler = $this->buildHandler();
 
-        $response = $this->endpoint($handler, ['https://app.test'])->handle($this->request('https://evil.test'));
+        $response = $this->buildEndpoint($handler, ['https://app.test'])->handle($this->buildRequest('https://evil.test'));
 
         self::assertFalse($handler->called);
         self::assertSame(403, $response->getStatusCode());
@@ -60,9 +60,9 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
 
     public function testAnswersPreflightAheadOfTheRebindingGate(): void
     {
-        $handler = $this->handler();
+        $handler = $this->buildHandler();
 
-        $response = $this->endpoint($handler, ['https://app.test'])->handle($this->preflight('https://evil.test'));
+        $response = $this->buildEndpoint($handler, ['https://app.test'])->handle($this->buildPreflight('https://evil.test'));
 
         self::assertFalse($handler->called);
         self::assertSame(204, $response->getStatusCode());
@@ -70,9 +70,9 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
 
     public function testRejectsADisallowedHostWith403(): void
     {
-        $handler = $this->handler();
+        $handler = $this->buildHandler();
 
-        $response = $this->endpoint($handler, ['*'], ['app.test'])->handle($this->request(null));
+        $response = $this->buildEndpoint($handler, ['*'], ['app.test'])->handle($this->buildRequest(null));
 
         self::assertFalse($handler->called);
         self::assertSame(403, $response->getStatusCode());
@@ -80,9 +80,9 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
 
     public function testEnforcesTheBodySizeCapWhenConfigured(): void
     {
-        $handler = $this->handler();
+        $handler = $this->buildHandler();
 
-        $response = $this->endpoint($handler, ['*'], maxBodyBytes: 1_024)->handle($this->request(null, 2_048));
+        $response = $this->buildEndpoint($handler, ['*'], maxBodyBytes: 1_024)->handle($this->buildRequest(null, 2_048));
 
         self::assertFalse($handler->called);
         self::assertSame(413, $response->getStatusCode());
@@ -90,10 +90,10 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
 
     public function testABodyOfUnknownSizeIsHeldToTheCap(): void
     {
-        $handler = $this->handler();
-        $request = $this->request(null)->withBody(new NonSeekableStream(str_repeat('x', 2_048)));
+        $handler = $this->buildHandler();
+        $request = $this->buildRequest(null)->withBody(new NonSeekableStream(str_repeat('x', 2_048)));
 
-        $response = $this->endpoint($handler, ['*'], maxBodyBytes: 1_024)->handle($request);
+        $response = $this->buildEndpoint($handler, ['*'], maxBodyBytes: 1_024)->handle($request);
 
         self::assertFalse($handler->called, 'The cap measures an unreported size by reading past it.');
         self::assertSame(413, $response->getStatusCode());
@@ -101,10 +101,10 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
 
     public function testABodyOfUnknownSizeIsHeldToTheCapWithAToolStoreToo(): void
     {
-        $handler = $this->handler();
-        $request = $this->request(null)->withBody(new NonSeekableStream(str_repeat('x', 2_048)));
+        $handler = $this->buildHandler();
+        $request = $this->buildRequest(null)->withBody(new NonSeekableStream(str_repeat('x', 2_048)));
 
-        $response = $this->endpoint($handler, ['*'], maxBodyBytes: 1_024, toolStore: $this->toolStore())
+        $response = $this->buildEndpoint($handler, ['*'], maxBodyBytes: 1_024, toolStore: $this->buildToolStore())
             ->handle($request)
         ;
 
@@ -114,23 +114,23 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
 
     public function testCapsTheBodyAtOneMebibyteByDefault(): void
     {
-        $handler = $this->handler();
-        $endpoint = $this->endpoint($handler, ['*']);
+        $handler = $this->buildHandler();
+        $endpoint = $this->buildEndpoint($handler, ['*']);
 
-        self::assertSame(200, $endpoint->handle($this->request(null, 1_048_576))->getStatusCode());
+        self::assertSame(200, $endpoint->handle($this->buildRequest(null, 1_048_576))->getStatusCode());
         self::assertTrue($handler->called);
 
         $handler->called = false;
 
-        self::assertSame(413, $endpoint->handle($this->request(null, 1_048_577))->getStatusCode());
+        self::assertSame(413, $endpoint->handle($this->buildRequest(null, 1_048_577))->getStatusCode());
         self::assertFalse($handler->called);
     }
 
     public function testANullCapDisablesTheBodySizeLimit(): void
     {
-        $handler = $this->handler();
+        $handler = $this->buildHandler();
 
-        $response = $this->endpoint($handler, ['*'], maxBodyBytes: null)->handle($this->request(null, 1_048_577));
+        $response = $this->buildEndpoint($handler, ['*'], maxBodyBytes: null)->handle($this->buildRequest(null, 1_048_577));
 
         self::assertTrue($handler->called);
         self::assertSame(200, $response->getStatusCode());
@@ -138,9 +138,9 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
 
     public function testValidatesParameterHeadersWhenAToolStoreIsGiven(): void
     {
-        $handler = $this->handler();
+        $handler = $this->buildHandler();
 
-        $response = $this->endpoint($handler, ['*'], toolStore: $this->toolStore())->handle($this->buildMismatchedToolCall('us-east1'));
+        $response = $this->buildEndpoint($handler, ['*'], toolStore: $this->buildToolStore())->handle($this->buildMismatchedToolCall('us-east1'));
 
         self::assertFalse($handler->called);
         self::assertSame(400, $response->getStatusCode());
@@ -148,9 +148,9 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
 
     public function testOmitsParameterHeaderValidationByDefault(): void
     {
-        $handler = $this->handler();
+        $handler = $this->buildHandler();
 
-        $response = $this->endpoint($handler, ['*'])->handle($this->buildMismatchedToolCall('us-east1'));
+        $response = $this->buildEndpoint($handler, ['*'])->handle($this->buildMismatchedToolCall('us-east1'));
 
         self::assertTrue($handler->called);
         self::assertSame(200, $response->getStatusCode());
@@ -158,9 +158,9 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
 
     public function testAnswersRebindingAheadOfParameterHeaderValidation(): void
     {
-        $handler = $this->handler();
+        $handler = $this->buildHandler();
 
-        $response = $this->endpoint($handler, ['https://app.test'], toolStore: $this->toolStore())
+        $response = $this->buildEndpoint($handler, ['https://app.test'], toolStore: $this->buildToolStore())
             ->handle($this->buildMismatchedToolCall('us-east1')->withHeader('Origin', 'https://evil.test'))
         ;
 
@@ -170,10 +170,10 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
 
     public function testAnswersTheBodySizeCapAheadOfParameterHeaderValidation(): void
     {
-        $handler = $this->handler();
-        $store = $this->toolStore();
+        $handler = $this->buildHandler();
+        $store = $this->buildToolStore();
 
-        $response = $this->endpoint($handler, ['*'], maxBodyBytes: 16, toolStore: $store)
+        $response = $this->buildEndpoint($handler, ['*'], maxBodyBytes: 16, toolStore: $store)
             ->handle($this->buildMismatchedToolCall('us-east1'))
         ;
 
@@ -184,10 +184,10 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
 
     public function testAnUnauthenticatedRequestIsTurnedAwayBeforeTheHandler(): void
     {
-        $handler = $this->handler();
+        $handler = $this->buildHandler();
 
-        $response = $this->endpoint($handler, ['https://app.test'], authentication: $this->authentication())
-            ->handle($this->request(null))
+        $response = $this->buildEndpoint($handler, ['https://app.test'], authentication: $this->buildAuthentication())
+            ->handle($this->buildRequest(null))
         ;
 
         self::assertSame(401, $response->getStatusCode());
@@ -197,10 +197,10 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
 
     public function testAnAuthenticatedRequestReachesTheHandler(): void
     {
-        $handler = $this->handler();
+        $handler = $this->buildHandler();
 
-        $response = $this->endpoint($handler, ['https://app.test'], authentication: $this->authentication())
-            ->handle($this->request(null)->withHeader('Authorization', 'Bearer the-token'))
+        $response = $this->buildEndpoint($handler, ['https://app.test'], authentication: $this->buildAuthentication())
+            ->handle($this->buildRequest(null)->withHeader('Authorization', 'Bearer the-token'))
         ;
 
         self::assertSame(200, $response->getStatusCode());
@@ -209,10 +209,10 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
 
     public function testADisallowedOriginIsRejectedBeforeAuthentication(): void
     {
-        $handler = $this->handler();
+        $handler = $this->buildHandler();
 
-        $response = $this->endpoint($handler, ['https://app.test'], authentication: $this->authentication())
-            ->handle($this->request('https://evil.test'))
+        $response = $this->buildEndpoint($handler, ['https://app.test'], authentication: $this->buildAuthentication())
+            ->handle($this->buildRequest('https://evil.test'))
         ;
 
         self::assertSame(403, $response->getStatusCode());
@@ -222,10 +222,10 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
 
     public function testAnOversizedBodyIsRefusedOnlyAfterAuthentication(): void
     {
-        $handler = $this->handler();
+        $handler = $this->buildHandler();
 
-        $response = $this->endpoint($handler, ['*'], maxBodyBytes: 16, authentication: $this->authentication())
-            ->handle($this->request(null, 2_048))
+        $response = $this->buildEndpoint($handler, ['*'], maxBodyBytes: 16, authentication: $this->buildAuthentication())
+            ->handle($this->buildRequest(null, 2_048))
         ;
 
         self::assertSame(401, $response->getStatusCode());
@@ -237,7 +237,7 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
      * @param list<non-empty-string> $allowedHosts
      * @param null|int<0, max>       $maxBodyBytes
      */
-    private function endpoint(
+    private function buildEndpoint(
         RecordingRequestHandler $handler,
         array $allowedOrigins,
         array $allowedHosts = [],
@@ -260,7 +260,7 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
         );
     }
 
-    private function authentication(): BearerAuthenticationMiddleware
+    private function buildAuthentication(): BearerAuthenticationMiddleware
     {
         $recognised = new VerifiedAccessToken(['https://mcp.test/']);
         $validator = self::createStub(AccessTokenValidatorInterface::class);
@@ -276,7 +276,7 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
         );
     }
 
-    private function toolStore(): PagedToolStore
+    private function buildToolStore(): PagedToolStore
     {
         return new PagedToolStore([[
             new Tool(name: 'echo', inputSchema: [
@@ -301,12 +301,12 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
         ;
     }
 
-    private function handler(): RecordingRequestHandler
+    private function buildHandler(): RecordingRequestHandler
     {
         return new RecordingRequestHandler((new Psr17Factory())->createResponse(200));
     }
 
-    private function request(?string $origin, int $bodyBytes = 0): ServerRequestInterface
+    private function buildRequest(?string $origin, int $bodyBytes = 0): ServerRequestInterface
     {
         $factory = new Psr17Factory();
         $request = $factory->createServerRequest('POST', 'https://mcp.test/');
@@ -322,7 +322,7 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
         return $request;
     }
 
-    private function preflight(string $origin): ServerRequestInterface
+    private function buildPreflight(string $origin): ServerRequestInterface
     {
         return (new Psr17Factory())->createServerRequest('OPTIONS', 'https://mcp.test/')
             ->withHeader('Origin', $origin)

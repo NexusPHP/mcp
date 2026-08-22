@@ -40,7 +40,7 @@ final class ParameterHeaderScannerTest extends AbstractMcpTestCase
 
         self::assertTrue($result->valid);
         self::assertNull($result->reason);
-        self::assertSame($expected, $this->toTuples($result));
+        self::assertSame($expected, $this->convertToTuples($result));
     }
 
     /**
@@ -226,7 +226,7 @@ final class ParameterHeaderScannerTest extends AbstractMcpTestCase
     /**
      * @return list<array{list<string>, string, string}>
      */
-    private function toTuples(ParameterHeaderScanResult $result): array
+    private function convertToTuples(ParameterHeaderScanResult $result): array
     {
         return array_map(
             static fn(ParameterHeaderBinding $binding): array => [$binding->path, $binding->headerName, $binding->type],

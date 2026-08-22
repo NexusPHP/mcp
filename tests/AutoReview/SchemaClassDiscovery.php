@@ -31,7 +31,7 @@ trait SchemaClassDiscovery
     {
         $matches = [];
 
-        foreach (self::sourceClasses() as $class) {
+        foreach (self::listSourceClasses() as $class) {
             if (! is_subclass_of($class, $base)) {
                 continue;
             }
@@ -53,7 +53,7 @@ trait SchemaClassDiscovery
     /**
      * @return list<class-string>
      */
-    private static function sourceClasses(): array
+    private static function listSourceClasses(): array
     {
         /** @var null|list<class-string> $cache */
         static $cache = null;

@@ -85,7 +85,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
 
         $this->expectException(TransportNotStartedException::class);
 
-        $transport->send($this->request());
+        $transport->send($this->buildRequest());
     }
 
     public function testStartLaunchesTheConfiguredCommandInTheConfiguredDirectory(): void
@@ -357,7 +357,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
 
         $this->expectException(TransportAlreadyClosedException::class);
 
-        $transport->send($this->request());
+        $transport->send($this->buildRequest());
     }
 
     #[DataProvider('provideSubprocessStderrIsSanitisedAndForwardedToTheLoggerCases')]
@@ -634,7 +634,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
         );
     }
 
-    private function request(): DiscoverRequest
+    private function buildRequest(): DiscoverRequest
     {
         return new DiscoverRequest(
             id: new RequestId(id: 1),

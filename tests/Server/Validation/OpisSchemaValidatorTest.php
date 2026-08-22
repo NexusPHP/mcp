@@ -67,7 +67,7 @@ final class OpisSchemaValidatorTest extends AbstractMcpTestCase
 
         self::assertSame(
             ['"a" must be a string, int given.', '"b" must be an integer, string given.'],
-            $this->messagesOf($errors),
+            $this->readMessagesOf($errors),
         );
     }
 
@@ -174,7 +174,7 @@ final class OpisSchemaValidatorTest extends AbstractMcpTestCase
      *
      * @return list<string>
      */
-    private function messagesOf(array $violations): array
+    private function readMessagesOf(array $violations): array
     {
         return array_map(static fn(SchemaViolation $violation): string => $violation->message, $violations);
     }

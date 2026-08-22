@@ -43,9 +43,9 @@ final class ParameterHeaderValidationMiddlewareTest extends AbstractMcpTestCase
 {
     public function testForwardsAMatchingHeader(): void
     {
-        $handler = $this->handler();
+        $handler = $this->buildHandler();
 
-        $response = $this->middleware()->process(
+        $response = $this->buildMiddleware()->process(
             $this->callPost(['region' => 'us-west1'], ['Mcp-Param-Region' => 'us-west1']),
             $handler,
         );
@@ -56,34 +56,34 @@ final class ParameterHeaderValidationMiddlewareTest extends AbstractMcpTestCase
 
     public function testRejectsAHeaderThatDisagreesWithTheBody(): void
     {
-        $handler = $this->handler();
+        $handler = $this->buildHandler();
 
-        $response = $this->middleware()->process(
+        $response = $this->buildMiddleware()->process(
             $this->callPost(['region' => 'eu-west1'], ['Mcp-Param-Region' => 'us-east1']),
             $handler,
         );
 
         self::assertFalse($handler->called, 'A split-truth request must never reach the transport.');
         self::assertSame(400, $response->getStatusCode());
-        self::assertSame(ProtocolErrorCode::HeaderMismatch->value, $this->errorPayload($response)['code'] ?? null);
+        self::assertSame(ProtocolErrorCode::HeaderMismatch->value, $this->readErrorPayload($response)['code'] ?? null);
     }
 
     public function testRejectsAnAbsentHeaderWhoseArgumentIsPresent(): void
     {
-        $handler = $this->handler();
+        $handler = $this->buildHandler();
 
-        $response = $this->middleware()->process($this->callPost(['region' => 'us-west1']), $handler);
+        $response = $this->buildMiddleware()->process($this->callPost(['region' => 'us-west1']), $handler);
 
         self::assertFalse($handler->called);
         self::assertSame(400, $response->getStatusCode());
-        self::assertSame(ProtocolErrorCode::HeaderMismatch->value, $this->errorPayload($response)['code'] ?? null);
+        self::assertSame(ProtocolErrorCode::HeaderMismatch->value, $this->readErrorPayload($response)['code'] ?? null);
     }
 
     public function testRejectionEchoesTheRequestId(): void
     {
-        $response = $this->middleware()->process(
+        $response = $this->buildMiddleware()->process(
             $this->callPost(['region' => 'eu-west1'], ['Mcp-Param-Region' => 'us-east1'], id: 'call-7'),
-            $this->handler(),
+            $this->buildHandler(),
         );
 
         self::assertSame('call-7', $this->decode($response)['id'] ?? null);
@@ -91,9 +91,9 @@ final class ParameterHeaderValidationMiddlewareTest extends AbstractMcpTestCase
 
     public function testRejectionOmitsAMalformedRequestId(): void
     {
-        $response = $this->middleware()->process(
+        $response = $this->buildMiddleware()->process(
             $this->callPost(['region' => 'eu-west1'], ['Mcp-Param-Region' => 'us-east1'], id: ['bad']),
-            $this->handler(),
+            $this->buildHandler(),
         );
 
         self::assertArrayNotHasKey('id', $this->decode($response));
@@ -101,9 +101,9 @@ final class ParameterHeaderValidationMiddlewareTest extends AbstractMcpTestCase
 
     public function testForwardsWhenTheArgumentIsAbsentSoNoHeaderIsExpected(): void
     {
-        $handler = $this->handler();
+        $handler = $this->buildHandler();
 
-        $response = $this->middleware()->process($this->callPost([]), $handler);
+        $response = $this->buildMiddleware()->process($this->callPost([]), $handler);
 
         self::assertTrue($handler->called);
         self::assertSame(200, $response->getStatusCode());
@@ -111,10 +111,10 @@ final class ParameterHeaderValidationMiddlewareTest extends AbstractMcpTestCase
 
     public function testDecodesTheBase64SentinelBeforeComparing(): void
     {
-        $handler = $this->handler();
+        $handler = $this->buildHandler();
         $encoded = \sprintf('=?base64?%s?=', base64_encode('Hello, 世界'));
 
-        $response = $this->middleware()->process(
+        $response = $this->buildMiddleware()->process(
             $this->callPost(['region' => 'Hello, 世界'], ['Mcp-Param-Region' => $encoded]),
             $handler,
         );
@@ -125,9 +125,9 @@ final class ParameterHeaderValidationMiddlewareTest extends AbstractMcpTestCase
 
     public function testMatchesTheHeaderNameCaseInsensitively(): void
     {
-        $handler = $this->handler();
+        $handler = $this->buildHandler();
 
-        $response = $this->middleware()->process(
+        $response = $this->buildMiddleware()->process(
             $this->callPost(['region' => 'us-west1'], ['mcp-param-region' => 'us-west1']),
             $handler,
         );
@@ -142,9 +142,9 @@ final class ParameterHeaderValidationMiddlewareTest extends AbstractMcpTestCase
     #[DataProvider('provideForwardsBodiesItDoesNotGovernCases')]
     public function testForwardsBodiesItDoesNotGovern(array|string $body): void
     {
-        $handler = $this->handler();
+        $handler = $this->buildHandler();
 
-        $response = $this->middleware()->process($this->post($body), $handler);
+        $response = $this->buildMiddleware()->process($this->post($body), $handler);
 
         self::assertTrue($handler->called);
         self::assertSame(200, $response->getStatusCode());
@@ -199,10 +199,10 @@ final class ParameterHeaderValidationMiddlewareTest extends AbstractMcpTestCase
 
     public function testLeavesTheBodyReadableForTheTransport(): void
     {
-        $handler = $this->handler();
+        $handler = $this->buildHandler();
         $request = $this->callPost(['region' => 'us-west1'], ['Mcp-Param-Region' => 'us-west1']);
 
-        $this->middleware()->process($request, $handler);
+        $this->buildMiddleware()->process($request, $handler);
 
         self::assertInstanceOf(ServerRequestInterface::class, $handler->received);
 
@@ -212,7 +212,7 @@ final class ParameterHeaderValidationMiddlewareTest extends AbstractMcpTestCase
     public function testSkipsAndWarnsForAToolWithInvalidDeclarations(): void
     {
         $logger = new ArrayLogger();
-        $handler = $this->handler();
+        $handler = $this->buildHandler();
         $store = new PagedToolStore([[
             new Tool(name: 'broken', inputSchema: [
                 'type' => 'object',
@@ -245,7 +245,7 @@ final class ParameterHeaderValidationMiddlewareTest extends AbstractMcpTestCase
         ]]);
 
         (new ParameterHeaderValidationMiddleware($store, new Psr17Factory(), new Psr17Factory(), $logger))
-            ->process($this->callPost(['region' => 'us-west1'], ['Mcp-Param-Region' => 'us-west1']), $this->handler())
+            ->process($this->callPost(['region' => 'us-west1'], ['Mcp-Param-Region' => 'us-west1']), $this->buildHandler())
         ;
 
         self::assertSame([], $logger->recordsMatching(LogLevel::WARNING, 'Skipping {tool} header validation: its "x-mcp-header" declarations are invalid.'));
@@ -253,7 +253,7 @@ final class ParameterHeaderValidationMiddlewareTest extends AbstractMcpTestCase
 
     public function testScansEveryPageOfTheStore(): void
     {
-        $handler = $this->handler();
+        $handler = $this->buildHandler();
         $store = new PagedToolStore([
             [new Tool(name: 'first', inputSchema: ['type' => 'object', 'properties' => ['a' => ['type' => 'string', 'x-mcp-header' => 'A']]])],
             [new Tool(name: 'second', inputSchema: ['type' => 'object', 'properties' => ['region' => ['type' => 'string', 'x-mcp-header' => 'Region']]])],
@@ -274,8 +274,8 @@ final class ParameterHeaderValidationMiddlewareTest extends AbstractMcpTestCase
         ]]);
         $middleware = new ParameterHeaderValidationMiddleware($store, new Psr17Factory(), new Psr17Factory());
 
-        $middleware->process($this->callPost(['region' => 'us-west1'], ['Mcp-Param-Region' => 'us-west1']), $this->handler());
-        $middleware->process($this->callPost(['region' => 'us-west1'], ['Mcp-Param-Region' => 'us-west1']), $this->handler());
+        $middleware->process($this->callPost(['region' => 'us-west1'], ['Mcp-Param-Region' => 'us-west1']), $this->buildHandler());
+        $middleware->process($this->callPost(['region' => 'us-west1'], ['Mcp-Param-Region' => 'us-west1']), $this->buildHandler());
 
         self::assertSame(1, $store->listCalls, 'The binding scan is cached across requests.');
     }
@@ -290,14 +290,14 @@ final class ParameterHeaderValidationMiddlewareTest extends AbstractMcpTestCase
         ]);
         $middleware = new ParameterHeaderValidationMiddleware($store, new Psr17Factory(), new Psr17Factory());
 
-        $middleware->process($this->callPost([], tool: 'echo'), $this->handler());
+        $middleware->process($this->callPost([], tool: 'echo'), $this->buildHandler());
 
         $store->addTool(
             new Tool(name: 'later', inputSchema: ['type' => 'object', 'properties' => ['region' => ['type' => 'string', 'x-mcp-header' => 'Region']]]),
             new ClosureToolExecutor(static fn(?array $args, $ctx): CallToolResult => new CallToolResult(content: [])),
         );
 
-        $handler = $this->handler();
+        $handler = $this->buildHandler();
         $response = $middleware->process(
             $this->callPost(['region' => 'eu-west1'], ['Mcp-Param-Region' => 'us-east1'], tool: 'later'),
             $handler,
@@ -316,9 +316,9 @@ final class ParameterHeaderValidationMiddlewareTest extends AbstractMcpTestCase
             'params' => ['name' => 'echo', 'arguments' => ['region' => 'us-west1']],
         ], \JSON_THROW_ON_ERROR);
         $body = new NonSeekableStream($payload);
-        $handler = $this->handler();
+        $handler = $this->buildHandler();
 
-        $response = $this->middleware()->process(
+        $response = $this->buildMiddleware()->process(
             (new Psr17Factory())->createServerRequest('POST', 'https://mcp.test/')
                 ->withBody($body)
                 ->withHeader('Content-Type', 'application/json')
@@ -341,9 +341,9 @@ final class ParameterHeaderValidationMiddlewareTest extends AbstractMcpTestCase
             'method' => 'tools/call',
             'params' => ['name' => 'echo', 'arguments' => ['region' => 'us-west1']],
         ], \JSON_THROW_ON_ERROR);
-        $handler = $this->handler();
+        $handler = $this->buildHandler();
 
-        $response = $this->middleware()->process(
+        $response = $this->buildMiddleware()->process(
             (new Psr17Factory())->createServerRequest('POST', 'https://mcp.test/')
                 ->withBody(new NonSeekableStream($payload))
                 ->withHeader('Content-Type', 'application/json')
@@ -355,7 +355,7 @@ final class ParameterHeaderValidationMiddlewareTest extends AbstractMcpTestCase
         self::assertSame(400, $response->getStatusCode());
     }
 
-    private function middleware(): ParameterHeaderValidationMiddleware
+    private function buildMiddleware(): ParameterHeaderValidationMiddleware
     {
         $factory = new Psr17Factory();
         $store = new PagedToolStore([[
@@ -366,7 +366,7 @@ final class ParameterHeaderValidationMiddlewareTest extends AbstractMcpTestCase
         return new ParameterHeaderValidationMiddleware($store, $factory, $factory);
     }
 
-    private function handler(): RecordingRequestHandler
+    private function buildHandler(): RecordingRequestHandler
     {
         return new RecordingRequestHandler((new Psr17Factory())->createResponse(200));
     }
@@ -417,7 +417,7 @@ final class ParameterHeaderValidationMiddlewareTest extends AbstractMcpTestCase
     /**
      * @return array<string, mixed>
      */
-    private function errorPayload(ResponseInterface $response): array
+    private function readErrorPayload(ResponseInterface $response): array
     {
         $error = $this->decode($response)['error'] ?? null;
         self::assertIsArray($error);

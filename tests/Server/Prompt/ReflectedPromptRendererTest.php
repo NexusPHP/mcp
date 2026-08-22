@@ -42,7 +42,7 @@ final class ReflectedPromptRendererTest extends AbstractMcpTestCase
         $result = $this->render('promptResult', null);
 
         self::assertSame('a description', $result->description);
-        self::assertSame(Role::Assistant, $this->firstMessage($result)->role);
+        self::assertSame(Role::Assistant, $this->readFirstMessage($result)->role);
     }
 
     public function testWrapsStringAsUserMessage(): void
@@ -51,7 +51,7 @@ final class ReflectedPromptRendererTest extends AbstractMcpTestCase
 
         self::assertNull($result->description);
 
-        $message = $this->firstMessage($result);
+        $message = $this->readFirstMessage($result);
         self::assertSame(Role::User, $message->role);
 
         self::assertInstanceOf(TextContent::class, $message->content);
@@ -64,7 +64,7 @@ final class ReflectedPromptRendererTest extends AbstractMcpTestCase
         $result = $this->render('promptMessage', null);
 
         self::assertCount(1, $result->messages);
-        self::assertSame(Role::Assistant, $this->firstMessage($result)->role);
+        self::assertSame(Role::Assistant, $this->readFirstMessage($result)->role);
     }
 
     public function testReturnsMessageList(): void
@@ -72,7 +72,7 @@ final class ReflectedPromptRendererTest extends AbstractMcpTestCase
         $result = $this->render('promptMessageList', null);
 
         self::assertCount(2, $result->messages);
-        self::assertSame(Role::User, $this->firstMessage($result)->role);
+        self::assertSame(Role::User, $this->readFirstMessage($result)->role);
     }
 
     public function testThrowsOnMapOfMessages(): void
@@ -118,7 +118,7 @@ final class ReflectedPromptRendererTest extends AbstractMcpTestCase
         return $result;
     }
 
-    private function firstMessage(GetPromptResult $result): PromptMessage
+    private function readFirstMessage(GetPromptResult $result): PromptMessage
     {
         $message = $result->messages[0] ?? null;
 

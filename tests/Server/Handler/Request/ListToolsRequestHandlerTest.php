@@ -42,8 +42,8 @@ final class ListToolsRequestHandlerTest extends AbstractMcpTestCase
     public function testReturnsAllRegisteredToolsWhenCursorIsNull(): void
     {
         $store = new ToolStore([
-            'alpha' => new ToolEntry(new Tool(name: 'alpha', inputSchema: ['type' => 'object']), $this->executor()),
-            'beta' => new ToolEntry(new Tool(name: 'beta', inputSchema: ['type' => 'object']), $this->executor()),
+            'alpha' => new ToolEntry(new Tool(name: 'alpha', inputSchema: ['type' => 'object']), $this->buildExecutor()),
+            'beta' => new ToolEntry(new Tool(name: 'beta', inputSchema: ['type' => 'object']), $this->buildExecutor()),
         ]);
         $handler = new ListToolsRequestHandler($store);
 
@@ -61,9 +61,9 @@ final class ListToolsRequestHandlerTest extends AbstractMcpTestCase
     {
         $store = new ToolStore(
             [
-                'a' => new ToolEntry(new Tool(name: 'a', inputSchema: ['type' => 'object']), $this->executor()),
-                'b' => new ToolEntry(new Tool(name: 'b', inputSchema: ['type' => 'object']), $this->executor()),
-                'c' => new ToolEntry(new Tool(name: 'c', inputSchema: ['type' => 'object']), $this->executor()),
+                'a' => new ToolEntry(new Tool(name: 'a', inputSchema: ['type' => 'object']), $this->buildExecutor()),
+                'b' => new ToolEntry(new Tool(name: 'b', inputSchema: ['type' => 'object']), $this->buildExecutor()),
+                'c' => new ToolEntry(new Tool(name: 'c', inputSchema: ['type' => 'object']), $this->buildExecutor()),
             ],
             pageSize: 2,
         );
@@ -78,7 +78,7 @@ final class ListToolsRequestHandlerTest extends AbstractMcpTestCase
         self::assertSame('c', $result->tools[0]->name);
     }
 
-    private function executor(): ClosureToolExecutor
+    private function buildExecutor(): ClosureToolExecutor
     {
         return new ClosureToolExecutor(
             static fn(?array $arguments, ServerContext $context): CallToolResult => new CallToolResult(content: []),

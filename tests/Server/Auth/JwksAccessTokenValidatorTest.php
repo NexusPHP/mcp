@@ -36,7 +36,7 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
 
     public function testAValidTokenMapsTheStandardClaims(): void
     {
-        $verified = $this->validator()->validate($this->encodeForThisServer([
+        $verified = $this->buildValidator()->validate($this->encodeForThisServer([
             'aud' => ['https://mcp.example.com/mcp', 'https://spare.example.com'],
             'scope' => 'mcp:use files:read',
             'sub' => 'user-7',
@@ -54,7 +54,7 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
 
     public function testAStringAudienceBecomesASingleEntryList(): void
     {
-        $verified = $this->validator()->validate($this->encodeForThisServer(['aud' => 'https://mcp.example.com/mcp']));
+        $verified = $this->buildValidator()->validate($this->encodeForThisServer(['aud' => 'https://mcp.example.com/mcp']));
 
         self::assertNotNull($verified);
         self::assertSame(['https://mcp.example.com/mcp'], $verified->audience);
@@ -62,7 +62,7 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
 
     public function testNonStringAudienceEntriesAreDropped(): void
     {
-        $verified = $this->validator()->validate($this->encodeForThisServer(['aud' => ['https://mcp.example.com/mcp', 42]]));
+        $verified = $this->buildValidator()->validate($this->encodeForThisServer(['aud' => ['https://mcp.example.com/mcp', 42]]));
 
         self::assertNotNull($verified);
         self::assertSame(['https://mcp.example.com/mcp'], $verified->audience);
@@ -72,13 +72,13 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
     {
         $token = $this->encodeExactly(['iss' => self::ISSUER, 'exp' => time() + 60, 'sub' => 'user-7']);
 
-        self::assertNull($this->validator()->validate($token));
+        self::assertNull($this->buildValidator()->validate($token));
     }
 
     #[DataProvider('provideATokenForAnotherResourceIsRefusedCases')]
     public function testATokenForAnotherResourceIsRefused(mixed $audience): void
     {
-        self::assertNull($this->validator()->validate($this->encodeForThisServer(['aud' => $audience])));
+        self::assertNull($this->buildValidator()->validate($this->encodeForThisServer(['aud' => $audience])));
     }
 
     /**
@@ -101,14 +101,14 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
 
     public function testAnAudienceNamingThisServerAmongOthersIsAccepted(): void
     {
-        $verified = $this->validator()->validate($this->encodeForThisServer(['aud' => ['https://other.example.com/mcp', self::RESOURCE]]));
+        $verified = $this->buildValidator()->validate($this->encodeForThisServer(['aud' => ['https://other.example.com/mcp', self::RESOURCE]]));
 
         self::assertNotNull($verified);
     }
 
     public function testAnAudienceNamingThisServerInAnotherSpellingIsAccepted(): void
     {
-        $verified = $this->validator()->validate($this->encodeForThisServer(['aud' => 'HTTPS://MCP.Example.com:443/mcp']));
+        $verified = $this->buildValidator()->validate($this->encodeForThisServer(['aud' => 'HTTPS://MCP.Example.com:443/mcp']));
 
         self::assertNotNull($verified);
     }
@@ -123,7 +123,7 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
 
     public function testScpAsAListIsReadAsScopes(): void
     {
-        $verified = $this->validator()->validate($this->encodeForThisServer(['scp' => ['mcp:use', '', 7, 'files:read']]));
+        $verified = $this->buildValidator()->validate($this->encodeForThisServer(['scp' => ['mcp:use', '', 7, 'files:read']]));
 
         self::assertNotNull($verified);
         self::assertSame(['mcp:use', 'files:read'], $verified->scopes);
@@ -131,7 +131,7 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
 
     public function testScpAsAStringIsSplitLikeScope(): void
     {
-        $verified = $this->validator()->validate($this->encodeForThisServer(['scp' => 'mcp:use files:read']));
+        $verified = $this->buildValidator()->validate($this->encodeForThisServer(['scp' => 'mcp:use files:read']));
 
         self::assertNotNull($verified);
         self::assertSame(['mcp:use', 'files:read'], $verified->scopes);
@@ -139,7 +139,7 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
 
     public function testScopeOutranksScp(): void
     {
-        $verified = $this->validator()->validate($this->encodeForThisServer(['scope' => 'mcp:use', 'scp' => ['other']]));
+        $verified = $this->buildValidator()->validate($this->encodeForThisServer(['scope' => 'mcp:use', 'scp' => ['other']]));
 
         self::assertNotNull($verified);
         self::assertSame(['mcp:use'], $verified->scopes);
@@ -147,7 +147,7 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
 
     public function testNoScopeClaimMeansNoScopes(): void
     {
-        $verified = $this->validator()->validate($this->encodeForThisServer(['scope' => 42]));
+        $verified = $this->buildValidator()->validate($this->encodeForThisServer(['scope' => 42]));
 
         self::assertNotNull($verified);
         self::assertSame([], $verified->scopes);
@@ -155,7 +155,7 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
 
     public function testClientIdFallsBackThroughAzpClientIdAndCid(): void
     {
-        $validator = $this->validator();
+        $validator = $this->buildValidator();
 
         $azp = $validator->validate($this->encodeForThisServer(['azp' => 'from-azp', 'client_id' => 'from-client-id', 'cid' => 'from-cid']));
         $clientId = $validator->validate($this->encodeForThisServer(['client_id' => 'from-client-id', 'cid' => 'from-cid']));
@@ -172,7 +172,7 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
 
     public function testANonStringSubjectIsDropped(): void
     {
-        $verified = $this->validator()->validate($this->encodeForThisServer(['sub' => 12_345]));
+        $verified = $this->buildValidator()->validate($this->encodeForThisServer(['sub' => 12_345]));
 
         self::assertNotNull($verified);
         self::assertNull($verified->subject);
@@ -180,7 +180,7 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
 
     public function testAnEmptySubjectIsDropped(): void
     {
-        $verified = $this->validator()->validate($this->encodeForThisServer(['sub' => '']));
+        $verified = $this->buildValidator()->validate($this->encodeForThisServer(['sub' => '']));
 
         self::assertNotNull($verified);
         self::assertNull($verified->subject, 'An empty subject names nobody, so it must not read as a caller identity.');
@@ -188,7 +188,7 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
 
     public function testAnEmptyClientIdIsDropped(): void
     {
-        $verified = $this->validator()->validate($this->encodeForThisServer(['azp' => '']));
+        $verified = $this->buildValidator()->validate($this->encodeForThisServer(['azp' => '']));
 
         self::assertNotNull($verified);
         self::assertNull($verified->clientId, 'An empty client id names nobody, so it must not read as a caller identity.');
@@ -196,7 +196,7 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
 
     public function testAnEmptyClientIdClaimDoesNotMaskALaterOne(): void
     {
-        $verified = $this->validator()->validate($this->encodeForThisServer(['azp' => '', 'client_id' => 'acme']));
+        $verified = $this->buildValidator()->validate($this->encodeForThisServer(['azp' => '', 'client_id' => 'acme']));
 
         self::assertNotNull($verified);
         self::assertSame('acme', $verified->clientId);
@@ -204,26 +204,26 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
 
     public function testAnExpiredTokenIsRefused(): void
     {
-        self::assertNull($this->validator()->validate($this->encodeForThisServer(['exp' => time() - 60])));
+        self::assertNull($this->buildValidator()->validate($this->encodeForThisServer(['exp' => time() - 60])));
     }
 
     public function testAForeignSignatureIsRefused(): void
     {
         $token = JWT::encode(['sub' => 'user-7'], 'a-different-secret-also-32-bytes-long', 'HS256', self::KID);
 
-        self::assertNull($this->validator()->validate($token));
+        self::assertNull($this->buildValidator()->validate($token));
     }
 
     public function testGarbageIsRefused(): void
     {
-        self::assertNull($this->validator()->validate('not-a-jwt'));
+        self::assertNull($this->buildValidator()->validate('not-a-jwt'));
     }
 
     public function testATokenCarryingNoExpiryIsRefused(): void
     {
         $token = $this->encodeExactly(['iss' => self::ISSUER, 'aud' => self::RESOURCE, 'sub' => 'user-7']);
 
-        self::assertNull($this->validator()->validate($token));
+        self::assertNull($this->buildValidator()->validate($token));
     }
 
     /**
@@ -234,7 +234,7 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
     {
         $expiry = time() + 60;
 
-        $verified = $this->validator()->validate($this->encodeForThisServer(['exp' => $spell($expiry)]));
+        $verified = $this->buildValidator()->validate($this->encodeForThisServer(['exp' => $spell($expiry)]));
 
         self::assertNotNull($verified);
         self::assertSame($expiry, $verified->expiresAt);
@@ -263,14 +263,14 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
             'exp' => time() + 60,
         ]);
 
-        self::assertNull($this->validator()->validate($token));
+        self::assertNull($this->buildValidator()->validate($token));
     }
 
     public function testATokenCarryingNoIssuerIsRefused(): void
     {
         $token = $this->encodeExactly(['aud' => 'https://mcp.example.com/mcp', 'exp' => time() + 60]);
 
-        self::assertNull($this->validator()->validate($token));
+        self::assertNull($this->buildValidator()->validate($token));
     }
 
     public function testAnEmptyExpectedIssuerIsRefusedAtConstruction(): void
@@ -282,7 +282,7 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
         new JwksAccessTokenValidator([self::KID => new Key(self::SECRET, 'HS256')], '', self::RESOURCE);
     }
 
-    private function validator(): JwksAccessTokenValidator
+    private function buildValidator(): JwksAccessTokenValidator
     {
         return new JwksAccessTokenValidator([self::KID => new Key(self::SECRET, 'HS256')], self::ISSUER, self::RESOURCE);
     }

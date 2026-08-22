@@ -70,7 +70,7 @@ final class JsonRpcMethodRegistryTest extends AbstractMcpTestCase
     {
         $registry = JsonRpcMethodRegistry::requests();
 
-        foreach ($this->concreteSubclassesUnder(__DIR__.'/../../../src/Core/Schema/Request', 'Nexus\\Mcp\\Core\\Schema\\Request', JsonRpcRequest::class) as $class) {
+        foreach ($this->discoverConcreteSubclassesUnder(__DIR__.'/../../../src/Core/Schema/Request', 'Nexus\\Mcp\\Core\\Schema\\Request', JsonRpcRequest::class) as $class) {
             $method = $class::getMethod();
             self::assertArrayHasKey($method, $registry, \sprintf('Concrete request class "%s" (method "%s") must be registered.', $class, $method));
             self::assertSame($class, $registry[$method], \sprintf('Method "%s" must map to "%s".', $method, $class));
@@ -81,7 +81,7 @@ final class JsonRpcMethodRegistryTest extends AbstractMcpTestCase
     {
         $registry = JsonRpcMethodRegistry::notifications();
 
-        foreach ($this->concreteSubclassesUnder(__DIR__.'/../../../src/Core/Schema/Notification', 'Nexus\\Mcp\\Core\\Schema\\Notification', JsonRpcNotification::class) as $class) {
+        foreach ($this->discoverConcreteSubclassesUnder(__DIR__.'/../../../src/Core/Schema/Notification', 'Nexus\\Mcp\\Core\\Schema\\Notification', JsonRpcNotification::class) as $class) {
             $method = $class::getMethod();
             self::assertArrayHasKey($method, $registry, \sprintf('Concrete notification class "%s" (method "%s") must be registered.', $class, $method));
             self::assertSame($class, $registry[$method], \sprintf('Method "%s" must map to "%s".', $method, $class));
@@ -111,7 +111,7 @@ final class JsonRpcMethodRegistryTest extends AbstractMcpTestCase
      *
      * @return iterable<class-string<T>>
      */
-    private function concreteSubclassesUnder(string $directory, string $namespace, string $parentClass): iterable
+    private function discoverConcreteSubclassesUnder(string $directory, string $namespace, string $parentClass): iterable
     {
         $files = glob($directory.'/*.php');
         self::assertIsArray($files, \sprintf('Failed to list files under "%s".', $directory));

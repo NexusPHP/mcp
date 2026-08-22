@@ -69,7 +69,7 @@ final class RecordingHttpClient implements DelegateHttpClient
      */
     public function willAnswerJson(array|string $body, int $status = 200, ?Future $gate = null): self
     {
-        return $this->willAnswer(
+        return $this->scheduleAnswer(
             $status,
             ['content-type' => 'application/json'],
             [\is_string($body) ? $body : json_encode($body, \JSON_THROW_ON_ERROR)],
@@ -82,7 +82,7 @@ final class RecordingHttpClient implements DelegateHttpClient
      */
     public function willAnswerStream(array $chunks, int $status = 200): self
     {
-        return $this->willAnswer($status, ['content-type' => 'text/event-stream'], $chunks);
+        return $this->scheduleAnswer($status, ['content-type' => 'text/event-stream'], $chunks);
     }
 
     /**
@@ -91,7 +91,7 @@ final class RecordingHttpClient implements DelegateHttpClient
      */
     public function willAnswerWithContentType(string $contentType, array $chunks): self
     {
-        return $this->willAnswer(200, ['content-type' => $contentType], $chunks);
+        return $this->scheduleAnswer(200, ['content-type' => $contentType], $chunks);
     }
 
     /**
@@ -115,7 +115,7 @@ final class RecordingHttpClient implements DelegateHttpClient
 
     public function willChallenge(int $status, string $challenge, string $body = '{}'): self
     {
-        return $this->willAnswer($status, ['content-type' => 'application/json', 'www-authenticate' => $challenge], [$body]);
+        return $this->scheduleAnswer($status, ['content-type' => 'application/json', 'www-authenticate' => $challenge], [$body]);
     }
 
     public function willChallengeWithAnUnreadableBody(int $status, string $challenge, HttpException $failure): self
@@ -132,7 +132,7 @@ final class RecordingHttpClient implements DelegateHttpClient
 
     public function willAcceptNotification(): self
     {
-        return $this->willAnswer(202, [], []);
+        return $this->scheduleAnswer(202, [], []);
     }
 
     public function willFail(HttpException $exception): self
@@ -144,7 +144,7 @@ final class RecordingHttpClient implements DelegateHttpClient
 
     public function willAnswer404WithBody(string $body): self
     {
-        return $this->willAnswer(404, ['content-type' => 'application/json'], [$body]);
+        return $this->scheduleAnswer(404, ['content-type' => 'application/json'], [$body]);
     }
 
     /**
@@ -161,7 +161,7 @@ final class RecordingHttpClient implements DelegateHttpClient
      */
     public function willAnswerAfterHops(array $hops, array $body = []): self
     {
-        return $this->willAnswer(
+        return $this->scheduleAnswer(
             200,
             ['content-type' => 'application/json'],
             [json_encode($body, \JSON_THROW_ON_ERROR)],
@@ -171,7 +171,7 @@ final class RecordingHttpClient implements DelegateHttpClient
 
     public function willRedirectTo(string $location, int $status = 302): self
     {
-        return $this->willAnswer($status, ['location' => $location], ['']);
+        return $this->scheduleAnswer($status, ['location' => $location], ['']);
     }
 
     /**
@@ -179,7 +179,7 @@ final class RecordingHttpClient implements DelegateHttpClient
      */
     public function willAnswerWithHeaders(int $status, array $headers, string $body = ''): self
     {
-        return $this->willAnswer($status, $headers, [$body]);
+        return $this->scheduleAnswer($status, $headers, [$body]);
     }
 
     #[\Override]
@@ -299,7 +299,7 @@ final class RecordingHttpClient implements DelegateHttpClient
      * @param null|Future<mixed>                           $gate
      * @param null|non-empty-list<string>                  $hops
      */
-    private function willAnswer(
+    private function scheduleAnswer(
         int $status,
         array $headers,
         array $chunks,

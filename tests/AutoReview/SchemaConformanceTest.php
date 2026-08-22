@@ -560,7 +560,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
                     $key,
                 ));
 
-                $phpName = $this->specKeyToPhpName($key);
+                $phpName = $this->convertSpecKeyToPhpName($key);
                 $modelled = \in_array($phpName, $ctorParams, true)
                     || ($reflection->hasProperty($phpName) && $reflection->getProperty($phpName)->isPublic());
 
@@ -777,7 +777,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
                 continue;
             }
 
-            $phpName = $this->specKeyToPhpName($key);
+            $phpName = $this->convertSpecKeyToPhpName($key);
 
             if (\array_key_exists($phpName, $params)) {
                 $param = $params[$phpName];
@@ -832,7 +832,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
             $specScalar = $this->resolveUnambiguousScalarJsonType($specProperties[$key] ?? []);
 
             if (
-                $this->specAllowsAnyJsonValue($specProperties[$key] ?? [])
+                $this->allowsAnyJsonValue($specProperties[$key] ?? [])
                 && ! ($type instanceof \ReflectionNamedType && $type->getName() === 'mixed')
             ) {
                 $findings[] = \sprintf(
@@ -872,7 +872,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
     /**
      * @param array<string, mixed> $propertyShape
      */
-    private function specAllowsAnyJsonValue(array $propertyShape): bool
+    private function allowsAnyJsonValue(array $propertyShape): bool
     {
         foreach (['$ref', 'anyOf', 'oneOf', 'allOf', 'enum', 'const', 'type'] as $narrowing) {
             if (\array_key_exists($narrowing, $propertyShape)) {
@@ -906,7 +906,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
             : null;
     }
 
-    private function specKeyToPhpName(string $key): string
+    private function convertSpecKeyToPhpName(string $key): string
     {
         return self::SPEC_KEY_TO_PHP_NAME[$key] ?? ltrim($key, '_');
     }

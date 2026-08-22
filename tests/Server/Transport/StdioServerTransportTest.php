@@ -174,7 +174,7 @@ final class StdioServerTransportTest extends AbstractMcpTestCase
         EventLoop::run();
         $writable->close();
 
-        self::assertSame($this->expectedLine(99), $writable->buffer());
+        self::assertSame($this->buildExpectedLine(99), $writable->buffer());
     }
 
     public function testSendIgnoresContextForStdio(): void
@@ -188,7 +188,7 @@ final class StdioServerTransportTest extends AbstractMcpTestCase
         EventLoop::run();
         $writable->close();
 
-        self::assertSame($this->expectedLine(7), $writable->buffer());
+        self::assertSame($this->buildExpectedLine(7), $writable->buffer());
     }
 
     public function testSendFailureClosesAndRethrows(): void
@@ -319,7 +319,7 @@ final class StdioServerTransportTest extends AbstractMcpTestCase
         );
     }
 
-    private function expectedLine(int $id): string
+    private function buildExpectedLine(int $id): string
     {
         return json_encode([
             'jsonrpc' => '2.0',

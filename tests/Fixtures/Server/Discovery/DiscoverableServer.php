@@ -136,11 +136,11 @@ final class DiscoverableServer
 
     public function helper(): string
     {
-        return $this->hidden();
+        return $this->buildHidden();
     }
 
     #[AsTool(name: 'hidden')]
-    private function hidden(): string
+    private function buildHidden(): string
     {
         return 'not discoverable';
     }

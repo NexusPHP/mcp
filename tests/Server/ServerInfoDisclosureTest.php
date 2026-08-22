@@ -30,24 +30,24 @@ final class ServerInfoDisclosureTest extends AbstractMcpTestCase
 {
     public function testFullProjectsTheIdentityUnchanged(): void
     {
-        $serverInfo = $this->richIdentity();
+        $serverInfo = $this->buildRichIdentity();
 
         self::assertSame($serverInfo, ServerInfoDisclosure::Full->project($serverInfo));
     }
 
     public function testNameAndVersionDropsEveryDescriptiveField(): void
     {
-        $projected = ServerInfoDisclosure::NameAndVersion->project($this->richIdentity());
+        $projected = ServerInfoDisclosure::NameAndVersion->project($this->buildRichIdentity());
 
         self::assertSame(['name' => 'demo', 'version' => '1.0.0'], $projected?->toArray());
     }
 
     public function testNoneProjectsNothing(): void
     {
-        self::assertNull(ServerInfoDisclosure::None->project($this->richIdentity()));
+        self::assertNull(ServerInfoDisclosure::None->project($this->buildRichIdentity()));
     }
 
-    private function richIdentity(): Implementation
+    private function buildRichIdentity(): Implementation
     {
         return new Implementation(
             name: 'demo',

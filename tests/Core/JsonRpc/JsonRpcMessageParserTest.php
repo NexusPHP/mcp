@@ -382,7 +382,7 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
     {
         try {
             $parser = new JsonRpcMessageParser();
-            $parser->parse($this->completionEnvelopeWithRefType(str_repeat('A', 200_000)));
+            $parser->parse($this->buildCompletionEnvelopeWithRefType(str_repeat('A', 200_000)));
             self::fail('Expected InvalidParamsException.');
         } catch (InvalidParamsException $e) {
             $prefix = 'Invalid "completion/complete" request: ';
@@ -397,7 +397,7 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
     {
         try {
             $parser = new JsonRpcMessageParser();
-            $parser->parse($this->completionEnvelopeWithRefType("seg\x1b[2K\x1b[1GFORGED\x07"));
+            $parser->parse($this->buildCompletionEnvelopeWithRefType("seg\x1b[2K\x1b[1GFORGED\x07"));
             self::fail('Expected InvalidParamsException.');
         } catch (InvalidParamsException $e) {
             self::assertStringContainsString('\\x1b[2K\\x1b[1GFORGED\\x07', $e->getMessage());
@@ -693,7 +693,7 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
     /**
      * @return array<string, mixed>
      */
-    private function completionEnvelopeWithRefType(string $type): array
+    private function buildCompletionEnvelopeWithRefType(string $type): array
     {
         return [
             'jsonrpc' => '2.0',

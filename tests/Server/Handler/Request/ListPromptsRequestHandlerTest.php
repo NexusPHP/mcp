@@ -42,8 +42,8 @@ final class ListPromptsRequestHandlerTest extends AbstractMcpTestCase
     public function testReturnsAllRegisteredPromptsWhenCursorIsNull(): void
     {
         $store = new PromptStore([
-            'alpha' => new PromptEntry(new Prompt(name: 'alpha'), $this->renderer()),
-            'beta' => new PromptEntry(new Prompt(name: 'beta'), $this->renderer()),
+            'alpha' => new PromptEntry(new Prompt(name: 'alpha'), $this->buildRenderer()),
+            'beta' => new PromptEntry(new Prompt(name: 'beta'), $this->buildRenderer()),
         ]);
         $handler = new ListPromptsRequestHandler($store);
 
@@ -61,9 +61,9 @@ final class ListPromptsRequestHandlerTest extends AbstractMcpTestCase
     {
         $store = new PromptStore(
             [
-                'a' => new PromptEntry(new Prompt(name: 'a'), $this->renderer()),
-                'b' => new PromptEntry(new Prompt(name: 'b'), $this->renderer()),
-                'c' => new PromptEntry(new Prompt(name: 'c'), $this->renderer()),
+                'a' => new PromptEntry(new Prompt(name: 'a'), $this->buildRenderer()),
+                'b' => new PromptEntry(new Prompt(name: 'b'), $this->buildRenderer()),
+                'c' => new PromptEntry(new Prompt(name: 'c'), $this->buildRenderer()),
             ],
             pageSize: 2,
         );
@@ -78,7 +78,7 @@ final class ListPromptsRequestHandlerTest extends AbstractMcpTestCase
         self::assertSame('c', $result->prompts[0]->name);
     }
 
-    private function renderer(): ClosurePromptRenderer
+    private function buildRenderer(): ClosurePromptRenderer
     {
         return new ClosurePromptRenderer(
             static fn(?array $arguments, ServerContext $context): GetPromptResult => new GetPromptResult(messages: []),

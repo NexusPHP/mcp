@@ -54,7 +54,7 @@ final class AuthorizationCodeGrantStrategyTest extends AbstractMcpTestCase
         ;
         $user = new ScriptedUserAuthorization();
 
-        $token = (new AuthorizationCodeGrantStrategy($user))->grant($this->context($http, new ScopeSet(['files:read'])), new NullCancellation());
+        $token = (new AuthorizationCodeGrantStrategy($user))->grant($this->buildContext($http, new ScopeSet(['files:read'])), new NullCancellation());
 
         self::assertSame('the-access-token', $token->value);
         self::assertSame(self::ISSUER, $token->issuer);
@@ -76,7 +76,7 @@ final class AuthorizationCodeGrantStrategyTest extends AbstractMcpTestCase
         $this->expectExceptionMessageIs('The authorization-code grant needs a redirect URI, and the authorization options carry none.');
 
         (new AuthorizationCodeGrantStrategy(new ScriptedUserAuthorization()))->grant(
-            $this->context(new RecordingHttpClient(), new ScopeSet(), new AuthorizationOptions('Example MCP Client')),
+            $this->buildContext(new RecordingHttpClient(), new ScopeSet(), new AuthorizationOptions('Example MCP Client')),
             new NullCancellation(),
         );
     }
@@ -86,7 +86,7 @@ final class AuthorizationCodeGrantStrategyTest extends AbstractMcpTestCase
         self::assertFalse((new AuthorizationCodeGrantStrategy(new ScriptedUserAuthorization()))->renewsByFreshGrant());
     }
 
-    private function context(
+    private function buildContext(
         RecordingHttpClient $http,
         ScopeSet $scopes,
         ?AuthorizationOptions $options = null,

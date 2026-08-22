@@ -224,7 +224,7 @@ final class ToolStoreTest extends AbstractMcpTestCase
 
     public function testCallReportsAtMostEightViolations(): void
     {
-        $store = $this->closedSchemaStore();
+        $store = $this->buildClosedSchemaStore();
         $arguments = [];
 
         for ($i = 0; $i < 12; ++$i) {
@@ -249,7 +249,7 @@ final class ToolStoreTest extends AbstractMcpTestCase
 
     public function testCallSanitisesAPeerPropertyNameInTheViolationList(): void
     {
-        $store = $this->closedSchemaStore();
+        $store = $this->buildClosedSchemaStore();
 
         try {
             $store->call('search', ["ev\x1b[2K\x07il" => 1, str_repeat('A', 300) => 2], $this->makeContext());
@@ -272,7 +272,7 @@ final class ToolStoreTest extends AbstractMcpTestCase
 
     public function testCallBoundsAPeerPropertyNameQuotedByTheValidator(): void
     {
-        $store = $this->closedSchemaStore();
+        $store = $this->buildClosedSchemaStore();
 
         try {
             $store->call('search', [str_repeat('A', 200_000) => 1], $this->makeContext());
@@ -285,7 +285,7 @@ final class ToolStoreTest extends AbstractMcpTestCase
 
     public function testCallEscapesControlBytesInAPeerPropertyName(): void
     {
-        $store = $this->closedSchemaStore();
+        $store = $this->buildClosedSchemaStore();
 
         try {
             $store->call('search', ["ev\x1b[2K\x07il" => 1], $this->makeContext());
@@ -686,7 +686,7 @@ final class ToolStoreTest extends AbstractMcpTestCase
         ]);
     }
 
-    private function closedSchemaStore(): ToolStore
+    private function buildClosedSchemaStore(): ToolStore
     {
         return new ToolStore([
             'search' => new ToolEntry(

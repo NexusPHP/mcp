@@ -62,7 +62,7 @@ final class InMemoryTaskStore implements TaskStoreInterface
     public function createTask(string $toolName, ?array $arguments, ?int $ttlMs, int $pollIntervalMs): TaskRecord
     {
         $instant = ($this->clock)();
-        $this->reclaim($this->toMillisecondTimestamp($instant));
+        $this->reclaim($this->convertToMilliseconds($instant));
 
         $now = $instant->format(\DateTimeInterface::ATOM);
         $taskId = bin2hex(random_bytes(16));
@@ -361,9 +361,9 @@ final class InMemoryTaskStore implements TaskStoreInterface
             return false;
         }
 
-        $nowMs ??= $this->toMillisecondTimestamp(($this->clock)());
+        $nowMs ??= $this->convertToMilliseconds(($this->clock)());
 
-        return $record->ttlMs <= $nowMs - $this->toMillisecondTimestamp($terminalAt);
+        return $record->ttlMs <= $nowMs - $this->convertToMilliseconds($terminalAt);
     }
 
     /**
@@ -375,9 +375,9 @@ final class InMemoryTaskStore implements TaskStoreInterface
             return false;
         }
 
-        $nowMs ??= $this->toMillisecondTimestamp(($this->clock)());
+        $nowMs ??= $this->convertToMilliseconds(($this->clock)());
 
-        return $record->ttlMs <= $nowMs - $this->toMillisecondTimestamp(new \DateTimeImmutable($record->createdAt));
+        return $record->ttlMs <= $nowMs - $this->convertToMilliseconds(new \DateTimeImmutable($record->createdAt));
     }
 
     private function isTerminal(TaskStatus $status): bool
@@ -388,7 +388,7 @@ final class InMemoryTaskStore implements TaskStoreInterface
         };
     }
 
-    private function toMillisecondTimestamp(\DateTimeImmutable $instant): int
+    private function convertToMilliseconds(\DateTimeImmutable $instant): int
     {
         return $instant->getTimestamp() * 1_000 + intdiv((int) $instant->format('u'), 1_000);
     }

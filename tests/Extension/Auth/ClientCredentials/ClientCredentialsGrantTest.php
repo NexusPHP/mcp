@@ -52,10 +52,10 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
 
     public function testGrantPresentsTheBasicCredentials(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson($this->tokenResponse());
+        $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse());
         $grant = new ClientCredentialsGrant(new ClientSecretCredential('the-client', 'the-secret'));
 
-        $token = $grant->grant($this->context($http, $this->metadata()), new NullCancellation());
+        $token = $grant->grant($this->buildContext($http, $this->buildMetadata()), new NullCancellation());
 
         self::assertSame('the-access-token', $token->value);
         self::assertSame(self::ISSUER, $token->issuer);
@@ -71,10 +71,10 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
 
     public function testGrantAsksForTheSelectedScopes(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson($this->tokenResponse());
+        $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse());
         $grant = new ClientCredentialsGrant(new ClientSecretCredential('the-client', 'the-secret'));
 
-        $token = $grant->grant($this->context($http, $this->metadata(), new ScopeSet(['files:read', 'files:write'])), new NullCancellation());
+        $token = $grant->grant($this->buildContext($http, $this->buildMetadata(), new ScopeSet(['files:read', 'files:write'])), new NullCancellation());
 
         self::assertSame(['files:read', 'files:write'], $token->scopes);
         self::assertSame([
@@ -86,11 +86,11 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
 
     public function testGrantSignsAndPresentsAClientAssertion(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson($this->tokenResponse());
+        $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse());
         $grant = new ClientCredentialsGrant(new PrivateKeyJwtCredential('the-client', $this->generatePrivateKey(), 'ES256'));
 
         $token = $grant->grant(
-            $this->context($http, $this->metadata(methods: ['private_key_jwt'], algorithms: ['ES256'])),
+            $this->buildContext($http, $this->buildMetadata(methods: ['private_key_jwt'], algorithms: ['ES256'])),
             new NullCancellation(),
         );
 
@@ -117,7 +117,7 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not advertise the "client_secret_basic" token endpoint authentication method.');
 
-        $grant->grant($this->context(new RecordingHttpClient(), $this->metadata(methods: null)), new NullCancellation());
+        $grant->grant($this->buildContext(new RecordingHttpClient(), $this->buildMetadata(methods: null)), new NullCancellation());
     }
 
     public function testAMethodListWithoutTheConfiguredMethodIsRefused(): void
@@ -127,7 +127,7 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not advertise the "private_key_jwt" token endpoint authentication method.');
 
-        $grant->grant($this->context(new RecordingHttpClient(), $this->metadata(methods: ['client_secret_basic'])), new NullCancellation());
+        $grant->grant($this->buildContext(new RecordingHttpClient(), $this->buildMetadata(methods: ['client_secret_basic'])), new NullCancellation());
     }
 
     public function testAnAlgorithmListWithoutTheConfiguredAlgorithmIsRefused(): void
@@ -138,18 +138,18 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
         $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not advertise the "ES256" client assertion signing algorithm.');
 
         $grant->grant(
-            $this->context(new RecordingHttpClient(), $this->metadata(methods: ['private_key_jwt'], algorithms: ['RS256'])),
+            $this->buildContext(new RecordingHttpClient(), $this->buildMetadata(methods: ['private_key_jwt'], algorithms: ['RS256'])),
             new NullCancellation(),
         );
     }
 
     public function testAnAdvertisedAlgorithmListIsIgnoredWhenTheCredentialSignsNothing(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson($this->tokenResponse());
+        $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse());
         $grant = new ClientCredentialsGrant(new ClientSecretCredential('the-client', 'the-secret'));
 
         $token = $grant->grant(
-            $this->context($http, $this->metadata(algorithms: ['RS256'])),
+            $this->buildContext($http, $this->buildMetadata(algorithms: ['RS256'])),
             new NullCancellation(),
         );
 
@@ -164,18 +164,18 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
         $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not advertise the "client_credentials" grant type.');
 
         $grant->grant(
-            $this->context(new RecordingHttpClient(), $this->metadata(grantTypes: ['authorization_code'])),
+            $this->buildContext(new RecordingHttpClient(), $this->buildMetadata(grantTypes: ['authorization_code'])),
             new NullCancellation(),
         );
     }
 
     public function testAGrantTypeListNamingClientCredentialsProceeds(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson($this->tokenResponse());
+        $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse());
         $grant = new ClientCredentialsGrant(new ClientSecretCredential('the-client', 'the-secret'));
 
         $token = $grant->grant(
-            $this->context($http, $this->metadata(grantTypes: ['authorization_code', 'client_credentials'])),
+            $this->buildContext($http, $this->buildMetadata(grantTypes: ['authorization_code', 'client_credentials'])),
             new NullCancellation(),
         );
 
@@ -192,7 +192,7 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
         );
 
         try {
-            $grant->grant($this->context($http, $this->metadata(), options: $options), new NullCancellation());
+            $grant->grant($this->buildContext($http, $this->buildMetadata(), options: $options), new NullCancellation());
             self::fail('The grant should have been refused.');
         } catch (RuntimeException $e) {
             self::assertSame(
@@ -213,7 +213,7 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
      * @param null|list<non-empty-string> $algorithms
      * @param null|list<non-empty-string> $grantTypes
      */
-    private function metadata(
+    private function buildMetadata(
         ?array $methods = ['client_secret_basic', 'private_key_jwt'],
         ?array $algorithms = null,
         ?array $grantTypes = null,
@@ -227,7 +227,7 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
         );
     }
 
-    private function context(
+    private function buildContext(
         RecordingHttpClient $http,
         AuthorizationServerMetadata $server,
         ScopeSet $scopes = new ScopeSet(),
@@ -286,7 +286,7 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
      *
      * @return array<string, mixed>
      */
-    private function tokenResponse(array $overrides = []): array
+    private function buildTokenResponse(array $overrides = []): array
     {
         return ['access_token' => 'the-access-token', 'token_type' => 'Bearer', ...$overrides];
     }

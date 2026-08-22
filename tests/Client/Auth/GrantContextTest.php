@@ -49,7 +49,7 @@ final class GrantContextTest extends AbstractMcpTestCase
     {
         $http = new RecordingHttpClient();
         $resource = new ResourceIdentifier(self::RESOURCE);
-        $discovered = $this->discovered($resource);
+        $discovered = $this->buildDiscovered($resource);
         $scopes = new ScopeSet(['files:read']);
         $options = new AuthorizationOptions('Example MCP Client');
         $logger = new ArrayLogger();
@@ -75,7 +75,7 @@ final class GrantContextTest extends AbstractMcpTestCase
 
     public function testResolveRegistrationBindsThePreRegisteredCredentialsToTheDiscoveredIssuer(): void
     {
-        $context = $this->context(new RecordingHttpClient(), new AuthorizationOptions(
+        $context = $this->buildContext(new RecordingHttpClient(), new AuthorizationOptions(
             'Example MCP Client',
             preRegistered: new ClientRegistration('the-client', clientSecret: 'the-secret'),
         ));
@@ -92,7 +92,7 @@ final class GrantContextTest extends AbstractMcpTestCase
             'access_token' => 'the-access-token',
             'token_type' => 'Bearer',
         ]);
-        $context = $this->context($http);
+        $context = $this->buildContext($http);
 
         $token = $context->requestToken(
             new ClientRegistration('the-client', self::ISSUER),
@@ -118,7 +118,7 @@ final class GrantContextTest extends AbstractMcpTestCase
             'access_token' => 'the-access-token',
             'token_type' => 'Bearer',
         ]);
-        $context = $this->context($http);
+        $context = $this->buildContext($http);
 
         $token = $context->requestToken(
             new ClientRegistration('the-client', self::ISSUER),
@@ -135,7 +135,7 @@ final class GrantContextTest extends AbstractMcpTestCase
             'access_token' => 'the-access-token',
             'token_type' => 'Bearer',
         ]);
-        $context = $this->context($http);
+        $context = $this->buildContext($http);
 
         $token = $context->requestToken(
             new ClientRegistration('the-client', self::ISSUER),
@@ -147,12 +147,12 @@ final class GrantContextTest extends AbstractMcpTestCase
         self::assertSame(['files:write'], $token->scopes);
     }
 
-    private function context(RecordingHttpClient $http, ?AuthorizationOptions $options = null): GrantContext
+    private function buildContext(RecordingHttpClient $http, ?AuthorizationOptions $options = null): GrantContext
     {
         $resource = new ResourceIdentifier(self::RESOURCE);
 
         return new GrantContext(
-            $this->discovered($resource),
+            $this->buildDiscovered($resource),
             $resource,
             new ScopeSet(['files:read']),
             $options ?? new AuthorizationOptions('Example MCP Client'),
@@ -163,7 +163,7 @@ final class GrantContextTest extends AbstractMcpTestCase
         );
     }
 
-    private function discovered(ResourceIdentifier $resource): DiscoveredResource
+    private function buildDiscovered(ResourceIdentifier $resource): DiscoveredResource
     {
         return new DiscoveredResource(
             new ProtectedResourceMetadata($resource, [self::ISSUER]),

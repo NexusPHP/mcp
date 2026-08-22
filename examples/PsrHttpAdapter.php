@@ -59,12 +59,12 @@ final readonly class PsrHttpAdapter implements AmpRequestHandler
         $body = $response->getBody();
 
         if (! $this->isEventStream($response)) {
-            return new AmpResponse($response->getStatusCode(), $this->headers($response), (string) $body);
+            return new AmpResponse($response->getStatusCode(), $this->readHeaders($response), (string) $body);
         }
 
         $ampResponse = new AmpResponse(
             $response->getStatusCode(),
-            $this->headers($response),
+            $this->readHeaders($response),
             new ReadableIterableStream($this->readFrames($body)),
         );
 
@@ -76,7 +76,7 @@ final readonly class PsrHttpAdapter implements AmpRequestHandler
     /**
      * @return array<non-empty-string, list<string>>
      */
-    private function headers(ResponseInterface $response): array
+    private function readHeaders(ResponseInterface $response): array
     {
         $headers = [];
 

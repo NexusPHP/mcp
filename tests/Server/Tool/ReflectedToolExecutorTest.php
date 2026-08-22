@@ -45,14 +45,14 @@ final class ReflectedToolExecutorTest extends AbstractMcpTestCase
         $result = $this->execute('toolResult');
 
         self::assertTrue($result->isError);
-        self::assertSame('done', $this->firstText($result));
+        self::assertSame('done', $this->readFirstText($result));
     }
 
     public function testWrapsStringReturnAsTextContent(): void
     {
         $result = $this->execute('requiredString', ['name' => 'Ada']);
 
-        self::assertSame('Hello, Ada', $this->firstText($result));
+        self::assertSame('Hello, Ada', $this->readFirstText($result));
         self::assertNull($result->structuredContent);
         self::assertNull($result->isError);
     }
@@ -147,14 +147,14 @@ final class ReflectedToolExecutorTest extends AbstractMcpTestCase
     {
         $result = $this->execute('backedString', ['color' => 'a']);
 
-        self::assertSame('a', $this->firstText($result));
+        self::assertSame('a', $this->readFirstText($result));
     }
 
     public function testInjectsContextWithNullArguments(): void
     {
         $result = $this->execute('contextOnly', null);
 
-        self::assertSame('test-client', $this->firstText($result));
+        self::assertSame('test-client', $this->readFirstText($result));
     }
 
     /**
@@ -171,7 +171,7 @@ final class ReflectedToolExecutorTest extends AbstractMcpTestCase
         return $result;
     }
 
-    private function firstText(CallToolResult $result): string
+    private function readFirstText(CallToolResult $result): string
     {
         $block = $result->content[0] ?? null;
 

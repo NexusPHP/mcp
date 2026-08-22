@@ -45,7 +45,7 @@ final class ReflectedCompletionProviderTest extends AbstractMcpTestCase
             }
         };
 
-        $result = $this->provider($source)->complete('eu', null, $this->makeContext());
+        $result = $this->buildProvider($source)->complete('eu', null, $this->makeContext());
 
         self::assertSame(['prefix-eu'], $result->completion['values']);
     }
@@ -70,7 +70,7 @@ final class ReflectedCompletionProviderTest extends AbstractMcpTestCase
         };
 
         $context = $this->makeContext();
-        $result = $this->provider($source)->complete('eu', ['country' => 'DE'], $context);
+        $result = $this->buildProvider($source)->complete('eu', ['country' => 'DE'], $context);
 
         self::assertSame(['eu/DE'], $result->completion['values']);
         self::assertFalse($result->completion['hasMore'] ?? null);
@@ -91,7 +91,7 @@ final class ReflectedCompletionProviderTest extends AbstractMcpTestCase
             }
         };
 
-        $result = $this->provider($source)->complete('eu', null, $this->makeContext());
+        $result = $this->buildProvider($source)->complete('eu', null, $this->makeContext());
 
         self::assertSame(['eu'], $result->completion['values']);
     }
@@ -108,7 +108,7 @@ final class ReflectedCompletionProviderTest extends AbstractMcpTestCase
             }
         };
 
-        $result = $this->provider($source)->complete('eu', null, $this->makeContext());
+        $result = $this->buildProvider($source)->complete('eu', null, $this->makeContext());
 
         self::assertSame([], $result->completion['values']);
     }
@@ -127,7 +127,7 @@ final class ReflectedCompletionProviderTest extends AbstractMcpTestCase
             '/^class@anonymous.*::complete\(\) must return a Nexus\\\Mcp\\\Core\\\Schema\\\Result\\\CompleteResult or a list of strings, int given\.$/',
         );
 
-        $this->provider($source)->complete('eu', null, $this->makeContext());
+        $this->buildProvider($source)->complete('eu', null, $this->makeContext());
     }
 
     public function testRejectsAListContainingANonString(): void
@@ -147,7 +147,7 @@ final class ReflectedCompletionProviderTest extends AbstractMcpTestCase
             '/^class@anonymous.*::complete\(\) must return a Nexus\\\Mcp\\\Core\\\Schema\\\Result\\\CompleteResult or a list of strings, array given\.$/',
         );
 
-        $this->provider($source)->complete('eu', null, $this->makeContext());
+        $this->buildProvider($source)->complete('eu', null, $this->makeContext());
     }
 
     public function testRejectsAStringKeyedMapOfStrings(): void
@@ -167,7 +167,7 @@ final class ReflectedCompletionProviderTest extends AbstractMcpTestCase
             '/^class@anonymous.*::complete\(\) must return a Nexus\\\Mcp\\\Core\\\Schema\\\Result\\\CompleteResult or a list of strings, array given\.$/',
         );
 
-        $this->provider($source)->complete('eu', null, $this->makeContext());
+        $this->buildProvider($source)->complete('eu', null, $this->makeContext());
     }
 
     public function testANonNullableArrayParameterReceivesAnEmptyMapWithoutContext(): void
@@ -184,12 +184,12 @@ final class ReflectedCompletionProviderTest extends AbstractMcpTestCase
             }
         };
 
-        $result = $this->provider($source)->complete('eu', null, $this->makeContext());
+        $result = $this->buildProvider($source)->complete('eu', null, $this->makeContext());
 
         self::assertSame(['eu/none'], $result->completion['values']);
     }
 
-    private function provider(object $source): ReflectedCompletionProvider
+    private function buildProvider(object $source): ReflectedCompletionProvider
     {
         return new ReflectedCompletionProvider($source, new \ReflectionMethod($source, 'complete'));
     }

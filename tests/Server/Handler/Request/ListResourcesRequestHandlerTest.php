@@ -43,8 +43,8 @@ final class ListResourcesRequestHandlerTest extends AbstractMcpTestCase
     public function testReturnsAllRegisteredResourcesWhenCursorIsNull(): void
     {
         $store = new ResourceStore([
-            'file:///a' => new ResourceEntry(new Resource(name: 'a', uri: 'file:///a'), $this->reader()),
-            'file:///b' => new ResourceEntry(new Resource(name: 'b', uri: 'file:///b'), $this->reader()),
+            'file:///a' => new ResourceEntry(new Resource(name: 'a', uri: 'file:///a'), $this->buildReader()),
+            'file:///b' => new ResourceEntry(new Resource(name: 'b', uri: 'file:///b'), $this->buildReader()),
         ]);
         $handler = new ListResourcesRequestHandler($store);
 
@@ -62,9 +62,9 @@ final class ListResourcesRequestHandlerTest extends AbstractMcpTestCase
     {
         $store = new ResourceStore(
             [
-                'file:///a' => new ResourceEntry(new Resource(name: 'a', uri: 'file:///a'), $this->reader()),
-                'file:///b' => new ResourceEntry(new Resource(name: 'b', uri: 'file:///b'), $this->reader()),
-                'file:///c' => new ResourceEntry(new Resource(name: 'c', uri: 'file:///c'), $this->reader()),
+                'file:///a' => new ResourceEntry(new Resource(name: 'a', uri: 'file:///a'), $this->buildReader()),
+                'file:///b' => new ResourceEntry(new Resource(name: 'b', uri: 'file:///b'), $this->buildReader()),
+                'file:///c' => new ResourceEntry(new Resource(name: 'c', uri: 'file:///c'), $this->buildReader()),
             ],
             pageSize: 2,
         );
@@ -79,7 +79,7 @@ final class ListResourcesRequestHandlerTest extends AbstractMcpTestCase
         self::assertSame('file:///c', $result->resources[0]->uri);
     }
 
-    private function reader(): ClosureResourceReader
+    private function buildReader(): ClosureResourceReader
     {
         return new ClosureResourceReader(
             static fn(string $uri, ServerContext $context): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),

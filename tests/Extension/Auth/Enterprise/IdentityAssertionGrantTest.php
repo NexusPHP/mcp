@@ -59,12 +59,12 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())
             ->willAnswerJson($this->exchangeResponse())
-            ->willAnswerJson($this->tokenResponse())
+            ->willAnswerJson($this->buildTokenResponse())
         ;
         $logger = new ArrayLogger();
-        $grant = new IdentityAssertionGrant(self::IDP_ENDPOINT, $this->provider(), 'the-idp-client');
+        $grant = new IdentityAssertionGrant(self::IDP_ENDPOINT, $this->buildProvider(), 'the-idp-client');
 
-        $token = $grant->grant($this->context($http, $this->metadata(), $this->preRegisteredOptions(), logger: $logger), new NullCancellation());
+        $token = $grant->grant($this->buildContext($http, $this->buildMetadata(), $this->buildPreRegisteredOptions(), logger: $logger), new NullCancellation());
 
         self::assertSame('the-access-token', $token->value);
         self::assertSame(self::ISSUER, $token->issuer);
@@ -99,12 +99,12 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())
             ->willAnswerJson($this->exchangeResponse())
-            ->willAnswerJson($this->tokenResponse())
+            ->willAnswerJson($this->buildTokenResponse())
         ;
-        $grant = new IdentityAssertionGrant(self::IDP_ENDPOINT, $this->provider());
+        $grant = new IdentityAssertionGrant(self::IDP_ENDPOINT, $this->buildProvider());
 
         $token = $grant->grant(
-            $this->context($http, $this->metadata(), $this->preRegisteredOptions(), new ScopeSet(['files:read'])),
+            $this->buildContext($http, $this->buildMetadata(), $this->buildPreRegisteredOptions(), new ScopeSet(['files:read'])),
             new NullCancellation(),
         );
 
@@ -114,26 +114,26 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
 
     public function testAGrantTypeListWithoutJwtBearerIsRefused(): void
     {
-        $grant = new IdentityAssertionGrant(self::IDP_ENDPOINT, $this->provider());
+        $grant = new IdentityAssertionGrant(self::IDP_ENDPOINT, $this->buildProvider());
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not advertise the "urn:ietf:params:oauth:grant-type:jwt-bearer" grant type.');
 
         $grant->grant(
-            $this->context(new RecordingHttpClient(), $this->metadata(grantTypes: ['client_credentials']), $this->preRegisteredOptions()),
+            $this->buildContext(new RecordingHttpClient(), $this->buildMetadata(grantTypes: ['client_credentials']), $this->buildPreRegisteredOptions()),
             new NullCancellation(),
         );
     }
 
     public function testAProfileListWithoutIdJagIsRefused(): void
     {
-        $grant = new IdentityAssertionGrant(self::IDP_ENDPOINT, $this->provider());
+        $grant = new IdentityAssertionGrant(self::IDP_ENDPOINT, $this->buildProvider());
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not advertise the "urn:ietf:params:oauth:grant-profile:id-jag" authorization grant profile.');
 
         $grant->grant(
-            $this->context(new RecordingHttpClient(), $this->metadata(profiles: ['urn:example:other-profile']), $this->preRegisteredOptions()),
+            $this->buildContext(new RecordingHttpClient(), $this->buildMetadata(profiles: ['urn:example:other-profile']), $this->buildPreRegisteredOptions()),
             new NullCancellation(),
         );
     }
@@ -142,13 +142,13 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())
             ->willAnswerJson($this->exchangeResponse())
-            ->willAnswerJson($this->tokenResponse())
+            ->willAnswerJson($this->buildTokenResponse())
         ;
         $logger = new ArrayLogger();
-        $grant = new IdentityAssertionGrant(self::IDP_ENDPOINT, $this->provider());
+        $grant = new IdentityAssertionGrant(self::IDP_ENDPOINT, $this->buildProvider());
 
         $token = $grant->grant(
-            $this->context($http, $this->metadata(profiles: ['urn:ietf:params:oauth:grant-profile:id-jag']), $this->preRegisteredOptions(), logger: $logger),
+            $this->buildContext($http, $this->buildMetadata(profiles: ['urn:ietf:params:oauth:grant-profile:id-jag']), $this->buildPreRegisteredOptions(), logger: $logger),
             new NullCancellation(),
         );
 
@@ -159,10 +159,10 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
     public function testMissingCredentialsAreRefusedBeforeAnythingIsSent(): void
     {
         $http = new RecordingHttpClient();
-        $grant = new IdentityAssertionGrant(self::IDP_ENDPOINT, $this->provider());
+        $grant = new IdentityAssertionGrant(self::IDP_ENDPOINT, $this->buildProvider());
 
         try {
-            $grant->grant($this->context($http, $this->metadata(), new AuthorizationOptions('Example MCP Client')), new NullCancellation());
+            $grant->grant($this->buildContext($http, $this->buildMetadata(), new AuthorizationOptions('Example MCP Client')), new NullCancellation());
             self::fail('The grant should have been refused.');
         } catch (RuntimeException $e) {
             self::assertSame(
@@ -175,13 +175,13 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
 
     public function testACimdUrlNeedsTheServersSupport(): void
     {
-        $grant = new IdentityAssertionGrant(self::IDP_ENDPOINT, $this->provider());
+        $grant = new IdentityAssertionGrant(self::IDP_ENDPOINT, $this->buildProvider());
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not support Client ID Metadata Documents.');
 
         $grant->grant(
-            $this->context(new RecordingHttpClient(), $this->metadata(), $this->cimdOptions()),
+            $this->buildContext(new RecordingHttpClient(), $this->buildMetadata(), $this->buildCimdOptions()),
             new NullCancellation(),
         );
     }
@@ -190,12 +190,12 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())
             ->willAnswerJson($this->exchangeResponse())
-            ->willAnswerJson($this->tokenResponse())
+            ->willAnswerJson($this->buildTokenResponse())
         ;
-        $grant = new IdentityAssertionGrant(self::IDP_ENDPOINT, $this->provider());
+        $grant = new IdentityAssertionGrant(self::IDP_ENDPOINT, $this->buildProvider());
 
         $token = $grant->grant(
-            $this->context($http, $this->metadata(clientIdMetadataDocumentSupported: true), $this->cimdOptions()),
+            $this->buildContext($http, $this->buildMetadata(clientIdMetadataDocumentSupported: true), $this->buildCimdOptions()),
             new NullCancellation(),
         );
 
@@ -213,7 +213,7 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
 
     public function testItRenewsByAFreshGrant(): void
     {
-        self::assertTrue((new IdentityAssertionGrant(self::IDP_ENDPOINT, $this->provider()))->renewsByFreshGrant());
+        self::assertTrue((new IdentityAssertionGrant(self::IDP_ENDPOINT, $this->buildProvider()))->renewsByFreshGrant());
     }
 
     public function testAnEmptyIdpTokenEndpointIsRefused(): void
@@ -222,7 +222,7 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
         $this->expectExceptionMessageIs('"idpTokenEndpoint" must be a non-empty string.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
-        new IdentityAssertionGrant('', $this->provider());
+        new IdentityAssertionGrant('', $this->buildProvider());
     }
 
     public function testACleartextIdpEndpointIsRefusedAtConstruction(): void
@@ -230,14 +230,14 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
         $this->expectException(UntrustedAuthorizationMetadataException::class);
         $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the IdP token endpoint "http://idp.example.com/token" is not an absolute HTTPS URL.');
 
-        new IdentityAssertionGrant('http://idp.example.com/token', $this->provider());
+        new IdentityAssertionGrant('http://idp.example.com/token', $this->buildProvider());
     }
 
     public function testACleartextLoopbackIdpEndpointIsAdmittedOnlyByOptingIn(): void
     {
         $this->expectNotToPerformAssertions();
 
-        new IdentityAssertionGrant('http://127.0.0.1:1/token', $this->provider(), allowInsecureLoopback: true);
+        new IdentityAssertionGrant('http://127.0.0.1:1/token', $this->buildProvider(), allowInsecureLoopback: true);
     }
 
     public function testACleartextLoopbackIdpEndpointIsRefusedWithoutOptingIn(): void
@@ -245,7 +245,7 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
         $this->expectException(UntrustedAuthorizationMetadataException::class);
         $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the IdP token endpoint "http://127.0.0.1:1/token" is not an absolute HTTPS URL.');
 
-        new IdentityAssertionGrant('http://127.0.0.1:1/token', $this->provider());
+        new IdentityAssertionGrant('http://127.0.0.1:1/token', $this->buildProvider());
     }
 
     public function testAnEmptyIdpClientIdIsRefused(): void
@@ -254,10 +254,10 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
         $this->expectExceptionMessageIs('"idpClientId" must be a non-empty string or null.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
-        new IdentityAssertionGrant(self::IDP_ENDPOINT, $this->provider(), '');
+        new IdentityAssertionGrant(self::IDP_ENDPOINT, $this->buildProvider(), '');
     }
 
-    private function provider(): IdentityAssertionProviderInterface
+    private function buildProvider(): IdentityAssertionProviderInterface
     {
         return new class implements IdentityAssertionProviderInterface {
             #[\Override]
@@ -268,7 +268,7 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
         };
     }
 
-    private function preRegisteredOptions(): AuthorizationOptions
+    private function buildPreRegisteredOptions(): AuthorizationOptions
     {
         return new AuthorizationOptions(
             'Example MCP Client',
@@ -276,7 +276,7 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
         );
     }
 
-    private function cimdOptions(): AuthorizationOptions
+    private function buildCimdOptions(): AuthorizationOptions
     {
         return new AuthorizationOptions('Example MCP Client', clientIdMetadataDocumentUrl: 'https://app.example.com/client.json');
     }
@@ -285,7 +285,7 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
      * @param null|list<non-empty-string> $grantTypes
      * @param null|list<non-empty-string> $profiles
      */
-    private function metadata(
+    private function buildMetadata(
         ?array $grantTypes = null,
         ?array $profiles = null,
         ?bool $clientIdMetadataDocumentSupported = null,
@@ -299,7 +299,7 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
         );
     }
 
-    private function context(
+    private function buildContext(
         RecordingHttpClient $http,
         AuthorizationServerMetadata $server,
         AuthorizationOptions $options,
@@ -340,7 +340,7 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
      *
      * @return array<string, mixed>
      */
-    private function tokenResponse(array $overrides = []): array
+    private function buildTokenResponse(array $overrides = []): array
     {
         return ['access_token' => 'the-access-token', 'token_type' => 'Bearer', ...$overrides];
     }

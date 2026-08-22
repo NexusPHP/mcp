@@ -142,7 +142,7 @@ final class McpSchemaProcessor
         ksort($internalSchema);
 
         $missingFromSpec = array_diff(array_keys($schemaDefs), array_keys($processedSchema));
-        $deprecatedDefs = self::deprecatedSpecDefNames();
+        $deprecatedDefs = self::listDeprecatedSpecDefNames();
 
         $deprecatedSchema = array_intersect($missingFromSpec, $deprecatedDefs);
         $inlinedSchema = array_intersect($missingFromSpec, self::INLINED_SPEC_DEFS);
@@ -175,7 +175,7 @@ final class McpSchemaProcessor
      *
      * @return list<string>
      */
-    private static function deprecatedSpecDefNames(): array
+    private static function listDeprecatedSpecDefNames(): array
     {
         $ts = @file_get_contents(self::LATEST_SCHEMA_TS_PATH);
 

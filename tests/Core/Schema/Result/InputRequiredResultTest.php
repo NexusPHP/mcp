@@ -63,7 +63,7 @@ final class InputRequiredResultTest extends AbstractMcpTestCase
 
     public function testToArrayInputRequestsOnly(): void
     {
-        $requests = $this->inputRequests();
+        $requests = $this->buildInputRequests();
         $result = new InputRequiredResult(inputRequests: $requests);
 
         self::assertSame($requests, $result->inputRequests);
@@ -77,7 +77,7 @@ final class InputRequiredResultTest extends AbstractMcpTestCase
     public function testRebuildingWithNewMetaKeepsEveryOtherField(): void
     {
         $result = new InputRequiredResult(
-            inputRequests: $this->inputRequests(),
+            inputRequests: $this->buildInputRequests(),
             requestState: 'tok',
             meta: new GenericResultMetaObject(extras: ['vendor.brand' => 'acme']),
         );
@@ -93,7 +93,7 @@ final class InputRequiredResultTest extends AbstractMcpTestCase
     public function testToArrayWithAllFields(): void
     {
         $result = new InputRequiredResult(
-            inputRequests: $this->inputRequests(),
+            inputRequests: $this->buildInputRequests(),
             requestState: 'tok',
             meta: new GenericResultMetaObject(extras: ['vendor.brand' => 'acme']),
         );
@@ -130,7 +130,7 @@ final class InputRequiredResultTest extends AbstractMcpTestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new InputRequiredResult(
-            inputRequests: $this->inputRequests(),
+            inputRequests: $this->buildInputRequests(),
             requestState: 'tok',
             meta: new GenericResultMetaObject(extras: ['vendor.brand' => 'acme']),
         );
@@ -304,7 +304,7 @@ final class InputRequiredResultTest extends AbstractMcpTestCase
     /**
      * @return array<int|non-empty-string, ElicitRequest>
      */
-    private function inputRequests(): array
+    private function buildInputRequests(): array
     {
         return ['github_login' => $this->elicitRequest()];
     }

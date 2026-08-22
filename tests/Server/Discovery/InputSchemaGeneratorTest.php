@@ -413,22 +413,22 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
 
     public function testIsInjectedContextIdentifiesTheServerContextParameter(): void
     {
-        self::assertFalse(InputSchemaGenerator::isInjectedContext($this->parameterAt('withContext', 0)));
-        self::assertTrue(InputSchemaGenerator::isInjectedContext($this->parameterAt('withContext', 1)));
+        self::assertFalse(InputSchemaGenerator::isInjectedContext($this->readParameterAt('withContext', 0)));
+        self::assertTrue(InputSchemaGenerator::isInjectedContext($this->readParameterAt('withContext', 1)));
     }
 
     public function testResolveExpandableNativeClassAnswersOnlyForAnInstantiableClass(): void
     {
         self::assertSame(
             Place::class,
-            InputSchemaGenerator::resolveExpandableNativeClass($this->parameterAt('nestedObject', 0)),
+            InputSchemaGenerator::resolveExpandableNativeClass($this->readParameterAt('nestedObject', 0)),
         );
         self::assertNull(
-            InputSchemaGenerator::resolveExpandableNativeClass($this->parameterAt('withContext', 0)),
+            InputSchemaGenerator::resolveExpandableNativeClass($this->readParameterAt('withContext', 0)),
         );
     }
 
-    private function parameterAt(string $method, int $position): \ReflectionParameter
+    private function readParameterAt(string $method, int $position): \ReflectionParameter
     {
         $parameters = (new \ReflectionMethod(SampleToolHandlers::class, $method))->getParameters();
 

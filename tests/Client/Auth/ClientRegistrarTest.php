@@ -50,7 +50,7 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
         $preRegistered = new ClientRegistration('pre-registered', self::ISSUER, 'the-secret', TokenEndpointAuthMethod::ClientSecretPost);
         $http = new RecordingHttpClient();
 
-        $registration = $this->resolve($http, $this->metadata(cimdSupported: true, registrationEndpoint: 'https://auth.example.com/register'), $this->options(
+        $registration = $this->resolve($http, $this->buildMetadata(cimdSupported: true, registrationEndpoint: 'https://auth.example.com/register'), $this->buildOptions(
             clientIdMetadataDocumentUrl: self::CIMD_URL,
             preRegistered: $preRegistered,
         ));
@@ -64,7 +64,7 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
         $this->expectException(AuthorizationServerMismatchException::class);
         $this->expectExceptionMessageIs('The supplied client credentials were registered with "https://old.example.com" but the protected resource now names "https://auth.example.com", and credentials are not portable between authorization servers.');
 
-        $this->resolve(new RecordingHttpClient(), $this->metadata(), $this->options(
+        $this->resolve(new RecordingHttpClient(), $this->buildMetadata(), $this->buildOptions(
             preRegistered: new ClientRegistration('pre-registered', 'https://old.example.com'),
         ));
     }
@@ -73,7 +73,7 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
     {
         $http = new RecordingHttpClient();
 
-        $registration = $this->resolve($http, $this->metadata(), $this->options(
+        $registration = $this->resolve($http, $this->buildMetadata(), $this->buildOptions(
             preRegistered: new ClientRegistration('pre-registered', clientSecret: 'the-secret'),
         ));
 
@@ -85,7 +85,7 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
 
     public function testUnboundCredentialsCarryingASecretDefaultToBasicAuthentication(): void
     {
-        $registration = $this->resolve(new RecordingHttpClient(), $this->metadata(), $this->options(
+        $registration = $this->resolve(new RecordingHttpClient(), $this->buildMetadata(), $this->buildOptions(
             preRegistered: new ClientRegistration('pre-registered', clientSecret: 'the-secret'),
         ));
 
@@ -94,7 +94,7 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
 
     public function testUnboundCredentialsWithoutASecretStayUnauthenticated(): void
     {
-        $registration = $this->resolve(new RecordingHttpClient(), $this->metadata(), $this->options(
+        $registration = $this->resolve(new RecordingHttpClient(), $this->buildMetadata(), $this->buildOptions(
             preRegistered: new ClientRegistration('pre-registered'),
         ));
 
@@ -103,7 +103,7 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
 
     public function testAnExplicitAuthMethodOnUnboundCredentialsIsKept(): void
     {
-        $registration = $this->resolve(new RecordingHttpClient(), $this->metadata(), $this->options(
+        $registration = $this->resolve(new RecordingHttpClient(), $this->buildMetadata(), $this->buildOptions(
             preRegistered: new ClientRegistration('pre-registered', clientSecret: 'the-secret', tokenEndpointAuthMethod: TokenEndpointAuthMethod::ClientSecretPost),
         ));
 
@@ -114,7 +114,7 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
     {
         $http = new RecordingHttpClient();
 
-        $registration = $this->resolve($http, $this->metadata(cimdSupported: true), $this->options(clientIdMetadataDocumentUrl: self::CIMD_URL));
+        $registration = $this->resolve($http, $this->buildMetadata(cimdSupported: true), $this->buildOptions(clientIdMetadataDocumentUrl: self::CIMD_URL));
 
         self::assertSame(self::CIMD_URL, $registration->clientId);
         self::assertSame(self::ISSUER, $registration->issuer);
@@ -127,7 +127,7 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
     {
         $store = new InMemoryClientRegistrationStore();
 
-        $this->resolve(new RecordingHttpClient(), $this->metadata(cimdSupported: true), $this->options(clientIdMetadataDocumentUrl: self::CIMD_URL), $store);
+        $this->resolve(new RecordingHttpClient(), $this->buildMetadata(cimdSupported: true), $this->buildOptions(clientIdMetadataDocumentUrl: self::CIMD_URL), $store);
 
         self::assertNull($store->read(self::ISSUER));
     }
@@ -139,8 +139,8 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
 
         $registration = $this->resolve(
             $http,
-            $this->metadata(cimdSupported: $cimdSupported, registrationEndpoint: 'https://auth.example.com/register'),
-            $this->options(clientIdMetadataDocumentUrl: $documentUrl),
+            $this->buildMetadata(cimdSupported: $cimdSupported, registrationEndpoint: 'https://auth.example.com/register'),
+            $this->buildOptions(clientIdMetadataDocumentUrl: $documentUrl),
         );
 
         self::assertSame('registered', $registration->clientId);
@@ -162,7 +162,7 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())->willAnswerJson(['client_id' => 'registered']);
 
-        $this->resolve($http, $this->metadata(registrationEndpoint: 'https://auth.example.com/register'), $this->options());
+        $this->resolve($http, $this->buildMetadata(registrationEndpoint: 'https://auth.example.com/register'), $this->buildOptions());
 
         $request = $http->readRequest();
         $body = buffer($request->getBody()->getContent());
@@ -188,7 +188,7 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())->willAnswerJson(['client_id' => 'registered']);
 
-        $this->resolve($http, $this->metadata(registrationEndpoint: 'https://auth.example.com/register'), $this->options(applicationType: ApplicationType::Web));
+        $this->resolve($http, $this->buildMetadata(registrationEndpoint: 'https://auth.example.com/register'), $this->buildOptions(applicationType: ApplicationType::Web));
 
         $body = json_decode(buffer($http->readRequest()->getBody()->getContent()), true, flags: \JSON_THROW_ON_ERROR);
         self::assertIsArray($body);
@@ -199,7 +199,7 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())->willAnswerJson(['client_id' => 'registered']);
 
-        $registration = $this->resolve($http, $this->metadata(registrationEndpoint: 'https://auth.example.com/register'), $this->options());
+        $registration = $this->resolve($http, $this->buildMetadata(registrationEndpoint: 'https://auth.example.com/register'), $this->buildOptions());
 
         self::assertSame('registered', $registration->clientId);
         self::assertSame(self::ISSUER, $registration->issuer);
@@ -209,10 +209,10 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())->willAnswerJson(['client_id' => 'registered']);
         $store = new InMemoryClientRegistrationStore();
-        $metadata = $this->metadata(registrationEndpoint: 'https://auth.example.com/register');
+        $metadata = $this->buildMetadata(registrationEndpoint: 'https://auth.example.com/register');
 
-        $first = $this->resolve($http, $metadata, $this->options(), $store);
-        $second = $this->resolve($http, $metadata, $this->options(), $store);
+        $first = $this->resolve($http, $metadata, $this->buildOptions(), $store);
+        $second = $this->resolve($http, $metadata, $this->buildOptions(), $store);
 
         self::assertSame($first, $second);
         self::assertCount(1, $http->requests);
@@ -226,11 +226,11 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
         ;
         $store = new InMemoryClientRegistrationStore();
 
-        $this->resolve($http, $this->metadata(registrationEndpoint: 'https://auth.example.com/register'), $this->options(), $store);
+        $this->resolve($http, $this->buildMetadata(registrationEndpoint: 'https://auth.example.com/register'), $this->buildOptions(), $store);
         $second = $this->resolve(
             $http,
             new AuthorizationServerMetadata('https://other.example.com', registrationEndpoint: 'https://other.example.com/register'),
-            $this->options(),
+            $this->buildOptions(),
             $store,
         );
 
@@ -243,7 +243,7 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())->willAnswerJson(['client_id' => 'registered', 'client_secret' => 'the-secret']);
 
-        $registration = $this->resolve($http, $this->metadata(registrationEndpoint: 'https://auth.example.com/register'), $this->options());
+        $registration = $this->resolve($http, $this->buildMetadata(registrationEndpoint: 'https://auth.example.com/register'), $this->buildOptions());
 
         self::assertSame('the-secret', $registration->clientSecret);
         self::assertSame(TokenEndpointAuthMethod::ClientSecretBasic, $registration->tokenEndpointAuthMethod);
@@ -257,7 +257,7 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
             'token_endpoint_auth_method' => 'client_secret_post',
         ]);
 
-        $registration = $this->resolve($http, $this->metadata(registrationEndpoint: 'https://auth.example.com/register'), $this->options());
+        $registration = $this->resolve($http, $this->buildMetadata(registrationEndpoint: 'https://auth.example.com/register'), $this->buildOptions());
 
         self::assertSame(TokenEndpointAuthMethod::ClientSecretPost, $registration->tokenEndpointAuthMethod);
     }
@@ -273,7 +273,7 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs(\sprintf('Dynamic Client Registration failed with "invalid_client_metadata": The client was registered with the unsupported "%s" token endpoint authentication method.', $method));
 
-        $this->resolve($http, $this->metadata(registrationEndpoint: 'https://auth.example.com/register'), $this->options());
+        $this->resolve($http, $this->buildMetadata(registrationEndpoint: 'https://auth.example.com/register'), $this->buildOptions());
     }
 
     /**
@@ -293,7 +293,7 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
 
         $this->resolve(
             new RecordingHttpClient(),
-            $this->metadata(registrationEndpoint: 'https://auth.example.com/register'),
+            $this->buildMetadata(registrationEndpoint: 'https://auth.example.com/register'),
             new AuthorizationOptions('Example MCP Client'),
         );
     }
@@ -308,7 +308,7 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('Dynamic Client Registration failed with "invalid_redirect_uri": Loopback redirect URIs are not permitted.');
 
-        $this->resolve($http, $this->metadata(registrationEndpoint: 'https://auth.example.com/register'), $this->options());
+        $this->resolve($http, $this->buildMetadata(registrationEndpoint: 'https://auth.example.com/register'), $this->buildOptions());
     }
 
     public function testARefusedRegistrationWithNoErrorCodeFallsBackToInvalidClientMetadata(): void
@@ -318,7 +318,7 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('Dynamic Client Registration failed with "invalid_client_metadata".');
 
-        $this->resolve($http, $this->metadata(registrationEndpoint: 'https://auth.example.com/register'), $this->options());
+        $this->resolve($http, $this->buildMetadata(registrationEndpoint: 'https://auth.example.com/register'), $this->buildOptions());
     }
 
     public function testARegistrationResponseWithNoClientIdIsRefused(): void
@@ -328,7 +328,7 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Client registration response must carry a "client_id" value.');
 
-        $this->resolve($http, $this->metadata(registrationEndpoint: 'https://auth.example.com/register'), $this->options());
+        $this->resolve($http, $this->buildMetadata(registrationEndpoint: 'https://auth.example.com/register'), $this->buildOptions());
     }
 
     public function testARegistrationResponseThatIsNotAJsonObjectIsRefused(): void
@@ -338,7 +338,7 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
         $this->expectException(MalformedAuthorizationResponseException::class);
         $this->expectExceptionMessageIs('The registration endpoint answered with a payload that is not a JSON object.');
 
-        $this->resolve($http, $this->metadata(registrationEndpoint: 'https://auth.example.com/register'), $this->options());
+        $this->resolve($http, $this->buildMetadata(registrationEndpoint: 'https://auth.example.com/register'), $this->buildOptions());
     }
 
     public function testAnInsecureRegistrationEndpointIsRefused(): void
@@ -346,7 +346,7 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
         $this->expectException(UntrustedAuthorizationMetadataException::class);
         $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the registration endpoint "http://auth.example.com/register" is not an absolute HTTPS URL.');
 
-        $this->resolve(new RecordingHttpClient(), $this->metadata(registrationEndpoint: 'http://auth.example.com/register'), $this->options());
+        $this->resolve(new RecordingHttpClient(), $this->buildMetadata(registrationEndpoint: 'http://auth.example.com/register'), $this->buildOptions());
     }
 
     public function testALoopbackRegistrationEndpointIsRefusedUnlessOptedIn(): void
@@ -354,7 +354,7 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
         $this->expectException(UntrustedAuthorizationMetadataException::class);
         $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the registration endpoint "http://127.0.0.1:9000/register" is not an absolute HTTPS URL.');
 
-        $this->resolve(new RecordingHttpClient(), $this->metadata(registrationEndpoint: 'http://127.0.0.1:9000/register'), $this->options());
+        $this->resolve(new RecordingHttpClient(), $this->buildMetadata(registrationEndpoint: 'http://127.0.0.1:9000/register'), $this->buildOptions());
     }
 
     public function testAServerOfferingNoMechanismIsRefused(): void
@@ -362,7 +362,7 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
         $this->expectException(ClientRegistrationRequiredException::class);
         $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" supports neither Client ID Metadata Documents nor Dynamic Client Registration, so a client identifier must be supplied for it.');
 
-        $this->resolve(new RecordingHttpClient(), $this->metadata(), $this->options());
+        $this->resolve(new RecordingHttpClient(), $this->buildMetadata(), $this->buildOptions());
     }
 
     public function testTheTimeoutBoundsBothTheTransferAndTheStall(): void
@@ -370,8 +370,8 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
         $http = (new RecordingHttpClient())->willAnswerJson(['client_id' => 'registered']);
 
         (new ClientRegistrar($http, new InMemoryClientRegistrationStore(), 2.5))->resolve(
-            $this->metadata(registrationEndpoint: 'https://auth.example.com/register'),
-            $this->options(),
+            $this->buildMetadata(registrationEndpoint: 'https://auth.example.com/register'),
+            $this->buildOptions(),
             new NullCancellation(),
         );
 
@@ -387,14 +387,14 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
             ->willAnswerJson(['client_id' => 'second'])
         ;
         $registrar = new ClientRegistrar($http, $store);
-        $metadata = $this->metadata(registrationEndpoint: 'https://auth.example.com/register');
-        $registrar->resolve($metadata, $this->options(), new NullCancellation());
+        $metadata = $this->buildMetadata(registrationEndpoint: 'https://auth.example.com/register');
+        $registrar->resolve($metadata, $this->buildOptions(), new NullCancellation());
 
         $registrar->forget(self::ISSUER);
 
         self::assertSame(
             'second',
-            $registrar->resolve($metadata, $this->options(), new NullCancellation())->clientId,
+            $registrar->resolve($metadata, $this->buildOptions(), new NullCancellation())->clientId,
         );
     }
 
@@ -410,7 +410,7 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
     /**
      * @param null|non-empty-string $registrationEndpoint
      */
-    private function metadata(?bool $cimdSupported = null, ?string $registrationEndpoint = null): AuthorizationServerMetadata
+    private function buildMetadata(?bool $cimdSupported = null, ?string $registrationEndpoint = null): AuthorizationServerMetadata
     {
         return new AuthorizationServerMetadata(
             self::ISSUER,
@@ -419,7 +419,7 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
         );
     }
 
-    private function options(
+    private function buildOptions(
         ?string $clientIdMetadataDocumentUrl = null,
         ?ClientRegistration $preRegistered = null,
         ApplicationType $applicationType = ApplicationType::Native,

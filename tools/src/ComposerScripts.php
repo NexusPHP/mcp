@@ -46,7 +46,7 @@ final class ComposerScripts
             return;
         }
 
-        self::recursiveDelete(self::PHPSTAN_EXTRACTED_DIR);
+        self::deleteRecursively(self::PHPSTAN_EXTRACTED_DIR);
 
         try {
             $phar->extractTo(self::PHPSTAN_EXTRACTED_DIR, null, true);
@@ -62,7 +62,7 @@ final class ComposerScripts
         $missing = [];
 
         foreach (self::DOC_LINTER_BINARIES as $binary => $formula) {
-            if (! self::commandExists($binary)) {
+            if (! self::hasCommand($binary)) {
                 $missing[$formula] = true;
             }
         }
@@ -82,7 +82,7 @@ final class ComposerScripts
             return;
         }
 
-        if (! self::commandExists('brew')) {
+        if (! self::hasCommand('brew')) {
             fwrite(\STDERR, \sprintf(
                 "Homebrew not found. Install doc linters manually: %s.\n",
                 implode(', ', $formulas),
@@ -243,7 +243,7 @@ final class ComposerScripts
         }
 
         foreach ($caches as $cache) {
-            self::recursiveDelete($cache);
+            self::deleteRecursively($cache);
         }
     }
 
@@ -279,7 +279,7 @@ final class ComposerScripts
         passthru(implode(' ', array_map(escapeshellarg(...), ['git', ...$args])));
     }
 
-    private static function commandExists(string $command): bool
+    private static function hasCommand(string $command): bool
     {
         $probe = 'Windows' === \PHP_OS_FAMILY
             ? \sprintf('where %s 2>NUL', escapeshellarg($command))
@@ -290,7 +290,7 @@ final class ComposerScripts
         return \is_string($output) && trim($output) !== '';
     }
 
-    private static function recursiveDelete(string $directory): void
+    private static function deleteRecursively(string $directory): void
     {
         if (! is_dir($directory)) {
             return;

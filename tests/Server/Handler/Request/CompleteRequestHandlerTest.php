@@ -57,7 +57,7 @@ final class CompleteRequestHandlerTest extends AbstractMcpTestCase
 
         self::assertSame(['suggestion'], $result->completion['values']);
 
-        $call = $this->firstCall($store);
+        $call = $this->readFirstCall($store);
         $ref = $call['ref'];
 
         self::assertInstanceOf(PromptReference::class, $ref);
@@ -88,7 +88,7 @@ final class CompleteRequestHandlerTest extends AbstractMcpTestCase
 
         self::assertSame(['report.pdf'], $result->completion['values']);
 
-        $call = $this->firstCall($store);
+        $call = $this->readFirstCall($store);
         $ref = $call['ref'];
 
         self::assertInstanceOf(ResourceTemplateReference::class, $ref);
@@ -153,7 +153,7 @@ final class CompleteRequestHandlerTest extends AbstractMcpTestCase
 
         $handler->handle($request, $this->makeContext());
 
-        self::assertNull($this->firstCall($store)['contextArguments']);
+        self::assertNull($this->readFirstCall($store)['contextArguments']);
     }
 
     public function testPassesNullContextArgumentsWhenContextOmitsArguments(): void
@@ -173,7 +173,7 @@ final class CompleteRequestHandlerTest extends AbstractMcpTestCase
 
         $handler->handle($request, $this->makeContext());
 
-        self::assertNull($this->firstCall($store)['contextArguments']);
+        self::assertNull($this->readFirstCall($store)['contextArguments']);
     }
 
     private function makePromptRequest(): CompleteRequest
@@ -197,7 +197,7 @@ final class CompleteRequestHandlerTest extends AbstractMcpTestCase
      *     context: ServerContext,
      * }
      */
-    private function firstCall(RecordingCompletionStore $store): array
+    private function readFirstCall(RecordingCompletionStore $store): array
     {
         if ([] === $store->calls) {
             self::fail('Expected at least one recorded call.');
