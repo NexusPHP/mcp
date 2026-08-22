@@ -6,58 +6,6 @@ for *when* breaking changes may land and how they are communicated lives in
 
 ## v0.15.0 to Unreleased
 
-### A stream watches at most 256 resource URIs
-
-`SubscriptionStore` honoured a `resourceSubscriptions` list of any length and scanned every stream's list on
-every resource update. It now takes `maxResourceSubscriptionsPerStream` (default
-`SubscriptionStore::DEFAULT_MAX_RESOURCE_SUBSCRIPTIONS_PER_STREAM`, 256): a listen naming more URIs is refused
-with `-32603` (`SubscriptionLimitReachedException`, `data.limit`) before any slot is spent, and a client that
-needs more opens another stream. A deployment whose clients watch more URIs per stream raises the cap.
-
-### `SecuredHttpEndpoint` caps the request body at 1 MiB by default
-
-`maxBodyBytes` defaulted to `null`, so the recommended middleware stack shipped without a body cap and relied on
-the host's own limit. It now defaults to `SecuredHttpEndpoint::DEFAULT_MAX_BODY_BYTES` (1 MiB), and a larger
-body is refused with `413`. A deployment that accepts larger bodies passes its own cap, or `null` to restore the
-uncapped behaviour.
-
-### `InMemoryTaskStore` holds at most 10 000 records
-
-A `null` ttl retained every record forever, and every `createTask()` swept the whole store. The store now takes
-`maxRecords` (default `InMemoryTaskStore::DEFAULT_MAX_RECORDS`, 10 000) and at that ceiling evicts the oldest
-settled record, or throws `RuntimeException` when every record is still live. An overdue task is no longer
-failed by an unrelated `createTask()` but at its next observation, or at the ceiling. A deployment that retains
-more settled tasks raises `maxRecords`.
-
-### The tasks extension runs at most 1024 tasks at once
-
-Task fibers ran outside the dispatcher's in-flight budget with no cap of their own, so a client could start them
-at request rate. `TasksServerExtension` now takes `maxRunningTasks` (default 1024): a `tools/call` or `tasks/update`
-that would start one past the cap is refused with `-32603` (`TaskLimitReachedException`, `data.limit`): no record
-is created for the call, and a refused resume stays `input_required` for a later retry. A deployment that expects
-more concurrent tasks raises the cap.
-
-### An SSE stream is abandoned once its reader falls 1 MiB behind
-
-`StreamableHttpServerTransport` buffered frames for a stalled reader without limit. It now takes a
-`maxBufferedBytes` cap (default 1 MiB): a frame pushed while that many bytes sit unread ends the stream and
-cancels the request, exactly as a client disconnect does, and the client re-issues the request per the spec.
-A deployment whose hosts read slowly or whose handlers emit large progress bursts raises the cap.
-
-### `ToolAnnotations` no longer rejects the hints beside `readOnlyHint`
-
-`new ToolAnnotations(readOnlyHint: true, destructiveHint: ...)` threw, and so did the `idempotentHint`
-pairing. Both now construct, and `fromArray()` decodes them, because the spec states the relationship
-in prose and documents a default for each field, so a conformant peer may send all three. Code that
-relied on the exception to detect the combination reads the properties instead.
-
-### An envelope naming a `method` beside a `result` or an `error` is refused
-
-`JsonRpcMessageParser::parse()` returned an `UnparsedResultEnvelope` (or a `JsonRpcErrorResponse`) for an
-envelope carrying both, letting the response half win. It now throws `InvalidRequestException` naming
-the recovered id. A server answers the envelope with `-32600` echoing that id instead of dropping it
-unanswered, and the streamable HTTP transport now echoes the id too.
-
 ### The bearer token no longer travels to other paths on the resource's origin
 
 `AuthorizedHttpClient` attached the token to any request sharing the resource's origin, and followed
@@ -99,12 +47,6 @@ return [new SchemaViolation('/q', '"q" must be a string, int given.')];
 `ToolOutputValidationException` takes the same list. The `-32602` an argument failure answers with is
 unchanged in `message` and gains `data.validation_errors`, a list of `{pointer, message}` objects capped
 at eight.
-
-### A `resources/read` URI longer than 8192 bytes is refused
-
-`ReadResourceRequestParams` accepted a URI of any length, so a store miss echoed it whole into the
-error's `data.uri`. Decode now refuses anything past 8192 bytes with `-32602`. The echo still carries
-the full URI for every accepted request.
 
 ### The `Mcp-Param-{Name}` check compares every mirrorable argument
 

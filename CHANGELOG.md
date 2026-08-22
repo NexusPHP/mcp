@@ -18,14 +18,12 @@ in `0.x`, minor releases may include breaking changes.
 ### Changed
 
 - `SubscriptionStore` refuses a listen naming more than `maxResourceSubscriptionsPerStream` resource URIs
-  (default 256), and delivers a resource update by index rather than by scanning every stream. See
-  BREAKING_CHANGES.md.
+  (default 256), and delivers a resource update by index rather than by scanning every stream.
 - `SecuredHttpEndpoint` caps the request body at 1 MiB by default. Pass `maxBodyBytes: null` to remove the
-  cap. See BREAKING_CHANGES.md.
+  cap.
 - The SDK's own validation failures are plain `\InvalidArgumentException`s. Only `Assert` raises
   `ExpectationFailedException`, its subclass, so a `catch (\InvalidArgumentException)` still sees both.
-- A `resources/read` URI is refused past 8192 bytes at decode, bounding the `data.uri` echo. See
-  BREAKING_CHANGES.md.
+- A `resources/read` URI is refused past 8192 bytes at decode, bounding the `data.uri` echo.
 - `JwksAccessTokenValidator` takes the resource it protects and refuses a token whose `aud` does not
   name it. See BREAKING_CHANGES.md.
 - `SchemaValidatorInterface::validate()` returns `SchemaViolation` objects, and a `tools/call` argument
@@ -36,11 +34,11 @@ in `0.x`, minor releases may include breaking changes.
 - The streamable HTTP server reads `Accept` as RFC 9110 media ranges, so `*/*` and `application/*` are
   admitted and a `q=0` range is not.
 - `InMemoryTaskStore` holds at most `maxRecords` (default 10 000), and below that ceiling `createTask()` reclaims
-  in amortised constant time instead of sweeping every record. See BREAKING_CHANGES.md.
+  in amortised constant time instead of sweeping every record.
 - Task fibers are capped by `TasksServerExtension`'s `maxRunningTasks` (default 1024), refusing a further
-  task with `-32603` instead of running unbounded. See BREAKING_CHANGES.md.
+  task with `-32603` instead of running unbounded.
 - An SSE stream whose reader falls behind is abandoned at `maxBufferedBytes` (default 1 MiB) instead of
-  buffering without limit. See BREAKING_CHANGES.md.
+  buffering without limit.
 - OAuth metadata discovery no longer follows redirects, so a hostile origin cannot point a well-known
   probe at an internal host.
 - The `Mcp-Param-{Name}` check no longer skips a float or a large integer, and refuses a header whose body
@@ -49,9 +47,9 @@ in `0.x`, minor releases may include breaking changes.
   is requested without the credential, and a redirect off the resource is refused. See
   BREAKING_CHANGES.md.
 - `ToolAnnotations` accepts `destructiveHint` and `idempotentHint` beside `readOnlyHint: true`, so one
-  tool no longer makes a whole `tools/list` undecodable. See BREAKING_CHANGES.md.
+  tool no longer makes a whole `tools/list` undecodable.
 - An envelope naming a `method` alongside a `result` or an `error` is refused as an invalid request
-  echoing its id, instead of being dropped unanswered. See BREAKING_CHANGES.md.
+  echoing its id, instead of being dropped unanswered.
 - A client whose peer answers a pending request with such an envelope now settles the awaiting call
   instead of leaving it to time out.
 
