@@ -6,6 +6,13 @@ for *when* breaking changes may land and how they are communicated lives in
 
 ## v0.15.0 to Unreleased
 
+### An SSE stream is abandoned once its reader falls 1 MiB behind
+
+`StreamableHttpServerTransport` buffered frames for a stalled reader without limit. It now takes a
+`maxBufferedBytes` cap (default 1 MiB): a frame pushed while that many bytes sit unread ends the stream and
+cancels the request, exactly as a client disconnect does, and the client re-issues the request per the spec.
+A deployment whose hosts read slowly or whose handlers emit large progress bursts raises the cap.
+
 ### `ToolAnnotations` no longer rejects the hints beside `readOnlyHint`
 
 `new ToolAnnotations(readOnlyHint: true, destructiveHint: ...)` threw, and so did the `idempotentHint`

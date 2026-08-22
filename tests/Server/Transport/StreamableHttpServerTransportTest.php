@@ -1721,6 +1721,76 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
         new StreamableHttpServerTransport($factory, $factory, keepAliveInterval: 0.0);
     }
 
+    #[DataProvider('provideConstructorRejectsANonPositiveBufferCapCases')]
+    public function testConstructorRejectsANonPositiveBufferCap(int $cap): void
+    {
+        $factory = new Psr17Factory();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs(\sprintf('The SSE buffer cap must be positive, %d given.', $cap));
+
+        // @phpstan-ignore argument.type
+        new StreamableHttpServerTransport($factory, $factory, maxBufferedBytes: $cap);
+    }
+
+    /**
+     * @return iterable<string, array{int}>
+     */
+    public static function provideConstructorRejectsANonPositiveBufferCapCases(): iterable
+    {
+        yield 'zero' => [0];
+
+        yield 'negative' => [-1];
+    }
+
+    public function testAStreamWhoseReaderFallsBehindIsAbandoned(): void
+    {
+        $logger = new ArrayLogger();
+        $transport = self::makeTransport($logger, ResponseMode::Sse, start: false, maxBufferedBytes: 1);
+        self::listen($transport, (new ServerBuilder())
+            ->setServerInfo('demo', '1.0.0')
+            ->replaceRequestHandler('server/discover', new ClosureRequestHandler(
+                static function (JsonRpcRequest $request, AbstractContext $context): Result {
+                    $context->reportProgress(0.25, 1.0, 'first');
+                    $context->reportProgress(0.5, 1.0, 'second');
+
+                    return new EmptyResult();
+                },
+            ))
+            ->build());
+        $cancelled = [];
+        $transport->onCancel(static function (RequestId $id) use (&$cancelled): void {
+            $cancelled[] = $id->id;
+        });
+
+        async(static function () use ($transport): void {
+            $transport->handle(self::progressRequest(7));
+            delay(0.01);
+        })->await();
+
+        self::assertCount(1, $cancelled, 'An overflowed stream abandons its request as a disconnect would.');
+        $records = $logger->recordsMatching(LogLevel::WARNING, '{label} transport abandoned a stream whose reader fell at least {limit} bytes behind.');
+        self::assertCount(1, $records);
+        self::assertSame(['label' => 'Streamable HTTP server', 'limit' => 1], $records[0]['context']);
+    }
+
+    public function testAStreamWhoseReaderKeepsUpIsNotAbandoned(): void
+    {
+        $logger = new ArrayLogger();
+        $transport = self::makeTransport($logger, ResponseMode::Sse, start: false, maxBufferedBytes: 1);
+        self::listen($transport, self::progressServer(busyFor: 0.03));
+        $cancelled = [];
+        $transport->onCancel(static function (RequestId $id) use (&$cancelled): void {
+            $cancelled[] = $id->id;
+        });
+
+        [, $body] = self::handleAndRead($transport, self::progressRequest(7));
+
+        self::assertSame([], $cancelled);
+        self::assertSame([], $logger->messagesAtLevel(LogLevel::WARNING));
+        self::assertStringContainsString('"result"', $body);
+    }
+
     private static function captureInternalIds(StreamableHttpServerTransport $transport): RequestIdLog
     {
         $log = new RequestIdLog();
@@ -1735,14 +1805,18 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
         return $log;
     }
 
+    /**
+     * @param int<1, max> $maxBufferedBytes
+     */
     private static function makeTransport(
         ?ArrayLogger $logger = null,
         ResponseMode $responseMode = ResponseMode::Auto,
         float $keepAliveInterval = 15.0,
         bool $start = true,
+        int $maxBufferedBytes = 1_048_576,
     ): StreamableHttpServerTransport {
         $factory = new Psr17Factory();
-        $transport = new StreamableHttpServerTransport($factory, $factory, $logger ?? new ArrayLogger(), $responseMode, $keepAliveInterval);
+        $transport = new StreamableHttpServerTransport($factory, $factory, $logger ?? new ArrayLogger(), $responseMode, $keepAliveInterval, $maxBufferedBytes);
 
         if ($start) {
             $transport->start();

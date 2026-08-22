@@ -52,6 +52,11 @@ stops nginx and friends buffering events. It also emits a `: keep-alive` comment
 past `keepAliveInterval` (default 15s). Closing the response body is the spec's cancellation signal, and it
 retires the stream.
 
+A frame that arrives while `maxBufferedBytes` (default 1 MiB) or more sit unread abandons the stream as a
+disconnect would: the request is cancelled, a warning is logged, and the client re-issues the request as the spec
+directs for a broken stream. The cap bounds the unread backlog, not the frame size, so a frame that finds the
+buffer below the cap always lands. Size it to the slowest reader you expect.
+
 `subscriptions/listen` is the one method whose response mode is not configurable. It always streams, because its
 result arrives only when the stream ends.
 

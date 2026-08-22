@@ -24,6 +24,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- An SSE stream whose reader falls behind is abandoned at `maxBufferedBytes` (default 1 MiB) instead of
+  buffering without limit. See BREAKING_CHANGES.md.
 - OAuth metadata discovery no longer follows redirects, so a hostile origin cannot point a well-known
   probe at an internal host.
 - The `Mcp-Param-{Name}` check no longer skips a float or a large integer, and refuses a header whose body
