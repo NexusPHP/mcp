@@ -41,22 +41,27 @@ use function Amp\delay;
  */
 final readonly class TaskClient implements TaskClientInterface
 {
+    public const int DEFAULT_MIN_POLL_INTERVAL_MS = 100;
+
     /**
      * @var \Closure(float, null|Cancellation): void
      */
     private \Closure $sleep;
 
     /**
-     * @param int<1, max>                                   $stallCeiling Consecutive `input_required` polls sending no
-     *                                                                    answers before `awaitTask()` gives up
-     * @param null|\Closure(float, null|Cancellation): void $sleep        Suspends between polls, seconds
+     * @param int<1, max>                                   $stallCeiling      Consecutive `input_required` polls sending no
+     *                                                                         answers before `awaitTask()` gives up
+     * @param null|\Closure(float, null|Cancellation): void $sleep             Suspends between polls, seconds
+     * @param int<1, max>                                   $minPollIntervalMs Floor a shorter server-suggested `pollIntervalMs` is raised to
      */
     public function __construct(
         private Client $client,
         private int $stallCeiling = 60,
         ?\Closure $sleep = null,
+        private int $minPollIntervalMs = self::DEFAULT_MIN_POLL_INTERVAL_MS,
     ) {
         Assert::that($stallCeiling)->isPositiveInt('Task stall ceiling must be a positive integer, {value} given.');
+        Assert::that($minPollIntervalMs)->isPositiveInt('Task minimum poll interval must be a positive integer, {value} given.');
 
         $this->sleep = $sleep ?? static function (float $seconds, ?Cancellation $cancellation): void {
             delay($seconds, cancellation: $cancellation);
@@ -152,7 +157,7 @@ final readonly class TaskClient implements TaskClientInterface
                 $stalledPolls = 0;
             }
 
-            ($this->sleep)($intervalMs / 1_000, $cancellation);
+            ($this->sleep)(max($intervalMs, $this->minPollIntervalMs) / 1_000, $cancellation);
         }
     }
 }

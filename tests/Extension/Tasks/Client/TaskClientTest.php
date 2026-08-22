@@ -269,7 +269,39 @@ final class TaskClientTest extends AbstractMcpTestCase
 
         $await->await();
 
-        self::assertSame([1.0, 0.001], $slept);
+        self::assertSame([1.0, 0.1], $slept, 'The 1 ms suggestion is raised to the default floor.');
+    }
+
+    public function testAwaitTaskFollowsAServerSuggestedIntervalAboveTheFloor(): void
+    {
+        $slept = [];
+        [$tasks, $transport] = $this->buildTaskClient(sleep: static function (float $seconds) use (&$slept): void {
+            $slept[] = $seconds;
+        }, minPollIntervalMs: 50);
+
+        $handle = CreateTaskResult::fromArray([...$this->buildTaskPayload('working'), 'pollIntervalMs' => 250]);
+
+        $await = async(static fn(): GetTaskResult => $tasks->awaitTask($handle));
+        $await->ignore();
+
+        $this->respondToNextTasksGet($transport, $this->buildTaskPayload('working', ['pollIntervalMs' => 50]), 0);
+        $this->respondToNextTasksGet($transport, $this->buildTaskPayload('working', ['pollIntervalMs' => 49]), 1);
+        $this->respondToNextTasksGet($transport, $this->buildTaskPayload('completed', ['result' => ['resultType' => 'complete', 'content' => []]]), 2);
+
+        $await->await();
+
+        self::assertSame([0.05, 0.05], $slept, 'An interval at the floor passes, one under it is raised to the floor.');
+    }
+
+    public function testConstructorRejectsANonPositiveMinimumPollInterval(): void
+    {
+        $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('Task minimum poll interval must be a positive integer, 0 given.');
+
+        // @phpstan-ignore argument.type
+        new TaskClient($client, minPollIntervalMs: 0);
     }
 
     public function testConstructorRejectsANonPositiveStallCeiling(): void
@@ -510,7 +542,7 @@ final class TaskClientTest extends AbstractMcpTestCase
 
     public function testAwaitTaskSleepsForRealByDefault(): void
     {
-        [$tasks, $transport] = $this->buildTaskClient();
+        [$tasks, $transport] = $this->buildTaskClient(minPollIntervalMs: 1);
         $handle = CreateTaskResult::fromArray([...$this->buildTaskPayload('working'), 'pollIntervalMs' => 1]);
 
         $started = hrtime(true);
@@ -564,10 +596,11 @@ final class TaskClientTest extends AbstractMcpTestCase
     /**
      * @param null|int<1, max>           $stallCeiling
      * @param null|\Closure(float): void $sleep
+     * @param null|int<1, max>           $minPollIntervalMs
      *
      * @return array{TaskClient, RecordingTransport}
      */
-    private function buildTaskClient(?int $stallCeiling = null, ?\Closure $sleep = null): array
+    private function buildTaskClient(?int $stallCeiling = null, ?\Closure $sleep = null, ?int $minPollIntervalMs = null): array
     {
         $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
@@ -578,9 +611,17 @@ final class TaskClientTest extends AbstractMcpTestCase
         $transport = new RecordingTransport();
         $client->connect($transport);
 
-        $tasks = null === $stallCeiling
-            ? new TaskClient($client, sleep: $sleep)
-            : new TaskClient($client, stallCeiling: $stallCeiling, sleep: $sleep);
+        $arguments = ['sleep' => $sleep];
+
+        if (null !== $stallCeiling) {
+            $arguments['stallCeiling'] = $stallCeiling;
+        }
+
+        if (null !== $minPollIntervalMs) {
+            $arguments['minPollIntervalMs'] = $minPollIntervalMs;
+        }
+
+        $tasks = new TaskClient($client, ...$arguments);
 
         return [$tasks, $transport];
     }

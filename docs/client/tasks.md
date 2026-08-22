@@ -74,6 +74,11 @@ $terminal = $tasks->awaitTask($handle, static fn(array $inputRequests): array =>
 The resolver receives the unanswered requests keyed by their request key, and answers what it can. Anything
 unanswered stays pending on the server.
 
+Nothing but the `$cancellation` bounds a task that keeps `working`, so pass one carrying the deadline you can
+afford, such as `new Amp\TimeoutCancellation(600)`. A server-suggested `pollIntervalMs` under the client's
+`minPollIntervalMs` (`TaskClient::DEFAULT_MIN_POLL_INTERVAL_MS`, 100) is raised to it, so a server cannot
+drive the client into polling at request rate.
+
 ### Keys and stalls
 
 Keys already answered in the current park are not dispatched again. A key the server issues again after the task

@@ -17,6 +17,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Changed
 
+- `TaskClient` takes `minPollIntervalMs` (default 100) and raises a shorter server-suggested `pollIntervalMs`
+  to it.
 - `SubscriptionStore` refuses a listen naming more than `maxResourceSubscriptionsPerStream` resource URIs
   (default 256), and delivers a resource update by index rather than by scanning every stream.
 - `SecuredHttpEndpoint` caps the request body at 1 MiB by default. Pass `maxBodyBytes: null` to remove the
