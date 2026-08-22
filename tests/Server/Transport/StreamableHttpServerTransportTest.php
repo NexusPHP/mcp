@@ -1536,20 +1536,51 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
         yield 'accepts only text/event-stream' => ['text/event-stream'];
 
         yield 'accepts neither required type' => ['text/plain'];
+
+        yield 'empty header' => [''];
+
+        yield 'unknown subtype sharing the prefix' => ['application/jsonx, text/event-stream'];
+
+        yield 'wildcard of the wrong type' => ['image/*, text/event-stream'];
+
+        yield 'event-stream disabled by q=0' => ['application/json, text/event-stream;q=0'];
+
+        yield 'json disabled by q=0' => ['application/json;q=0.000, text/event-stream'];
+
+        yield 'event-stream disabled by an uppercase Q=0' => ['application/json, text/event-stream;Q=0'];
     }
 
-    public function testAcceptHeaderMatchesCaseInsensitively(): void
+    #[DataProvider('provideAcceptHeaderMatchesMediaRangesCases')]
+    public function testAcceptHeaderMatchesMediaRanges(string $accept): void
     {
         $transport = self::makeTransport(start: false);
         self::listen($transport);
 
         $response = self::handle($transport, self::makePost(
             ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'server/discover', 'params' => ['_meta' => RequestMetaObjectFactory::shape()]],
-            ['Accept' => 'Application/JSON, Text/Event-Stream'] + self::standardHeaders('server/discover'),
+            ['Accept' => $accept] + self::standardHeaders('server/discover'),
         ));
 
         self::assertSame(200, $response->getStatusCode());
         self::assertArrayHasKey('result', self::decode($response));
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function provideAcceptHeaderMatchesMediaRangesCases(): iterable
+    {
+        yield 'mixed case' => ['Application/JSON, Text/Event-Stream'];
+
+        yield 'any media type' => ['*/*'];
+
+        yield 'type wildcards' => ['application/*, text/*'];
+
+        yield 'parameters beside the type' => ['application/json;charset=utf-8, text/event-stream'];
+
+        yield 'positive qualities and spacing' => [' application/json ; Q=0.5 , text/event-stream ;q=0.8 '];
+
+        yield 'a q=0 range beside an acceptable one' => ['text/plain;q=0, application/json, text/event-stream'];
     }
 
     public function testSseModeStreamsProgressThenTheFinalResult(): void

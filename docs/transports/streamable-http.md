@@ -30,6 +30,10 @@ PSR-17 factories are constructor-injected, never discovered. `Server::listen()` 
 to `run()`. It attaches the dispatcher's listeners, starts the transport, and returns, because the HTTP host owns
 the loop.
 
+A POST whose `Accept` header does not admit both `application/json` and `text/event-stream` is answered `406`.
+The header is read as RFC 9110 media ranges, so `*/*`, `application/*` and a range carrying parameters such as
+`;charset=utf-8` all match, and a range with `q=0` does not.
+
 A `handle()` call on a transport that is not running answers `503` rather than suspend on a response that can
 never arrive. Closing a running transport settles what is already in flight rather than abandon it. An open SSE
 stream reaches end-of-body, and a buffered request still awaiting its response gets that same `503`.

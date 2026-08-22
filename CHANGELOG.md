@@ -28,6 +28,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- The streamable HTTP server reads `Accept` as RFC 9110 media ranges, so `*/*` and `application/*` are
+  admitted and a `q=0` range is not.
 - `InMemoryTaskStore` holds at most `maxRecords` (default 10 000), and below that ceiling `createTask()` reclaims
   in amortised constant time instead of sweeping every record. See BREAKING_CHANGES.md.
 - Task fibers are capped by `TasksServerExtension`'s `maxRunningTasks` (default 1024), refusing a further
