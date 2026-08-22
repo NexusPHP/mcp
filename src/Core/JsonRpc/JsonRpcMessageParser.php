@@ -70,7 +70,7 @@ final class JsonRpcMessageParser
      */
     public function parse(array $message, ?string $response = null): JsonRpcMessage|UnparsedResultEnvelope
     {
-        self::assertJsonRpcVersion($message);
+        $this->assertJsonRpcVersion($message);
 
         if (\array_key_exists('method', $message) && (\array_key_exists('error', $message) || \array_key_exists('result', $message))) {
             throw new InvalidRequestException(
@@ -182,7 +182,7 @@ final class JsonRpcMessageParser
     /**
      * @param array<string, mixed> $message
      */
-    private static function assertJsonRpcVersion(array $message): void
+    private function assertJsonRpcVersion(array $message): void
     {
         $version = $message['jsonrpc'] ?? null;
 

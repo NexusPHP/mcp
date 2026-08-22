@@ -38,7 +38,7 @@ final class PendingInboundRequests implements \Countable
      */
     public function claim(RequestId $id): ?Cancellation
     {
-        $key = self::buildKey($id);
+        $key = $this->buildKey($id);
 
         if (\array_key_exists($key, $this->map)) {
             return null;
@@ -54,7 +54,7 @@ final class PendingInboundRequests implements \Countable
      */
     public function cancel(RequestId $id): bool
     {
-        $deferred = $this->map[self::buildKey($id)] ?? null;
+        $deferred = $this->map[$this->buildKey($id)] ?? null;
 
         if (null === $deferred || $deferred->isCancelled()) {
             return false;
@@ -67,7 +67,7 @@ final class PendingInboundRequests implements \Countable
 
     public function release(RequestId $id): void
     {
-        unset($this->map[self::buildKey($id)]);
+        unset($this->map[$this->buildKey($id)]);
     }
 
     #[\Override]
@@ -79,7 +79,7 @@ final class PendingInboundRequests implements \Countable
     /**
      * @return non-empty-string
      */
-    private static function buildKey(RequestId $id): string
+    private function buildKey(RequestId $id): string
     {
         return \sprintf('"id":%s', var_export($id->id, true));
     }

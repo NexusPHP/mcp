@@ -42,14 +42,14 @@ final class ListPromptsRequestHandlerTest extends AbstractMcpTestCase
     public function testReturnsAllRegisteredPromptsWhenCursorIsNull(): void
     {
         $store = new PromptStore([
-            'alpha' => new PromptEntry(new Prompt(name: 'alpha'), self::renderer()),
-            'beta' => new PromptEntry(new Prompt(name: 'beta'), self::renderer()),
+            'alpha' => new PromptEntry(new Prompt(name: 'alpha'), $this->renderer()),
+            'beta' => new PromptEntry(new Prompt(name: 'beta'), $this->renderer()),
         ]);
         $handler = new ListPromptsRequestHandler($store);
 
         $result = $handler->handle(
             new ListPromptsRequest(id: new RequestId(id: 1), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create())),
-            self::makeContext(),
+            $this->makeContext(),
         );
 
         self::assertCount(2, $result->prompts);
@@ -61,9 +61,9 @@ final class ListPromptsRequestHandlerTest extends AbstractMcpTestCase
     {
         $store = new PromptStore(
             [
-                'a' => new PromptEntry(new Prompt(name: 'a'), self::renderer()),
-                'b' => new PromptEntry(new Prompt(name: 'b'), self::renderer()),
-                'c' => new PromptEntry(new Prompt(name: 'c'), self::renderer()),
+                'a' => new PromptEntry(new Prompt(name: 'a'), $this->renderer()),
+                'b' => new PromptEntry(new Prompt(name: 'b'), $this->renderer()),
+                'c' => new PromptEntry(new Prompt(name: 'c'), $this->renderer()),
             ],
             pageSize: 2,
         );
@@ -71,21 +71,21 @@ final class ListPromptsRequestHandlerTest extends AbstractMcpTestCase
 
         $result = $handler->handle(
             new ListPromptsRequest(id: new RequestId(id: 2), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create(), cursor: new Cursor(cursor: 'b'))),
-            self::makeContext(),
+            $this->makeContext(),
         );
 
         self::assertCount(1, $result->prompts);
         self::assertSame('c', $result->prompts[0]->name);
     }
 
-    private static function renderer(): ClosurePromptRenderer
+    private function renderer(): ClosurePromptRenderer
     {
         return new ClosurePromptRenderer(
             static fn(?array $arguments, ServerContext $context): GetPromptResult => new GetPromptResult(messages: []),
         );
     }
 
-    private static function makeContext(): ServerContext
+    private function makeContext(): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 1),

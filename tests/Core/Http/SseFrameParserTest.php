@@ -35,7 +35,7 @@ final class SseFrameParserTest extends AbstractMcpTestCase
     #[DataProvider('provideParsesAWholeStreamCases')]
     public function testParsesAWholeStream(string $stream, array $expected): void
     {
-        self::assertSame($expected, self::flatten((new SseFrameParser())->feed($stream)));
+        self::assertSame($expected, $this->flatten((new SseFrameParser())->feed($stream)));
     }
 
     /**
@@ -100,7 +100,7 @@ final class SseFrameParserTest extends AbstractMcpTestCase
     #[DataProvider('provideIgnoresCommentsAndEmptyFramesCases')]
     public function testIgnoresCommentsAndEmptyFrames(string $stream, array $expected): void
     {
-        self::assertSame($expected, self::flatten((new SseFrameParser())->feed($stream)));
+        self::assertSame($expected, $this->flatten((new SseFrameParser())->feed($stream)));
     }
 
     /**
@@ -136,7 +136,7 @@ final class SseFrameParserTest extends AbstractMcpTestCase
             $frames = [...$frames, ...$parser->feed($chunk)];
         }
 
-        self::assertSame($expected, self::flatten($frames));
+        self::assertSame($expected, $this->flatten($frames));
     }
 
     /**
@@ -163,7 +163,7 @@ final class SseFrameParserTest extends AbstractMcpTestCase
     {
         $parser = new SseFrameParser(maxFrameBytes: 32);
 
-        self::assertSame([], self::flatten($parser->feed(str_repeat('a', 32))));
+        self::assertSame([], $this->flatten($parser->feed(str_repeat('a', 32))));
 
         $this->expectException(ResponseTooLargeException::class);
         $this->expectExceptionMessageIs('The response exceeded the 32 byte limit the client accepts.');
@@ -176,7 +176,7 @@ final class SseFrameParserTest extends AbstractMcpTestCase
         $parser = new SseFrameParser(maxFrameBytes: 32);
 
         for ($frame = 0; $frame < 20; ++$frame) {
-            self::assertSame([['message', 'tick']], self::flatten($parser->feed("data: tick\n\n")));
+            self::assertSame([['message', 'tick']], $this->flatten($parser->feed("data: tick\n\n")));
         }
     }
 
@@ -197,10 +197,10 @@ final class SseFrameParserTest extends AbstractMcpTestCase
         $parser = new SseFrameParser(maxFrameBytes: 32);
 
         for ($tick = 0; $tick < 20; ++$tick) {
-            self::assertSame([], self::flatten($parser->feed(": keep-alive\n\n")));
+            self::assertSame([], $this->flatten($parser->feed(": keep-alive\n\n")));
         }
 
-        self::assertSame([['message', 'still alive']], self::flatten($parser->feed("data: still alive\n\n")));
+        self::assertSame([['message', 'still alive']], $this->flatten($parser->feed("data: still alive\n\n")));
     }
 
     public function testAPendingCarriageReturnSurvivesAnEmptyChunk(): void
@@ -212,7 +212,7 @@ final class SseFrameParserTest extends AbstractMcpTestCase
             $frames = [...$frames, ...$parser->feed($chunk)];
         }
 
-        self::assertSame([['message', "a\nb"]], self::flatten($frames));
+        self::assertSame([['message', "a\nb"]], $this->flatten($frames));
     }
 
     public function testAConsumedCarriageReturnDoesNotSwallowTheNextChunksNewline(): void
@@ -224,17 +224,17 @@ final class SseFrameParserTest extends AbstractMcpTestCase
             $frames = [...$frames, ...$parser->feed($chunk)];
         }
 
-        self::assertSame([['message', 'a'], ['message', 'b']], self::flatten($frames));
+        self::assertSame([['message', 'a'], ['message', 'b']], $this->flatten($frames));
     }
 
     public function testAssemblesAFrameSplitAcrossChunks(): void
     {
         $parser = new SseFrameParser();
 
-        self::assertSame([], self::flatten($parser->feed('event: mess')));
-        self::assertSame([], self::flatten($parser->feed("age\ndata: {\"a\":")));
-        self::assertSame([], self::flatten($parser->feed('1}')));
-        self::assertSame([['message', '{"a":1}']], self::flatten($parser->feed("\n\n")));
+        self::assertSame([], $this->flatten($parser->feed('event: mess')));
+        self::assertSame([], $this->flatten($parser->feed("age\ndata: {\"a\":")));
+        self::assertSame([], $this->flatten($parser->feed('1}')));
+        self::assertSame([['message', '{"a":1}']], $this->flatten($parser->feed("\n\n")));
     }
 
     public function testAssemblesAFrameFedOneByteAtATime(): void
@@ -246,12 +246,12 @@ final class SseFrameParserTest extends AbstractMcpTestCase
             $frames = [...$frames, ...$parser->feed($byte)];
         }
 
-        self::assertSame([['message', 'drip']], self::flatten($frames));
+        self::assertSame([['message', 'drip']], $this->flatten($frames));
     }
 
     public function testAnUnterminatedTrailingFrameIsNotDispatched(): void
     {
-        self::assertSame([], self::flatten((new SseFrameParser())->feed("event: message\ndata: truncated\n")));
+        self::assertSame([], $this->flatten((new SseFrameParser())->feed("event: message\ndata: truncated\n")));
     }
 
     /**
@@ -259,7 +259,7 @@ final class SseFrameParserTest extends AbstractMcpTestCase
      *
      * @return list<array{string, string}>
      */
-    private static function flatten(array $frames): array
+    private function flatten(array $frames): array
     {
         return array_map(static fn(SseFrame $frame): array => [$frame->event, $frame->data], $frames);
     }

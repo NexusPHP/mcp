@@ -29,50 +29,50 @@ final class MatcherTest extends AbstractMcpTestCase
 {
     public function testMatchesSingleVariableAtEnd(): void
     {
-        self::assertSame(['path' => 'etc'], self::match('file:///{path}', 'file:///etc'));
+        self::assertSame(['path' => 'etc'], $this->match('file:///{path}', 'file:///etc'));
     }
 
     public function testMatchesAVariableNameAtTheValidatorsBound(): void
     {
         $name = str_repeat('a', 32);
 
-        self::assertSame([$name => 'etc'], self::match(\sprintf('file:///{%s}', $name), 'file:///etc'));
+        self::assertSame([$name => 'etc'], $this->match(\sprintf('file:///{%s}', $name), 'file:///etc'));
     }
 
     public function testMatchesMultipleDistinctVariables(): void
     {
         self::assertSame(
             ['city' => 'paris', 'day' => 'today'],
-            self::match('weather://{city}/{day}', 'weather://paris/today'),
+            $this->match('weather://{city}/{day}', 'weather://paris/today'),
         );
     }
 
     public function testCapturedValueIsPercentDecoded(): void
     {
-        self::assertSame(['path' => 'hello world'], self::match('file:///{path}', 'file:///hello%20world'));
+        self::assertSame(['path' => 'hello world'], $this->match('file:///{path}', 'file:///hello%20world'));
     }
 
     public function testRepeatedVariableNameEnforcesIdenticalCaptures(): void
     {
-        self::assertSame(['x' => 'foo'], self::match('mirror://{x}/{x}', 'mirror://foo/foo'));
-        self::assertNull(self::match('mirror://{x}/{x}', 'mirror://foo/bar'));
+        self::assertSame(['x' => 'foo'], $this->match('mirror://{x}/{x}', 'mirror://foo/foo'));
+        self::assertNull($this->match('mirror://{x}/{x}', 'mirror://foo/bar'));
     }
 
     public function testTemplateWithoutVariablesMatchesExactly(): void
     {
-        self::assertSame([], self::match('file:///etc', 'file:///etc'));
-        self::assertNull(self::match('file:///etc', 'file:///bin'));
+        self::assertSame([], $this->match('file:///etc', 'file:///etc'));
+        self::assertNull($this->match('file:///etc', 'file:///bin'));
     }
 
     public function testCapturedSegmentDoesNotCrossSlashes(): void
     {
-        self::assertNull(self::match('file:///{path}', 'file:///etc/cfg'));
+        self::assertNull($this->match('file:///{path}', 'file:///etc/cfg'));
     }
 
     public function testCapturedSegmentDoesNotCrossQueryOrFragment(): void
     {
-        self::assertNull(self::match('file:///{path}', 'file:///etc?q=1'));
-        self::assertNull(self::match('file:///{path}', 'file:///etc#frag'));
+        self::assertNull($this->match('file:///{path}', 'file:///etc?q=1'));
+        self::assertNull($this->match('file:///{path}', 'file:///etc#frag'));
     }
 
     /**
@@ -81,7 +81,7 @@ final class MatcherTest extends AbstractMcpTestCase
     #[DataProvider('provideAValueDecodingOutOfItsSegmentDoesNotMatchCases')]
     public function testAValueDecodingOutOfItsSegmentDoesNotMatch(string $template, string $uri): void
     {
-        self::assertNull(self::match($template, $uri));
+        self::assertNull($this->match($template, $uri));
     }
 
     /**
@@ -114,7 +114,7 @@ final class MatcherTest extends AbstractMcpTestCase
     #[DataProvider('provideAValueStayingInsideItsSegmentStillMatchesCases')]
     public function testAValueStayingInsideItsSegmentStillMatches(string $template, string $uri, string $expected): void
     {
-        self::assertSame(['path' => $expected], self::match($template, $uri));
+        self::assertSame(['path' => $expected], $this->match($template, $uri));
     }
 
     /**
@@ -135,19 +135,19 @@ final class MatcherTest extends AbstractMcpTestCase
 
     public function testDifferentLiteralPrefixDoesNotMatch(): void
     {
-        self::assertNull(self::match('file:///{path}', 'http://example.com/etc'));
+        self::assertNull($this->match('file:///{path}', 'http://example.com/etc'));
     }
 
     public function testLevel2PlusExpressionsAreNotSupported(): void
     {
-        self::assertNull(self::match('file:///{+path}', 'file:///etc/cfg'));
-        self::assertNull(self::match('weather://{?city}', 'weather://?city=paris'));
-        self::assertNull(self::match('file:///{/segments*}', 'file:///a/b/c'));
+        self::assertNull($this->match('file:///{+path}', 'file:///etc/cfg'));
+        self::assertNull($this->match('weather://{?city}', 'weather://?city=paris'));
+        self::assertNull($this->match('file:///{/segments*}', 'file:///a/b/c'));
     }
 
     public function testCommaSeparatedExpressionsAreNotSupported(): void
     {
-        self::assertNull(self::match('weather://{city,day}', 'weather://paris,today'));
+        self::assertNull($this->match('weather://{city,day}', 'weather://paris,today'));
     }
 
     /**
@@ -157,7 +157,7 @@ final class MatcherTest extends AbstractMcpTestCase
     #[DataProvider('provideRegexSpecialCharactersInLiteralAreEscapedCases')]
     public function testRegexSpecialCharactersInLiteralAreEscaped(string $template, string $uri, ?array $expected): void
     {
-        self::assertSame($expected, self::match($template, $uri));
+        self::assertSame($expected, $this->match($template, $uri));
     }
 
     /**
@@ -181,7 +181,7 @@ final class MatcherTest extends AbstractMcpTestCase
      *
      * @return null|array<string, string>
      */
-    private static function match(string $template, string $uri): ?array
+    private function match(string $template, string $uri): ?array
     {
         return Matcher::matchCompiled(Matcher::compile($template), $uri);
     }

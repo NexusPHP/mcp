@@ -72,12 +72,12 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 {
     public function testEveryConcreteRequestHasFixtures(): void
     {
-        self::assertEveryConcreteSubclassIsRegistered(JsonRpcRequest::class, 'requests');
+        $this->assertEveryConcreteSubclassIsRegistered(JsonRpcRequest::class, 'requests');
     }
 
     public function testEveryConcreteNotificationHasFixtures(): void
     {
-        self::assertEveryConcreteSubclassIsRegistered(JsonRpcNotification::class, 'notifications');
+        $this->assertEveryConcreteSubclassIsRegistered(JsonRpcNotification::class, 'notifications');
     }
 
     public function testEveryConcreteResultHasResultResponseFixtures(): void
@@ -318,7 +318,7 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
     /**
      * @param class-string $abstractBase
      */
-    private static function assertEveryConcreteSubclassIsRegistered(string $abstractBase, string $label): void
+    private function assertEveryConcreteSubclassIsRegistered(string $abstractBase, string $label): void
     {
         $registered = [];
 

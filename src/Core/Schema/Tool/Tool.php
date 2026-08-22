@@ -83,8 +83,8 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
             Assert::that($this->icons)->values()->isInstanceOf(Icon::class);
         }
 
-        $this->inputSchema = self::validateInputSchema($inputSchema);
-        $this->outputSchema = null === $outputSchema ? null : self::validateOutputSchema($outputSchema);
+        $this->inputSchema = $this->validateInputSchema($inputSchema);
+        $this->outputSchema = null === $outputSchema ? null : $this->validateOutputSchema($outputSchema);
     }
 
     /**
@@ -219,10 +219,10 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
     public function jsonSerialize(): array
     {
         $data = $this->toArray();
-        $data['inputSchema'] = self::encodeSchema($this->inputSchema);
+        $data['inputSchema'] = $this->encodeSchema($this->inputSchema);
 
         if (null !== $this->outputSchema) {
-            $data['outputSchema'] = self::encodeSubSchema($this->outputSchema);
+            $data['outputSchema'] = $this->encodeSubSchema($this->outputSchema);
         }
 
         return $data;
@@ -235,7 +235,7 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
      *
      * @return array<array-key, mixed>
      */
-    private static function encodeSchema(array $schema): array
+    private function encodeSchema(array $schema): array
     {
         foreach ($schema as $keyword => $value) {
             if (! \is_array($value)) {
@@ -243,14 +243,14 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
             }
 
             if (\in_array($keyword, self::SUBSCHEMA_MAP_KEYWORDS, true)) {
-                $mapped = array_map(self::encodeSubSchema(...), $value);
+                $mapped = array_map($this->encodeSubSchema(...), $value);
                 $schema[$keyword] = array_is_list($value) ? (object) $mapped : $mapped;
             } elseif (\in_array($keyword, self::SUBSCHEMA_LIST_KEYWORDS, true)) {
-                $schema[$keyword] = array_map(self::encodeSubSchema(...), $value);
+                $schema[$keyword] = array_map($this->encodeSubSchema(...), $value);
             } elseif ('items' === $keyword) {
-                $schema[$keyword] = self::encodeItems($value);
+                $schema[$keyword] = $this->encodeItems($value);
             } elseif (\in_array($keyword, self::SINGLE_SUBSCHEMA_KEYWORDS, true)) {
-                $schema[$keyword] = self::encodeSubSchema($value);
+                $schema[$keyword] = $this->encodeSubSchema($value);
             } elseif (array_is_list($value) && \in_array($keyword, self::NON_SUBSCHEMA_OBJECT_KEYWORDS, true)) {
                 $schema[$keyword] = (object) $value;
             }
@@ -263,13 +263,13 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
      * A sub-schema is an object or a boolean, so anything else passes through and a list here can only have
      * decoded from an object whose names run 0..n-1.
      */
-    private static function encodeSubSchema(mixed $value): mixed
+    private function encodeSubSchema(mixed $value): mixed
     {
         if (! \is_array($value)) {
             return $value;
         }
 
-        $encoded = self::encodeSchema($value);
+        $encoded = $this->encodeSchema($value);
 
         return array_is_list($value) ? (object) $encoded : $encoded;
     }
@@ -281,15 +281,15 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
      *
      * @return array<array-key, mixed>|\stdClass
      */
-    private static function encodeItems(array $value): array|\stdClass
+    private function encodeItems(array $value): array|\stdClass
     {
         if ([] === $value) {
             return new \stdClass();
         }
 
         return array_is_list($value)
-            ? array_map(self::encodeSubSchema(...), $value)
-            : self::encodeSchema($value);
+            ? array_map($this->encodeSubSchema(...), $value)
+            : $this->encodeSchema($value);
     }
 
     /**
@@ -299,11 +299,11 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
      *
      * @return ToolInputSchemaShape
      */
-    private static function validateInputSchema(array $schema): array
+    private function validateInputSchema(array $schema): array
     {
         Assert::that($schema)->hasOffset('type', 'tool "inputSchema" missing "type". MCP tool schemas must be objects: add "type" => "object".');
         Assert::that($schema['type'])->isIdentical('object', 'tool "inputSchema.type" must be {other}, {value} given.');
-        self::assertSchemaKeywords($schema, 'tool "inputSchema"');
+        $this->assertSchemaKeywords($schema, 'tool "inputSchema"');
 
         return $schema;
     }
@@ -313,9 +313,9 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
      *
      * @return array<string, mixed>
      */
-    private static function validateOutputSchema(array $schema): array
+    private function validateOutputSchema(array $schema): array
     {
-        self::assertSchemaKeywords($schema, 'tool "outputSchema"');
+        $this->assertSchemaKeywords($schema, 'tool "outputSchema"');
 
         return $schema;
     }
@@ -326,7 +326,7 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
      * @param array<string, mixed> $schema
      * @param non-empty-string     $context
      */
-    private static function assertSchemaKeywords(array $schema, string $context): void
+    private function assertSchemaKeywords(array $schema, string $context): void
     {
         if (\array_key_exists('$schema', $schema)) {
             Assert::that($schema['$schema'])->isNonEmptyString(\sprintf('%s "$schema" must be a non-empty string, {type} given.', $context));

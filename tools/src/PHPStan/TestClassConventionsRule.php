@@ -64,8 +64,8 @@ final class TestClassConventionsRule implements Rule
         }
 
         return [
-            ...self::checkStructure($class),
-            ...self::checkGroups($class),
+            ...$this->checkStructure($class),
+            ...$this->checkGroups($class),
             ...$this->checkCoversChain($class),
         ];
     }
@@ -73,7 +73,7 @@ final class TestClassConventionsRule implements Rule
     /**
      * @return list<IdentifierRuleError>
      */
-    private static function checkStructure(ClassReflection $class): array
+    private function checkStructure(ClassReflection $class): array
     {
         $reflection = $class->getNativeReflection();
         $errors = [];
@@ -107,7 +107,7 @@ final class TestClassConventionsRule implements Rule
     /**
      * @return list<IdentifierRuleError>
      */
-    private static function checkGroups(ClassReflection $class): array
+    private function checkGroups(ClassReflection $class): array
     {
         $attributes = $class->getNativeReflection()->getAttributes(Group::class);
 

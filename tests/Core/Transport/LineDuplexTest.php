@@ -63,7 +63,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
     public function testStartTransitionsFromIdleToRunningAndLogsStart(): void
     {
         $logger = new ArrayLogger();
-        $duplex = self::buildDuplex(logger: $logger);
+        $duplex = $this->buildDuplex(logger: $logger);
 
         $duplex->start(new ReadableBuffer(''), new WritableBuffer());
         EventLoop::run();
@@ -75,7 +75,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
 
     public function testStartAfterRunningThrowsHostTransportAlreadyStarted(): void
     {
-        $duplex = self::buildDuplex();
+        $duplex = $this->buildDuplex();
         $duplex->start(new ReadableBuffer(''), new WritableBuffer());
 
         $this->expectException(TransportAlreadyStartedException::class);
@@ -90,7 +90,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
 
     public function testStartAfterCloseThrowsTransportAlreadyClosed(): void
     {
-        $duplex = self::buildDuplex();
+        $duplex = $this->buildDuplex();
         $duplex->close();
 
         $this->expectException(TransportAlreadyClosedException::class);
@@ -100,7 +100,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
 
     public function testSendBeforeStartThrowsTransportNotStarted(): void
     {
-        $duplex = self::buildDuplex();
+        $duplex = $this->buildDuplex();
 
         $this->expectException(TransportNotStartedException::class);
 
@@ -109,7 +109,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
 
     public function testSendAfterCloseThrowsTransportAlreadyClosed(): void
     {
-        $duplex = self::buildDuplex();
+        $duplex = $this->buildDuplex();
         $duplex->start(new ReadableBuffer(''), new WritableBuffer());
         $duplex->close();
         EventLoop::run();
@@ -122,7 +122,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
     public function testCloseFromIdleIsIdempotent(): void
     {
         $logger = new ArrayLogger();
-        $duplex = self::buildDuplex(logger: $logger);
+        $duplex = $this->buildDuplex(logger: $logger);
 
         $duplex->close();
         $duplex->close();
@@ -135,7 +135,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
     public function testCloseFromIdleStillFiresDrainBeforeClose(): void
     {
         $events = [];
-        $duplex = self::buildDuplex();
+        $duplex = $this->buildDuplex();
         $duplex->onDrain(static function () use (&$events): void {
             $events[] = 'drain';
         });
@@ -151,7 +151,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
     public function testCloseInTheSameTickAsStartStillDrainsBeforeReturning(): void
     {
         $events = [];
-        $duplex = self::buildDuplex();
+        $duplex = $this->buildDuplex();
         $duplex->onDrain(static function () use (&$events): void {
             $events[] = 'drain';
         });
@@ -218,7 +218,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
             $events[] = 'read';
         };
 
-        $duplex = self::buildDuplex();
+        $duplex = $this->buildDuplex();
         $duplex->onDrain(static function () use (&$events): void {
             $events[] = 'drain';
         });
@@ -305,7 +305,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
             $events[] = $event;
         };
 
-        $duplex = self::buildDuplex();
+        $duplex = $this->buildDuplex();
         $duplex->onDrain(static function () use (&$events): void {
             $events[] = 'drain';
         });
@@ -331,7 +331,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
         $sink = $pipe->getSink();
         $sink->write('{"jsonrpc":"2.0","id":1,"method":"tools/list"}'."\n");
         $events = [];
-        $duplex = self::buildDuplex(
+        $duplex = $this->buildDuplex(
             onBeforeClose: static function () use ($sink): void {
                 $sink->close();
             },
@@ -363,7 +363,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
         $sink = $pipe->getSink();
         $outbound = new WritableBuffer();
         $events = [];
-        $duplex = self::buildDuplex(
+        $duplex = $this->buildDuplex(
             onBeforeClose: static function () use ($sink, $outbound): void {
                 $sink->close();
                 $outbound->close();
@@ -395,7 +395,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
     public function testASendFailureClosingFromItsOwnFiberStillDrainsAndCloses(): void
     {
         $events = [];
-        $duplex = self::buildDuplex();
+        $duplex = $this->buildDuplex();
         $duplex->onDrain(static function () use (&$events): void {
             $events[] = 'drain';
         });
@@ -403,7 +403,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
             $events[] = 'close';
         });
 
-        $duplex->start(new ReadableBuffer(''), self::buildThrowingSink(new \RuntimeException('write failed')));
+        $duplex->start(new ReadableBuffer(''), $this->buildThrowingSink(new \RuntimeException('write failed')));
 
         try {
             $duplex->send(new CancelledNotification(params: new CancelledNotificationParams(requestId: new RequestId(id: 1))));
@@ -420,7 +420,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
     public function testOnBeforeCloseFiresExactlyOnceDuringClose(): void
     {
         $disposeCalls = 0;
-        $duplex = self::buildDuplex(
+        $duplex = $this->buildDuplex(
             onBeforeClose: static function () use (&$disposeCalls): void {
                 ++$disposeCalls;
             },
@@ -437,7 +437,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
     public function testLoggerEmitsInfoOnCloseFromIdleWithIdlePriorState(): void
     {
         $logger = new ArrayLogger();
-        $duplex = self::buildDuplex(logger: $logger);
+        $duplex = $this->buildDuplex(logger: $logger);
 
         $duplex->close();
         $duplex->close();
@@ -454,7 +454,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
     public function testLoggerEmitsInfoOnCloseFromRunningWithRunningPriorState(): void
     {
         $logger = new ArrayLogger();
-        $duplex = self::buildDuplex(logger: $logger);
+        $duplex = $this->buildDuplex(logger: $logger);
 
         $duplex->start(new ReadableBuffer(''), new WritableBuffer());
         EventLoop::run();
@@ -467,7 +467,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
     public function testCloseEmitsCloseListenersExactlyOnce(): void
     {
         $closes = 0;
-        $duplex = self::buildDuplex();
+        $duplex = $this->buildDuplex();
         $duplex->onClose(static function () use (&$closes): void {
             ++$closes;
         });
@@ -483,7 +483,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
     public function testReadLoopFiresDrainBeforeCloseOnEof(): void
     {
         $events = [];
-        $duplex = self::buildDuplex();
+        $duplex = $this->buildDuplex();
         $duplex->onDrain(static function () use (&$events): void {
             $events[] = 'drain';
         });
@@ -502,7 +502,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
         $pipe = new Pipe(8_192);
         $sink = $pipe->getSink();
         $events = [];
-        $duplex = self::buildDuplex(
+        $duplex = $this->buildDuplex(
             onBeforeClose: static function () use ($sink): void {
                 $sink->close();
             },
@@ -528,7 +528,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
         $pipe = new Pipe(8_192);
         $sink = $pipe->getSink();
         $lines = [];
-        $duplex = self::buildDuplex();
+        $duplex = $this->buildDuplex();
         $duplex->forwardLines(
             $pipe->getSource(),
             static function (string $line) use (&$lines): void {
@@ -551,7 +551,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
         $pipe = new Pipe(8_192);
         $sink = $pipe->getSink();
         $lines = [];
-        $duplex = self::buildDuplex();
+        $duplex = $this->buildDuplex();
         $duplex->forwardLines(
             $pipe->getSource(),
             static function (string $line) use (&$lines): void {
@@ -576,7 +576,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
         $pipe = new Pipe(8_192);
         $events = [];
         $errors = [];
-        $duplex = self::buildDuplex();
+        $duplex = $this->buildDuplex();
         $duplex->onError(static function (\Throwable $e) use (&$errors): void {
             $errors[] = $e;
         });
@@ -605,7 +605,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
         $sink->close();
 
         $closed = false;
-        $duplex = self::buildDuplex();
+        $duplex = $this->buildDuplex();
         $duplex->onClose(static function () use (&$closed): void {
             $closed = true;
         });
@@ -678,7 +678,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
         };
 
         $logger = new ArrayLogger();
-        $duplex = self::buildDuplex(logger: $logger);
+        $duplex = $this->buildDuplex(logger: $logger);
         $duplex->onDrain(static function () use (&$events): void {
             $events[] = 'drain';
         });
@@ -708,7 +708,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
         $pipe = new Pipe(8_192);
         $sink = $pipe->getSink();
         $events = [];
-        $duplex = self::buildDuplex(
+        $duplex = $this->buildDuplex(
             onBeforeClose: static function () use ($sink): void {
                 $sink->close();
             },
@@ -751,7 +751,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
     public function testADrainListenerReenteringCloseReturnsImmediately(): void
     {
         $events = [];
-        $duplex = self::buildDuplex();
+        $duplex = $this->buildDuplex();
         $duplex->onDrain(static function () use (&$events, &$duplex): void {
             $events[] = 'drain:start';
             $duplex->close();
@@ -772,7 +772,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
         $sink = $pipe->getSink();
         $sink->write('{"jsonrpc":"2.0","id":1,"method":"tools/list"}'."\n");
         $events = [];
-        $duplex = self::buildDuplex(
+        $duplex = $this->buildDuplex(
             onBeforeClose: static function () use ($sink): void {
                 $sink->close();
             },
@@ -805,7 +805,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
         $pipe = new Pipe(8_192);
         $sink = $pipe->getSink();
         $events = [];
-        $duplex = self::buildDuplex();
+        $duplex = $this->buildDuplex();
         $duplex->forwardLines(
             $pipe->getSource(),
             static function (string $line) use (&$events, &$duplex): void {
@@ -831,7 +831,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
     public function testAConcurrentCloseStillReturnsWhenTheOwnersTeardownThrows(): void
     {
         $events = [];
-        $duplex = self::buildDuplex(
+        $duplex = $this->buildDuplex(
             onBeforeClose: static function (): void {
                 throw new \RuntimeException('teardown boom');
             },
@@ -868,7 +868,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
         /** @var DeferredFuture<null> $gate */
         $gate = new DeferredFuture();
         $events = [];
-        $duplex = self::buildDuplex();
+        $duplex = $this->buildDuplex();
         $duplex->onDrain(static function () use ($gate, &$events): void {
             $events[] = 'drain:start';
             $gate->getFuture()->await();
@@ -905,9 +905,9 @@ final class LineDuplexTest extends AbstractMcpTestCase
                     throw new \RuntimeException('logger boom during side-channel warning');
                 }
             };
-            $duplex = self::buildDuplex(logger: $logger);
+            $duplex = $this->buildDuplex(logger: $logger);
             $duplex->forwardLines(
-                self::buildThrowingSource(new \RuntimeException('side-channel boom')),
+                $this->buildThrowingSource(new \RuntimeException('side-channel boom')),
                 static function (): void {},
             );
 
@@ -926,7 +926,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
 
         try {
             $tornDown = false;
-            $duplex = self::buildDuplex(
+            $duplex = $this->buildDuplex(
                 onBeforeClose: static function () use (&$tornDown): void {
                     $tornDown = true;
                 },
@@ -957,7 +957,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
     public function testCloseStillSettlesWhenOnBeforeCloseThrows(): void
     {
         $closed = false;
-        $duplex = self::buildDuplex(
+        $duplex = $this->buildDuplex(
             onBeforeClose: static function (): void {
                 throw new \RuntimeException('teardown boom');
             },
@@ -986,7 +986,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
         EventLoop::setErrorHandler(static function (): void {});
 
         try {
-            $duplex = self::buildDuplex();
+            $duplex = $this->buildDuplex();
 
             $closes = 0;
             $duplex->onError(static function (): void {
@@ -996,7 +996,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
                 ++$closes;
             });
 
-            $duplex->start(self::buildThrowingSource(new \RuntimeException('stdin boom')), new WritableBuffer());
+            $duplex->start($this->buildThrowingSource(new \RuntimeException('stdin boom')), new WritableBuffer());
             EventLoop::run();
 
             self::assertSame(1, $closes);
@@ -1008,7 +1008,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
     public function testReportsParseFailureWithParseErrorEnvelopeForMalformedJson(): void
     {
         $reported = [];
-        $duplex = self::buildDuplex(
+        $duplex = $this->buildDuplex(
             onParseFailure: static function (JsonRpcErrorResponse $response) use (&$reported): void {
                 $reported[] = $response;
             },
@@ -1026,7 +1026,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
     public function testReportsParseFailureWithInvalidRequestErrorForNonObjectEnvelope(): void
     {
         $reported = [];
-        $duplex = self::buildDuplex(
+        $duplex = $this->buildDuplex(
             onParseFailure: static function (JsonRpcErrorResponse $response) use (&$reported): void {
                 $reported[] = $response;
             },
@@ -1044,7 +1044,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
     public function testMalformedJsonFiresErrorListenerEvenWithoutOnParseFailure(): void
     {
         $errors = [];
-        $duplex = self::buildDuplex();
+        $duplex = $this->buildDuplex();
         $duplex->onError(static function (\Throwable $e) use (&$errors): void {
             $errors[] = $e;
         });
@@ -1064,7 +1064,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
         $errors = [];
         $reported = [];
         $messages = [];
-        $duplex = self::buildDuplex(
+        $duplex = $this->buildDuplex(
             onParseFailure: static function (JsonRpcErrorResponse $response) use (&$reported): void {
                 $reported[] = $response;
             },
@@ -1091,7 +1091,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
     {
         $boom = new \RuntimeException('listener boom');
         $errors = [];
-        $duplex = self::buildDuplex();
+        $duplex = $this->buildDuplex();
         $duplex->onMessage(static function (array $envelope) use ($boom): void {
             throw $boom;
         });
@@ -1111,7 +1111,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
     public function testSendWritesSerializedEnvelopeFollowedByNewline(): void
     {
         $writable = new WritableBuffer();
-        $duplex = self::buildDuplex();
+        $duplex = $this->buildDuplex();
         $message = new DiscoverRequest(id: new RequestId(id: 99), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create()));
 
         $duplex->start(new ReadableBuffer(''), $writable);
@@ -1128,7 +1128,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
     public function testSendEmitsUnescapedSlashesAndUnicode(): void
     {
         $writable = new WritableBuffer();
-        $duplex = self::buildDuplex();
+        $duplex = $this->buildDuplex();
 
         $duplex->start(new ReadableBuffer(''), $writable);
         $duplex->send(new CancelledNotification(params: new CancelledNotificationParams(
@@ -1147,7 +1147,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
     public function testLoggerEmitsDebugOnSendSuccess(JsonRpcMessage $message, string $expectedKind): void
     {
         $logger = new ArrayLogger();
-        $duplex = self::buildDuplex(logger: $logger);
+        $duplex = $this->buildDuplex(logger: $logger);
 
         $duplex->start(new ReadableBuffer(''), new WritableBuffer());
         $duplex->send($message);
@@ -1183,12 +1183,12 @@ final class LineDuplexTest extends AbstractMcpTestCase
     {
         $boom = new \RuntimeException('writable boom');
         $closes = 0;
-        $duplex = self::buildDuplex();
+        $duplex = $this->buildDuplex();
         $duplex->onClose(static function () use (&$closes): void {
             ++$closes;
         });
 
-        $duplex->start(new ReadableBuffer(''), self::buildThrowingSink($boom));
+        $duplex->start(new ReadableBuffer(''), $this->buildThrowingSink($boom));
 
         $closesBeforeSend = $closes;
 
@@ -1216,9 +1216,9 @@ final class LineDuplexTest extends AbstractMcpTestCase
     {
         $boom = new \RuntimeException('writable boom');
         $logger = new ArrayLogger();
-        $duplex = self::buildDuplex(logger: $logger);
+        $duplex = $this->buildDuplex(logger: $logger);
 
-        $duplex->start(new ReadableBuffer(''), self::buildThrowingSink($boom));
+        $duplex->start(new ReadableBuffer(''), $this->buildThrowingSink($boom));
 
         try {
             $duplex->send($message);
@@ -1257,7 +1257,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
     {
         $boom = new \RuntimeException('writable was concurrently closed');
         $logger = new ArrayLogger();
-        $writable = self::buildThrowingSink(
+        $writable = $this->buildThrowingSink(
             $boom,
             beforeThrow: function (): void {
                 $sut = $this->duplexUnderConcurrentClose;
@@ -1269,7 +1269,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
                 $sut->close();
             },
         );
-        $this->duplexUnderConcurrentClose = self::buildDuplex(logger: $logger);
+        $this->duplexUnderConcurrentClose = $this->buildDuplex(logger: $logger);
         $this->duplexUnderConcurrentClose->start(new ReadableBuffer(''), $writable);
 
         try {
@@ -1294,7 +1294,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
     {
         $boom = new \RuntimeException('writable was concurrently closed');
         $logger = new ArrayLogger();
-        $writable = self::buildThrowingSink(
+        $writable = $this->buildThrowingSink(
             $boom,
             beforeThrow: function (): void {
                 $sut = $this->duplexUnderConcurrentClose;
@@ -1306,7 +1306,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
                 $sut->close();
             },
         );
-        $this->duplexUnderConcurrentClose = self::buildDuplex(logger: $logger);
+        $this->duplexUnderConcurrentClose = $this->buildDuplex(logger: $logger);
         $this->duplexUnderConcurrentClose->start(new ReadableBuffer(''), $writable);
 
         try {
@@ -1353,12 +1353,12 @@ final class LineDuplexTest extends AbstractMcpTestCase
         $boom = new \RuntimeException('stdin boom');
         $logger = new ArrayLogger();
         $errors = [];
-        $duplex = self::buildDuplex(logger: $logger);
+        $duplex = $this->buildDuplex(logger: $logger);
         $duplex->onError(static function (\Throwable $e) use (&$errors): void {
             $errors[] = $e;
         });
 
-        $duplex->start(self::buildThrowingSource($boom), new WritableBuffer());
+        $duplex->start($this->buildThrowingSource($boom), new WritableBuffer());
         EventLoop::run();
 
         $matches = $logger->recordsMatching(LogLevel::ERROR, '{label} transport read loop failed. Closing.');
@@ -1370,7 +1370,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
     public function testLoggerEmitsWarningWithExceptionContextOnMalformedJson(): void
     {
         $logger = new ArrayLogger();
-        $duplex = self::buildDuplex(logger: $logger);
+        $duplex = $this->buildDuplex(logger: $logger);
 
         $duplex->start(
             new ReadableIterableStream(new \ArrayIterator(["{not json}\n"])),
@@ -1387,7 +1387,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
     public function testLoggerEmitsWarningWithExceptionContextOnNonObjectEnvelope(): void
     {
         $logger = new ArrayLogger();
-        $duplex = self::buildDuplex(logger: $logger);
+        $duplex = $this->buildDuplex(logger: $logger);
 
         $duplex->start(
             new ReadableIterableStream(new \ArrayIterator(["[1,2,3]\n"])),
@@ -1404,7 +1404,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
     public function testLoggerEmitsDebugOnDispatchedEnvelope(): void
     {
         $logger = new ArrayLogger();
-        $duplex = self::buildDuplex(logger: $logger);
+        $duplex = $this->buildDuplex(logger: $logger);
 
         $duplex->start(
             new ReadableIterableStream(new \ArrayIterator(['{"jsonrpc":"2.0","id":1,"method":"tools/list"}'."\n"])),
@@ -1420,7 +1420,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
     public function testDispatchedEnvelopeFiresMessageListener(): void
     {
         $envelopes = [];
-        $duplex = self::buildDuplex();
+        $duplex = $this->buildDuplex();
         $duplex->onMessage(static function (array $envelope) use (&$envelopes): void {
             $envelopes[] = $envelope;
         });
@@ -1440,7 +1440,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
     public function testForwardLinesDeliversEachDecodedLineToTheClosure(): void
     {
         $lines = [];
-        $duplex = self::buildDuplex();
+        $duplex = $this->buildDuplex();
         $duplex->forwardLines(
             new ReadableIterableStream(new \ArrayIterator(["one\ntwo\n"])),
             static function (string $line) use (&$lines): void {
@@ -1456,10 +1456,10 @@ final class LineDuplexTest extends AbstractMcpTestCase
     {
         $boom = new \RuntimeException('side-channel boom');
         $logger = new ArrayLogger();
-        $duplex = self::buildDuplex(logger: $logger);
+        $duplex = $this->buildDuplex(logger: $logger);
 
         $duplex->forwardLines(
-            self::buildThrowingSource($boom),
+            $this->buildThrowingSource($boom),
             static function (): void {},
         );
         EventLoop::run();
@@ -1471,7 +1471,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
 
     public function testForwardLinesPrunesItsBookkeepingOnceTheLoopEnds(): void
     {
-        $duplex = self::buildDuplex();
+        $duplex = $this->buildDuplex();
         $duplex->forwardLines(new ReadableBuffer("line\n"), static function (): void {});
 
         EventLoop::run();
@@ -1491,7 +1491,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
     public function testListenerRegistrationLogsDebugWithCorrectVerbArticleAndCount(string $kind, string $article): void
     {
         $logger = new ArrayLogger();
-        $duplex = self::buildDuplex(logger: $logger);
+        $duplex = $this->buildDuplex(logger: $logger);
 
         $subscription = match ($kind) {
             'message' => $duplex->onMessage(static function (): void {}),
@@ -1534,7 +1534,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
      * @param null|\Closure(JsonRpcErrorResponse): void $onParseFailure
      * @param null|\Closure(): void                     $onBeforeClose
      */
-    private static function buildDuplex(
+    private function buildDuplex(
         ?LoggerInterface $logger = null,
         ?\Closure $onParseFailure = null,
         ?\Closure $onBeforeClose = null,
@@ -1548,7 +1548,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
         );
     }
 
-    private static function buildThrowingSource(\Throwable $error): ReadableStream
+    private function buildThrowingSource(\Throwable $error): ReadableStream
     {
         $source = self::createStub(ReadableStream::class);
         $source->method('read')->willThrowException($error);
@@ -1559,7 +1559,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
     /**
      * @param null|\Closure(): void $beforeThrow Runs inside the write, before it fails
      */
-    private static function buildThrowingSink(\Throwable $error, ?\Closure $beforeThrow = null): WritableStream
+    private function buildThrowingSink(\Throwable $error, ?\Closure $beforeThrow = null): WritableStream
     {
         $sink = self::createStub(WritableStream::class);
         $sink->method('write')->willReturnCallback(

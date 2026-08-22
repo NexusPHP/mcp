@@ -43,14 +43,14 @@ final class ListResourcesRequestHandlerTest extends AbstractMcpTestCase
     public function testReturnsAllRegisteredResourcesWhenCursorIsNull(): void
     {
         $store = new ResourceStore([
-            'file:///a' => new ResourceEntry(new Resource(name: 'a', uri: 'file:///a'), self::reader()),
-            'file:///b' => new ResourceEntry(new Resource(name: 'b', uri: 'file:///b'), self::reader()),
+            'file:///a' => new ResourceEntry(new Resource(name: 'a', uri: 'file:///a'), $this->reader()),
+            'file:///b' => new ResourceEntry(new Resource(name: 'b', uri: 'file:///b'), $this->reader()),
         ]);
         $handler = new ListResourcesRequestHandler($store);
 
         $result = $handler->handle(
             new ListResourcesRequest(id: new RequestId(id: 1), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create())),
-            self::makeContext(),
+            $this->makeContext(),
         );
 
         self::assertCount(2, $result->resources);
@@ -62,9 +62,9 @@ final class ListResourcesRequestHandlerTest extends AbstractMcpTestCase
     {
         $store = new ResourceStore(
             [
-                'file:///a' => new ResourceEntry(new Resource(name: 'a', uri: 'file:///a'), self::reader()),
-                'file:///b' => new ResourceEntry(new Resource(name: 'b', uri: 'file:///b'), self::reader()),
-                'file:///c' => new ResourceEntry(new Resource(name: 'c', uri: 'file:///c'), self::reader()),
+                'file:///a' => new ResourceEntry(new Resource(name: 'a', uri: 'file:///a'), $this->reader()),
+                'file:///b' => new ResourceEntry(new Resource(name: 'b', uri: 'file:///b'), $this->reader()),
+                'file:///c' => new ResourceEntry(new Resource(name: 'c', uri: 'file:///c'), $this->reader()),
             ],
             pageSize: 2,
         );
@@ -72,21 +72,21 @@ final class ListResourcesRequestHandlerTest extends AbstractMcpTestCase
 
         $result = $handler->handle(
             new ListResourcesRequest(id: new RequestId(id: 2), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create(), cursor: new Cursor(cursor: 'file:///b'))),
-            self::makeContext(),
+            $this->makeContext(),
         );
 
         self::assertCount(1, $result->resources);
         self::assertSame('file:///c', $result->resources[0]->uri);
     }
 
-    private static function reader(): ClosureResourceReader
+    private function reader(): ClosureResourceReader
     {
         return new ClosureResourceReader(
             static fn(string $uri, ServerContext $context): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
         );
     }
 
-    private static function makeContext(): ServerContext
+    private function makeContext(): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 1),

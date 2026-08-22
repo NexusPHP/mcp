@@ -44,7 +44,7 @@ final class TypeInferenceTest extends TypeInferenceTestCase
 
     public function testEveryConcreteRequestHasMethodTypeAssertion(): void
     {
-        self::assertEveryConcreteHasMethodAssertion(
+        $this->assertEveryConcreteHasMethodAssertion(
             JsonRpcRequest::class,
             __DIR__.'/data/request-generics.php',
         );
@@ -52,7 +52,7 @@ final class TypeInferenceTest extends TypeInferenceTestCase
 
     public function testEveryConcreteNotificationHasMethodTypeAssertion(): void
     {
-        self::assertEveryConcreteHasMethodAssertion(
+        $this->assertEveryConcreteHasMethodAssertion(
             JsonRpcNotification::class,
             __DIR__.'/data/notification-generics.php',
         );
@@ -61,7 +61,7 @@ final class TypeInferenceTest extends TypeInferenceTestCase
     /**
      * @param class-string $base
      */
-    private static function assertEveryConcreteHasMethodAssertion(string $base, string $dataFile): void
+    private function assertEveryConcreteHasMethodAssertion(string $base, string $dataFile): void
     {
         $contents = file_get_contents($dataFile);
         self::assertIsString($contents, \sprintf('Could not read type-inference data file "%s".', $dataFile));

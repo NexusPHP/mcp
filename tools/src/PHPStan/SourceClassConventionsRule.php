@@ -59,19 +59,19 @@ final class SourceClassConventionsRule implements Rule
         }
 
         return [
-            ...self::checkDocblockSummaryWidth($class),
-            ...self::checkSeeTagComesLast($class),
-            ...self::checkNaming($class),
-            ...self::checkProperties($class),
-            ...self::checkProtectedMethods($class),
-            ...self::checkInterfaceFaithfulness($class),
+            ...$this->checkDocblockSummaryWidth($class),
+            ...$this->checkSeeTagComesLast($class),
+            ...$this->checkNaming($class),
+            ...$this->checkProperties($class),
+            ...$this->checkProtectedMethods($class),
+            ...$this->checkInterfaceFaithfulness($class),
         ];
     }
 
     /**
      * @return list<IdentifierRuleError>
      */
-    private static function checkDocblockSummaryWidth(ClassReflection $class): array
+    private function checkDocblockSummaryWidth(ClassReflection $class): array
     {
         $docComment = $class->getNativeReflection()->getDocComment();
 
@@ -81,7 +81,7 @@ final class SourceClassConventionsRule implements Rule
 
         $errors = [];
 
-        foreach (self::extractDocblockSummaryLines($docComment) as $line) {
+        foreach ($this->extractDocblockSummaryLines($docComment) as $line) {
             $width = mb_strlen($line);
 
             if ($width <= self::DOCBLOCK_SUMMARY_MAX_WIDTH) {
@@ -104,7 +104,7 @@ final class SourceClassConventionsRule implements Rule
     /**
      * @return list<IdentifierRuleError>
      */
-    private static function checkSeeTagComesLast(ClassReflection $class): array
+    private function checkSeeTagComesLast(ClassReflection $class): array
     {
         $docComment = $class->getNativeReflection()->getDocComment();
 
@@ -138,20 +138,20 @@ final class SourceClassConventionsRule implements Rule
     /**
      * @return list<IdentifierRuleError>
      */
-    private static function checkNaming(ClassReflection $class): array
+    private function checkNaming(ClassReflection $class): array
     {
         $reflection = $class->getNativeReflection();
         $name = $reflection->getShortName();
 
         if ($reflection->isTrait()) {
             return str_ends_with($name, 'Trait')
-                ? [self::namingError('Trait "%s" must NOT use the *Trait suffix.', $class)]
+                ? [$this->namingError('Trait "%s" must NOT use the *Trait suffix.', $class)]
                 : [];
         }
 
         if ($reflection->isEnum()) {
             return str_ends_with($name, 'Enum')
-                ? [self::namingError('Enum "%s" must NOT use the *Enum suffix.', $class)]
+                ? [$this->namingError('Enum "%s" must NOT use the *Enum suffix.', $class)]
                 : [];
         }
 
@@ -162,13 +162,13 @@ final class SourceClassConventionsRule implements Rule
         if ($reflection->isInterface()) {
             return str_ends_with($name, 'Interface')
                 ? []
-                : [self::namingError('Interface "%s" outside src/Core/Schema/ must use the *Interface suffix.', $class)];
+                : [$this->namingError('Interface "%s" outside src/Core/Schema/ must use the *Interface suffix.', $class)];
         }
 
         if ($reflection->isAbstract()) {
             return str_starts_with($name, 'Abstract')
                 ? []
-                : [self::namingError('Abstract class "%s" outside src/Core/Schema/ must use the Abstract* prefix.', $class)];
+                : [$this->namingError('Abstract class "%s" outside src/Core/Schema/ must use the Abstract* prefix.', $class)];
         }
 
         if ($reflection->isFinal()) {
@@ -178,7 +178,7 @@ final class SourceClassConventionsRule implements Rule
         $docComment = $reflection->getDocComment();
 
         if (! \is_string($docComment) || ! str_contains($docComment, '@no-final')) {
-            return [self::namingError(
+            return [$this->namingError(
                 'Concrete class "%s" outside src/Core/Schema/ is not final. Its docblock must carry @no-final.',
                 $class,
             )];
@@ -187,7 +187,7 @@ final class SourceClassConventionsRule implements Rule
         return [];
     }
 
-    private static function namingError(string $template, ClassReflection $class): IdentifierRuleError
+    private function namingError(string $template, ClassReflection $class): IdentifierRuleError
     {
         return RuleErrorBuilder::message(\sprintf($template, $class->getName()))
             ->identifier('nexusMcp.classNaming')
@@ -198,7 +198,7 @@ final class SourceClassConventionsRule implements Rule
     /**
      * @return list<IdentifierRuleError>
      */
-    private static function checkProperties(ClassReflection $class): array
+    private function checkProperties(ClassReflection $class): array
     {
         $reflection = $class->getNativeReflection();
 
@@ -258,7 +258,7 @@ final class SourceClassConventionsRule implements Rule
     /**
      * @return list<IdentifierRuleError>
      */
-    private static function checkProtectedMethods(ClassReflection $class): array
+    private function checkProtectedMethods(ClassReflection $class): array
     {
         $reflection = $class->getNativeReflection();
 
@@ -299,7 +299,7 @@ final class SourceClassConventionsRule implements Rule
     /**
      * @return list<IdentifierRuleError>
      */
-    private static function checkInterfaceFaithfulness(ClassReflection $class): array
+    private function checkInterfaceFaithfulness(ClassReflection $class): array
     {
         $reflection = $class->getNativeReflection();
         $docComment = $reflection->getDocComment();
@@ -323,13 +323,13 @@ final class SourceClassConventionsRule implements Rule
         $allowed = ['__construct', '__destruct', '__wakeup'];
 
         foreach ($reflection->getInterfaces() as $interface) {
-            $allowed = [...$allowed, ...self::publicMethodNames($interface)];
+            $allowed = [...$allowed, ...$this->publicMethodNames($interface)];
         }
 
         $parent = $reflection->getParentClass();
 
         while (false !== $parent) {
-            $allowed = [...$allowed, ...self::publicMethodNames($parent)];
+            $allowed = [...$allowed, ...$this->publicMethodNames($parent)];
             $parent = $parent->getParentClass();
         }
 
@@ -363,7 +363,7 @@ final class SourceClassConventionsRule implements Rule
      *
      * @return list<string>
      */
-    private static function publicMethodNames(\ReflectionClass $reflection): array
+    private function publicMethodNames(\ReflectionClass $reflection): array
     {
         $names = [];
 
@@ -379,7 +379,7 @@ final class SourceClassConventionsRule implements Rule
      *
      * @return list<string>
      */
-    private static function extractDocblockSummaryLines(string $docComment): array
+    private function extractDocblockSummaryLines(string $docComment): array
     {
         $lines = [];
 

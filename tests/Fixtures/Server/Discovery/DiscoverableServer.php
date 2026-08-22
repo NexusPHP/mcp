@@ -136,11 +136,11 @@ final class DiscoverableServer
 
     public function helper(): string
     {
-        return self::hidden();
+        return $this->hidden();
     }
 
     #[AsTool(name: 'hidden')]
-    private static function hidden(): string
+    private function hidden(): string
     {
         return 'not discoverable';
     }

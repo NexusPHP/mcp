@@ -156,13 +156,13 @@ final class LineDuplex
             $this->writable->write(json_encode($message, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE)."\n");
             $this->logger->debug(
                 '{label} transport sent {kind}.',
-                ['label' => $this->label, 'kind' => self::describe($message)],
+                ['label' => $this->label, 'kind' => $this->describe($message)],
             );
         } catch (\Throwable $e) {
             if (TransportState::Closed === $this->state) {
                 $this->logger->debug(
                     '{label} transport skipped sending {kind}. Transport was concurrently closed.',
-                    ['label' => $this->label, 'kind' => self::describe($message), 'exception' => $e],
+                    ['label' => $this->label, 'kind' => $this->describe($message), 'exception' => $e],
                 );
 
                 throw new TransportAlreadyClosedException(operation: 'send', previous: $e);
@@ -170,7 +170,7 @@ final class LineDuplex
 
             $this->logger->error(
                 '{label} transport failed to send {kind}. Closing.',
-                ['label' => $this->label, 'kind' => self::describe($message), 'exception' => $e],
+                ['label' => $this->label, 'kind' => $this->describe($message), 'exception' => $e],
             );
             $this->close();
 
@@ -424,7 +424,7 @@ final class LineDuplex
         ($this->onParseFailure)($response);
     }
 
-    private static function describe(JsonRpcMessage $message): string
+    private function describe(JsonRpcMessage $message): string
     {
         return match (true) {
             $message instanceof JsonRpcRequest => \sprintf('"%s" request with id "%s"', $message::getMethod(), $message->id->id),

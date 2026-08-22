@@ -53,7 +53,7 @@ final class PsrLogger extends AbstractLogger
 
             foreach ($context as $key => $value) {
                 $normalized = match (true) {
-                    'exception' === $key && $value instanceof Throwable => self::describeThrowable($value),
+                    'exception' === $key && $value instanceof Throwable => $this->describeThrowable($value),
                     $value instanceof Stringable => (string) $value,
                     default => $value,
                 };
@@ -82,12 +82,8 @@ final class PsrLogger extends AbstractLogger
         fwrite(\STDERR, sprintf("[%s] %s: %s\n", date(\DATE_RFC3339), $name, $rendered));
     }
 
-    private static function describeThrowable(Throwable $exception): string
+    private function describeThrowable(Throwable $exception): string
     {
-        return sprintf(
-            '[%s] %s',
-            $exception::class,
-            $exception->getMessage(),
-        );
+        return sprintf('[%s] %s', $exception::class, $exception->getMessage());
     }
 }

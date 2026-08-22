@@ -36,7 +36,7 @@ final class ProtectedResourceMetadataHandlerTest extends AbstractMcpTestCase
 
     public function testItServesTheRequiredFields(): void
     {
-        $response = self::handler()->handle((new Psr17Factory())->createServerRequest('GET', self::METADATA_URL));
+        $response = $this->handler()->handle((new Psr17Factory())->createServerRequest('GET', self::METADATA_URL));
 
         self::assertSame(200, $response->getStatusCode());
         self::assertSame('application/json', $response->getHeaderLine('Content-Type'));
@@ -44,12 +44,12 @@ final class ProtectedResourceMetadataHandlerTest extends AbstractMcpTestCase
             'resource' => self::RESOURCE,
             'authorization_servers' => [self::ISSUER],
             'bearer_methods_supported' => ['header'],
-        ], self::readDocument($response));
+        ], $this->readDocument($response));
     }
 
     public function testItServesTheOptionalFields(): void
     {
-        $response = self::handler(['files:read', 'files:write'], 'Example MCP Server')
+        $response = $this->handler(['files:read', 'files:write'], 'Example MCP Server')
             ->handle((new Psr17Factory())->createServerRequest('GET', self::METADATA_URL))
         ;
 
@@ -59,7 +59,7 @@ final class ProtectedResourceMetadataHandlerTest extends AbstractMcpTestCase
             'scopes_supported' => ['files:read', 'files:write'],
             'bearer_methods_supported' => ['header'],
             'resource_name' => 'Example MCP Server',
-        ], self::readDocument($response));
+        ], $this->readDocument($response));
     }
 
     public function testItCanonicalisesTheResource(): void
@@ -75,12 +75,12 @@ final class ProtectedResourceMetadataHandlerTest extends AbstractMcpTestCase
             (new Psr17Factory())->createServerRequest('GET', 'https://mcp.test/.well-known/oauth-protected-resource'),
         );
 
-        self::assertSame('https://mcp.test', self::readDocument($response)['resource'] ?? null);
+        self::assertSame('https://mcp.test', $this->readDocument($response)['resource'] ?? null);
     }
 
     public function testItLeavesSlashesUnescaped(): void
     {
-        $response = self::handler()->handle((new Psr17Factory())->createServerRequest('GET', self::METADATA_URL));
+        $response = $this->handler()->handle((new Psr17Factory())->createServerRequest('GET', self::METADATA_URL));
 
         self::assertStringContainsString('"resource":"https://mcp.test/mcp"', (string) $response->getBody());
     }
@@ -88,7 +88,7 @@ final class ProtectedResourceMetadataHandlerTest extends AbstractMcpTestCase
     #[DataProvider('provideARequestThatIsNotAGetIsRefusedCases')]
     public function testARequestThatIsNotAGetIsRefused(string $method): void
     {
-        $response = self::handler()->handle((new Psr17Factory())->createServerRequest($method, self::METADATA_URL));
+        $response = $this->handler()->handle((new Psr17Factory())->createServerRequest($method, self::METADATA_URL));
 
         self::assertSame(405, $response->getStatusCode());
         self::assertSame('GET', $response->getHeaderLine('Allow'));
@@ -109,7 +109,7 @@ final class ProtectedResourceMetadataHandlerTest extends AbstractMcpTestCase
 
     public function testTheRootWellKnownPathIsServedForAPathBearingResource(): void
     {
-        $response = self::handler()->handle(
+        $response = $this->handler()->handle(
             (new Psr17Factory())->createServerRequest('GET', 'https://mcp.test/.well-known/oauth-protected-resource'),
         );
 
@@ -129,7 +129,7 @@ final class ProtectedResourceMetadataHandlerTest extends AbstractMcpTestCase
     #[DataProvider('provideAPathTheDocumentDoesNotBelongAtIsNotServedCases')]
     public function testAPathTheDocumentDoesNotBelongAtIsNotServed(string $url): void
     {
-        $response = self::handler()->handle((new Psr17Factory())->createServerRequest('GET', $url));
+        $response = $this->handler()->handle((new Psr17Factory())->createServerRequest('GET', $url));
 
         self::assertSame(404, $response->getStatusCode());
         self::assertSame('', (string) $response->getBody());
@@ -184,7 +184,7 @@ final class ProtectedResourceMetadataHandlerTest extends AbstractMcpTestCase
      * @param list<non-empty-string> $scopesSupported
      * @param null|non-empty-string  $resourceName
      */
-    private static function handler(array $scopesSupported = [], ?string $resourceName = null): ProtectedResourceMetadataHandler
+    private function handler(array $scopesSupported = [], ?string $resourceName = null): ProtectedResourceMetadataHandler
     {
         $factory = new Psr17Factory();
 
@@ -201,7 +201,7 @@ final class ProtectedResourceMetadataHandlerTest extends AbstractMcpTestCase
     /**
      * @return array<string, mixed>
      */
-    private static function readDocument(ResponseInterface $response): array
+    private function readDocument(ResponseInterface $response): array
     {
         $decoded = json_decode((string) $response->getBody(), true, flags: \JSON_THROW_ON_ERROR);
 

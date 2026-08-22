@@ -35,22 +35,22 @@ final class ExtensionDeclarationGateTest extends AbstractMcpTestCase
     public function testDeclaresReadsThePerRequestCapabilities(): void
     {
         self::assertTrue(ExtensionDeclarationGate::declares(
-            self::buildContext(['com.example/snapshot' => []]),
+            $this->buildContext(['com.example/snapshot' => []]),
             'com.example/snapshot',
         ));
         self::assertFalse(ExtensionDeclarationGate::declares(
-            self::buildContext(['com.example/other' => []]),
+            $this->buildContext(['com.example/other' => []]),
             'com.example/snapshot',
         ));
         self::assertFalse(ExtensionDeclarationGate::declares(
-            self::buildContext(null),
+            $this->buildContext(null),
             'com.example/snapshot',
         ));
     }
 
     public function testRefuseNamesTheMissingExtension(): void
     {
-        $exception = ExtensionDeclarationGate::refuse(self::buildContext(null), 'com.example/snapshot');
+        $exception = ExtensionDeclarationGate::refuse($this->buildContext(null), 'com.example/snapshot');
 
         self::assertSame(
             ['requiredCapabilities' => ['extensions' => ['com.example/snapshot' => []]]],
@@ -61,7 +61,7 @@ final class ExtensionDeclarationGateTest extends AbstractMcpTestCase
     /**
      * @param null|array<non-empty-string, array<string, mixed>> $extensions
      */
-    private static function buildContext(?array $extensions): ServerContext
+    private function buildContext(?array $extensions): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 7),

@@ -40,11 +40,11 @@ final class AmpSubprocessTest extends AbstractMcpTestCase
 
         try {
             self::assertGreaterThan(0, $subprocess->getPid());
-            self::assertSame('echo-server fixture ready', self::readLine($subprocess->getStderr()));
+            self::assertSame('echo-server fixture ready', $this->readLine($subprocess->getStderr()));
 
             $subprocess->getStdin()->write("ping\n");
 
-            self::assertSame('ping', self::readLine($subprocess->getStdout()));
+            self::assertSame('ping', $this->readLine($subprocess->getStdout()));
         } finally {
             $subprocess->getStdin()->close();
             $subprocess->kill();
@@ -67,7 +67,7 @@ final class AmpSubprocessTest extends AbstractMcpTestCase
         self::assertNotSame(0, $subprocess->join());
     }
 
-    private static function readLine(ReadableStream $stream): string
+    private function readLine(ReadableStream $stream): string
     {
         return (new BufferedReader($stream))->readUntil("\n");
     }

@@ -56,7 +56,7 @@ final class GetPromptRequestHandlerTest extends AbstractMcpTestCase
 
         $handler->handle(
             new GetPromptRequest(id: new RequestId(id: 42), params: new GetPromptRequestParams(name: 'greeting', meta: RequestMetaObjectFactory::create(), arguments: ['name' => 'Paul'])),
-            self::makeContext(),
+            $this->makeContext(),
         );
 
         self::assertSame(['arguments' => ['name' => 'Paul'], 'requestId' => 99], $captured);
@@ -75,7 +75,7 @@ final class GetPromptRequestHandlerTest extends AbstractMcpTestCase
 
         $result = $handler->handle(
             new GetPromptRequest(id: new RequestId(id: 1), params: new GetPromptRequestParams(name: 'greeting', meta: RequestMetaObjectFactory::create())),
-            self::makeContext(),
+            $this->makeContext(),
         );
 
         self::assertSame($expected, $result);
@@ -90,11 +90,11 @@ final class GetPromptRequestHandlerTest extends AbstractMcpTestCase
 
         $handler->handle(
             new GetPromptRequest(id: new RequestId(id: 1), params: new GetPromptRequestParams(name: 'missing', meta: RequestMetaObjectFactory::create())),
-            self::makeContext(),
+            $this->makeContext(),
         );
     }
 
-    private static function makeContext(): ServerContext
+    private function makeContext(): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 99),

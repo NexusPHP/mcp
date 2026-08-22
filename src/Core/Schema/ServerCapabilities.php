@@ -157,7 +157,7 @@ final readonly class ServerCapabilities implements Arrayable
 
             // A vendor capability's interior is schema-less, so its nested empty arrays stay lists.
             if (! \array_key_exists($key, $this->extras)) {
-                $data[$key] = self::normalizeEmptyObjects($value);
+                $data[$key] = $this->normalizeEmptyObjects($value);
             }
         }
 
@@ -171,11 +171,11 @@ final readonly class ServerCapabilities implements Arrayable
      *
      * @return array<array-key, mixed>
      */
-    private static function normalizeEmptyObjects(array $data): array
+    private function normalizeEmptyObjects(array $data): array
     {
         foreach ($data as $key => $value) {
             if (\is_array($value)) {
-                $data[$key] = [] === $value ? new \stdClass() : self::normalizeEmptyObjects($value);
+                $data[$key] = [] === $value ? new \stdClass() : $this->normalizeEmptyObjects($value);
             }
         }
 

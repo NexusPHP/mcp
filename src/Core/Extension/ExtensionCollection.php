@@ -116,8 +116,8 @@ final class ExtensionCollection
 
         Assert::that($settings)->isMap(\sprintf('Extension "%s" settings must be a string-keyed object.', $identifier));
 
-        self::assertPairedKeys($identifier, array_keys($requests), array_keys($requestHandlers), 'request');
-        self::assertPairedKeys($identifier, array_keys($notifications), array_keys($notificationHandlers), 'notification');
+        $this->assertPairedKeys($identifier, array_keys($requests), array_keys($requestHandlers), 'request');
+        $this->assertPairedKeys($identifier, array_keys($notifications), array_keys($notificationHandlers), 'notification');
 
         foreach ($requests as $method => $requestClass) {
             MethodClassValidator::validate($requestClass, $method);
@@ -145,11 +145,11 @@ final class ExtensionCollection
             $claimant = \sprintf('Extension "%s"', $identifier);
 
             if (\array_key_exists($method, $specRequests)) {
-                self::refuseMethodClaim($claimant, $method, 'the MCP specification');
+                $this->refuseMethodClaim($claimant, $method, 'the MCP specification');
             }
 
             if (\array_key_exists($method, $this->outboundOwners)) {
-                self::refuseMethodClaim($claimant, $method, \sprintf('extension "%s"', $this->outboundOwners[$method]));
+                $this->refuseMethodClaim($claimant, $method, \sprintf('extension "%s"', $this->outboundOwners[$method]));
             }
         }
 
@@ -192,7 +192,7 @@ final class ExtensionCollection
         $owner = $isNotification ? $this->findNotificationOwner($method) : $this->findRequestOwner($method);
 
         if (null !== $owner) {
-            self::refuseMethodClaim(
+            $this->refuseMethodClaim(
                 'A builder-registered handler',
                 $method,
                 \sprintf('extension "%s"', $owner),
@@ -309,7 +309,7 @@ final class ExtensionCollection
      * @param list<non-empty-string> $handlerMethods
      * @param non-empty-string       $kind
      */
-    private static function assertPairedKeys(string $identifier, array $classMethods, array $handlerMethods, string $kind): void
+    private function assertPairedKeys(string $identifier, array $classMethods, array $handlerMethods, string $kind): void
     {
         sort($classMethods);
         sort($handlerMethods);
@@ -332,15 +332,15 @@ final class ExtensionCollection
         $claimant = \sprintf('Extension "%s"', $identifier);
 
         if (\array_key_exists($method, JsonRpcMethodRegistry::requests())) {
-            self::refuseMethodClaim($claimant, $method, 'the MCP specification');
+            $this->refuseMethodClaim($claimant, $method, 'the MCP specification');
         }
 
         if (\array_key_exists($method, $this->requestOwners)) {
-            self::refuseMethodClaim($claimant, $method, \sprintf('extension "%s"', $this->requestOwners[$method]));
+            $this->refuseMethodClaim($claimant, $method, \sprintf('extension "%s"', $this->requestOwners[$method]));
         }
 
         if (\in_array($method, $claimed, true)) {
-            self::refuseMethodClaim($claimant, $method, 'a builder-registered handler');
+            $this->refuseMethodClaim($claimant, $method, 'a builder-registered handler');
         }
     }
 
@@ -354,19 +354,19 @@ final class ExtensionCollection
         $claimant = \sprintf('Extension "%s"', $identifier);
 
         if (\array_key_exists($method, JsonRpcMethodRegistry::notifications())) {
-            self::refuseMethodClaim($claimant, $method, 'the MCP specification', isNotification: true);
+            $this->refuseMethodClaim($claimant, $method, 'the MCP specification', isNotification: true);
         }
 
         if (\array_key_exists($method, $this->notificationOwners)) {
-            self::refuseMethodClaim($claimant, $method, \sprintf('extension "%s"', $this->notificationOwners[$method]), isNotification: true);
+            $this->refuseMethodClaim($claimant, $method, \sprintf('extension "%s"', $this->notificationOwners[$method]), isNotification: true);
         }
 
         if (\in_array($method, $claimed, true)) {
-            self::refuseMethodClaim($claimant, $method, 'a builder-registered handler', isNotification: true);
+            $this->refuseMethodClaim($claimant, $method, 'a builder-registered handler', isNotification: true);
         }
     }
 
-    private static function refuseMethodClaim(string $claimant, string $method, string $owner, bool $isNotification = false): never
+    private function refuseMethodClaim(string $claimant, string $method, string $owner, bool $isNotification = false): never
     {
         throw new LogicException(\sprintf(
             '%s cannot claim the %s method "%s" already owned by %s.',

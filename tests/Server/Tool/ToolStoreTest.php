@@ -45,7 +45,7 @@ final class ToolStoreTest extends AbstractMcpTestCase
 {
     public function testListReturnsRegisteredTools(): void
     {
-        $store = new ToolStore(self::makeEntries('alpha', 'beta'));
+        $store = new ToolStore($this->makeEntries('alpha', 'beta'));
 
         $result = $store->list(null);
 
@@ -59,7 +59,7 @@ final class ToolStoreTest extends AbstractMcpTestCase
 
     public function testListPreservesRegistrationOrderDeterministically(): void
     {
-        $store = new ToolStore(self::makeEntries('zeta', 'alpha', 'mike', 'bravo'));
+        $store = new ToolStore($this->makeEntries('zeta', 'alpha', 'mike', 'bravo'));
 
         $expected = ['zeta', 'alpha', 'mike', 'bravo'];
 
@@ -72,7 +72,7 @@ final class ToolStoreTest extends AbstractMcpTestCase
 
     public function testListReflectsConfiguredTtlAndCacheScope(): void
     {
-        $store = new ToolStore(self::makeEntries('alpha'), ttlMs: 120_000, cacheScope: CacheScope::Public);
+        $store = new ToolStore($this->makeEntries('alpha'), ttlMs: 120_000, cacheScope: CacheScope::Public);
 
         $result = $store->list(null);
 
@@ -82,7 +82,7 @@ final class ToolStoreTest extends AbstractMcpTestCase
 
     public function testListPaginatesWithCursor(): void
     {
-        $store = new ToolStore(self::makeEntries('a', 'b', 'c'), pageSize: 2);
+        $store = new ToolStore($this->makeEntries('a', 'b', 'c'), pageSize: 2);
 
         $first = $store->list(null);
         self::assertCount(2, $first->tools);
@@ -116,12 +116,12 @@ final class ToolStoreTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Tool store entry key "\'mismatch\'" must match its tool name "\'one\'".');
 
-        new ToolStore(['mismatch' => new ToolEntry(self::makeTool('one'), self::makeExecutor())]);
+        new ToolStore(['mismatch' => new ToolEntry($this->makeTool('one'), $this->makeExecutor())]);
     }
 
     public function testAnAllDigitNameIsServedDespiteBecomingAnIntegerKey(): void
     {
-        $store = new ToolStore(['123' => new ToolEntry(self::makeTool('123'), self::makeExecutor()), 'beta' => new ToolEntry(self::makeTool('beta'), self::makeExecutor())], pageSize: 1);
+        $store = new ToolStore(['123' => new ToolEntry($this->makeTool('123'), $this->makeExecutor()), 'beta' => new ToolEntry($this->makeTool('beta'), $this->makeExecutor())], pageSize: 1);
 
         $first = $store->list(null);
         self::assertNotNull($first->nextCursor);
@@ -141,7 +141,7 @@ final class ToolStoreTest extends AbstractMcpTestCase
         $captured = [];
         $store = new ToolStore([
             'alpha' => new ToolEntry(
-                self::makeTool('alpha'),
+                $this->makeTool('alpha'),
                 new ClosureToolExecutor(static function (?array $arguments, ServerContext $context) use ($alphaResult, &$captured): CallToolResult {
                     $captured[] = ['name' => 'alpha', 'arguments' => $arguments, 'requestId' => $context->requestId->id];
 
@@ -149,7 +149,7 @@ final class ToolStoreTest extends AbstractMcpTestCase
                 }),
             ),
             'beta' => new ToolEntry(
-                self::makeTool('beta'),
+                $this->makeTool('beta'),
                 new ClosureToolExecutor(static function (?array $arguments, ServerContext $context) use ($betaResult, &$captured): CallToolResult {
                     $captured[] = ['name' => 'beta', 'arguments' => $arguments, 'requestId' => $context->requestId->id];
 
@@ -158,8 +158,8 @@ final class ToolStoreTest extends AbstractMcpTestCase
             ),
         ]);
 
-        self::assertSame($betaResult, $store->call('beta', ['key' => 'value'], self::makeContext()));
-        self::assertSame($alphaResult, $store->call('alpha', null, self::makeContext()));
+        self::assertSame($betaResult, $store->call('beta', ['key' => 'value'], $this->makeContext()));
+        self::assertSame($alphaResult, $store->call('alpha', null, $this->makeContext()));
         self::assertSame([
             ['name' => 'beta', 'arguments' => ['key' => 'value'], 'requestId' => 1],
             ['name' => 'alpha', 'arguments' => null, 'requestId' => 1],
@@ -173,7 +173,7 @@ final class ToolStoreTest extends AbstractMcpTestCase
         $this->expectException(ToolNotFoundException::class);
         $this->expectExceptionMessageMatches('/^No tool registered under name "missing"\. The server registers tools with addTool\(\) or register\(\)\.$/');
 
-        $store->call('missing', null, self::makeContext());
+        $store->call('missing', null, $this->makeContext());
     }
 
     public function testCallThrowsInvalidParamsWhenArgumentsViolateInputSchema(): void
@@ -185,14 +185,14 @@ final class ToolStoreTest extends AbstractMcpTestCase
                     'properties' => ['q' => ['type' => 'string']],
                     'required' => ['q'],
                 ]),
-                self::makeExecutor(),
+                $this->makeExecutor(),
             ),
         ]);
 
         $this->expectException(InvalidParamsException::class);
         $this->expectExceptionMessageIs('Invalid arguments for tool "search": "q" must be a string, int given.');
 
-        $store->call('search', ['q' => 123], self::makeContext());
+        $store->call('search', ['q' => 123], $this->makeContext());
     }
 
     public function testCallListsEachArgumentViolationWithItsPointer(): void
@@ -204,12 +204,12 @@ final class ToolStoreTest extends AbstractMcpTestCase
                     'properties' => ['q' => ['type' => 'string'], 'limit' => ['type' => 'integer']],
                     'required' => ['q'],
                 ]),
-                self::makeExecutor(),
+                $this->makeExecutor(),
             ),
         ]);
 
         try {
-            $store->call('search', ['q' => 123, 'limit' => 'ten'], self::makeContext());
+            $store->call('search', ['q' => 123, 'limit' => 'ten'], $this->makeContext());
             self::fail('Expected InvalidParamsException.');
         } catch (InvalidParamsException $e) {
             self::assertSame(
@@ -224,7 +224,7 @@ final class ToolStoreTest extends AbstractMcpTestCase
 
     public function testCallReportsAtMostEightViolations(): void
     {
-        $store = self::closedSchemaStore();
+        $store = $this->closedSchemaStore();
         $arguments = [];
 
         for ($i = 0; $i < 12; ++$i) {
@@ -232,7 +232,7 @@ final class ToolStoreTest extends AbstractMcpTestCase
         }
 
         try {
-            $store->call('search', $arguments, self::makeContext());
+            $store->call('search', $arguments, $this->makeContext());
             self::fail('Expected InvalidParamsException.');
         } catch (InvalidParamsException $e) {
             self::assertIsArray($e->errorData);
@@ -249,10 +249,10 @@ final class ToolStoreTest extends AbstractMcpTestCase
 
     public function testCallSanitisesAPeerPropertyNameInTheViolationList(): void
     {
-        $store = self::closedSchemaStore();
+        $store = $this->closedSchemaStore();
 
         try {
-            $store->call('search', ["ev\x1b[2K\x07il" => 1, str_repeat('A', 300) => 2], self::makeContext());
+            $store->call('search', ["ev\x1b[2K\x07il" => 1, str_repeat('A', 300) => 2], $this->makeContext());
             self::fail('Expected InvalidParamsException.');
         } catch (InvalidParamsException $e) {
             self::assertIsArray($e->errorData);
@@ -272,10 +272,10 @@ final class ToolStoreTest extends AbstractMcpTestCase
 
     public function testCallBoundsAPeerPropertyNameQuotedByTheValidator(): void
     {
-        $store = self::closedSchemaStore();
+        $store = $this->closedSchemaStore();
 
         try {
-            $store->call('search', [str_repeat('A', 200_000) => 1], self::makeContext());
+            $store->call('search', [str_repeat('A', 200_000) => 1], $this->makeContext());
             self::fail('Expected InvalidParamsException.');
         } catch (InvalidParamsException $e) {
             self::assertSame(256, \strlen($e->getMessage()));
@@ -285,10 +285,10 @@ final class ToolStoreTest extends AbstractMcpTestCase
 
     public function testCallEscapesControlBytesInAPeerPropertyName(): void
     {
-        $store = self::closedSchemaStore();
+        $store = $this->closedSchemaStore();
 
         try {
-            $store->call('search', ["ev\x1b[2K\x07il" => 1], self::makeContext());
+            $store->call('search', ["ev\x1b[2K\x07il" => 1], $this->makeContext());
             self::fail('Expected InvalidParamsException.');
         } catch (InvalidParamsException $e) {
             self::assertStringContainsString('ev\\x1b[2K\\x07il', $e->getMessage());
@@ -306,11 +306,11 @@ final class ToolStoreTest extends AbstractMcpTestCase
                     'properties' => ['q' => ['type' => 'string']],
                     'required' => ['q'],
                 ]),
-                self::makeExecutorReturning($result),
+                $this->makeExecutorReturning($result),
             ),
         ]);
 
-        self::assertSame($result, $store->call('search', ['q' => 'hello'], self::makeContext()));
+        self::assertSame($result, $store->call('search', ['q' => 'hello'], $this->makeContext()));
     }
 
     #[DataProvider('provideCallAcceptsAnyValueForAnAlwaysValidPropertyCases')]
@@ -324,11 +324,11 @@ final class ToolStoreTest extends AbstractMcpTestCase
                     'properties' => ['payload' => true],
                     'required' => ['payload'],
                 ]),
-                self::makeExecutorReturning($result),
+                $this->makeExecutorReturning($result),
             ),
         ]);
 
-        self::assertSame($result, $store->call('anything', ['payload' => $payload], self::makeContext()));
+        self::assertSame($result, $store->call('anything', ['payload' => $payload], $this->makeContext()));
     }
 
     /**
@@ -360,71 +360,71 @@ final class ToolStoreTest extends AbstractMcpTestCase
                     'type' => 'object',
                     'properties' => ['extra' => []],
                 ]),
-                self::makeExecutorReturning($result),
+                $this->makeExecutorReturning($result),
             ),
         ]);
 
-        self::assertSame($result, $store->call('loose', ['extra' => 'anything'], self::makeContext()));
+        self::assertSame($result, $store->call('loose', ['extra' => 'anything'], $this->makeContext()));
     }
 
     public function testCallAcceptsEmptyArrayArgumentsAsEmptyObject(): void
     {
         $result = new CallToolResult(content: []);
         $store = new ToolStore([
-            'noop' => new ToolEntry(self::makeTool('noop'), self::makeExecutorReturning($result)),
+            'noop' => new ToolEntry($this->makeTool('noop'), $this->makeExecutorReturning($result)),
         ]);
 
-        self::assertSame($result, $store->call('noop', [], self::makeContext()));
+        self::assertSame($result, $store->call('noop', [], $this->makeContext()));
     }
 
     public function testCallReturnsResultWhenStructuredContentConformsToOutputSchema(): void
     {
         $result = new CallToolResult(content: [], structuredContent: ['n' => 42]);
         $store = new ToolStore([
-            'report' => new ToolEntry(self::makeToolWithOutputSchema('report'), self::makeExecutorReturning($result)),
+            'report' => new ToolEntry($this->makeToolWithOutputSchema('report'), $this->makeExecutorReturning($result)),
         ]);
 
-        self::assertSame($result, $store->call('report', null, self::makeContext()));
+        self::assertSame($result, $store->call('report', null, $this->makeContext()));
     }
 
     public function testCallThrowsToolOutputValidationWhenStructuredContentViolatesOutputSchema(): void
     {
         $store = new ToolStore([
             'report' => new ToolEntry(
-                self::makeToolWithOutputSchema('report'),
-                self::makeExecutorReturning(new CallToolResult(content: [], structuredContent: ['n' => 'oops'])),
+                $this->makeToolWithOutputSchema('report'),
+                $this->makeExecutorReturning(new CallToolResult(content: [], structuredContent: ['n' => 'oops'])),
             ),
         ]);
 
         $this->expectException(ToolOutputValidationException::class);
         $this->expectExceptionMessageMatches('/^Tool "report" returned structuredContent that does not conform to its outputSchema: /');
 
-        $store->call('report', null, self::makeContext());
+        $store->call('report', null, $this->makeContext());
     }
 
     public function testCallRejectsAResultCarryingNoStructuredContentWhenOutputSchemaIsDeclared(): void
     {
         $store = new ToolStore([
             'report' => new ToolEntry(
-                self::makeToolWithOutputSchema('report'),
-                self::makeExecutorReturning(new CallToolResult(content: [new TextContent(text: 'hi')])),
+                $this->makeToolWithOutputSchema('report'),
+                $this->makeExecutorReturning(new CallToolResult(content: [new TextContent(text: 'hi')])),
             ),
         ]);
 
         $this->expectException(ToolOutputValidationException::class);
         $this->expectExceptionMessageIs('Tool "report" declares an outputSchema but its result carries no structuredContent.');
 
-        $store->call('report', null, self::makeContext());
+        $store->call('report', null, $this->makeContext());
     }
 
     public function testCallSkipsOutputValidationForErrorResults(): void
     {
         $result = new CallToolResult(content: [new TextContent(text: 'boom')], structuredContent: ['n' => 'oops'], isError: true);
         $store = new ToolStore([
-            'report' => new ToolEntry(self::makeToolWithOutputSchema('report'), self::makeExecutorReturning($result)),
+            'report' => new ToolEntry($this->makeToolWithOutputSchema('report'), $this->makeExecutorReturning($result)),
         ]);
 
-        self::assertSame($result, $store->call('report', null, self::makeContext()));
+        self::assertSame($result, $store->call('report', null, $this->makeContext()));
     }
 
     public function testCallAcceptsEmptyStructuredContentAsEmptyObject(): void
@@ -433,11 +433,11 @@ final class ToolStoreTest extends AbstractMcpTestCase
         $store = new ToolStore([
             'report' => new ToolEntry(
                 new Tool(name: 'report', inputSchema: ['type' => 'object'], outputSchema: ['type' => 'object']),
-                self::makeExecutorReturning($result),
+                $this->makeExecutorReturning($result),
             ),
         ]);
 
-        self::assertSame($result, $store->call('report', null, self::makeContext()));
+        self::assertSame($result, $store->call('report', null, $this->makeContext()));
     }
 
     public function testCallAcceptsEmptyStructuredContentAsAnEmptyArray(): void
@@ -446,11 +446,11 @@ final class ToolStoreTest extends AbstractMcpTestCase
         $store = new ToolStore([
             'report' => new ToolEntry(
                 new Tool(name: 'report', inputSchema: ['type' => 'object'], outputSchema: ['type' => 'array']),
-                self::makeExecutorReturning($result),
+                $this->makeExecutorReturning($result),
             ),
         ]);
 
-        self::assertSame($result, $store->call('report', null, self::makeContext()));
+        self::assertSame($result, $store->call('report', null, $this->makeContext()));
     }
 
     public function testCallReadsEmptyStructuredContentAsAnObjectForATypeUnionWithoutArray(): void
@@ -459,11 +459,11 @@ final class ToolStoreTest extends AbstractMcpTestCase
         $store = new ToolStore([
             'report' => new ToolEntry(
                 new Tool(name: 'report', inputSchema: ['type' => 'object'], outputSchema: ['type' => ['object', 'null']]),
-                self::makeExecutorReturning($result),
+                $this->makeExecutorReturning($result),
             ),
         ]);
 
-        self::assertSame($result, $store->call('report', null, self::makeContext()));
+        self::assertSame($result, $store->call('report', null, $this->makeContext()));
     }
 
     public function testCallSkipsOutputValidationForAnInputRequiredResult(): void
@@ -471,21 +471,21 @@ final class ToolStoreTest extends AbstractMcpTestCase
         $asked = new InputRequiredResult(requestState: 'state-1');
         $store = new ToolStore([
             'report' => new ToolEntry(
-                self::makeToolWithOutputSchema('report'),
+                $this->makeToolWithOutputSchema('report'),
                 new ClosureToolExecutor(static fn(?array $arguments, ServerContext $context): InputRequiredResult => $asked),
             ),
         ]);
 
-        self::assertSame($asked, $store->call('report', null, self::makeContext()));
+        self::assertSame($asked, $store->call('report', null, $this->makeContext()));
     }
 
     public function testAddToolRegistersItAndAnnouncesTheChange(): void
     {
-        $store = new ToolStore(self::makeEntries('alpha'));
+        $store = new ToolStore($this->makeEntries('alpha'));
         $changes = 0;
         $store->onListChanged(static function () use (&$changes): void { ++$changes; });
 
-        $store->addTool(self::makeTool('beta'), self::makeExecutor());
+        $store->addTool($this->makeTool('beta'), $this->makeExecutor());
 
         self::assertSame(
             ['alpha', 'beta'],
@@ -496,11 +496,11 @@ final class ToolStoreTest extends AbstractMcpTestCase
 
     public function testAddToolReplacesAToolOfTheSameName(): void
     {
-        $store = new ToolStore(self::makeEntries('alpha'));
+        $store = new ToolStore($this->makeEntries('alpha'));
         $changes = 0;
         $store->onListChanged(static function () use (&$changes): void { ++$changes; });
 
-        $store->addTool(new Tool(name: 'alpha', title: 'Renamed', inputSchema: ['type' => 'object']), self::makeExecutor());
+        $store->addTool(new Tool(name: 'alpha', title: 'Renamed', inputSchema: ['type' => 'object']), $this->makeExecutor());
 
         $tools = $store->list(null)->tools;
         self::assertCount(1, $tools);
@@ -510,7 +510,7 @@ final class ToolStoreTest extends AbstractMcpTestCase
 
     public function testRemoveToolDropsItAndAnnouncesTheChange(): void
     {
-        $store = new ToolStore(self::makeEntries('alpha', 'beta'));
+        $store = new ToolStore($this->makeEntries('alpha', 'beta'));
         $changes = 0;
         $store->onListChanged(static function () use (&$changes): void { ++$changes; });
 
@@ -524,7 +524,7 @@ final class ToolStoreTest extends AbstractMcpTestCase
 
     public function testRemoveToolIsSilentWhenNoToolMatches(): void
     {
-        $store = new ToolStore(self::makeEntries('alpha'));
+        $store = new ToolStore($this->makeEntries('alpha'));
         $changes = 0;
         $store->onListChanged(static function () use (&$changes): void { ++$changes; });
 
@@ -540,7 +540,7 @@ final class ToolStoreTest extends AbstractMcpTestCase
         $store->onListChanged(static function () use (&$heard): void { $heard[] = 'first'; });
         $store->onListChanged(static function () use (&$heard): void { $heard[] = 'second'; });
 
-        $store->addTool(self::makeTool('alpha'), self::makeExecutor());
+        $store->addTool($this->makeTool('alpha'), $this->makeExecutor());
 
         self::assertSame(['first', 'second'], $heard);
     }
@@ -548,9 +548,9 @@ final class ToolStoreTest extends AbstractMcpTestCase
     public function testAnAddedToolIsCallable(): void
     {
         $store = new ToolStore();
-        $store->addTool(self::makeTool('alpha'), self::makeExecutorReturning(new CallToolResult(content: [])));
+        $store->addTool($this->makeTool('alpha'), $this->makeExecutorReturning(new CallToolResult(content: [])));
 
-        $result = $store->call('alpha', null, self::makeContext());
+        $result = $store->call('alpha', null, $this->makeContext());
 
         self::assertInstanceOf(CallToolResult::class, $result);
 
@@ -608,7 +608,7 @@ final class ToolStoreTest extends AbstractMcpTestCase
             }),
         );
 
-        $store->call('digit', ['0' => 'v'], self::makeContext());
+        $store->call('digit', ['0' => 'v'], $this->makeContext());
 
         self::assertSame([0 => 'v'], $seen);
     }
@@ -624,7 +624,7 @@ final class ToolStoreTest extends AbstractMcpTestCase
             new ClosureToolExecutor(static fn(): CallToolResult => new CallToolResult(content: [new TextContent(text: 'ok')])),
         );
 
-        $result = $store->call('digit-only', ['a' => 'b'], self::makeContext());
+        $result = $store->call('digit-only', ['a' => 'b'], $this->makeContext());
 
         self::assertInstanceOf(CallToolResult::class, $result);
     }
@@ -646,14 +646,14 @@ final class ToolStoreTest extends AbstractMcpTestCase
 
         $this->expectException(InvalidParamsException::class);
 
-        $store->call('digit', ['a' => 'b'], self::makeContext());
+        $store->call('digit', ['a' => 'b'], $this->makeContext());
     }
 
     public function testCallWrapsABindingFailureWithTheToolName(): void
     {
         $store = new ToolStore([
             'search' => new ToolEntry(
-                self::makeTool('search'),
+                $this->makeTool('search'),
                 new ClosureToolExecutor(static function (?array $arguments, ServerContext $context): CallToolResult {
                     throw new InvalidParamsException($context->requestId, 'missing the required "q" key.');
                 }),
@@ -663,13 +663,13 @@ final class ToolStoreTest extends AbstractMcpTestCase
         $this->expectException(InvalidParamsException::class);
         $this->expectExceptionMessageIs('Invalid arguments for tool "search": missing the required "q" key.');
 
-        $store->call('search', [], self::makeContext());
+        $store->call('search', [], $this->makeContext());
     }
 
     /**
      * @param non-empty-string $name
      */
-    private static function makeTool(string $name): Tool
+    private function makeTool(string $name): Tool
     {
         return new Tool(name: $name, inputSchema: ['type' => 'object']);
     }
@@ -677,7 +677,7 @@ final class ToolStoreTest extends AbstractMcpTestCase
     /**
      * @param non-empty-string $name
      */
-    private static function makeToolWithOutputSchema(string $name): Tool
+    private function makeToolWithOutputSchema(string $name): Tool
     {
         return new Tool(name: $name, inputSchema: ['type' => 'object'], outputSchema: [
             'type' => 'object',
@@ -686,7 +686,7 @@ final class ToolStoreTest extends AbstractMcpTestCase
         ]);
     }
 
-    private static function closedSchemaStore(): ToolStore
+    private function closedSchemaStore(): ToolStore
     {
         return new ToolStore([
             'search' => new ToolEntry(
@@ -695,12 +695,12 @@ final class ToolStoreTest extends AbstractMcpTestCase
                     'properties' => ['q' => ['type' => 'string']],
                     'additionalProperties' => false,
                 ]),
-                self::makeExecutor(),
+                $this->makeExecutor(),
             ),
         ]);
     }
 
-    private static function makeExecutorReturning(CallToolResult $result): ClosureToolExecutor
+    private function makeExecutorReturning(CallToolResult $result): ClosureToolExecutor
     {
         return new ClosureToolExecutor(static fn(?array $arguments, ServerContext $context): CallToolResult => $result);
     }
@@ -708,26 +708,26 @@ final class ToolStoreTest extends AbstractMcpTestCase
     /**
      * @return array<non-empty-string, ToolEntry>
      */
-    private static function makeEntries(string ...$names): array
+    private function makeEntries(string ...$names): array
     {
         $entries = [];
 
         foreach ($names as $name) {
             \assert('' !== $name);
-            $entries[$name] = new ToolEntry(self::makeTool($name), self::makeExecutor());
+            $entries[$name] = new ToolEntry($this->makeTool($name), $this->makeExecutor());
         }
 
         return $entries;
     }
 
-    private static function makeExecutor(): ClosureToolExecutor
+    private function makeExecutor(): ClosureToolExecutor
     {
         return new ClosureToolExecutor(
             static fn(?array $arguments, ServerContext $context): CallToolResult => new CallToolResult(content: []),
         );
     }
 
-    private static function makeContext(): ServerContext
+    private function makeContext(): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 1),

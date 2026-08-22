@@ -34,9 +34,9 @@ final class DnsRebindingProtectionMiddlewareTest extends AbstractMcpTestCase
 {
     public function testPassesThroughWhenNoOriginHeader(): void
     {
-        $handler = self::recordingHandler();
+        $handler = $this->recordingHandler();
 
-        $response = self::middleware(['https://app.test'])->process(self::request(), $handler);
+        $response = $this->middleware(['https://app.test'])->process($this->request(), $handler);
 
         self::assertTrue($handler->called);
         self::assertSame(200, $response->getStatusCode());
@@ -44,10 +44,10 @@ final class DnsRebindingProtectionMiddlewareTest extends AbstractMcpTestCase
 
     public function testPassesThroughAnAllowlistedOrigin(): void
     {
-        $handler = self::recordingHandler();
+        $handler = $this->recordingHandler();
 
-        $response = self::middleware(['https://app.test', 'http://localhost:3000'])
-            ->process(self::request('http://localhost:3000'), $handler)
+        $response = $this->middleware(['https://app.test', 'http://localhost:3000'])
+            ->process($this->request('http://localhost:3000'), $handler)
         ;
 
         self::assertTrue($handler->called);
@@ -57,9 +57,9 @@ final class DnsRebindingProtectionMiddlewareTest extends AbstractMcpTestCase
 
     public function testAllowsAnyOriginWhenWildcardConfigured(): void
     {
-        $handler = self::recordingHandler();
+        $handler = $this->recordingHandler();
 
-        $response = self::middleware(['*'])->process(self::request('https://evil.test'), $handler);
+        $response = $this->middleware(['*'])->process($this->request('https://evil.test'), $handler);
 
         self::assertTrue($handler->called);
         self::assertSame(200, $response->getStatusCode());
@@ -67,19 +67,19 @@ final class DnsRebindingProtectionMiddlewareTest extends AbstractMcpTestCase
 
     public function testRejectsAnUnlistedOriginWith403(): void
     {
-        $handler = self::recordingHandler();
+        $handler = $this->recordingHandler();
 
-        $response = self::middleware(['https://app.test'])->process(self::request('https://evil.test'), $handler);
+        $response = $this->middleware(['https://app.test'])->process($this->request('https://evil.test'), $handler);
 
         self::assertFalse($handler->called);
-        self::assertRejectedWith($response, 'The request Origin is not allowed.');
+        $this->assertRejectedWith($response, 'The request Origin is not allowed.');
     }
 
     public function testAllowsAnAllowlistedHost(): void
     {
-        $handler = self::recordingHandler();
+        $handler = $this->recordingHandler();
 
-        $response = self::middleware(['*'], ['mcp.test'])->process(self::request(), $handler);
+        $response = $this->middleware(['*'], ['mcp.test'])->process($this->request(), $handler);
 
         self::assertTrue($handler->called);
         self::assertSame(200, $response->getStatusCode());
@@ -87,9 +87,9 @@ final class DnsRebindingProtectionMiddlewareTest extends AbstractMcpTestCase
 
     public function testAllowsAnyHostWhenWildcardConfigured(): void
     {
-        $handler = self::recordingHandler();
+        $handler = $this->recordingHandler();
 
-        $response = self::middleware(['*'], ['*'])->process(self::request(), $handler);
+        $response = $this->middleware(['*'], ['*'])->process($this->request(), $handler);
 
         self::assertTrue($handler->called);
         self::assertSame(200, $response->getStatusCode());
@@ -97,12 +97,12 @@ final class DnsRebindingProtectionMiddlewareTest extends AbstractMcpTestCase
 
     public function testRejectsAnUnlistedHostWith403(): void
     {
-        $handler = self::recordingHandler();
+        $handler = $this->recordingHandler();
 
-        $response = self::middleware(['*'], ['app.test'])->process(self::request(), $handler);
+        $response = $this->middleware(['*'], ['app.test'])->process($this->request(), $handler);
 
         self::assertFalse($handler->called);
-        self::assertRejectedWith($response, 'The request Host is not allowed.');
+        $this->assertRejectedWith($response, 'The request Host is not allowed.');
     }
 
     /**
@@ -112,10 +112,10 @@ final class DnsRebindingProtectionMiddlewareTest extends AbstractMcpTestCase
     public function testMatchesTheHostCaseInsensitively(string $host, array $allowedHosts): void
     {
         // RFC 9110 makes a URI's host case-insensitive, and some proxies do rewrite its case.
-        $handler = self::recordingHandler();
+        $handler = $this->recordingHandler();
 
-        $response = self::middleware(['*'], $allowedHosts)
-            ->process(self::request()->withHeader('Host', $host), $handler)
+        $response = $this->middleware(['*'], $allowedHosts)
+            ->process($this->request()->withHeader('Host', $host), $handler)
         ;
 
         self::assertTrue($handler->called);
@@ -140,9 +140,9 @@ final class DnsRebindingProtectionMiddlewareTest extends AbstractMcpTestCase
     #[DataProvider('provideMatchesTheOriginCaseInsensitivelyCases')]
     public function testMatchesTheOriginCaseInsensitively(string $origin, array $allowedOrigins): void
     {
-        $handler = self::recordingHandler();
+        $handler = $this->recordingHandler();
 
-        $response = self::middleware($allowedOrigins)->process(self::request($origin), $handler);
+        $response = $this->middleware($allowedOrigins)->process($this->request($origin), $handler);
 
         self::assertTrue($handler->called);
         self::assertSame(200, $response->getStatusCode());
@@ -160,17 +160,17 @@ final class DnsRebindingProtectionMiddlewareTest extends AbstractMcpTestCase
 
     public function testRejectsAMissingHostWhenValidationEnabled(): void
     {
-        $handler = self::recordingHandler();
+        $handler = $this->recordingHandler();
 
-        $response = self::middleware(['*'], ['mcp.test'])
-            ->process(self::request()->withoutHeader('Host'), $handler)
+        $response = $this->middleware(['*'], ['mcp.test'])
+            ->process($this->request()->withoutHeader('Host'), $handler)
         ;
 
         self::assertFalse($handler->called);
-        self::assertRejectedWith($response, 'The request Host is not allowed.');
+        $this->assertRejectedWith($response, 'The request Host is not allowed.');
     }
 
-    private static function assertRejectedWith(ResponseInterface $response, string $message): void
+    private function assertRejectedWith(ResponseInterface $response, string $message): void
     {
         self::assertSame(403, $response->getStatusCode());
         self::assertSame('application/json', $response->getHeaderLine('Content-Type'));
@@ -188,21 +188,21 @@ final class DnsRebindingProtectionMiddlewareTest extends AbstractMcpTestCase
      * @param list<non-empty-string> $allowedOrigins
      * @param list<non-empty-string> $allowedHosts
      */
-    private static function middleware(array $allowedOrigins, array $allowedHosts = []): DnsRebindingProtectionMiddleware
+    private function middleware(array $allowedOrigins, array $allowedHosts = []): DnsRebindingProtectionMiddleware
     {
         $factory = new Psr17Factory();
 
         return new DnsRebindingProtectionMiddleware($allowedOrigins, $allowedHosts, $factory, $factory);
     }
 
-    private static function request(?string $origin = null): ServerRequestInterface
+    private function request(?string $origin = null): ServerRequestInterface
     {
         $request = (new Psr17Factory())->createServerRequest('POST', 'https://mcp.test/');
 
         return null === $origin ? $request : $request->withHeader('Origin', $origin);
     }
 
-    private static function recordingHandler(): RecordingRequestHandler
+    private function recordingHandler(): RecordingRequestHandler
     {
         return new RecordingRequestHandler((new Psr17Factory())->createResponse(200));
     }

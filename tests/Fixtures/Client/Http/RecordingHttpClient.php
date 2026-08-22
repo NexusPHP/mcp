@@ -201,8 +201,8 @@ final class RecordingHttpClient implements DelegateHttpClient
 
         $failure = $step['fails'] ?? null;
         $body = match (true) {
-            $step['open'] ?? false => self::openStream($step['chunks'], $step['resume'] ?? null, $step['later'] ?? []),
-            null !== $failure => self::failPartway($step['chunks'], $failure),
+            $step['open'] ?? false => $this->openStream($step['chunks'], $step['resume'] ?? null, $step['later'] ?? []),
+            null !== $failure => $this->failPartway($step['chunks'], $failure),
             default => $this->trackDrain(\count($this->requests) - 1, $step['chunks']),
         };
 
@@ -265,7 +265,7 @@ final class RecordingHttpClient implements DelegateHttpClient
      *
      * @return \Traversable<int, string>
      */
-    private static function failPartway(array $chunks, HttpException $failure): \Traversable
+    private function failPartway(array $chunks, HttpException $failure): \Traversable
     {
         yield from $chunks;
 
@@ -279,7 +279,7 @@ final class RecordingHttpClient implements DelegateHttpClient
      *
      * @return \Traversable<int, string>
      */
-    private static function openStream(array $chunks, ?Future $resume = null, array $later = []): \Traversable
+    private function openStream(array $chunks, ?Future $resume = null, array $later = []): \Traversable
     {
         yield from $chunks;
 

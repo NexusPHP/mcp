@@ -108,8 +108,8 @@ final class TasksServer
 
         return new InputRequiredResult(
             inputRequests: [
-                'multi_name' => self::buildInputRequest('What is your name?', 'name', new StringSchema()),
-                'multi_confirm' => self::buildInputRequest('Confirm the run?', 'confirm', new BooleanSchema()),
+                'multi_name' => $this->buildInputRequest('What is your name?', 'name', new StringSchema()),
+                'multi_confirm' => $this->buildInputRequest('Confirm the run?', 'confirm', new BooleanSchema()),
             ],
             requestState: $this->states->sign('multi_input'),
         );

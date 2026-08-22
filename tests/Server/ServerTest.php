@@ -62,7 +62,7 @@ final class ServerTest extends AbstractMcpTestCase
     public function testRunStartsTheTransport(): void
     {
         $transport = new RecordingTransport();
-        $server = self::buildServer();
+        $server = $this->buildServer();
 
         $serverRun = async(static function () use ($server, $transport): void {
             $server->run($transport);
@@ -79,7 +79,7 @@ final class ServerTest extends AbstractMcpTestCase
     public function testRunBlocksUntilTransportCloses(): void
     {
         $transport = new RecordingTransport();
-        $server = self::buildServer();
+        $server = $this->buildServer();
         $resolved = false;
 
         $serverRun = async(static function () use ($server, $transport, &$resolved): void {
@@ -99,7 +99,7 @@ final class ServerTest extends AbstractMcpTestCase
     public function testInboundEnvelopeRoutesThroughDispatcher(): void
     {
         $transport = new RecordingTransport();
-        $server = self::buildServer();
+        $server = $this->buildServer();
 
         $serverRun = async(static function () use ($server, $transport): void {
             $server->run($transport);
@@ -178,7 +178,7 @@ final class ServerTest extends AbstractMcpTestCase
     public function testTransportCloseIsIdempotent(): void
     {
         $transport = new RecordingTransport();
-        $server = self::buildServer();
+        $server = $this->buildServer();
 
         $serverRun = async(static function () use ($server, $transport): void {
             $server->run($transport);
@@ -196,7 +196,7 @@ final class ServerTest extends AbstractMcpTestCase
     public function testCloseListenerFiringMoreThanOnceDoesNotCrashTheLoop(): void
     {
         $transport = new RecordingTransport();
-        $server = self::buildServer();
+        $server = $this->buildServer();
 
         $serverRun = async(static function () use ($server, $transport): void {
             $server->run($transport);
@@ -214,7 +214,7 @@ final class ServerTest extends AbstractMcpTestCase
     public function testRunDrainsInFlightDispatchBeforeTransportFullyCloses(): void
     {
         [$serverSide, $clientSide] = InMemoryTransport::createPair();
-        $server = self::buildServer();
+        $server = $this->buildServer();
 
         $clientReceived = [];
         $clientSide->onMessage(static function (array $envelope) use (&$clientReceived): void {
@@ -244,7 +244,7 @@ final class ServerTest extends AbstractMcpTestCase
     public function testListenStartsTheTransportWithoutBlocking(): void
     {
         $transport = new RecordingTransport();
-        $server = self::buildServer();
+        $server = $this->buildServer();
 
         $server->listen($transport);
 
@@ -255,7 +255,7 @@ final class ServerTest extends AbstractMcpTestCase
     public function testListenRoutesInboundEnvelopesThroughDispatcher(): void
     {
         $transport = new RecordingTransport();
-        $server = self::buildServer();
+        $server = $this->buildServer();
 
         $server->listen($transport);
         $transport->emitMessage([
@@ -319,7 +319,7 @@ final class ServerTest extends AbstractMcpTestCase
     public function testAnUncancelledRequestIsStillAnsweredOnACancellableTransport(): void
     {
         $transport = new RecordingTransport();
-        $server = self::buildServer();
+        $server = $this->buildServer();
 
         $server->listen($transport);
         $transport->emitMessage([
@@ -334,7 +334,7 @@ final class ServerTest extends AbstractMcpTestCase
         self::assertCount(1, $transport->sent);
     }
 
-    private static function buildServer(): Server
+    private function buildServer(): Server
     {
         return (new ServerBuilder())->setServerInfo('demo', '1.0.0')->build();
     }

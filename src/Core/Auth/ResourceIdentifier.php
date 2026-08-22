@@ -30,7 +30,7 @@ final readonly class ResourceIdentifier
 
     public function __construct(string $uri)
     {
-        $canonical = self::canonicalise($uri);
+        $canonical = $this->canonicalise($uri);
 
         Assert::that($canonical)->isArray(\sprintf(
             'The MCP server resource identifier must be an absolute URI carrying no fragment or userinfo, "%s" given.',
@@ -44,7 +44,7 @@ final readonly class ResourceIdentifier
 
     public function sharesOriginWith(string $uri): bool
     {
-        $canonical = self::canonicalise($uri);
+        $canonical = $this->canonicalise($uri);
 
         return null !== $canonical && $canonical[1] === $this->origin;
     }
@@ -56,7 +56,7 @@ final readonly class ResourceIdentifier
      */
     public function covers(string $uri): bool
     {
-        $canonical = self::canonicalise($uri);
+        $canonical = $this->canonicalise($uri);
 
         if (null === $canonical || $canonical[1] !== $this->origin) {
             return false;
@@ -77,7 +77,7 @@ final readonly class ResourceIdentifier
     public function matchesAudience(array $audience): bool
     {
         foreach ($audience as $value) {
-            $canonical = self::canonicalise($value);
+            $canonical = $this->canonicalise($value);
 
             if (null !== $canonical && $canonical[0] === $this->value) {
                 return true;
@@ -93,7 +93,7 @@ final readonly class ResourceIdentifier
      *
      * @return null|array{string, string, string}
      */
-    private static function canonicalise(string $uri): ?array
+    private function canonicalise(string $uri): ?array
     {
         $parts = parse_url($uri);
 
@@ -108,7 +108,7 @@ final readonly class ResourceIdentifier
         $scheme = strtolower($parts['scheme']);
         $host = strtolower($parts['host']);
         $path = $parts['path'] ?? '';
-        $origin = \sprintf('%s://%s%s', $scheme, $host, self::renderNonDefaultPort($scheme, $parts['port'] ?? null));
+        $origin = \sprintf('%s://%s%s', $scheme, $host, $this->renderNonDefaultPort($scheme, $parts['port'] ?? null));
 
         $path = '/' === $path ? '' : $path;
 
@@ -119,7 +119,7 @@ final readonly class ResourceIdentifier
         ];
     }
 
-    private static function renderNonDefaultPort(string $scheme, ?int $port): string
+    private function renderNonDefaultPort(string $scheme, ?int $port): string
     {
         $default = match ($scheme) {
             'https' => 443,

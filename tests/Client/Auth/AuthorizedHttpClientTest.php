@@ -55,7 +55,7 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())->willAnswerJson(['ok' => true]);
 
-        $response = self::client($http)->request(self::mcpRequest(), new NullCancellation());
+        $response = $this->client($http)->request($this->mcpRequest(), new NullCancellation());
 
         self::assertSame(200, $response->getStatus());
         self::assertCount(1, $http->requests);
@@ -66,14 +66,14 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())
             ->willChallenge(401, self::CHALLENGE)
-            ->willAnswerJson(self::resourceDocument())
-            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson($this->resourceDocument())
+            ->willAnswerJson($this->serverDocument())
             ->willAnswerJson(['client_id' => 'the-client'])
             ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer'])
             ->willAnswerJson(['ok' => true])
         ;
 
-        $response = self::client($http)->request(self::mcpRequest(), new NullCancellation());
+        $response = $this->client($http)->request($this->mcpRequest(), new NullCancellation());
 
         self::assertSame(200, $response->getStatus());
         self::assertCount(6, $http->requests);
@@ -85,8 +85,8 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())
             ->willChallenge(401, self::CHALLENGE)
-            ->willAnswerJson(self::resourceDocument())
-            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson($this->resourceDocument())
+            ->willAnswerJson($this->serverDocument())
             ->willAnswerJson(['client_id' => 'the-client'])
             ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer'])
             ->willAnswerJson(['ok' => true])
@@ -94,7 +94,7 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
         $user = new ScriptedUserAuthorization();
         $cancellation = new NullCancellation();
 
-        self::client($http, $user)->request(self::mcpRequest(), $cancellation);
+        $this->client($http, $user)->request($this->mcpRequest(), $cancellation);
 
         self::assertSame(array_fill(0, 6, $cancellation), $http->cancellations);
         self::assertSame([$cancellation], $user->cancellations);
@@ -104,15 +104,15 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())
             ->willChallenge(401, self::CHALLENGE)
-            ->willAnswerJson(self::resourceDocument())
-            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson($this->resourceDocument())
+            ->willAnswerJson($this->serverDocument())
             ->willAnswerJson(['client_id' => 'the-client'])
             ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer'])
             ->willAnswerJson(['ok' => true])
             ->willAnswerJson(['ok' => true])
         ;
-        $client = self::client($http);
-        $client->request(self::mcpRequest(), new NullCancellation());
+        $client = $this->client($http);
+        $client->request($this->mcpRequest(), new NullCancellation());
 
         $client->request(new Request('https://attacker.example.com/mcp', 'POST', '{}'), new NullCancellation());
 
@@ -124,15 +124,15 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())
             ->willChallenge(401, self::CHALLENGE)
-            ->willAnswerJson(self::resourceDocument())
-            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson($this->resourceDocument())
+            ->willAnswerJson($this->serverDocument())
             ->willAnswerJson(['client_id' => 'the-client'])
             ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer'])
             ->willAnswerJson(['ok' => true])
             ->willAnswerJson(['ok' => true])
         ;
-        $client = self::client($http);
-        $client->request(self::mcpRequest(), new NullCancellation());
+        $client = $this->client($http);
+        $client->request($this->mcpRequest(), new NullCancellation());
 
         $client->request(new Request('https://127.0.0.1:1/tenant-b/mcp', 'POST', '{}'), new NullCancellation());
 
@@ -142,10 +142,10 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testASameOriginRedirectLeavingTheResourceIsRefused(): void
     {
-        $http = self::scriptChallengeAndFlow()->willRedirectTo('https://127.0.0.1:1/admin/secrets');
+        $http = $this->scriptChallengeAndFlow()->willRedirectTo('https://127.0.0.1:1/admin/secrets');
 
         try {
-            self::client($http)->request(self::mcpRequest(), new NullCancellation());
+            $this->client($http)->request($this->mcpRequest(), new NullCancellation());
             self::fail('The redirect should have been refused.');
         } catch (RedirectRefusedException $e) {
             self::assertSame(
@@ -160,14 +160,14 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
         $http = (new RecordingHttpClient())
             ->willChallenge(401, self::CHALLENGE)
             ->willRedirectTo('http://169.254.169.254/latest/meta-data')
-            ->willAnswerJson(self::resourceDocument())
-            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson($this->resourceDocument())
+            ->willAnswerJson($this->serverDocument())
             ->willAnswerJson(['client_id' => 'the-client'])
             ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer'])
             ->willAnswerJson(['ok' => true])
         ;
 
-        $response = self::client($http)->request(self::mcpRequest(), new NullCancellation());
+        $response = $this->client($http)->request($this->mcpRequest(), new NullCancellation());
 
         self::assertSame(200, $response->getStatus());
         self::assertNotContains(
@@ -179,10 +179,10 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testARedirectOffTheMcpServerIsRefusedBeforeTheCredentialTravels(): void
     {
-        $http = self::scriptChallengeAndFlow()->willRedirectTo('https://attacker.example.com/mcp');
+        $http = $this->scriptChallengeAndFlow()->willRedirectTo('https://attacker.example.com/mcp');
 
         try {
-            self::client($http)->request(self::mcpRequest(), new NullCancellation());
+            $this->client($http)->request($this->mcpRequest(), new NullCancellation());
             self::fail('The redirect should have been refused.');
         } catch (RedirectRefusedException $e) {
             self::assertSame(
@@ -196,10 +196,10 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testASchemeDowngradeIsRefusedBeforeTheCredentialTravels(): void
     {
-        $http = self::scriptChallengeAndFlow()->willRedirectTo('http://127.0.0.1:1/mcp');
+        $http = $this->scriptChallengeAndFlow()->willRedirectTo('http://127.0.0.1:1/mcp');
 
         try {
-            self::client($http)->request(self::mcpRequest(), new NullCancellation());
+            $this->client($http)->request($this->mcpRequest(), new NullCancellation());
             self::fail('The downgrade should have been refused.');
         } catch (RedirectRefusedException $e) {
             self::assertSame(
@@ -214,12 +214,12 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testARedirectWithinTheMcpServerIsFollowedWithTheCredential(): void
     {
-        $http = self::scriptChallengeAndFlow()
+        $http = $this->scriptChallengeAndFlow()
             ->willRedirectTo('https://127.0.0.1:1/mcp/v2')
             ->willAnswerJson(['ok' => true])
         ;
 
-        $response = self::client($http)->request(self::mcpRequest(), new NullCancellation());
+        $response = $this->client($http)->request($this->mcpRequest(), new NullCancellation());
 
         self::assertSame(200, $response->getStatus());
         self::assertSame('https://127.0.0.1:1/mcp/v2', (string) $http->readRequest(6)->getUri());
@@ -229,12 +229,12 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     #[DataProvider('provideOnlyARedirectStatusIsFollowedCases')]
     public function testOnlyARedirectStatusIsFollowed(int $status, bool $followed): void
     {
-        $http = self::scriptChallengeAndFlow()
+        $http = $this->scriptChallengeAndFlow()
             ->willAnswerWithHeaders($status, ['location' => 'https://127.0.0.1:1/mcp/v2'])
             ->willAnswerJson(['ok' => true])
         ;
 
-        $response = self::client($http)->request(self::mcpRequest(), new NullCancellation());
+        $response = $this->client($http)->request($this->mcpRequest(), new NullCancellation());
 
         self::assertCount($followed ? 7 : 6, $http->requests);
         self::assertSame($followed ? 200 : $status, $response->getStatus());
@@ -269,12 +269,12 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     public function testAnUntokenedRequestToThisServerIsStillRedirectControlled(): void
     {
         $http = (new RecordingHttpClient())->willRedirectTo('http://127.0.0.1:1/mcp');
-        $request = self::mcpRequest();
+        $request = $this->mcpRequest();
         $request->setHeader('Authorization', 'Bearer a-token-of-the-callers-own');
 
         $this->expectException(RedirectRefusedException::class);
 
-        self::client($http)->request($request, new NullCancellation());
+        $this->client($http)->request($request, new NullCancellation());
     }
 
     public function testAChallengeCannotBeAnsweredFromOffOrigin(): void
@@ -282,7 +282,7 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
         $http = (new RecordingHttpClient())->willRedirectTo('https://attacker.example.com/mcp');
 
         try {
-            self::client($http)->request(self::mcpRequest(), new NullCancellation());
+            $this->client($http)->request($this->mcpRequest(), new NullCancellation());
             self::fail('The redirect should have been refused.');
         } catch (RedirectRefusedException) {
             self::assertCount(1, $http->requests, 'Nothing was sent to the redirect target.');
@@ -292,12 +292,12 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     #[DataProvider('provideAGetIsReplayedByAMethodPreservingRedirectCases')]
     public function testAGetIsReplayedByAMethodPreservingRedirect(int $status): void
     {
-        $http = self::scriptChallengeAndFlow()
+        $http = $this->scriptChallengeAndFlow()
             ->willAnswerWithHeaders($status, ['location' => 'https://127.0.0.1:1/mcp/v2'])
             ->willAnswerJson(['ok' => true])
         ;
 
-        $response = self::client($http)->request(
+        $response = $this->client($http)->request(
             new Request(self::RESOURCE, 'GET'),
             new NullCancellation(),
         );
@@ -318,16 +318,16 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testTheHopDropsTheBodyFramingOfTheRequestItReplaces(): void
     {
-        $http = self::scriptChallengeAndFlow()
+        $http = $this->scriptChallengeAndFlow()
             ->willRedirectTo('https://127.0.0.1:1/mcp/v2')
             ->willAnswerJson(['ok' => true])
         ;
-        $request = self::mcpRequest();
+        $request = $this->mcpRequest();
         $request->setHeader('content-type', 'application/json');
         $request->setHeader('content-length', '40');
         $request->setHeader('transfer-encoding', 'chunked');
 
-        self::client($http)->request($request, new NullCancellation());
+        $this->client($http)->request($request, new NullCancellation());
 
         $hop = $http->readRequest(6);
         self::assertNull($hop->getHeader('content-type'));
@@ -337,7 +337,7 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testTheRedirectBudgetIsSpentExactlyOnce(): void
     {
-        $withinBudget = self::scriptChallengeAndFlow();
+        $withinBudget = $this->scriptChallengeAndFlow();
 
         for ($hop = 1; $hop <= 10; ++$hop) {
             $withinBudget->willRedirectTo('https://127.0.0.1:1/mcp/'.$hop);
@@ -347,19 +347,19 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
         self::assertSame(
             200,
-            self::client($withinBudget)->request(self::mcpRequest(), new NullCancellation())->getStatus(),
+            $this->client($withinBudget)->request($this->mcpRequest(), new NullCancellation())->getStatus(),
             'Ten hops is the budget an unsealed client would have spent.',
         );
     }
 
     public function testAnAnswerNamingTwoLocationsIsNotFollowed(): void
     {
-        $http = self::scriptChallengeAndFlow()->willAnswerWithHeaders(
+        $http = $this->scriptChallengeAndFlow()->willAnswerWithHeaders(
             302,
             ['location' => ['https://127.0.0.1:1/a', 'https://127.0.0.1:1/b']],
         );
 
-        $response = self::client($http)->request(self::mcpRequest(), new NullCancellation());
+        $response = $this->client($http)->request($this->mcpRequest(), new NullCancellation());
 
         self::assertSame(302, $response->getStatus());
         self::assertCount(6, $http->requests);
@@ -367,9 +367,9 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testAnUnreadableLocationIsNotFollowed(): void
     {
-        $http = self::scriptChallengeAndFlow()->willAnswerWithHeaders(302, ['location' => ':://not a uri']);
+        $http = $this->scriptChallengeAndFlow()->willAnswerWithHeaders(302, ['location' => ':://not a uri']);
 
-        $response = self::client($http)->request(self::mcpRequest(), new NullCancellation());
+        $response = $this->client($http)->request($this->mcpRequest(), new NullCancellation());
 
         self::assertSame(302, $response->getStatus());
         self::assertCount(6, $http->requests);
@@ -377,7 +377,7 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testAnEndlessRedirectLoopIsReportedAsTooManyRedirects(): void
     {
-        $http = self::scriptChallengeAndFlow();
+        $http = $this->scriptChallengeAndFlow();
 
         for ($hop = 1; $hop <= 11; ++$hop) {
             $http->willRedirectTo('https://127.0.0.1:1/mcp/'.$hop);
@@ -387,41 +387,41 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
         $this->expectException(TooManyRedirectsException::class);
 
-        self::client($http)->request(self::mcpRequest(), new NullCancellation());
+        $this->client($http)->request($this->mcpRequest(), new NullCancellation());
     }
 
     public function testAFollowedRedirectIsChainedOntoTheAnswerItProduced(): void
     {
-        $http = self::scriptChallengeAndFlow()
+        $http = $this->scriptChallengeAndFlow()
             ->willRedirectTo('https://127.0.0.1:1/mcp/v2')
             ->willAnswerJson(['ok' => true])
         ;
 
-        $response = self::client($http)->request(self::mcpRequest(), new NullCancellation());
+        $response = $this->client($http)->request($this->mcpRequest(), new NullCancellation());
 
         self::assertSame(302, $response->getPreviousResponse()?->getStatus());
     }
 
     public function testAFollowedRedirectDrainsTheAnswerItReplaces(): void
     {
-        $http = self::scriptChallengeAndFlow()
+        $http = $this->scriptChallengeAndFlow()
             ->willRedirectTo('https://127.0.0.1:1/mcp/v2')
             ->willAnswerJson(['ok' => true])
         ;
 
-        self::client($http)->request(self::mcpRequest(), new NullCancellation());
+        $this->client($http)->request($this->mcpRequest(), new NullCancellation());
 
         self::assertTrue($http->drainedBodies[5] ?? false, 'The redirect answer is drained before the hop.');
     }
 
     public function testFollowingARedirectLeavesTheRequestThatProducedItUntouched(): void
     {
-        $http = self::scriptChallengeAndFlow()
+        $http = $this->scriptChallengeAndFlow()
             ->willRedirectTo('https://127.0.0.1:1/mcp/v2')
             ->willAnswerJson(['ok' => true])
         ;
 
-        self::client($http)->request(self::mcpRequest(), new NullCancellation());
+        $this->client($http)->request($this->mcpRequest(), new NullCancellation());
 
         self::assertSame('https://127.0.0.1:1/mcp', (string) $http->readRequest(5)->getUri());
         self::assertSame('POST', $http->readRequest(5)->getMethod());
@@ -430,10 +430,10 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testARefusedRedirectIsDrainedSoItsConnectionIsReleased(): void
     {
-        $http = self::scriptChallengeAndFlow()->willRedirectTo('http://127.0.0.1:1/mcp');
+        $http = $this->scriptChallengeAndFlow()->willRedirectTo('http://127.0.0.1:1/mcp');
 
         try {
-            self::client($http)->request(self::mcpRequest(), new NullCancellation());
+            $this->client($http)->request($this->mcpRequest(), new NullCancellation());
             self::fail('The redirect should have been refused.');
         } catch (RedirectRefusedException) {
             self::assertTrue($http->drainedBodies[5] ?? false);
@@ -447,7 +447,7 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
             'Bearer resource_metadata="https://attacker.example.com/prm", scope="admin:everything"',
         );
 
-        $response = self::client($http)->request(
+        $response = $this->client($http)->request(
             new Request('https://attacker.example.com/mcp', 'POST', '{}'),
             new NullCancellation(),
         );
@@ -460,21 +460,21 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())->willAnswerFrom('https://elsewhere.example.com/mcp', ['ok' => true]);
 
-        self::assertSame(200, self::client($http)->request(self::mcpRequest(), new NullCancellation())->getStatus());
+        self::assertSame(200, $this->client($http)->request($this->mcpRequest(), new NullCancellation())->getStatus());
     }
 
     public function testTheChallengeSteersDiscoveryToTheAdvertisedUrl(): void
     {
         $http = (new RecordingHttpClient())
             ->willChallenge(401, 'Bearer resource_metadata="https://127.0.0.1:1/custom/prm"')
-            ->willAnswerJson(self::resourceDocument())
-            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson($this->resourceDocument())
+            ->willAnswerJson($this->serverDocument())
             ->willAnswerJson(['client_id' => 'the-client'])
             ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer'])
             ->willAnswerJson(['ok' => true])
         ;
 
-        self::client($http)->request(self::mcpRequest(), new NullCancellation());
+        $this->client($http)->request($this->mcpRequest(), new NullCancellation());
 
         self::assertSame('https://127.0.0.1:1/custom/prm', (string) $http->readRequest(1)->getUri());
     }
@@ -483,15 +483,15 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())
             ->willChallenge(401, 'Bearer resource_metadata="https://127.0.0.1:1/.well-known/oauth-protected-resource/mcp", scope="files:read"')
-            ->willAnswerJson(self::resourceDocument())
-            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson($this->resourceDocument())
+            ->willAnswerJson($this->serverDocument())
             ->willAnswerJson(['client_id' => 'the-client'])
             ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer'])
             ->willAnswerJson(['ok' => true])
         ;
         $user = new ScriptedUserAuthorization();
 
-        self::client($http, $user)->request(self::mcpRequest(), new NullCancellation());
+        $this->client($http, $user)->request($this->mcpRequest(), new NullCancellation());
 
         self::assertSame(['files:read'], $user->readRequestedScopes());
     }
@@ -500,17 +500,17 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())
             ->willChallenge(401, self::CHALLENGE)
-            ->willAnswerJson(self::resourceDocument())
-            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson($this->resourceDocument())
+            ->willAnswerJson($this->serverDocument())
             ->willAnswerJson(['client_id' => 'the-client'])
             ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer'])
             ->willAnswerJson(['ok' => true])
             ->willAnswerJson(['ok' => true])
         ;
-        $client = self::client($http);
+        $client = $this->client($http);
 
-        $client->request(self::mcpRequest(), new NullCancellation());
-        $client->request(self::mcpRequest(), new NullCancellation());
+        $client->request($this->mcpRequest(), new NullCancellation());
+        $client->request($this->mcpRequest(), new NullCancellation());
 
         self::assertCount(7, $http->requests);
         self::assertSame('Bearer the-access-token', $http->readRequest(6)->getHeader('Authorization'));
@@ -520,14 +520,14 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())
             ->willChallenge(401, self::CHALLENGE)
-            ->willAnswerJson(self::resourceDocument())
-            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson($this->resourceDocument())
+            ->willAnswerJson($this->serverDocument())
             ->willAnswerJson(['client_id' => 'the-client'])
             ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer'])
             ->willChallenge(401, self::CHALLENGE)
         ;
 
-        $response = self::client($http)->request(self::mcpRequest(), new NullCancellation());
+        $response = $this->client($http)->request($this->mcpRequest(), new NullCancellation());
 
         self::assertSame(401, $response->getStatus());
         self::assertCount(6, $http->requests);
@@ -535,14 +535,14 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testAnInsufficientScopeChallengeStepsTheScopesUpAndRetries(): void
     {
-        $http = self::scriptChallengeAndFlow()
+        $http = $this->scriptChallengeAndFlow()
             ->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:write"')
             ->willAnswerJson(['access_token' => 'the-wider-token', 'token_type' => 'Bearer'])
             ->willAnswerJson(['ok' => true])
         ;
         $user = new ScriptedUserAuthorization();
 
-        $response = self::client($http, $user)->request(self::mcpRequest(), new NullCancellation());
+        $response = $this->client($http, $user)->request($this->mcpRequest(), new NullCancellation());
 
         self::assertSame(200, $response->getStatus());
         self::assertSame(['files:write'], $user->readRequestedScopes(1));
@@ -555,8 +555,8 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())
             ->willChallenge(401, self::CHALLENGE)
-            ->willAnswerJson(self::resourceDocument())
-            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson($this->resourceDocument())
+            ->willAnswerJson($this->serverDocument())
             ->willAnswerJson(['client_id' => 'the-client'])
             ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer', 'scope' => 'files:read'])
             ->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:read"')
@@ -565,7 +565,7 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
         $logger = new ArrayLogger();
 
         try {
-            self::client($http, $user, logger: $logger)->request(self::mcpRequest(), new NullCancellation());
+            $this->client($http, $user, logger: $logger)->request($this->mcpRequest(), new NullCancellation());
 
             self::fail('An unwinnable scope challenge must be reported to the caller.');
         } catch (InsufficientScopeException $e) {
@@ -586,12 +586,12 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testAScopeChallengeNamingOnlyUnusableScopesSaysSoRatherThanClaimingItNamedNone(): void
     {
-        $http = self::scriptChallengeAndFlow()->willChallenge(403, "Bearer error=\"insufficient_scope\", scope=\"fil\xc3\xa9s:read\"");
+        $http = $this->scriptChallengeAndFlow()->willChallenge(403, "Bearer error=\"insufficient_scope\", scope=\"fil\xc3\xa9s:read\"");
         $user = new ScriptedUserAuthorization();
         $logger = new ArrayLogger();
 
         try {
-            self::client($http, $user, logger: $logger)->request(self::mcpRequest(), new NullCancellation());
+            $this->client($http, $user, logger: $logger)->request($this->mcpRequest(), new NullCancellation());
 
             self::fail('A challenge naming only unusable scopes must be reported to the caller.');
         } catch (InsufficientScopeException $e) {
@@ -614,12 +614,12 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testAScopeChallengeNamingNoScopeAtAllIsReported(): void
     {
-        $http = self::scriptChallengeAndFlow()->willChallenge(403, 'Bearer error="insufficient_scope"');
+        $http = $this->scriptChallengeAndFlow()->willChallenge(403, 'Bearer error="insufficient_scope"');
         $user = new ScriptedUserAuthorization();
         $logger = new ArrayLogger();
 
         try {
-            self::client($http, $user, logger: $logger)->request(self::mcpRequest(), new NullCancellation());
+            $this->client($http, $user, logger: $logger)->request($this->mcpRequest(), new NullCancellation());
 
             self::fail('An unwinnable scope challenge must be reported to the caller.');
         } catch (InsufficientScopeException $e) {
@@ -642,8 +642,8 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())
             ->willChallenge(401, self::CHALLENGE)
-            ->willAnswerJson(self::resourceDocument())
-            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson($this->resourceDocument())
+            ->willAnswerJson($this->serverDocument())
             ->willAnswerJson(['client_id' => 'the-client'])
             ->willAnswerJson(['access_token' => 'token-1', 'token_type' => 'Bearer', 'scope' => 'files:read'])
             ->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:write"')
@@ -654,7 +654,7 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
         ;
         $user = new ScriptedUserAuthorization();
 
-        $response = self::client($http, $user)->request(self::mcpRequest(), new NullCancellation());
+        $response = $this->client($http, $user)->request($this->mcpRequest(), new NullCancellation());
 
         self::assertSame(200, $response->getStatus());
         self::assertCount(10, $http->requests);
@@ -666,23 +666,23 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())
             ->willChallenge(401, self::CHALLENGE)
-            ->willAnswerJson(self::resourceDocument())
-            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson($this->resourceDocument())
+            ->willAnswerJson($this->serverDocument())
             ->willAnswerJson(['client_id' => 'the-client'])
             ->willAnswerJson(['access_token' => 'the-wide-token', 'token_type' => 'Bearer', 'scope' => 'files:admin'])
             ->willAnswerJson(['ok' => true])
             ->willChallenge(401, self::CHALLENGE)
-            ->willAnswerJson(self::resourceDocument())
-            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson($this->resourceDocument())
+            ->willAnswerJson($this->serverDocument())
             ->willAnswerJson(['access_token' => 'the-narrow-token', 'token_type' => 'Bearer', 'scope' => 'files:read'])
             ->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:admin"')
             ->willAnswerJson(['access_token' => 'the-widened-token', 'token_type' => 'Bearer', 'scope' => 'files:read files:admin'])
             ->willAnswerJson(['ok' => true])
         ;
-        $client = self::client($http);
-        $client->request(self::mcpRequest(), new NullCancellation());
+        $client = $this->client($http);
+        $client->request($this->mcpRequest(), new NullCancellation());
 
-        $response = $client->request(self::mcpRequest(), new NullCancellation());
+        $response = $client->request($this->mcpRequest(), new NullCancellation());
 
         self::assertSame(200, $response->getStatus());
         self::assertCount(13, $http->requests);
@@ -691,44 +691,44 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testTheFailPolicyReportsTheChallengedScopesInsteadOfAskingForThem(): void
     {
-        $http = self::scriptChallengeAndFlow()->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:write files:admin"');
+        $http = $this->scriptChallengeAndFlow()->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:write files:admin"');
         $user = new ScriptedUserAuthorization();
 
         $this->expectException(InsufficientScopeException::class);
         $this->expectExceptionMessageIs('The MCP server requires the scope "files:write files:admin".');
 
-        self::client($http, $user, policy: InsufficientScopePolicy::Fail)->request(self::mcpRequest(), new NullCancellation());
+        $this->client($http, $user, policy: InsufficientScopePolicy::Fail)->request($this->mcpRequest(), new NullCancellation());
     }
 
     public function testTheFailPolicyDistinguishesAChallengeThatNamedNoScope(): void
     {
-        $http = self::scriptChallengeAndFlow()->willChallenge(403, 'Bearer error="insufficient_scope"');
+        $http = $this->scriptChallengeAndFlow()->willChallenge(403, 'Bearer error="insufficient_scope"');
         $user = new ScriptedUserAuthorization();
 
         $this->expectException(InsufficientScopeException::class);
         $this->expectExceptionMessageIs('The MCP server answered insufficient_scope without naming a scope.');
 
-        self::client($http, $user, policy: InsufficientScopePolicy::Fail)->request(self::mcpRequest(), new NullCancellation());
+        $this->client($http, $user, policy: InsufficientScopePolicy::Fail)->request($this->mcpRequest(), new NullCancellation());
     }
 
     public function testTheFailPolicyDistinguishesAChallengeWhoseScopesWereAllDropped(): void
     {
-        $http = self::scriptChallengeAndFlow()->willChallenge(403, "Bearer error=\"insufficient_scope\", scope=\"fil\xc3\xa9s:read\"");
+        $http = $this->scriptChallengeAndFlow()->willChallenge(403, "Bearer error=\"insufficient_scope\", scope=\"fil\xc3\xa9s:read\"");
         $user = new ScriptedUserAuthorization();
 
         $this->expectException(InsufficientScopeException::class);
         $this->expectExceptionMessageIs('The MCP server named only scopes that are not RFC 6749 scope-tokens, so none can be requested.');
 
-        self::client($http, $user, policy: InsufficientScopePolicy::Fail)->request(self::mcpRequest(), new NullCancellation());
+        $this->client($http, $user, policy: InsufficientScopePolicy::Fail)->request($this->mcpRequest(), new NullCancellation());
     }
 
     public function testTheFailPolicyOpensNoSecondConsentScreen(): void
     {
-        $http = self::scriptChallengeAndFlow()->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:write"');
+        $http = $this->scriptChallengeAndFlow()->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:write"');
         $user = new ScriptedUserAuthorization();
 
         try {
-            self::client($http, $user, policy: InsufficientScopePolicy::Fail)->request(self::mcpRequest(), new NullCancellation());
+            $this->client($http, $user, policy: InsufficientScopePolicy::Fail)->request($this->mcpRequest(), new NullCancellation());
             self::fail('The insufficient-scope answer should have surfaced.');
         } catch (InsufficientScopeException $e) {
             self::assertSame(['files:write'], $e->required);
@@ -741,12 +741,12 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testTheFailPolicyIsNotDefeatedByAnExhaustedUpgradeBudget(): void
     {
-        $http = self::scriptChallengeAndFlow()->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:write"');
+        $http = $this->scriptChallengeAndFlow()->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:write"');
         $logger = new ArrayLogger();
 
         try {
-            self::client($http, logger: $logger, maxScopeUpgrades: 0, policy: InsufficientScopePolicy::Fail)
-                ->request(self::mcpRequest(), new NullCancellation())
+            $this->client($http, logger: $logger, maxScopeUpgrades: 0, policy: InsufficientScopePolicy::Fail)
+                ->request($this->mcpRequest(), new NullCancellation())
             ;
 
             self::fail('The insufficient-scope answer should have surfaced.');
@@ -761,8 +761,8 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())
             ->willChallenge(401, self::CHALLENGE)
-            ->willAnswerJson(self::resourceDocument())
-            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson($this->resourceDocument())
+            ->willAnswerJson($this->serverDocument())
             ->willAnswerJson(['client_id' => 'the-client'])
             ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer', 'scope' => 'files:read'])
             ->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:read"')
@@ -770,7 +770,7 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
         $logger = new ArrayLogger();
 
         try {
-            self::client($http, logger: $logger, policy: InsufficientScopePolicy::Fail)->request(self::mcpRequest(), new NullCancellation());
+            $this->client($http, logger: $logger, policy: InsufficientScopePolicy::Fail)->request($this->mcpRequest(), new NullCancellation());
 
             self::fail('The insufficient-scope answer should have surfaced.');
         } catch (InsufficientScopeException $e) {
@@ -784,22 +784,22 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())
             ->willChallenge(401, self::CHALLENGE)
-            ->willAnswerJson(self::resourceDocument())
-            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson($this->resourceDocument())
+            ->willAnswerJson($this->serverDocument())
             ->willAnswerJson(['client_id' => 'the-client'])
             ->willAnswerJson(['access_token' => 'token-1', 'token_type' => 'Bearer', 'scope' => 'files:read', 'expires_in' => 1])
             ->willAnswerJson(['ok' => true])
             ->willChallenge(401, self::CHALLENGE)
-            ->willAnswerJson(self::resourceDocument())
-            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson($this->resourceDocument())
+            ->willAnswerJson($this->serverDocument())
             ->willAnswerJson(['access_token' => 'token-2', 'token_type' => 'Bearer'])
             ->willAnswerJson(['ok' => true])
         ;
         $user = new ScriptedUserAuthorization();
-        $client = self::client($http, $user);
+        $client = $this->client($http, $user);
 
-        $client->request(self::mcpRequest(), new NullCancellation());
-        $client->request(self::mcpRequest(), new NullCancellation());
+        $client->request($this->mcpRequest(), new NullCancellation());
+        $client->request($this->mcpRequest(), new NullCancellation());
 
         self::assertSame(['files:read'], $user->readRequestedScopes(1));
     }
@@ -809,18 +809,18 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
         $http = (new RecordingHttpClient())
             ->willChallenge(401, self::CHALLENGE)
             ->willChallenge(401, self::CHALLENGE)
-            ->willAnswerJson(self::resourceDocument())
-            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson($this->resourceDocument())
+            ->willAnswerJson($this->serverDocument())
             ->willAnswerJson(['client_id' => 'the-client'])
             ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer'])
             ->willAnswerJson(['ok' => true])
             ->willAnswerJson(['ok' => true])
         ;
         $user = new ScriptedUserAuthorization();
-        $client = self::client($http, $user);
+        $client = $this->client($http, $user);
 
-        $first = async(static fn(): Response => $client->request(self::mcpRequest(), new NullCancellation()));
-        $second = async(static fn(): Response => $client->request(self::mcpRequest(), new NullCancellation()));
+        $first = async(fn(): Response => $client->request($this->mcpRequest(), new NullCancellation()));
+        $second = async(fn(): Response => $client->request($this->mcpRequest(), new NullCancellation()));
 
         $first->await();
         $second->await();
@@ -830,9 +830,9 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testAForbiddenAnswerThatIsNotAScopeChallengeIsReturned(): void
     {
-        $http = self::scriptChallengeAndFlow()->willChallenge(403, 'Bearer error="invalid_token"');
+        $http = $this->scriptChallengeAndFlow()->willChallenge(403, 'Bearer error="invalid_token"');
 
-        $response = self::client($http)->request(self::mcpRequest(), new NullCancellation());
+        $response = $this->client($http)->request($this->mcpRequest(), new NullCancellation());
 
         self::assertSame(403, $response->getStatus());
         self::assertCount(6, $http->requests);
@@ -840,9 +840,9 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testAForbiddenAnswerWithNoChallengeIsReturned(): void
     {
-        $http = self::scriptChallengeAndFlow()->willAnswerJson(['error' => 'nope'], 403);
+        $http = $this->scriptChallengeAndFlow()->willAnswerJson(['error' => 'nope'], 403);
 
-        $response = self::client($http)->request(self::mcpRequest(), new NullCancellation());
+        $response = $this->client($http)->request($this->mcpRequest(), new NullCancellation());
 
         self::assertSame(403, $response->getStatus());
         self::assertCount(6, $http->requests);
@@ -850,7 +850,7 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testScopeUpgradesAreCappedAndTheExhaustionIsReported(): void
     {
-        $http = self::scriptChallengeAndFlow()
+        $http = $this->scriptChallengeAndFlow()
             ->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:write"')
             ->willAnswerJson(['access_token' => 'the-wider-token', 'token_type' => 'Bearer'])
             ->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:admin"')
@@ -858,7 +858,7 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
         $logger = new ArrayLogger();
 
         try {
-            self::client($http, logger: $logger, maxScopeUpgrades: 1)->request(self::mcpRequest(), new NullCancellation());
+            $this->client($http, logger: $logger, maxScopeUpgrades: 1)->request($this->mcpRequest(), new NullCancellation());
 
             self::fail('A spent upgrade budget must be reported to the caller.');
         } catch (InsufficientScopeException $e) {
@@ -877,10 +877,10 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testASpentUpgradeBudgetDistinguishesAChallengeThatNamedNoScope(): void
     {
-        $http = self::scriptChallengeAndFlow()->willChallenge(403, 'Bearer error="insufficient_scope"');
+        $http = $this->scriptChallengeAndFlow()->willChallenge(403, 'Bearer error="insufficient_scope"');
 
         try {
-            self::client($http, maxScopeUpgrades: 0)->request(self::mcpRequest(), new NullCancellation());
+            $this->client($http, maxScopeUpgrades: 0)->request($this->mcpRequest(), new NullCancellation());
 
             self::fail('A spent upgrade budget must be reported to the caller.');
         } catch (InsufficientScopeException $e) {
@@ -891,10 +891,10 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testASpentUpgradeBudgetDistinguishesAChallengeWhoseScopesWereAllDropped(): void
     {
-        $http = self::scriptChallengeAndFlow()->willChallenge(403, "Bearer error=\"insufficient_scope\", scope=\"fil\xc3\xa9s:read\"");
+        $http = $this->scriptChallengeAndFlow()->willChallenge(403, "Bearer error=\"insufficient_scope\", scope=\"fil\xc3\xa9s:read\"");
 
         try {
-            self::client($http, maxScopeUpgrades: 0)->request(self::mcpRequest(), new NullCancellation());
+            $this->client($http, maxScopeUpgrades: 0)->request($this->mcpRequest(), new NullCancellation());
 
             self::fail('A spent upgrade budget must be reported to the caller.');
         } catch (InsufficientScopeException $e) {
@@ -910,14 +910,14 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())
             ->willAnswerJson([], 401)
-            ->willAnswerJson(self::resourceDocument())
-            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson($this->resourceDocument())
+            ->willAnswerJson($this->serverDocument())
             ->willAnswerJson(['client_id' => 'the-client'])
             ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer'])
             ->willAnswerJson(['ok' => true])
         ;
 
-        $response = self::client($http)->request(self::mcpRequest(), new NullCancellation());
+        $response = $this->client($http)->request($this->mcpRequest(), new NullCancellation());
 
         self::assertSame(200, $response->getStatus());
         self::assertSame(
@@ -930,39 +930,39 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())
             ->willChallenge(401, self::CHALLENGE)
-            ->willAnswerJson(self::resourceDocument())
-            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson($this->resourceDocument())
+            ->willAnswerJson($this->serverDocument())
             ->willAnswerJson(['client_id' => 'the-client'])
             ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer', 'scope' => 'files:read'])
             ->willAnswerJson(['ok' => true])
             ->willChallenge(401, self::CHALLENGE)
-            ->willAnswerJson(self::resourceDocument())
-            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson($this->resourceDocument())
+            ->willAnswerJson($this->serverDocument())
             ->willAnswerJson(['access_token' => 'the-second-token', 'token_type' => 'Bearer'])
             ->willAnswerJson(['ok' => true])
         ;
         $user = new ScriptedUserAuthorization();
-        $client = self::client($http, $user);
+        $client = $this->client($http, $user);
 
-        $client->request(self::mcpRequest(), new NullCancellation());
-        $client->request(self::mcpRequest(), new NullCancellation());
+        $client->request($this->mcpRequest(), new NullCancellation());
+        $client->request($this->mcpRequest(), new NullCancellation());
 
         self::assertSame(['files:read'], $user->readRequestedScopes(1));
     }
 
     public function testARejectedTokenIsDroppedEvenWhenReauthorizingFails(): void
     {
-        $http = self::scriptChallengeAndFlow()
+        $http = $this->scriptChallengeAndFlow()
             ->willAnswerJson(['ok' => true])
             ->willChallenge(401, self::CHALLENGE)
             ->willFail(new HttpException('The network is gone.'))
         ;
         $store = new InMemoryTokenStore();
-        $client = self::client($http, tokens: $store);
-        $client->request(self::mcpRequest(), new NullCancellation());
+        $client = $this->client($http, tokens: $store);
+        $client->request($this->mcpRequest(), new NullCancellation());
 
         try {
-            $client->request(self::mcpRequest(), new NullCancellation());
+            $client->request($this->mcpRequest(), new NullCancellation());
             self::fail('The failed discovery should have surfaced.');
         } catch (HttpException) {
             self::assertNull($store->read(self::RESOURCE));
@@ -971,7 +971,7 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testAFreshChallengeFollowsTheResourceToAnotherAuthorizationServer(): void
     {
-        $http = self::scriptChallengeAndFlow()
+        $http = $this->scriptChallengeAndFlow()
             ->willAnswerJson(['ok' => true])
             ->willChallenge(401, self::CHALLENGE)
             ->willAnswerJson(['resource' => self::RESOURCE, 'authorization_servers' => ['https://successor.test']])
@@ -987,10 +987,10 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
             ->willAnswerJson(['ok' => true])
         ;
         $store = new InMemoryTokenStore();
-        $client = self::client($http, tokens: $store);
+        $client = $this->client($http, tokens: $store);
 
-        $client->request(self::mcpRequest(), new NullCancellation());
-        $client->request(self::mcpRequest(), new NullCancellation());
+        $client->request($this->mcpRequest(), new NullCancellation());
+        $client->request($this->mcpRequest(), new NullCancellation());
 
         self::assertSame('https://successor.test', $store->read(self::RESOURCE)?->issuer);
         self::assertSame('https://successor.test/token', (string) $http->readRequest(10)->getUri());
@@ -998,18 +998,18 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testTheChallengeBodyIsDrainedSoItsConnectionIsReleased(): void
     {
-        $http = self::scriptChallengeAndFlow()->willAnswerJson(['ok' => true]);
+        $http = $this->scriptChallengeAndFlow()->willAnswerJson(['ok' => true]);
 
-        self::client($http)->request(self::mcpRequest(), new NullCancellation());
+        $this->client($http)->request($this->mcpRequest(), new NullCancellation());
 
         self::assertTrue($http->drainedBodies[0] ?? false);
     }
 
     public function testAChallengeBodyAtTheDrainCapIsStillRead(): void
     {
-        $http = self::scriptChallengeAndFlow(str_repeat('x', 8_192))->willAnswerJson(['ok' => true]);
+        $http = $this->scriptChallengeAndFlow(str_repeat('x', 8_192))->willAnswerJson(['ok' => true]);
 
-        $response = self::client($http)->request(self::mcpRequest(), new NullCancellation());
+        $response = $this->client($http)->request($this->mcpRequest(), new NullCancellation());
 
         self::assertSame(200, $response->getStatus());
         self::assertTrue($http->drainedBodies[0] ?? false);
@@ -1017,9 +1017,9 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testAnOversizedChallengeBodyIsGivenUpOnButStillAuthorizes(): void
     {
-        $http = self::scriptChallengeAndFlow(str_repeat('x', 8_193))->willAnswerJson(['ok' => true]);
+        $http = $this->scriptChallengeAndFlow(str_repeat('x', 8_193))->willAnswerJson(['ok' => true]);
 
-        $response = self::client($http)->request(self::mcpRequest(), new NullCancellation());
+        $response = $this->client($http)->request($this->mcpRequest(), new NullCancellation());
 
         self::assertSame(200, $response->getStatus());
         self::assertFalse($http->drainedBodies[0] ?? false);
@@ -1029,14 +1029,14 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())
             ->willChallengeWithAnUnreadableBody(401, self::CHALLENGE, new HttpException('Invalid hexadecimal chunk size.'))
-            ->willAnswerJson(self::resourceDocument())
-            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson($this->resourceDocument())
+            ->willAnswerJson($this->serverDocument())
             ->willAnswerJson(['client_id' => 'the-client'])
             ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer'])
             ->willAnswerJson(['ok' => true])
         ;
 
-        $response = self::client($http)->request(self::mcpRequest(), new NullCancellation());
+        $response = $this->client($http)->request($this->mcpRequest(), new NullCancellation());
 
         self::assertSame(200, $response->getStatus());
         self::assertSame('Bearer the-access-token', $http->readRequest(5)->getHeader('Authorization'));
@@ -1044,10 +1044,10 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testTheCallerRequestIsNotMutatedByTheRetry(): void
     {
-        $http = self::scriptChallengeAndFlow()->willAnswerJson(['ok' => true]);
-        $request = self::mcpRequest();
+        $http = $this->scriptChallengeAndFlow()->willAnswerJson(['ok' => true]);
+        $request = $this->mcpRequest();
 
-        self::client($http)->request($request, new NullCancellation());
+        $this->client($http)->request($request, new NullCancellation());
 
         self::assertNull($request->getHeader('Authorization'));
     }
@@ -1056,7 +1056,7 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     {
         $store = new InMemoryTokenStore();
 
-        self::client(self::scriptChallengeAndFlow()->willAnswerJson(['ok' => true]), tokens: $store)->request(self::mcpRequest(), new NullCancellation());
+        $this->client($this->scriptChallengeAndFlow()->willAnswerJson(['ok' => true]), tokens: $store)->request($this->mcpRequest(), new NullCancellation());
 
         self::assertSame('the-access-token', $store->read(self::RESOURCE)?->value);
     }
@@ -1065,7 +1065,7 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     {
         $store = new InMemoryClientRegistrationStore();
 
-        self::client(self::scriptChallengeAndFlow()->willAnswerJson(['ok' => true]), registrations: $store)->request(self::mcpRequest(), new NullCancellation());
+        $this->client($this->scriptChallengeAndFlow()->willAnswerJson(['ok' => true]), registrations: $store)->request($this->mcpRequest(), new NullCancellation());
 
         self::assertSame('the-client', $store->read('https://auth.test')?->clientId);
     }
@@ -1075,15 +1075,15 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
         $tokens = new InMemoryTokenStore();
         $tokens->write(self::RESOURCE, new AccessToken('the-stored-token', 'https://auth.test', time() - 1, 'the-refresh-token'));
         $http = (new RecordingHttpClient())
-            ->willAnswerJson(self::resourceDocument())
-            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson($this->resourceDocument())
+            ->willAnswerJson($this->serverDocument())
             ->willAnswerJson(['client_id' => 'the-client'])
             ->willAnswerJson(['access_token' => 'the-renewed-token', 'token_type' => 'Bearer'])
             ->willAnswerJson(['ok' => true])
         ;
         $user = new ScriptedUserAuthorization();
 
-        $response = self::client($http, $user, $tokens)->request(self::mcpRequest(), new NullCancellation());
+        $response = $this->client($http, $user, $tokens)->request($this->mcpRequest(), new NullCancellation());
 
         self::assertSame(200, $response->getStatus());
         self::assertSame([], $user->redirects);
@@ -1096,12 +1096,12 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
         $tokens = new InMemoryTokenStore();
         $tokens->write(self::RESOURCE, new AccessToken('the-stored-token', 'https://auth.test', time() + 3_600, 'the-refresh-token'));
         $http = (new RecordingHttpClient())
-            ->willAnswerJson(self::resourceDocument())
-            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson($this->resourceDocument())
+            ->willAnswerJson($this->serverDocument())
             ->willAnswerJson(['ok' => true])
         ;
 
-        self::client($http, null, $tokens)->request(self::mcpRequest(), new NullCancellation());
+        $this->client($http, null, $tokens)->request($this->mcpRequest(), new NullCancellation());
 
         self::assertCount(3, $http->requests);
         self::assertSame('Bearer the-stored-token', $http->readRequest(2)->getHeader('Authorization'));
@@ -1112,14 +1112,14 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
         $tokens = new InMemoryTokenStore();
         $tokens->write(self::RESOURCE, new AccessToken('the-stored-token', 'https://auth.test', time() + 30, 'the-refresh-token'));
         $http = (new RecordingHttpClient())
-            ->willAnswerJson(self::resourceDocument())
-            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson($this->resourceDocument())
+            ->willAnswerJson($this->serverDocument())
             ->willAnswerJson(['client_id' => 'the-client'])
             ->willAnswerJson(['access_token' => 'the-renewed-token', 'token_type' => 'Bearer'])
             ->willAnswerJson(['ok' => true])
         ;
 
-        self::client($http, null, $tokens)->request(self::mcpRequest(), new NullCancellation());
+        $this->client($http, null, $tokens)->request($this->mcpRequest(), new NullCancellation());
 
         self::assertCount(5, $http->requests);
         self::assertSame('Bearer the-renewed-token', $http->readRequest(4)->getHeader('Authorization'));
@@ -1129,8 +1129,8 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())
             ->willChallenge(401, self::CHALLENGE)
-            ->willAnswerJson(self::resourceDocument())
-            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson($this->resourceDocument())
+            ->willAnswerJson($this->serverDocument())
             ->willAnswerJson(['client_id' => 'the-client'])
             ->willAnswerJson(['access_token' => 'the-first-token', 'token_type' => 'Bearer'])
             ->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:write"')
@@ -1139,7 +1139,7 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
         ;
         $user = new ScriptedUserAuthorization();
 
-        $response = self::client($http, $user)->request(self::mcpRequest(), new NullCancellation());
+        $response = $this->client($http, $user)->request($this->mcpRequest(), new NullCancellation());
 
         self::assertSame(401, $response->getStatus());
         self::assertCount(2, $user->redirects);
@@ -1150,8 +1150,8 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())
             ->willChallenge(401, self::CHALLENGE)
-            ->willAnswerJson(self::resourceDocument())
-            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson($this->resourceDocument())
+            ->willAnswerJson($this->serverDocument())
             ->willAnswerJson(['ok' => true])
         ;
         $strategy = new ScriptedGrantStrategy(true, new AccessToken('the-machine-token', 'https://auth.test'));
@@ -1160,10 +1160,10 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
             self::RESOURCE,
             new AuthorizationOptions('Example MCP Client'),
             null,
-            self::builderFor($http),
+            $this->builderFor($http),
             grantStrategy: $strategy,
         );
-        $response = $client->request(self::mcpRequest(), new NullCancellation());
+        $response = $client->request($this->mcpRequest(), new NullCancellation());
 
         self::assertSame(200, $response->getStatus());
         self::assertCount(1, $strategy->contexts);
@@ -1179,7 +1179,7 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
             self::RESOURCE,
             new AuthorizationOptions('Example MCP Client'),
             null,
-            self::builderFor(new RecordingHttpClient()),
+            $this->builderFor(new RecordingHttpClient()),
         );
     }
 
@@ -1192,7 +1192,7 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
             self::RESOURCE,
             new AuthorizationOptions('Example MCP Client'),
             new ScriptedUserAuthorization(),
-            self::builderFor(new RecordingHttpClient()),
+            $this->builderFor(new RecordingHttpClient()),
         );
     }
 
@@ -1205,17 +1205,17 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
             self::RESOURCE,
             new AuthorizationOptions('Example MCP Client'),
             new ScriptedUserAuthorization(),
-            self::builderFor(new RecordingHttpClient()),
+            $this->builderFor(new RecordingHttpClient()),
             grantStrategy: new ScriptedGrantStrategy(true),
         );
     }
 
-    private static function builderFor(RecordingHttpClient $http): HttpClientBuilder
+    private function builderFor(RecordingHttpClient $http): HttpClientBuilder
     {
         return (new HttpClientBuilder())->intercept(new DelegatingInterceptor($http));
     }
 
-    private static function client(
+    private function client(
         RecordingHttpClient $http,
         ?ScriptedUserAuthorization $user = null,
         ?InMemoryTokenStore $tokens = null,
@@ -1233,24 +1233,24 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
                 onInsufficientScope: $policy,
             ),
             $user ?? new ScriptedUserAuthorization(),
-            self::builderFor($http),
+            $this->builderFor($http),
             $tokens,
             $registrations,
             $logger ?? new ArrayLogger(),
         );
     }
 
-    private static function mcpRequest(): Request
+    private function mcpRequest(): Request
     {
         return new Request(self::RESOURCE, 'POST', '{"jsonrpc":"2.0","id":1,"method":"ping"}');
     }
 
-    private static function scriptChallengeAndFlow(string $challengeBody = '{}'): RecordingHttpClient
+    private function scriptChallengeAndFlow(string $challengeBody = '{}'): RecordingHttpClient
     {
         return (new RecordingHttpClient())
             ->willChallenge(401, self::CHALLENGE, $challengeBody)
-            ->willAnswerJson(self::resourceDocument())
-            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson($this->resourceDocument())
+            ->willAnswerJson($this->serverDocument())
             ->willAnswerJson(['client_id' => 'the-client'])
             ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer'])
         ;
@@ -1259,7 +1259,7 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     /**
      * @return array<string, mixed>
      */
-    private static function resourceDocument(): array
+    private function resourceDocument(): array
     {
         return ['resource' => self::RESOURCE, 'authorization_servers' => ['https://auth.test']];
     }
@@ -1267,7 +1267,7 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     /**
      * @return array<string, mixed>
      */
-    private static function serverDocument(): array
+    private function serverDocument(): array
     {
         return [
             'issuer' => 'https://auth.test',

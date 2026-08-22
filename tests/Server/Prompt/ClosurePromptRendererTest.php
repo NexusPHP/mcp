@@ -44,7 +44,7 @@ final class ClosurePromptRendererTest extends AbstractMcpTestCase
             },
         );
 
-        $result = $renderer->render(['name' => 'Paul'], self::makeContext());
+        $result = $renderer->render(['name' => 'Paul'], $this->makeContext());
 
         self::assertSame($expected, $result);
         self::assertSame(['arguments' => ['name' => 'Paul'], 'requestId' => 7], $captured);
@@ -61,12 +61,12 @@ final class ClosurePromptRendererTest extends AbstractMcpTestCase
             },
         );
 
-        $renderer->render(null, self::makeContext());
+        $renderer->render(null, $this->makeContext());
 
         self::assertNull($captured['arguments']);
     }
 
-    private static function makeContext(): ServerContext
+    private function makeContext(): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 7),

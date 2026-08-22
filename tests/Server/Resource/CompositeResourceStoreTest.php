@@ -70,7 +70,7 @@ final class CompositeResourceStoreTest extends AbstractMcpTestCase
             ]),
         );
 
-        self::assertSame($expected, $composite->read('file:///etc', self::makeContext()));
+        self::assertSame($expected, $composite->read('file:///etc', $this->makeContext()));
         self::assertFalse($templateCalled);
     }
 
@@ -88,7 +88,7 @@ final class CompositeResourceStoreTest extends AbstractMcpTestCase
             ]),
         );
 
-        self::assertSame($expected, $composite->read('file:///etc', self::makeContext()));
+        self::assertSame($expected, $composite->read('file:///etc', $this->makeContext()));
     }
 
     public function testReadThrowsResourceNotFoundWhenNeitherMatches(): void
@@ -107,7 +107,7 @@ final class CompositeResourceStoreTest extends AbstractMcpTestCase
 
         $this->expectException(ResourceNotFoundException::class);
 
-        $composite->read('http://example.com/etc', self::makeContext());
+        $composite->read('http://example.com/etc', $this->makeContext());
     }
 
     public function testAReaderRaisedRefusalPropagatesRatherThanServingATemplate(): void
@@ -136,7 +136,7 @@ final class CompositeResourceStoreTest extends AbstractMcpTestCase
         );
 
         try {
-            $composite->read('db://users/42', self::makeContext());
+            $composite->read('db://users/42', $this->makeContext());
             self::fail('A refusal the reader raised must reach the caller.');
         } catch (ResourceNotFoundException $e) {
             self::assertSame('Resource "db://users/42" not found.', $e->getMessage());
@@ -218,7 +218,7 @@ final class CompositeResourceStoreTest extends AbstractMcpTestCase
         self::assertSame('b', $second->resources[0]->name);
     }
 
-    private static function makeContext(): ServerContext
+    private function makeContext(): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 1),

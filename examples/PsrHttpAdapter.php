@@ -36,7 +36,7 @@ final readonly class PsrHttpAdapter implements AmpRequestHandler
     #[Override]
     public function handleRequest(AmpRequest $request): AmpResponse
     {
-        return self::adaptResponse($this->handler->handle($this->adaptRequest($request)));
+        return $this->adaptResponse($this->handler->handle($this->adaptRequest($request)));
     }
 
     private function adaptRequest(AmpRequest $request): ServerRequestInterface
@@ -54,18 +54,18 @@ final readonly class PsrHttpAdapter implements AmpRequestHandler
         return $psrRequest;
     }
 
-    private static function adaptResponse(ResponseInterface $response): AmpResponse
+    private function adaptResponse(ResponseInterface $response): AmpResponse
     {
         $body = $response->getBody();
 
-        if (! self::isEventStream($response)) {
-            return new AmpResponse($response->getStatusCode(), self::headers($response), (string) $body);
+        if (! $this->isEventStream($response)) {
+            return new AmpResponse($response->getStatusCode(), $this->headers($response), (string) $body);
         }
 
         $ampResponse = new AmpResponse(
             $response->getStatusCode(),
-            self::headers($response),
-            new ReadableIterableStream(self::readFrames($body)),
+            $this->headers($response),
+            new ReadableIterableStream($this->readFrames($body)),
         );
 
         $ampResponse->onDispose($body->close(...));
@@ -76,7 +76,7 @@ final readonly class PsrHttpAdapter implements AmpRequestHandler
     /**
      * @return array<non-empty-string, list<string>>
      */
-    private static function headers(ResponseInterface $response): array
+    private function headers(ResponseInterface $response): array
     {
         $headers = [];
 
@@ -92,7 +92,7 @@ final readonly class PsrHttpAdapter implements AmpRequestHandler
     /**
      * @return Generator<int, string>
      */
-    private static function readFrames(StreamInterface $body): Generator
+    private function readFrames(StreamInterface $body): Generator
     {
         $frame = $body->read(self::CHUNK);
 
@@ -103,7 +103,7 @@ final readonly class PsrHttpAdapter implements AmpRequestHandler
         }
     }
 
-    private static function isEventStream(ResponseInterface $response): bool
+    private function isEventStream(ResponseInterface $response): bool
     {
         return str_starts_with(strtolower($response->getHeaderLine('Content-Type')), 'text/event-stream');
     }

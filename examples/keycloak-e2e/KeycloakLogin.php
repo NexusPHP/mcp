@@ -48,7 +48,7 @@ final class KeycloakLogin implements UserAuthorizationInterface
         }
 
         $login = new Request(html_entity_decode($matches[1], \ENT_QUOTES | \ENT_HTML5), 'POST');
-        $login->setHeader('cookie', self::cookiesFrom($page));
+        $login->setHeader('cookie', $this->cookiesFrom($page));
         $login->setHeader('content-type', 'application/x-www-form-urlencoded');
         $login->setBody(http_build_query([
             'username' => $this->username,
@@ -69,7 +69,7 @@ final class KeycloakLogin implements UserAuthorizationInterface
         return new AuthorizationCallback($location);
     }
 
-    private static function cookiesFrom(Response $response): string
+    private function cookiesFrom(Response $response): string
     {
         $pairs = [];
 

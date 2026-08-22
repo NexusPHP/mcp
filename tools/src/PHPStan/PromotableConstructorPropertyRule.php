@@ -59,7 +59,7 @@ final class PromotableConstructorPropertyRule implements Rule
             return [];
         }
 
-        $reassigned = self::findReassignedVariables($node);
+        $reassigned = $this->findReassignedVariables($node);
         $parameters = [];
 
         foreach ($class->getConstructor()->getVariants() as $variant) {
@@ -70,7 +70,7 @@ final class PromotableConstructorPropertyRule implements Rule
 
         $errors = [];
 
-        foreach (self::findIdentityAssignments($node) as $name) {
+        foreach ($this->findIdentityAssignments($node) as $name) {
             if (! isset($unpromoted[$name]) || isset($reassigned[$name])) {
                 continue;
             }
@@ -113,7 +113,7 @@ final class PromotableConstructorPropertyRule implements Rule
      *
      * @return array<string, true>
      */
-    private static function findReassignedVariables(Node\Stmt\ClassMethod $constructor): array
+    private function findReassignedVariables(Node\Stmt\ClassMethod $constructor): array
     {
         $names = [];
 
@@ -129,7 +129,7 @@ final class PromotableConstructorPropertyRule implements Rule
     /**
      * @return list<string>
      */
-    private static function findIdentityAssignments(Node\Stmt\ClassMethod $constructor): array
+    private function findIdentityAssignments(Node\Stmt\ClassMethod $constructor): array
     {
         $names = [];
 

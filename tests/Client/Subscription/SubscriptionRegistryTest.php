@@ -45,7 +45,7 @@ final class SubscriptionRegistryTest extends AbstractMcpTestCase
         $registry = new SubscriptionRegistry();
         $seen = [];
 
-        $registry->register(self::buildSubscription(new RequestId(id: 7), static function (JsonRpcNotification $notification) use (&$seen): void {
+        $registry->register($this->buildSubscription(new RequestId(id: 7), static function (JsonRpcNotification $notification) use (&$seen): void {
             $seen[] = $notification::getMethod();
         }));
         $resolved = $registry->get(new RequestId(id: 7));
@@ -62,7 +62,7 @@ final class SubscriptionRegistryTest extends AbstractMcpTestCase
     public function testForgetReturnsTheSubscriptionAndDropsIt(): void
     {
         $registry = new SubscriptionRegistry();
-        $subscription = self::buildSubscription(new RequestId(id: 7));
+        $subscription = $this->buildSubscription(new RequestId(id: 7));
         $registry->register($subscription);
 
         self::assertSame($subscription, $registry->forget(new RequestId(id: 7)));
@@ -79,8 +79,8 @@ final class SubscriptionRegistryTest extends AbstractMcpTestCase
     public function testAllReturnsEverySubscriptionInRegistrationOrder(): void
     {
         $registry = new SubscriptionRegistry();
-        $first = self::buildSubscription(new RequestId(id: 1));
-        $second = self::buildSubscription(new RequestId(id: 'feed'));
+        $first = $this->buildSubscription(new RequestId(id: 1));
+        $second = $this->buildSubscription(new RequestId(id: 'feed'));
         $registry->register($first);
         $registry->register($second);
 
@@ -95,8 +95,8 @@ final class SubscriptionRegistryTest extends AbstractMcpTestCase
     public function testReregisteringAnIdReplacesTheSubscription(): void
     {
         $registry = new SubscriptionRegistry();
-        $registry->register(self::buildSubscription(new RequestId(id: 7)));
-        $replacement = self::buildSubscription(new RequestId(id: 7));
+        $registry->register($this->buildSubscription(new RequestId(id: 7)));
+        $replacement = $this->buildSubscription(new RequestId(id: 7));
         $registry->register($replacement);
 
         self::assertSame([$replacement], $registry->all());
@@ -105,8 +105,8 @@ final class SubscriptionRegistryTest extends AbstractMcpTestCase
     public function testDrainEmptiesTheRegistryAndReturnsWhatItHeld(): void
     {
         $registry = new SubscriptionRegistry();
-        $first = self::buildSubscription(new RequestId(id: 1));
-        $second = self::buildSubscription(new RequestId(id: 2));
+        $first = $this->buildSubscription(new RequestId(id: 1));
+        $second = $this->buildSubscription(new RequestId(id: 2));
         $registry->register($first);
         $registry->register($second);
 
@@ -123,7 +123,7 @@ final class SubscriptionRegistryTest extends AbstractMcpTestCase
     public function testAnIntIdAndItsStringSpellingAreDistinct(): void
     {
         $registry = new SubscriptionRegistry();
-        $registry->register(self::buildSubscription(new RequestId(id: 7)));
+        $registry->register($this->buildSubscription(new RequestId(id: 7)));
 
         self::assertNull($registry->get(new RequestId(id: '7')));
     }
@@ -131,7 +131,7 @@ final class SubscriptionRegistryTest extends AbstractMcpTestCase
     /**
      * @param null|\Closure(JsonRpcNotification<non-empty-string>): void $onNotification
      */
-    private static function buildSubscription(RequestId $id, ?\Closure $onNotification = null): OpenSubscription
+    private function buildSubscription(RequestId $id, ?\Closure $onNotification = null): OpenSubscription
     {
         /** @var DeferredFuture<SubscriptionsListenResult> $outcome */
         $outcome = new DeferredFuture();

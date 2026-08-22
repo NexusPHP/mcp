@@ -42,10 +42,10 @@ final readonly class UiResourceCsp implements Arrayable
         public ?array $frameDomains = null,
         public ?array $baseUriDomains = null,
     ) {
-        self::assertDomainList($connectDomains, 'connectDomains');
-        self::assertDomainList($resourceDomains, 'resourceDomains');
-        self::assertDomainList($frameDomains, 'frameDomains');
-        self::assertDomainList($baseUriDomains, 'baseUriDomains');
+        $this->assertDomainList($connectDomains, 'connectDomains');
+        $this->assertDomainList($resourceDomains, 'resourceDomains');
+        $this->assertDomainList($frameDomains, 'frameDomains');
+        $this->assertDomainList($baseUriDomains, 'baseUriDomains');
     }
 
     #[\Override]
@@ -95,7 +95,7 @@ final readonly class UiResourceCsp implements Arrayable
      * @param null|list<non-empty-string> $domains
      * @param non-empty-string            $slot
      */
-    private static function assertDomainList(?array $domains, string $slot): void
+    private function assertDomainList(?array $domains, string $slot): void
     {
         if (null !== $domains) {
             Assert::that($domains)

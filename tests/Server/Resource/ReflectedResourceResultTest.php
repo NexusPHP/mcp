@@ -36,12 +36,12 @@ final class ReflectedResourceResultTest extends AbstractMcpTestCase
     {
         $expected = new ReadResourceResult(contents: [new TextResourceContents(uri: 'mem://x', text: 'body')], ttlMs: 0, cacheScope: CacheScope::Private);
 
-        self::assertSame($expected, self::adapt($expected));
+        self::assertSame($expected, $this->adapt($expected));
     }
 
     public function testWrapsStringAsTextResourceContents(): void
     {
-        $result = self::adapt('hello', 'mem://greeting');
+        $result = $this->adapt('hello', 'mem://greeting');
 
         $contents = $result->contents[0] ?? null;
 
@@ -57,7 +57,7 @@ final class ReflectedResourceResultTest extends AbstractMcpTestCase
     {
         $blob = new BlobResourceContents(uri: 'mem://b', blob: 'YmJi');
 
-        $result = self::adapt($blob);
+        $result = $this->adapt($blob);
 
         self::assertSame([$blob], $result->contents);
         self::assertSame(0, $result->ttlMs);
@@ -68,7 +68,7 @@ final class ReflectedResourceResultTest extends AbstractMcpTestCase
     {
         $list = [new TextResourceContents(uri: 'mem://t', text: 't'), new BlobResourceContents(uri: 'mem://b', blob: 'YmJi')];
 
-        $result = self::adapt($list);
+        $result = $this->adapt($list);
 
         self::assertSame($list, $result->contents);
         self::assertSame(0, $result->ttlMs);
@@ -79,21 +79,21 @@ final class ReflectedResourceResultTest extends AbstractMcpTestCase
     {
         $this->expectException(UnsupportedReturnValueException::class);
 
-        self::adapt(['main' => new TextResourceContents(uri: 'mem://t', text: 't')]);
+        $this->adapt(['main' => new TextResourceContents(uri: 'mem://t', text: 't')]);
     }
 
     public function testThrowsOnEmptyArray(): void
     {
         $this->expectException(UnsupportedReturnValueException::class);
 
-        self::adapt([]);
+        $this->adapt([]);
     }
 
     public function testThrowsOnNonContentsList(): void
     {
         $this->expectException(UnsupportedReturnValueException::class);
 
-        self::adapt([1, 2]);
+        $this->adapt([1, 2]);
     }
 
     public function testThrowsOnUnsupportedReturn(): void
@@ -101,13 +101,13 @@ final class ReflectedResourceResultTest extends AbstractMcpTestCase
         $this->expectException(UnsupportedReturnValueException::class);
         $this->expectExceptionMessageIs(ReflectedHandlers::class.'::resourceResult() must return a '.ReadResourceResult::class.', a string, or resource contents, int given.');
 
-        self::adapt(7);
+        $this->adapt(7);
     }
 
     /**
      * @param non-empty-string $uri
      */
-    private static function adapt(mixed $result, string $uri = 'mem://resource'): ReadResourceResult
+    private function adapt(mixed $result, string $uri = 'mem://resource'): ReadResourceResult
     {
         $adapted = ReflectedResourceResult::adapt($result, $uri, new \ReflectionMethod(ReflectedHandlers::class, 'resourceResult'));
 

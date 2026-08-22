@@ -63,7 +63,7 @@ final class InputRequiredResultTest extends AbstractMcpTestCase
 
     public function testToArrayInputRequestsOnly(): void
     {
-        $requests = self::inputRequests();
+        $requests = $this->inputRequests();
         $result = new InputRequiredResult(inputRequests: $requests);
 
         self::assertSame($requests, $result->inputRequests);
@@ -77,7 +77,7 @@ final class InputRequiredResultTest extends AbstractMcpTestCase
     public function testRebuildingWithNewMetaKeepsEveryOtherField(): void
     {
         $result = new InputRequiredResult(
-            inputRequests: self::inputRequests(),
+            inputRequests: $this->inputRequests(),
             requestState: 'tok',
             meta: new GenericResultMetaObject(extras: ['vendor.brand' => 'acme']),
         );
@@ -93,7 +93,7 @@ final class InputRequiredResultTest extends AbstractMcpTestCase
     public function testToArrayWithAllFields(): void
     {
         $result = new InputRequiredResult(
-            inputRequests: self::inputRequests(),
+            inputRequests: $this->inputRequests(),
             requestState: 'tok',
             meta: new GenericResultMetaObject(extras: ['vendor.brand' => 'acme']),
         );
@@ -130,7 +130,7 @@ final class InputRequiredResultTest extends AbstractMcpTestCase
     public function testFromArrayFullRoundTrip(): void
     {
         $original = new InputRequiredResult(
-            inputRequests: self::inputRequests(),
+            inputRequests: $this->inputRequests(),
             requestState: 'tok',
             meta: new GenericResultMetaObject(extras: ['vendor.brand' => 'acme']),
         );
@@ -171,7 +171,7 @@ final class InputRequiredResultTest extends AbstractMcpTestCase
 
     public function testConstructorAcceptsAServerAssignedIdThatIsAllDigits(): void
     {
-        $result = new InputRequiredResult(inputRequests: ['0' => self::elicitRequest()]);
+        $result = new InputRequiredResult(inputRequests: ['0' => $this->elicitRequest()]);
 
         self::assertSame([0], array_keys($result->inputRequests ?? []));
         self::assertStringContainsString('"inputRequests":{"0":', (string) json_encode($result));
@@ -298,18 +298,18 @@ final class InputRequiredResultTest extends AbstractMcpTestCase
         $this->expectExceptionMessageIs('each "result.inputRequests" key must be an int or non-empty string.');
 
         // @phpstan-ignore argument.type
-        new InputRequiredResult(inputRequests: ['' => self::elicitRequest()]);
+        new InputRequiredResult(inputRequests: ['' => $this->elicitRequest()]);
     }
 
     /**
      * @return array<int|non-empty-string, ElicitRequest>
      */
-    private static function inputRequests(): array
+    private function inputRequests(): array
     {
-        return ['github_login' => self::elicitRequest()];
+        return ['github_login' => $this->elicitRequest()];
     }
 
-    private static function elicitRequest(): ElicitRequest
+    private function elicitRequest(): ElicitRequest
     {
         return new ElicitRequest(params: new ElicitRequestFormParams(
             message: 'Please provide your GitHub username',

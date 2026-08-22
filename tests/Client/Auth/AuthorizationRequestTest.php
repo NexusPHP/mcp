@@ -34,7 +34,7 @@ final class AuthorizationRequestTest extends AbstractMcpTestCase
 {
     public function testBuildCarriesEveryRequiredParameter(): void
     {
-        $redirect = self::build(new ScopeSet(['files:read', 'files:write']));
+        $redirect = $this->build(new ScopeSet(['files:read', 'files:write']));
 
         self::assertSame([
             'response_type' => 'code',
@@ -45,68 +45,68 @@ final class AuthorizationRequestTest extends AbstractMcpTestCase
             'code_challenge_method' => 'S256',
             'resource' => 'https://mcp.example.com/mcp',
             'scope' => 'files:read files:write',
-        ], self::readQuery($redirect->url));
+        ], $this->readQuery($redirect->url));
     }
 
     public function testBuildTargetsTheAuthorizationEndpoint(): void
     {
-        self::assertStringStartsWith('https://auth.example.com/authorize?', self::build(new ScopeSet())->url);
+        self::assertStringStartsWith('https://auth.example.com/authorize?', $this->build(new ScopeSet())->url);
     }
 
     public function testBuildOmitsTheScopeParameterForAnEmptyScopeSet(): void
     {
-        self::assertArrayNotHasKey('scope', self::readQuery(self::build(new ScopeSet())->url));
+        self::assertArrayNotHasKey('scope', $this->readQuery($this->build(new ScopeSet())->url));
     }
 
     public function testBuildKeepsAQueryTheAuthorizationEndpointAlreadyCarries(): void
     {
-        $redirect = self::build(new ScopeSet(), 'https://auth.example.com/authorize?tenant=acme');
+        $redirect = $this->build(new ScopeSet(), 'https://auth.example.com/authorize?tenant=acme');
 
         self::assertStringStartsWith('https://auth.example.com/authorize?tenant=acme&', $redirect->url);
-        self::assertSame('acme', self::readQuery($redirect->url)['tenant'] ?? null);
+        self::assertSame('acme', $this->readQuery($redirect->url)['tenant'] ?? null);
     }
 
     public function testBuildForcesAConsentScreenWhenItAsksForOfflineAccess(): void
     {
-        $redirect = self::build(new ScopeSet(['files:read', 'offline_access']));
+        $redirect = $this->build(new ScopeSet(['files:read', 'offline_access']));
 
-        self::assertSame('consent', self::readQuery($redirect->url)['prompt'] ?? null);
+        self::assertSame('consent', $this->readQuery($redirect->url)['prompt'] ?? null);
     }
 
     public function testBuildLeavesTheConsentScreenToTheServerOtherwise(): void
     {
-        self::assertArrayNotHasKey('prompt', self::readQuery(self::build(new ScopeSet(['files:read']))->url));
+        self::assertArrayNotHasKey('prompt', $this->readQuery($this->build(new ScopeSet(['files:read']))->url));
     }
 
     public function testBuildRecordsTheIssuerToValidateTheResponseAgainst(): void
     {
-        self::assertSame('https://auth.example.com', self::build(new ScopeSet())->expectedIssuer);
+        self::assertSame('https://auth.example.com', $this->build(new ScopeSet())->expectedIssuer);
     }
 
     public function testBuildRecordsTheRequestedScopes(): void
     {
-        self::assertSame(['files:read'], self::build(new ScopeSet(['files:read']))->requestedScopes->values);
+        self::assertSame(['files:read'], $this->build(new ScopeSet(['files:read']))->requestedScopes->values);
     }
 
     public function testBuildRequiresTheIssuerParameterWhenTheServerAdvertisesIt(): void
     {
-        self::assertTrue(self::build(new ScopeSet(), issuerParameterSupported: true)->issuerParameterRequired);
+        self::assertTrue($this->build(new ScopeSet(), issuerParameterSupported: true)->issuerParameterRequired);
     }
 
     public function testBuildDoesNotRequireTheIssuerParameterWhenTheServerDeniesIt(): void
     {
-        self::assertFalse(self::build(new ScopeSet(), issuerParameterSupported: false)->issuerParameterRequired);
+        self::assertFalse($this->build(new ScopeSet(), issuerParameterSupported: false)->issuerParameterRequired);
     }
 
     public function testBuildDoesNotRequireTheIssuerParameterWhenTheServerIsSilent(): void
     {
-        self::assertFalse(self::build(new ScopeSet())->issuerParameterRequired);
+        self::assertFalse($this->build(new ScopeSet())->issuerParameterRequired);
     }
 
     public function testBuildProducesAFreshStateAndVerifierEachTime(): void
     {
-        $first = self::build(new ScopeSet());
-        $second = self::build(new ScopeSet());
+        $first = $this->build(new ScopeSet());
+        $second = $this->build(new ScopeSet());
 
         self::assertNotSame($first->state, $second->state);
         self::assertNotSame($first->pkce->verifier, $second->pkce->verifier);
@@ -115,7 +115,7 @@ final class AuthorizationRequestTest extends AbstractMcpTestCase
 
     public function testBuildDerivesTheChallengeFromTheVerifierItRecorded(): void
     {
-        $redirect = self::build(new ScopeSet());
+        $redirect = $this->build(new ScopeSet());
 
         self::assertSame(PkcePair::fromVerifier($redirect->pkce->verifier)->challenge, $redirect->pkce->challenge);
     }
@@ -139,7 +139,7 @@ final class AuthorizationRequestTest extends AbstractMcpTestCase
         $this->expectException(UntrustedAuthorizationMetadataException::class);
         $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the authorization endpoint "http://auth.example.com/authorize" is not an absolute HTTPS URL.');
 
-        self::build(new ScopeSet(), 'http://auth.example.com/authorize');
+        $this->build(new ScopeSet(), 'http://auth.example.com/authorize');
     }
 
     public function testBuildRefusesALoopbackAuthorizationEndpointUnlessOptedIn(): void
@@ -147,7 +147,7 @@ final class AuthorizationRequestTest extends AbstractMcpTestCase
         $this->expectException(UntrustedAuthorizationMetadataException::class);
         $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the authorization endpoint "http://127.0.0.1:9000/authorize" is not an absolute HTTPS URL.');
 
-        self::build(new ScopeSet(), 'http://127.0.0.1:9000/authorize');
+        $this->build(new ScopeSet(), 'http://127.0.0.1:9000/authorize');
     }
 
     public function testBuildRefusesANonHttpAuthorizationEndpoint(): void
@@ -155,7 +155,7 @@ final class AuthorizationRequestTest extends AbstractMcpTestCase
         $this->expectException(UntrustedAuthorizationMetadataException::class);
         $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the authorization endpoint "javascript:alert(1)//" is not an absolute HTTPS URL.');
 
-        self::build(new ScopeSet(), 'javascript:alert(1)//');
+        $this->build(new ScopeSet(), 'javascript:alert(1)//');
     }
 
     public function testBuildRefusesAnAuthorizationEndpointCarryingAFragment(): void
@@ -163,13 +163,13 @@ final class AuthorizationRequestTest extends AbstractMcpTestCase
         $this->expectException(UntrustedAuthorizationMetadataException::class);
         $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the authorization endpoint "https://auth.example.com/authorize#done" carries a fragment.');
 
-        self::build(new ScopeSet(), 'https://auth.example.com/authorize#done');
+        $this->build(new ScopeSet(), 'https://auth.example.com/authorize#done');
     }
 
     /**
      * @param non-empty-string $authorizationEndpoint
      */
-    private static function build(
+    private function build(
         ScopeSet $scopes,
         string $authorizationEndpoint = 'https://auth.example.com/authorize',
         ?bool $issuerParameterSupported = null,
@@ -191,7 +191,7 @@ final class AuthorizationRequestTest extends AbstractMcpTestCase
     /**
      * @return array<string, string>
      */
-    private static function readQuery(string $url): array
+    private function readQuery(string $url): array
     {
         $query = parse_url($url, \PHP_URL_QUERY);
 

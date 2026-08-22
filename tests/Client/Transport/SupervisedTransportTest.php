@@ -105,7 +105,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
 
         $transport->start();
 
-        self::assertTrue(self::connectionAt($spawned, 1)->started);
+        self::assertTrue($this->connectionAt($spawned, 1)->started);
         self::assertSame(0, $closes, 'A launch that never succeeded owes the caller no close.');
     }
 
@@ -121,7 +121,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         $transport->start();
 
         try {
-            self::connectionAt($spawned, 0)->emitUnexpectedExit(streamClosesFirst: false);
+            $this->connectionAt($spawned, 0)->emitUnexpectedExit(streamClosesFirst: false);
         } catch (\RuntimeException) {
         }
 
@@ -140,7 +140,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         $transport->start();
 
         self::assertCount(1, $spawned);
-        self::assertTrue(self::connectionAt($spawned, 0)->started);
+        self::assertTrue($this->connectionAt($spawned, 0)->started);
     }
 
     public function testStartTwiceThrows(): void
@@ -176,7 +176,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         $this->expectException(TransportNotStartedException::class);
         $this->expectExceptionMessageIs('Cannot send before start() has been called.');
 
-        $transport->send(self::notification());
+        $transport->send($this->notification());
     }
 
     public function testSendAfterCloseThrows(): void
@@ -189,7 +189,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         $this->expectException(TransportAlreadyClosedException::class);
         $this->expectExceptionMessageIs('Cannot send on a closed transport.');
 
-        $transport->send(self::notification());
+        $transport->send($this->notification());
     }
 
     public function testSendRoutesToTheCurrentConnection(): void
@@ -198,9 +198,9 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         $transport = $this->buildTransport($spawned);
         $transport->start();
 
-        $transport->send(self::notification());
+        $transport->send($this->notification());
 
-        self::assertCount(1, self::connectionAt($spawned, 0)->sent);
+        self::assertCount(1, $this->connectionAt($spawned, 0)->sent);
     }
 
     public function testSendBetweenDeathAndRespawnIsRefused(): void
@@ -209,12 +209,12 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         $transport = $this->buildTransport($spawned);
         $transport->start();
 
-        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        $this->connectionAt($spawned, 0)->emitUnexpectedExit();
 
         $this->expectException(TransportAlreadyClosedException::class);
         $this->expectExceptionMessageIs('Cannot send on a closed transport.');
 
-        $transport->send(self::notification());
+        $transport->send($this->notification());
     }
 
     public function testUnexpectedExitRespawnsAndSendRoutesToTheReplacement(): void
@@ -223,16 +223,16 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         $transport = $this->buildTransport($spawned);
         $transport->start();
 
-        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        $this->connectionAt($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
         self::assertCount(2, $spawned);
-        self::assertTrue(self::connectionAt($spawned, 1)->started);
+        self::assertTrue($this->connectionAt($spawned, 1)->started);
 
-        $transport->send(self::notification());
+        $transport->send($this->notification());
 
-        self::assertSame([], self::connectionAt($spawned, 0)->sent);
-        self::assertCount(1, self::connectionAt($spawned, 1)->sent);
+        self::assertSame([], $this->connectionAt($spawned, 0)->sent);
+        self::assertCount(1, $this->connectionAt($spawned, 1)->sent);
     }
 
     public function testListenersRegisterOnceAndSurviveRespawn(): void
@@ -246,12 +246,12 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         });
 
         $transport->start();
-        self::connectionAt($spawned, 0)->emitMessage(['first' => true]);
+        $this->connectionAt($spawned, 0)->emitMessage(['first' => true]);
 
-        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        $this->connectionAt($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
-        self::connectionAt($spawned, 1)->emitMessage(['second' => true]);
+        $this->connectionAt($spawned, 1)->emitMessage(['second' => true]);
 
         self::assertSame([['first' => true], ['second' => true]], $envelopes);
     }
@@ -273,8 +273,8 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         $transport->start();
 
         $failure = new \RuntimeException('boom');
-        self::connectionAt($spawned, 0)->emitError($failure);
-        self::connectionAt($spawned, 0)->emitDrain();
+        $this->connectionAt($spawned, 0)->emitError($failure);
+        $this->connectionAt($spawned, 0)->emitDrain();
 
         self::assertSame([$failure], $errors);
         self::assertSame(1, $drains);
@@ -292,7 +292,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
 
         $transport->start();
 
-        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        $this->connectionAt($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
         self::assertSame(1, $closes, 'A peer death raises two signals but ends one connection.');
@@ -309,7 +309,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         });
 
         $transport->start();
-        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        $this->connectionAt($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
         $transport->close();
 
@@ -338,11 +338,11 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         $transport = $this->buildTransport($spawned);
         $transport->start();
 
-        self::connectionAt($spawned, 0)->emitUnexpectedExit(streamClosesFirst: false);
+        $this->connectionAt($spawned, 0)->emitUnexpectedExit(streamClosesFirst: false);
         EventLoop::run();
 
         self::assertTrue(
-            self::connectionAt($spawned, 0)->closed,
+            $this->connectionAt($spawned, 0)->closed,
             'A replaced connection must be closed, or its read loop stays parked and leaks.',
         );
     }
@@ -381,7 +381,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         });
 
         $transport->start();
-        self::connectionAt($spawned, 0)->closeError = new \RuntimeException('drain failed');
+        $this->connectionAt($spawned, 0)->closeError = new \RuntimeException('drain failed');
 
         try {
             $transport->close();
@@ -390,11 +390,11 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
 
         self::assertSame(1, $closes, 'A peer failing on the way down must not swallow the close signal.');
 
-        self::connectionAt($spawned, 0)->emitMessage(['jsonrpc' => '2.0', 'method' => 'notifications/progress']);
+        $this->connectionAt($spawned, 0)->emitMessage(['jsonrpc' => '2.0', 'method' => 'notifications/progress']);
         self::assertSame([], $relayed, 'A peer failing on the way down must still be released.');
 
         $this->expectException(TransportAlreadyClosedException::class);
-        $transport->send(self::notification());
+        $transport->send($this->notification());
     }
 
     public function testAThrowingCloseListenerStillReleasesThePeer(): void
@@ -415,7 +415,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
 
         $subscription->dispose();
 
-        self::assertTrue(self::connectionAt($spawned, 0)->closed, 'A listener must not be able to leak the peer.');
+        self::assertTrue($this->connectionAt($spawned, 0)->closed, 'A listener must not be able to leak the peer.');
     }
 
     public function testAFailedStartStillGetsDrainAndCloseWhenLaterClosed(): void
@@ -458,14 +458,14 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
 
         try {
             for ($i = 0; $i < 2; ++$i) {
-                self::connectionAt($spawned, $i)->emitUnexpectedExit();
+                $this->connectionAt($spawned, $i)->emitUnexpectedExit();
                 EventLoop::run();
             }
         } catch (\RuntimeException) {
         }
 
         $this->expectException(TransportAlreadyClosedException::class);
-        $transport->send(self::notification());
+        $transport->send($this->notification());
     }
 
     public function testExplicitCloseStopsSupervision(): void
@@ -477,7 +477,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         $transport->close();
         EventLoop::run();
 
-        self::assertTrue(self::connectionAt($spawned, 0)->closed);
+        self::assertTrue($this->connectionAt($spawned, 0)->closed);
         self::assertCount(1, $spawned, 'An intentional close must not respawn the peer.');
     }
 
@@ -497,7 +497,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         });
 
         $transport->start();
-        self::connectionAt($spawned, 0)->emitUnexpectedExit(streamClosesFirst: false);
+        $this->connectionAt($spawned, 0)->emitUnexpectedExit(streamClosesFirst: false);
         EventLoop::run();
 
         self::assertCount(1, $spawned);
@@ -555,7 +555,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         });
 
         $transport->start();
-        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        $this->connectionAt($spawned, 0)->emitUnexpectedExit();
         delay(0.015);
 
         $transport->close();
@@ -609,7 +609,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         $transport = $this->buildTransport($spawned, restartDelay: 0.05);
         $transport->start();
 
-        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        $this->connectionAt($spawned, 0)->emitUnexpectedExit();
         $transport->close();
         EventLoop::run();
 
@@ -631,7 +631,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         });
 
         $transport->start();
-        $dead = self::connectionAt($spawned, 0);
+        $dead = $this->connectionAt($spawned, 0);
         $dead->emitUnexpectedExit();
         EventLoop::run();
 
@@ -655,8 +655,8 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         $transport->start();
 
         for ($i = 0; $i < 2; ++$i) {
-            self::connectionAt($spawned, $i)->emitMessage(['served' => $i]);
-            self::connectionAt($spawned, $i)->emitUnexpectedExit();
+            $this->connectionAt($spawned, $i)->emitMessage(['served' => $i]);
+            $this->connectionAt($spawned, $i)->emitUnexpectedExit();
             EventLoop::run();
         }
 
@@ -681,12 +681,12 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         );
 
         $transport->start();
-        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        $this->connectionAt($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
         $now = 10.5;
 
-        self::connectionAt($spawned, 1)->emitUnexpectedExit();
+        $this->connectionAt($spawned, 1)->emitUnexpectedExit();
         EventLoop::run();
 
         self::assertCount(3, $spawned, 'A death outside the window is a first attempt again.');
@@ -721,12 +721,12 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         });
 
         $transport->start();
-        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        $this->connectionAt($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
         $now = 10.0;
 
-        self::connectionAt($spawned, 1)->emitUnexpectedExit();
+        $this->connectionAt($spawned, 1)->emitUnexpectedExit();
         EventLoop::run();
 
         self::assertCount(2, $spawned);
@@ -753,12 +753,12 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         });
 
         $transport->start();
-        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        $this->connectionAt($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
         $now = 12.0;
 
-        self::connectionAt($spawned, 1)->emitUnexpectedExit();
+        $this->connectionAt($spawned, 1)->emitUnexpectedExit();
         EventLoop::run();
 
         self::assertCount(2, $spawned);
@@ -777,12 +777,12 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         });
 
         $transport->start();
-        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        $this->connectionAt($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
         delay(0.05);
 
-        self::connectionAt($spawned, 1)->emitUnexpectedExit();
+        $this->connectionAt($spawned, 1)->emitUnexpectedExit();
         EventLoop::run();
 
         self::assertCount(3, $spawned);
@@ -814,7 +814,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         });
 
         $transport->start();
-        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        $this->connectionAt($spawned, 0)->emitUnexpectedExit();
 
         async(static function () use ($transport): void {
             delay(0.01);
@@ -824,7 +824,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
 
         self::assertSame(['close', 'close'], $closes, 'One close for the dead peer, one for the replacement.');
         self::assertSame([], $reconnects, 'A replacement the close overtook was never serving.');
-        self::assertTrue(self::connectionAt($spawned, 1)->closed);
+        self::assertTrue($this->connectionAt($spawned, 1)->closed);
     }
 
     public function testAClosePartWayThroughRetiringDoesNotArmAReplacement(): void
@@ -848,7 +848,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
             $transport->close();
         });
 
-        self::connectionAt($spawned, 0)->emitUnexpectedExit(streamClosesFirst: false);
+        $this->connectionAt($spawned, 0)->emitUnexpectedExit(streamClosesFirst: false);
         EventLoop::run();
 
         self::assertCount(1, $spawned);
@@ -865,7 +865,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         });
 
         $transport->start();
-        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        $this->connectionAt($spawned, 0)->emitUnexpectedExit();
 
         $reached = [];
         $transport->onClose(static function (): void {
@@ -906,7 +906,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         $transport->start();
 
         for ($i = 0; $i < 3; ++$i) {
-            self::connectionAt($spawned, $i)->emitUnexpectedExit();
+            $this->connectionAt($spawned, $i)->emitUnexpectedExit();
             EventLoop::run();
         }
 
@@ -920,7 +920,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         );
 
         $this->expectException(TransportAlreadyClosedException::class);
-        $transport->send(self::notification());
+        $transport->send($this->notification());
     }
 
     public function testExhaustedBudgetIsLogged(): void
@@ -931,7 +931,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         $transport->start();
 
         for ($i = 0; $i < 2; ++$i) {
-            self::connectionAt($spawned, $i)->emitUnexpectedExit();
+            $this->connectionAt($spawned, $i)->emitUnexpectedExit();
             EventLoop::run();
         }
 
@@ -947,7 +947,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         $transport = $this->buildTransport($spawned, logger: $logger);
         $transport->start();
 
-        self::connectionAt($spawned, 0)->emitUnexpectedExit(exitCode: 9);
+        $this->connectionAt($spawned, 0)->emitUnexpectedExit(exitCode: 9);
         EventLoop::run();
 
         $matches = $logger->recordsMatching(
@@ -968,7 +968,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         $transport = $this->buildTransport($spawned, logger: $logger);
         $transport->start();
 
-        self::connectionAt($spawned, 0)->emitUnexpectedExit(exitCode: null);
+        $this->connectionAt($spawned, 0)->emitUnexpectedExit(exitCode: null);
         EventLoop::run();
 
         $matches = $logger->recordsMatching(
@@ -1013,7 +1013,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         });
 
         $transport->start();
-        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        $this->connectionAt($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
         self::assertSame(3, $attempts, 'Each failed mint spends one unit of budget.');
@@ -1040,7 +1040,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         );
 
         $transport->start();
-        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        $this->connectionAt($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
         $matches = $logger->recordsMatching(
@@ -1081,7 +1081,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         } catch (\Throwable) {
         }
 
-        self::connectionAt($spawned, 0)->emitMessage(['orphaned' => true]);
+        $this->connectionAt($spawned, 0)->emitMessage(['orphaned' => true]);
 
         self::assertSame([], $envelopes, 'A connection abandoned during start() must not still reach the caller.');
     }
@@ -1109,7 +1109,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         $transport->start();
         self::assertFalse($transport->isReconnecting(), 'A live connection is not a pending one.');
 
-        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        $this->connectionAt($spawned, 0)->emitUnexpectedExit();
         self::assertTrue($transport->isReconnecting(), 'The replacement is armed and has not fired yet.');
 
         EventLoop::run();
@@ -1124,7 +1124,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         $transport->start();
 
         for ($i = 0; $i < 2; ++$i) {
-            self::connectionAt($spawned, $i)->emitUnexpectedExit();
+            $this->connectionAt($spawned, $i)->emitUnexpectedExit();
             EventLoop::run();
         }
 
@@ -1137,7 +1137,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         $transport = $this->buildTransport($spawned, restartDelay: 0.05);
         $transport->start();
 
-        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        $this->connectionAt($spawned, 0)->emitUnexpectedExit();
         $transport->close();
 
         self::assertFalse($transport->isReconnecting());
@@ -1154,7 +1154,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         });
 
         $transport->start();
-        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        $this->connectionAt($spawned, 0)->emitUnexpectedExit();
         $afterExit = $closes;
 
         $transport->close();
@@ -1198,7 +1198,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         });
 
         $transport->start();
-        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        $this->connectionAt($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
         self::assertSame(['listener blew up'], $errors);
@@ -1232,11 +1232,11 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
 
         $transport->start();
 
-        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        $this->connectionAt($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
-        self::connectionAt($spawned, 1)->emitMessage(['served' => true]);
-        self::connectionAt($spawned, 1)->emitUnexpectedExit();
+        $this->connectionAt($spawned, 1)->emitMessage(['served' => true]);
+        $this->connectionAt($spawned, 1)->emitUnexpectedExit();
         EventLoop::run();
 
         self::assertSame([true, true], $reconnects);
@@ -1256,7 +1256,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         });
 
         $transport->start();
-        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        $this->connectionAt($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
         self::assertSame(['close', 'reconnect'], $order);
@@ -1267,15 +1267,15 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         $spawned = [];
         $transport = $this->buildTransport($spawned);
 
-        $transport->onReconnect(static function () use ($transport): void {
-            $transport->send(self::notification());
+        $transport->onReconnect(function () use ($transport): void {
+            $transport->send($this->notification());
         });
 
         $transport->start();
-        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        $this->connectionAt($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
-        self::assertCount(1, self::connectionAt($spawned, 1)->sent);
+        self::assertCount(1, $this->connectionAt($spawned, 1)->sent);
     }
 
     public function testAFailedRespawnDoesNotAnnounceAReconnect(): void
@@ -1304,7 +1304,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         $transport->onError(static function (): void {});
 
         $transport->start();
-        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        $this->connectionAt($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
         self::assertCount(3, $spawned);
@@ -1323,7 +1323,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         $subscription->dispose();
 
         $transport->start();
-        self::connectionAt($spawned, 0)->emitUnexpectedExit();
+        $this->connectionAt($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
         self::assertCount(2, $spawned);
@@ -1333,7 +1333,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
     /**
      * @param list<SupervisableRecordingTransport> $spawned
      */
-    private static function connectionAt(array $spawned, int $index): SupervisableRecordingTransport
+    private function connectionAt(array $spawned, int $index): SupervisableRecordingTransport
     {
         $inner = $spawned[$index] ?? null;
 
@@ -1374,7 +1374,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         return $transport;
     }
 
-    private static function notification(): ToolListChangedNotification
+    private function notification(): ToolListChangedNotification
     {
         return new ToolListChangedNotification();
     }

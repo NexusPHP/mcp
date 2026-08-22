@@ -57,7 +57,7 @@ final class ReadResourceRequestHandlerTest extends AbstractMcpTestCase
 
         $handler->handle(
             new ReadResourceRequest(id: new RequestId(id: 42), params: new ReadResourceRequestParams(uri: 'file:///a', meta: RequestMetaObjectFactory::create())),
-            self::makeContext(),
+            $this->makeContext(),
         );
 
         self::assertSame(['uri' => 'file:///a', 'requestId' => 99], $captured);
@@ -76,7 +76,7 @@ final class ReadResourceRequestHandlerTest extends AbstractMcpTestCase
 
         $result = $handler->handle(
             new ReadResourceRequest(id: new RequestId(id: 1), params: new ReadResourceRequestParams(uri: 'file:///a', meta: RequestMetaObjectFactory::create())),
-            self::makeContext(),
+            $this->makeContext(),
         );
 
         self::assertSame($expected, $result);
@@ -91,11 +91,11 @@ final class ReadResourceRequestHandlerTest extends AbstractMcpTestCase
 
         $handler->handle(
             new ReadResourceRequest(id: new RequestId(id: 1), params: new ReadResourceRequestParams(uri: 'file:///missing', meta: RequestMetaObjectFactory::create())),
-            self::makeContext(),
+            $this->makeContext(),
         );
     }
 
-    private static function makeContext(): ServerContext
+    private function makeContext(): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 99),

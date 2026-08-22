@@ -62,7 +62,7 @@ final class NoFunctionCallYodaComparisonRule implements Rule
             return [];
         }
 
-        if (! self::isLiteral($node->left) || ! \in_array($node->right::class, self::CALLS, true)) {
+        if (! $this->isLiteral($node->left) || ! \in_array($node->right::class, self::CALLS, true)) {
             return [];
         }
 
@@ -76,7 +76,7 @@ final class NoFunctionCallYodaComparisonRule implements Rule
         ];
     }
 
-    private static function isLiteral(Node\Expr $expr): bool
+    private function isLiteral(Node\Expr $expr): bool
     {
         if ($expr instanceof Node\Scalar\String_ || $expr instanceof Node\Scalar\Int_ || $expr instanceof Node\Scalar\Float_) {
             return true;

@@ -92,7 +92,7 @@ final readonly class GetTaskResult extends Result implements ServerResult
             ;
         }
 
-        self::assertStatusPayload($status, $result, $error, $inputRequests);
+        $this->assertStatusPayload($status, $result, $error, $inputRequests);
 
         $this->inputRequests = $inputRequests;
 
@@ -295,7 +295,7 @@ final readonly class GetTaskResult extends Result implements ServerResult
      * @param null|array<array-key, mixed>                   $error
      * @param null|array<int|non-empty-string, InputRequest> $inputRequests
      */
-    private static function assertStatusPayload(TaskStatus $status, ?array $result, ?array $error, ?array $inputRequests): void
+    private function assertStatusPayload(TaskStatus $status, ?array $result, ?array $error, ?array $inputRequests): void
     {
         match ($status) {
             TaskStatus::Completed => null !== $result && null === $error && null === $inputRequests

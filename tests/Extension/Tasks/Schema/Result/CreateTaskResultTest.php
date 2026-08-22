@@ -34,7 +34,7 @@ final class CreateTaskResultTest extends AbstractMcpTestCase
 {
     public function testToArrayEmitsTaskResultTypeAndAlwaysCarriesTtl(): void
     {
-        $result = self::createResult();
+        $result = $this->createResult();
 
         self::assertSame(
             [
@@ -78,7 +78,7 @@ final class CreateTaskResultTest extends AbstractMcpTestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $result = self::createResult();
+        $result = $this->createResult();
 
         self::assertSame($result->toArray(), $result->jsonSerialize());
     }
@@ -218,7 +218,7 @@ final class CreateTaskResultTest extends AbstractMcpTestCase
         ];
     }
 
-    private static function createResult(): CreateTaskResult
+    private function createResult(): CreateTaskResult
     {
         return new CreateTaskResult(
             taskId: 'task-1',

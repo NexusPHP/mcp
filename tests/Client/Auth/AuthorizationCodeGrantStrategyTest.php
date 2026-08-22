@@ -54,7 +54,7 @@ final class AuthorizationCodeGrantStrategyTest extends AbstractMcpTestCase
         ;
         $user = new ScriptedUserAuthorization();
 
-        $token = (new AuthorizationCodeGrantStrategy($user))->grant(self::context($http, new ScopeSet(['files:read'])), new NullCancellation());
+        $token = (new AuthorizationCodeGrantStrategy($user))->grant($this->context($http, new ScopeSet(['files:read'])), new NullCancellation());
 
         self::assertSame('the-access-token', $token->value);
         self::assertSame(self::ISSUER, $token->issuer);
@@ -62,7 +62,7 @@ final class AuthorizationCodeGrantStrategyTest extends AbstractMcpTestCase
         self::assertSame('https://auth.example.com/register', (string) $http->readRequest(0)->getUri());
         self::assertSame('https://auth.example.com/token', (string) $http->readRequest(1)->getUri());
 
-        $form = self::readForm($http->readRequest(1));
+        $form = $this->readForm($http->readRequest(1));
         self::assertSame('authorization_code', $form['grant_type'] ?? null);
         self::assertSame('http://localhost:3000/callback', $form['redirect_uri'] ?? null);
         self::assertSame(self::RESOURCE, $form['resource'] ?? null);
@@ -76,7 +76,7 @@ final class AuthorizationCodeGrantStrategyTest extends AbstractMcpTestCase
         $this->expectExceptionMessageIs('The authorization-code grant needs a redirect URI, and the authorization options carry none.');
 
         (new AuthorizationCodeGrantStrategy(new ScriptedUserAuthorization()))->grant(
-            self::context(new RecordingHttpClient(), new ScopeSet(), new AuthorizationOptions('Example MCP Client')),
+            $this->context(new RecordingHttpClient(), new ScopeSet(), new AuthorizationOptions('Example MCP Client')),
             new NullCancellation(),
         );
     }
@@ -86,7 +86,7 @@ final class AuthorizationCodeGrantStrategyTest extends AbstractMcpTestCase
         self::assertFalse((new AuthorizationCodeGrantStrategy(new ScriptedUserAuthorization()))->renewsByFreshGrant());
     }
 
-    private static function context(
+    private function context(
         RecordingHttpClient $http,
         ScopeSet $scopes,
         ?AuthorizationOptions $options = null,
@@ -117,7 +117,7 @@ final class AuthorizationCodeGrantStrategyTest extends AbstractMcpTestCase
     /**
      * @return array<array-key, string>
      */
-    private static function readForm(Request $request): array
+    private function readForm(Request $request): array
     {
         parse_str(buffer($request->getBody()->getContent()), $parsed);
 

@@ -41,7 +41,7 @@ final class PromptStoreTest extends AbstractMcpTestCase
 {
     public function testListReturnsRegisteredPrompts(): void
     {
-        $store = new PromptStore(self::makeEntries('alpha', 'beta'));
+        $store = new PromptStore($this->makeEntries('alpha', 'beta'));
 
         $result = $store->list(null);
 
@@ -55,7 +55,7 @@ final class PromptStoreTest extends AbstractMcpTestCase
 
     public function testListPaginatesWithCursor(): void
     {
-        $store = new PromptStore(self::makeEntries('a', 'b', 'c'), pageSize: 2);
+        $store = new PromptStore($this->makeEntries('a', 'b', 'c'), pageSize: 2);
 
         $first = $store->list(null);
         self::assertCount(2, $first->prompts);
@@ -89,12 +89,12 @@ final class PromptStoreTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Prompt store entry key "\'mismatch\'" must match its prompt name "\'one\'".');
 
-        new PromptStore(['mismatch' => new PromptEntry(new Prompt(name: 'one'), self::makeRenderer())]);
+        new PromptStore(['mismatch' => new PromptEntry(new Prompt(name: 'one'), $this->makeRenderer())]);
     }
 
     public function testAnAllDigitNameIsServedDespiteBecomingAnIntegerKey(): void
     {
-        $store = new PromptStore(['123' => new PromptEntry(new Prompt(name: '123'), self::makeRenderer()), 'beta' => new PromptEntry(new Prompt(name: 'beta'), self::makeRenderer())], pageSize: 1);
+        $store = new PromptStore(['123' => new PromptEntry(new Prompt(name: '123'), $this->makeRenderer()), 'beta' => new PromptEntry(new Prompt(name: 'beta'), $this->makeRenderer())], pageSize: 1);
 
         $first = $store->list(null);
         self::assertNotNull($first->nextCursor);
@@ -131,8 +131,8 @@ final class PromptStoreTest extends AbstractMcpTestCase
             ),
         ]);
 
-        self::assertSame($betaResult, $store->get('beta', ['name' => 'World'], self::makeContext()));
-        self::assertSame($alphaResult, $store->get('alpha', null, self::makeContext()));
+        self::assertSame($betaResult, $store->get('beta', ['name' => 'World'], $this->makeContext()));
+        self::assertSame($alphaResult, $store->get('alpha', null, $this->makeContext()));
         self::assertSame([
             ['name' => 'beta', 'arguments' => ['name' => 'World'], 'requestId' => 1],
             ['name' => 'alpha', 'arguments' => null, 'requestId' => 1],
@@ -146,16 +146,16 @@ final class PromptStoreTest extends AbstractMcpTestCase
         $this->expectException(PromptNotFoundException::class);
         $this->expectExceptionMessageMatches('/^No prompt registered under name "missing"\.$/');
 
-        $store->get('missing', null, self::makeContext());
+        $store->get('missing', null, $this->makeContext());
     }
 
     public function testAddPromptRegistersItAndAnnouncesTheChange(): void
     {
-        $store = new PromptStore(self::makeEntries('alpha'));
+        $store = new PromptStore($this->makeEntries('alpha'));
         $changes = 0;
         $store->onListChanged(static function () use (&$changes): void { ++$changes; });
 
-        $store->addPrompt(new Prompt(name: 'beta'), self::makeRenderer());
+        $store->addPrompt(new Prompt(name: 'beta'), $this->makeRenderer());
 
         self::assertSame(
             ['alpha', 'beta'],
@@ -166,9 +166,9 @@ final class PromptStoreTest extends AbstractMcpTestCase
 
     public function testAddPromptReplacesAPromptOfTheSameName(): void
     {
-        $store = new PromptStore(self::makeEntries('alpha'));
+        $store = new PromptStore($this->makeEntries('alpha'));
 
-        $store->addPrompt(new Prompt(name: 'alpha', title: 'Renamed'), self::makeRenderer());
+        $store->addPrompt(new Prompt(name: 'alpha', title: 'Renamed'), $this->makeRenderer());
 
         $prompts = $store->list(null)->prompts;
         self::assertCount(1, $prompts);
@@ -177,7 +177,7 @@ final class PromptStoreTest extends AbstractMcpTestCase
 
     public function testRemovePromptDropsItAndAnnouncesTheChange(): void
     {
-        $store = new PromptStore(self::makeEntries('alpha', 'beta'));
+        $store = new PromptStore($this->makeEntries('alpha', 'beta'));
         $changes = 0;
         $store->onListChanged(static function () use (&$changes): void { ++$changes; });
 
@@ -191,7 +191,7 @@ final class PromptStoreTest extends AbstractMcpTestCase
 
     public function testRemovePromptIsSilentWhenNoPromptMatches(): void
     {
-        $store = new PromptStore(self::makeEntries('alpha'));
+        $store = new PromptStore($this->makeEntries('alpha'));
         $changes = 0;
         $store->onListChanged(static function () use (&$changes): void { ++$changes; });
 
@@ -207,7 +207,7 @@ final class PromptStoreTest extends AbstractMcpTestCase
         $store->onListChanged(static function () use (&$heard): void { $heard[] = 'first'; });
         $store->onListChanged(static function () use (&$heard): void { $heard[] = 'second'; });
 
-        $store->addPrompt(new Prompt(name: 'alpha'), self::makeRenderer());
+        $store->addPrompt(new Prompt(name: 'alpha'), $this->makeRenderer());
 
         self::assertSame(['first', 'second'], $heard);
     }
@@ -215,9 +215,9 @@ final class PromptStoreTest extends AbstractMcpTestCase
     public function testAnAddedPromptIsRenderable(): void
     {
         $store = new PromptStore();
-        $store->addPrompt(new Prompt(name: 'alpha'), self::makeRenderer());
+        $store->addPrompt(new Prompt(name: 'alpha'), $this->makeRenderer());
 
-        $result = $store->get('alpha', null, self::makeContext());
+        $result = $store->get('alpha', null, $this->makeContext());
 
         self::assertInstanceOf(GetPromptResult::class, $result);
 
@@ -229,7 +229,7 @@ final class PromptStoreTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('prompt "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.');
 
-        new PromptStore(['Project Files' => new PromptEntry(new Prompt(name: 'Project Files'), self::makeRenderer())]);
+        new PromptStore(['Project Files' => new PromptEntry(new Prompt(name: 'Project Files'), $this->makeRenderer())]);
     }
 
     public function testAddRefusesAnUnconventionalName(): void
@@ -237,7 +237,7 @@ final class PromptStoreTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('prompt "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.');
 
-        (new PromptStore())->addPrompt(new Prompt(name: 'Project Files'), self::makeRenderer());
+        (new PromptStore())->addPrompt(new Prompt(name: 'Project Files'), $this->makeRenderer());
     }
 
     public function testConstructorRefusesANonConservativeIconSrc(): void
@@ -245,7 +245,7 @@ final class PromptStoreTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('prompt "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.');
 
-        new PromptStore(['p' => new PromptEntry(new Prompt(name: 'p', icons: [new Icon(src: 'ftp://example.com/icon.png')]), self::makeRenderer())]);
+        new PromptStore(['p' => new PromptEntry(new Prompt(name: 'p', icons: [new Icon(src: 'ftp://example.com/icon.png')]), $this->makeRenderer())]);
     }
 
     public function testAddRefusesANonConservativeIconSrc(): void
@@ -253,7 +253,7 @@ final class PromptStoreTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('prompt "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.');
 
-        (new PromptStore())->addPrompt(new Prompt(name: 'p', icons: [new Icon(src: 'ftp://example.com/icon.png')]), self::makeRenderer());
+        (new PromptStore())->addPrompt(new Prompt(name: 'p', icons: [new Icon(src: 'ftp://example.com/icon.png')]), $this->makeRenderer());
     }
 
     public function testGetWrapsABindingFailureWithThePromptName(): void
@@ -270,32 +270,32 @@ final class PromptStoreTest extends AbstractMcpTestCase
         $this->expectException(InvalidParamsException::class);
         $this->expectExceptionMessageIs('Invalid arguments for prompt "brief": missing the required "topic" key.');
 
-        $store->get('brief', [], self::makeContext());
+        $store->get('brief', [], $this->makeContext());
     }
 
     /**
      * @return array<non-empty-string, PromptEntry>
      */
-    private static function makeEntries(string ...$names): array
+    private function makeEntries(string ...$names): array
     {
         $entries = [];
 
         foreach ($names as $name) {
             \assert('' !== $name);
-            $entries[$name] = new PromptEntry(new Prompt(name: $name), self::makeRenderer());
+            $entries[$name] = new PromptEntry(new Prompt(name: $name), $this->makeRenderer());
         }
 
         return $entries;
     }
 
-    private static function makeRenderer(): ClosurePromptRenderer
+    private function makeRenderer(): ClosurePromptRenderer
     {
         return new ClosurePromptRenderer(
             static fn(?array $arguments, ServerContext $context): GetPromptResult => new GetPromptResult(messages: []),
         );
     }
 
-    private static function makeContext(): ServerContext
+    private function makeContext(): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 1),

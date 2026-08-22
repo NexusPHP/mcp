@@ -558,7 +558,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
     public function testTheDefaultInFlightCapAdmitsExactlyItsBoundaryAndShedsTheNext(): void
     {
         $transport = new RecordingTransport();
-        self::connectServableClient(new ClientBuilder(), $transport);
+        $this->connectServableClient(new ClientBuilder(), $transport);
 
         for ($id = 1; $id <= 1_024; ++$id) {
             $transport->emitMessage(['jsonrpc' => '2.0', 'id' => $id, 'method' => TestRequest::getMethod()]);
@@ -580,7 +580,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
     public function testANullInFlightCapLiftsTheDefault(): void
     {
         $transport = new RecordingTransport();
-        self::connectServableClient((new ClientBuilder())->setMaxInFlightDispatches(null), $transport);
+        $this->connectServableClient((new ClientBuilder())->setMaxInFlightDispatches(null), $transport);
 
         for ($id = 1; $id <= 1_025; ++$id) {
             $transport->emitMessage(['jsonrpc' => '2.0', 'id' => $id, 'method' => TestRequest::getMethod()]);
@@ -848,7 +848,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
         self::assertInstanceOf(DiscoverRequest::class, $sentRequest);
         self::assertSame(1, $sentRequest->id->id, 'Default factory must start the counter at 1.');
 
-        $transport->emitMessage(self::discoverResponse(1, ['tools' => []]));
+        $transport->emitMessage($this->discoverResponse(1, ['tools' => []]));
         $deferred->await();
 
         $list = async(static fn() => $client->listTools());
@@ -886,7 +886,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
         self::assertInstanceOf(DiscoverRequest::class, $sentRequest);
         self::assertSame($uuid, $sentRequest->id->id);
 
-        $transport->emitMessage(self::discoverResponse($uuid));
+        $transport->emitMessage($this->discoverResponse($uuid));
         $deferred->await();
     }
 
@@ -901,7 +901,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
         self::assertCount(1, $transport->sent);
         $discoverRequest = $transport->sent[0]['message'];
         self::assertInstanceOf(DiscoverRequest::class, $discoverRequest);
-        $transport->emitMessage(self::discoverResponse($discoverRequest->id->id, ['tools' => []]));
+        $transport->emitMessage($this->discoverResponse($discoverRequest->id->id, ['tools' => []]));
         $handshake->await();
 
         $onProgress = static function (float $progress, ?float $total, ?string $message): void {};
@@ -933,7 +933,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
     /**
      * Connects a client that serves `TestRequest`, so an inbound one occupies a dispatch slot.
      */
-    private static function connectServableClient(ClientBuilder $builder, RecordingTransport $transport): void
+    private function connectServableClient(ClientBuilder $builder, RecordingTransport $transport): void
     {
         $builder
             ->setClientInfo('demo', '1.0.0')
@@ -952,7 +952,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
      *
      * @return array<string, mixed>
      */
-    private static function discoverResponse(int|string $id, array $capabilities = []): array
+    private function discoverResponse(int|string $id, array $capabilities = []): array
     {
         return [
             'jsonrpc' => '2.0',

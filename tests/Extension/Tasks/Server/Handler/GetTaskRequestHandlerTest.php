@@ -46,7 +46,7 @@ final class GetTaskRequestHandlerTest extends AbstractMcpTestCase
         $this->expectException(InvalidParamsException::class);
         $this->expectExceptionMessageIs('"params.taskId" does not name a known task.');
 
-        $handler->handle(self::buildRequest('missing'), self::buildContext());
+        $handler->handle($this->buildRequest('missing'), $this->buildContext());
     }
 
     public function testAWorkingTaskProjectsTheBareShape(): void
@@ -55,7 +55,7 @@ final class GetTaskRequestHandlerTest extends AbstractMcpTestCase
         $taskId = $store->createTask('slow_compute', null, 300_000, 1_000)->taskId;
         $handler = new GetTaskRequestHandler($store);
 
-        $result = $handler->handle(self::buildRequest($taskId), self::buildContext());
+        $result = $handler->handle($this->buildRequest($taskId), $this->buildContext());
 
         self::assertSame(TaskStatus::Working, $result->status);
         self::assertSame($taskId, $result->taskId);
@@ -73,7 +73,7 @@ final class GetTaskRequestHandlerTest extends AbstractMcpTestCase
         $store->trySetCompleted($taskId, ['resultType' => 'complete', 'content' => []]);
         $handler = new GetTaskRequestHandler($store);
 
-        $result = $handler->handle(self::buildRequest($taskId), self::buildContext());
+        $result = $handler->handle($this->buildRequest($taskId), $this->buildContext());
 
         self::assertSame(TaskStatus::Completed, $result->status);
         self::assertSame(['resultType' => 'complete', 'content' => []], $result->result);
@@ -86,7 +86,7 @@ final class GetTaskRequestHandlerTest extends AbstractMcpTestCase
         $store->trySetFailed($taskId, ['code' => -32_603, 'message' => 'It broke.'], 'Upstream unavailable.');
         $handler = new GetTaskRequestHandler($store);
 
-        $result = $handler->handle(self::buildRequest($taskId), self::buildContext());
+        $result = $handler->handle($this->buildRequest($taskId), $this->buildContext());
 
         self::assertSame(TaskStatus::Failed, $result->status);
         self::assertSame(['code' => -32_603, 'message' => 'It broke.'], $result->error);
@@ -104,7 +104,7 @@ final class GetTaskRequestHandlerTest extends AbstractMcpTestCase
         $store->trySetInputRequired($taskId, ['confirm' => $request], 'state-1');
         $handler = new GetTaskRequestHandler($store);
 
-        $result = $handler->handle(self::buildRequest($taskId), self::buildContext());
+        $result = $handler->handle($this->buildRequest($taskId), $this->buildContext());
 
         self::assertSame(TaskStatus::InputRequired, $result->status);
         self::assertSame(['confirm' => $request], $result->inputRequests);
@@ -114,7 +114,7 @@ final class GetTaskRequestHandlerTest extends AbstractMcpTestCase
     /**
      * @param non-empty-string $taskId
      */
-    private static function buildRequest(string $taskId): GetTaskRequest
+    private function buildRequest(string $taskId): GetTaskRequest
     {
         return GetTaskRequest::fromArray([
             'id' => 7,
@@ -122,7 +122,7 @@ final class GetTaskRequestHandlerTest extends AbstractMcpTestCase
         ]);
     }
 
-    private static function buildContext(): ServerContext
+    private function buildContext(): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 7),

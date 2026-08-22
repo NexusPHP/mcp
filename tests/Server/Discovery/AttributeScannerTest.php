@@ -145,7 +145,7 @@ final class AttributeScannerTest extends AbstractMcpTestCase
 
     public function testToolFallsBackToTheMethodName(): void
     {
-        $tool = self::toolEntry('add')->tool;
+        $tool = $this->toolEntry('add')->tool;
 
         self::assertSame('Adds two integers.', $tool->description);
 
@@ -157,7 +157,7 @@ final class AttributeScannerTest extends AbstractMcpTestCase
 
     public function testToolUsesAttributeMetadata(): void
     {
-        $tool = self::toolEntry('greet_user')->tool;
+        $tool = $this->toolEntry('greet_user')->tool;
 
         self::assertSame('Greeter', $tool->title);
         self::assertTrue($tool->annotations->readOnlyHint);
@@ -167,7 +167,7 @@ final class AttributeScannerTest extends AbstractMcpTestCase
 
     public function testToolInputSchemaExcludesTheInjectedContext(): void
     {
-        $tool = self::toolEntry('greet_user')->tool;
+        $tool = $this->toolEntry('greet_user')->tool;
 
         $properties = $tool->inputSchema['properties'] ?? [];
         self::assertIsArray($properties);
@@ -177,7 +177,7 @@ final class AttributeScannerTest extends AbstractMcpTestCase
 
     public function testToolWithoutMetadataUsesDefaults(): void
     {
-        $tool = self::toolEntry('add')->tool;
+        $tool = $this->toolEntry('add')->tool;
 
         self::assertNull($tool->annotations->readOnlyHint);
         self::assertSame([], $tool->meta->extras);
@@ -186,16 +186,16 @@ final class AttributeScannerTest extends AbstractMcpTestCase
 
     public function testPromptDerivesArgumentsFromParameters(): void
     {
-        $prompt = self::promptEntry('compose')->prompt;
+        $prompt = $this->promptEntry('compose')->prompt;
 
         self::assertSame(['audience' => 'writers'], $prompt->meta->extras);
 
-        $topic = self::argument($prompt, 0);
+        $topic = $this->argument($prompt, 0);
         self::assertSame('topic', $topic->name);
         self::assertTrue($topic->required);
         self::assertSame('The subject to write about.', $topic->description);
 
-        $tone = self::argument($prompt, 1);
+        $tone = $this->argument($prompt, 1);
         self::assertSame('tone', $tone->name);
         self::assertFalse($tone->required);
         self::assertSame('The desired tone.', $tone->description);
@@ -203,12 +203,12 @@ final class AttributeScannerTest extends AbstractMcpTestCase
 
     public function testPromptFallsBackToMethodNameAndOmitsContextAndBlankDescriptions(): void
     {
-        $prompt = self::promptEntry('outline')->prompt;
+        $prompt = $this->promptEntry('outline')->prompt;
 
         self::assertNotNull($prompt->arguments);
         self::assertCount(1, $prompt->arguments);
 
-        $subject = self::argument($prompt, 0);
+        $subject = $this->argument($prompt, 0);
         self::assertSame('subject', $subject->name);
         self::assertTrue($subject->required);
         self::assertNull($subject->description);
@@ -216,21 +216,21 @@ final class AttributeScannerTest extends AbstractMcpTestCase
 
     public function testPromptWithOnlyInjectedParametersHasNoArguments(): void
     {
-        self::assertNull(self::promptEntry('ping_prompt')->prompt->arguments);
+        self::assertNull($this->promptEntry('ping_prompt')->prompt->arguments);
     }
 
     public function testPromptArgumentsFollowingAnInjectedParameterAreKept(): void
     {
-        $prompt = self::promptEntry('labelled')->prompt;
+        $prompt = $this->promptEntry('labelled')->prompt;
 
         self::assertNotNull($prompt->arguments);
         self::assertCount(1, $prompt->arguments);
-        self::assertSame('label', self::argument($prompt, 0)->name);
+        self::assertSame('label', $this->argument($prompt, 0)->name);
     }
 
     public function testResourceUsesAttributeMetadata(): void
     {
-        $resource = self::resourceEntry('app_config')->resource;
+        $resource = $this->resourceEntry('app_config')->resource;
 
         self::assertSame('config://app', $resource->uri);
         self::assertSame('App Config', $resource->title);
@@ -243,7 +243,7 @@ final class AttributeScannerTest extends AbstractMcpTestCase
 
     public function testResourceFallsBackToTheMethodName(): void
     {
-        $resource = self::resourceEntry('defaults')->resource;
+        $resource = $this->resourceEntry('defaults')->resource;
 
         self::assertSame('config://defaults', $resource->uri);
         self::assertNull($resource->mimeType);
@@ -252,7 +252,7 @@ final class AttributeScannerTest extends AbstractMcpTestCase
 
     public function testResourceTemplateUsesAttributeMetadata(): void
     {
-        $template = self::templateEntry('user_profile')->template;
+        $template = $this->templateEntry('user_profile')->template;
 
         self::assertSame('users://{id}', $template->uriTemplate);
         self::assertSame('A user profile.', $template->description);
@@ -262,7 +262,7 @@ final class AttributeScannerTest extends AbstractMcpTestCase
 
     public function testResourceTemplateFallsBackToTheMethodName(): void
     {
-        $template = self::templateEntry('fileTemplate')->template;
+        $template = $this->templateEntry('fileTemplate')->template;
 
         self::assertSame('files://{path}', $template->uriTemplate);
         self::assertNull($template->annotations->priority);
@@ -270,17 +270,17 @@ final class AttributeScannerTest extends AbstractMcpTestCase
 
     public function testEntriesCarryTheirReflectedAdapters(): void
     {
-        self::assertInstanceOf(ReflectedToolExecutor::class, self::toolEntry('add')->executor);
-        self::assertInstanceOf(ReflectedPromptRenderer::class, self::promptEntry('compose')->renderer);
-        self::assertInstanceOf(ReflectedResourceReader::class, self::resourceEntry('app_config')->reader);
-        self::assertInstanceOf(ReflectedTemplatedResourceReader::class, self::templateEntry('user_profile')->reader);
+        self::assertInstanceOf(ReflectedToolExecutor::class, $this->toolEntry('add')->executor);
+        self::assertInstanceOf(ReflectedPromptRenderer::class, $this->promptEntry('compose')->renderer);
+        self::assertInstanceOf(ReflectedResourceReader::class, $this->resourceEntry('app_config')->reader);
+        self::assertInstanceOf(ReflectedTemplatedResourceReader::class, $this->templateEntry('user_profile')->reader);
     }
 
     public function testMethodsWithoutAttributesAreSkipped(): void
     {
         $kinds = ['tools' => 0, 'prompts' => 0, 'resources' => 0, 'templates' => 0];
 
-        foreach (self::entries() as $entry) {
+        foreach ($this->entries() as $entry) {
             ++$kinds[match (true) {
                 $entry instanceof ToolEntry => 'tools',
                 $entry instanceof PromptEntry => 'prompts',
@@ -296,7 +296,7 @@ final class AttributeScannerTest extends AbstractMcpTestCase
     {
         $toolNames = [];
 
-        foreach (self::entries() as $entry) {
+        foreach ($this->entries() as $entry) {
             if ($entry instanceof ToolEntry) {
                 $toolNames[] = $entry->tool->name;
             }
@@ -538,9 +538,9 @@ final class AttributeScannerTest extends AbstractMcpTestCase
 
     public function testCompletionForAPromptArgumentIsDiscovered(): void
     {
-        $entry = self::promptCompletionEntry('compose', 'tone');
+        $entry = $this->promptCompletionEntry('compose', 'tone');
 
-        $result = $entry->provider->complete('f', null, self::makeContext());
+        $result = $entry->provider->complete('f', null, $this->makeContext());
 
         self::assertSame(['formal', 'friendly'], $result->completion['values']);
     }
@@ -558,7 +558,7 @@ final class AttributeScannerTest extends AbstractMcpTestCase
         self::assertSame('file:///{path}', $templateCompletions[0]->uriTemplate);
         self::assertSame('path', $templateCompletions[0]->argument);
 
-        $result = $templateCompletions[0]->provider->complete('report.csv', null, self::makeContext());
+        $result = $templateCompletions[0]->provider->complete('report.csv', null, $this->makeContext());
 
         self::assertSame(['report.csv'], $result->completion['values']);
         self::assertFalse($result->completion['hasMore'] ?? null);
@@ -566,9 +566,9 @@ final class AttributeScannerTest extends AbstractMcpTestCase
 
     public function testRepeatedCompletionAttributesEachYieldAnEntry(): void
     {
-        $entry = self::promptCompletionEntry('compose', 'topic');
+        $entry = $this->promptCompletionEntry('compose', 'topic');
 
-        $result = $entry->provider->complete('anything', null, self::makeContext());
+        $result = $entry->provider->complete('anything', null, $this->makeContext());
 
         self::assertSame(['anything'], $result->completion['values']);
     }
@@ -609,7 +609,7 @@ final class AttributeScannerTest extends AbstractMcpTestCase
 
         foreach ((new AttributeScanner())->scan($source) as $entry) {
             if ($entry instanceof PromptCompletionEntry) {
-                $values[] = $entry->provider->complete('x', null, self::makeContext())->completion['values'][0] ?? null;
+                $values[] = $entry->provider->complete('x', null, $this->makeContext())->completion['values'][0] ?? null;
             }
         }
 
@@ -775,7 +775,7 @@ final class AttributeScannerTest extends AbstractMcpTestCase
         iterator_to_array((new AttributeScanner())->scan($source), false);
     }
 
-    private static function promptCompletionEntry(string $prompt, string $argument): PromptCompletionEntry
+    private function promptCompletionEntry(string $prompt, string $argument): PromptCompletionEntry
     {
         foreach ((new AttributeScanner())->scan(new CompletionHandlers()) as $entry) {
             if ($entry instanceof PromptCompletionEntry && $entry->prompt === $prompt && $entry->argument === $argument) {
@@ -786,7 +786,7 @@ final class AttributeScannerTest extends AbstractMcpTestCase
         self::fail(\sprintf('No completion for prompt "%s" argument "%s" discovered.', $prompt, $argument));
     }
 
-    private static function makeContext(): ServerContext
+    private function makeContext(): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 11),
@@ -799,14 +799,14 @@ final class AttributeScannerTest extends AbstractMcpTestCase
     /**
      * @return list<PromptCompletionEntry|PromptEntry|ResourceEntry|ResourceTemplateCompletionEntry|ResourceTemplateEntry|ToolEntry>
      */
-    private static function entries(): array
+    private function entries(): array
     {
         return iterator_to_array((new AttributeScanner())->scan(new DiscoverableServer()), false);
     }
 
-    private static function toolEntry(string $name): ToolEntry
+    private function toolEntry(string $name): ToolEntry
     {
-        foreach (self::entries() as $entry) {
+        foreach ($this->entries() as $entry) {
             if ($entry instanceof ToolEntry && $entry->tool->name === $name) {
                 return $entry;
             }
@@ -815,9 +815,9 @@ final class AttributeScannerTest extends AbstractMcpTestCase
         self::fail(\sprintf('No tool "%s" discovered.', $name));
     }
 
-    private static function promptEntry(string $name): PromptEntry
+    private function promptEntry(string $name): PromptEntry
     {
-        foreach (self::entries() as $entry) {
+        foreach ($this->entries() as $entry) {
             if ($entry instanceof PromptEntry && $entry->prompt->name === $name) {
                 return $entry;
             }
@@ -826,9 +826,9 @@ final class AttributeScannerTest extends AbstractMcpTestCase
         self::fail(\sprintf('No prompt "%s" discovered.', $name));
     }
 
-    private static function resourceEntry(string $name): ResourceEntry
+    private function resourceEntry(string $name): ResourceEntry
     {
-        foreach (self::entries() as $entry) {
+        foreach ($this->entries() as $entry) {
             if ($entry instanceof ResourceEntry && $entry->resource->name === $name) {
                 return $entry;
             }
@@ -837,9 +837,9 @@ final class AttributeScannerTest extends AbstractMcpTestCase
         self::fail(\sprintf('No resource "%s" discovered.', $name));
     }
 
-    private static function templateEntry(string $name): ResourceTemplateEntry
+    private function templateEntry(string $name): ResourceTemplateEntry
     {
-        foreach (self::entries() as $entry) {
+        foreach ($this->entries() as $entry) {
             if ($entry instanceof ResourceTemplateEntry && $entry->template->name === $name) {
                 return $entry;
             }
@@ -848,7 +848,7 @@ final class AttributeScannerTest extends AbstractMcpTestCase
         self::fail(\sprintf('No resource template "%s" discovered.', $name));
     }
 
-    private static function argument(Prompt $prompt, int $index): PromptArgument
+    private function argument(Prompt $prompt, int $index): PromptArgument
     {
         $argument = ($prompt->arguments ?? [])[$index] ?? null;
 

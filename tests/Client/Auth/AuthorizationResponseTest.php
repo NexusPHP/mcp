@@ -39,8 +39,8 @@ final class AuthorizationResponseTest extends AbstractMcpTestCase
     public function testReadCodeReturnsTheCode(): void
     {
         $code = AuthorizationResponse::readCode(
-            self::buildRedirect(),
-            self::buildCallback(['code' => 'abc123', 'state' => self::STATE]),
+            $this->buildRedirect(),
+            $this->buildCallback(['code' => 'abc123', 'state' => self::STATE]),
         );
 
         self::assertSame('abc123', $code);
@@ -49,8 +49,8 @@ final class AuthorizationResponseTest extends AbstractMcpTestCase
     public function testReadCodeAcceptsAMatchingIssuer(): void
     {
         $code = AuthorizationResponse::readCode(
-            self::buildRedirect(issuerParameterRequired: true),
-            self::buildCallback(['code' => 'abc123', 'state' => self::STATE, 'iss' => self::ISSUER]),
+            $this->buildRedirect(issuerParameterRequired: true),
+            $this->buildCallback(['code' => 'abc123', 'state' => self::STATE, 'iss' => self::ISSUER]),
         );
 
         self::assertSame('abc123', $code);
@@ -59,8 +59,8 @@ final class AuthorizationResponseTest extends AbstractMcpTestCase
     public function testReadCodeAcceptsAMatchingIssuerTheServerDidNotAdvertise(): void
     {
         $code = AuthorizationResponse::readCode(
-            self::buildRedirect(),
-            self::buildCallback(['code' => 'abc123', 'state' => self::STATE, 'iss' => self::ISSUER]),
+            $this->buildRedirect(),
+            $this->buildCallback(['code' => 'abc123', 'state' => self::STATE, 'iss' => self::ISSUER]),
         );
 
         self::assertSame('abc123', $code);
@@ -75,7 +75,7 @@ final class AuthorizationResponseTest extends AbstractMcpTestCase
         $this->expectException(InvalidAuthorizationResponseException::class);
         $this->expectExceptionMessageIs('The authorization response cannot be used because its "state" does not echo the authorization request.');
 
-        AuthorizationResponse::readCode(self::buildRedirect(), self::buildCallback($parameters));
+        AuthorizationResponse::readCode($this->buildRedirect(), $this->buildCallback($parameters));
     }
 
     /**
@@ -96,8 +96,8 @@ final class AuthorizationResponseTest extends AbstractMcpTestCase
         $this->expectExceptionMessageIs('The authorization response cannot be used because it omits the "iss" the authorization server advertises that it emits.');
 
         AuthorizationResponse::readCode(
-            self::buildRedirect(issuerParameterRequired: true),
-            self::buildCallback(['code' => 'abc123', 'state' => self::STATE]),
+            $this->buildRedirect(issuerParameterRequired: true),
+            $this->buildCallback(['code' => 'abc123', 'state' => self::STATE]),
         );
     }
 
@@ -110,7 +110,7 @@ final class AuthorizationResponseTest extends AbstractMcpTestCase
         $this->expectException(InvalidAuthorizationResponseException::class);
         $this->expectExceptionMessageIs('The authorization response cannot be used because its "iss" names an authorization server other than the one the request was sent to.');
 
-        AuthorizationResponse::readCode(self::buildRedirect($issuerParameterRequired), self::buildCallback($parameters));
+        AuthorizationResponse::readCode($this->buildRedirect($issuerParameterRequired), $this->buildCallback($parameters));
     }
 
     /**
@@ -145,8 +145,8 @@ final class AuthorizationResponseTest extends AbstractMcpTestCase
         $this->expectExceptionMessageIs('The authorization response cannot be used because its "iss" names an authorization server other than the one the request was sent to.');
 
         AuthorizationResponse::readCode(
-            self::buildRedirect(),
-            self::buildCallback([
+            $this->buildRedirect(),
+            $this->buildCallback([
                 'state' => self::STATE,
                 'iss' => 'https://attacker.example',
                 'error' => 'access_denied',
@@ -161,8 +161,8 @@ final class AuthorizationResponseTest extends AbstractMcpTestCase
         $this->expectExceptionMessageIs('The authorization server denied the request with "access_denied": The user refused consent.');
 
         AuthorizationResponse::readCode(
-            self::buildRedirect(),
-            self::buildCallback([
+            $this->buildRedirect(),
+            $this->buildCallback([
                 'state' => self::STATE,
                 'error' => 'access_denied',
                 'error_description' => 'The user refused consent.',
@@ -176,8 +176,8 @@ final class AuthorizationResponseTest extends AbstractMcpTestCase
         $this->expectExceptionMessageIs('The authorization server denied the request with "invalid_scope".');
 
         AuthorizationResponse::readCode(
-            self::buildRedirect(),
-            self::buildCallback(['state' => self::STATE, 'error' => 'invalid_scope']),
+            $this->buildRedirect(),
+            $this->buildCallback(['state' => self::STATE, 'error' => 'invalid_scope']),
         );
     }
 
@@ -187,8 +187,8 @@ final class AuthorizationResponseTest extends AbstractMcpTestCase
         $this->expectExceptionMessageIs('The authorization server denied the request with "invalid_scope".');
 
         AuthorizationResponse::readCode(
-            self::buildRedirect(),
-            self::buildCallback(['state' => self::STATE, 'error' => 'invalid_scope']),
+            $this->buildRedirect(),
+            $this->buildCallback(['state' => self::STATE, 'error' => 'invalid_scope']),
         );
     }
 
@@ -197,10 +197,10 @@ final class AuthorizationResponseTest extends AbstractMcpTestCase
         $this->expectException(InvalidAuthorizationResponseException::class);
         $this->expectExceptionMessageIs('The authorization response cannot be used because it carries no authorization code.');
 
-        AuthorizationResponse::readCode(self::buildRedirect(), self::buildCallback(['state' => self::STATE]));
+        AuthorizationResponse::readCode($this->buildRedirect(), $this->buildCallback(['state' => self::STATE]));
     }
 
-    private static function buildRedirect(bool $issuerParameterRequired = false): AuthorizationRedirect
+    private function buildRedirect(bool $issuerParameterRequired = false): AuthorizationRedirect
     {
         return new AuthorizationRedirect(
             'https://auth.example.com/authorize?response_type=code',
@@ -215,7 +215,7 @@ final class AuthorizationResponseTest extends AbstractMcpTestCase
     /**
      * @param array<string, string> $parameters
      */
-    private static function buildCallback(array $parameters): AuthorizationCallback
+    private function buildCallback(array $parameters): AuthorizationCallback
     {
         return new AuthorizationCallback('http://localhost:3000/callback?'.http_build_query($parameters));
     }

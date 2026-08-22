@@ -50,9 +50,9 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
 
         $store->open(new RequestId(id: 1), new SubscriptionFilter(toolsListChanged: true), $sender);
 
-        self::assertSame(['notifications/subscriptions/acknowledged'], self::methodsOf($sender));
-        self::assertSame(['io.modelcontextprotocol/subscriptionId' => 1], self::metaOf($sender, 0));
-        self::assertSame(['toolsListChanged' => true], self::paramsOf($sender, 0)['notifications'] ?? null);
+        self::assertSame(['notifications/subscriptions/acknowledged'], $this->methodsOf($sender));
+        self::assertSame(['io.modelcontextprotocol/subscriptionId' => 1], $this->metaOf($sender, 0));
+        self::assertSame(['toolsListChanged' => true], $this->paramsOf($sender, 0)['notifications'] ?? null);
     }
 
     public function testTheAcknowledgementOmitsTypesTheServerCannotDeliver(): void
@@ -66,7 +66,7 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
             $sender,
         );
 
-        self::assertSame(['toolsListChanged' => true], self::paramsOf($sender, 0)['notifications'] ?? null);
+        self::assertSame(['toolsListChanged' => true], $this->paramsOf($sender, 0)['notifications'] ?? null);
     }
 
     public function testAStreamHearsOnlyTheTypesItRequested(): void
@@ -81,7 +81,7 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
 
         self::assertSame(
             ['notifications/subscriptions/acknowledged', 'notifications/prompts/list_changed'],
-            self::methodsOf($sender),
+            $this->methodsOf($sender),
         );
     }
 
@@ -97,7 +97,7 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
         self::assertCount(2, $sender->notifications);
 
         foreach (array_keys($sender->notifications) as $index) {
-            self::assertSame(['io.modelcontextprotocol/subscriptionId' => 'sub-a'], self::metaOf($sender, $index));
+            self::assertSame(['io.modelcontextprotocol/subscriptionId' => 'sub-a'], $this->metaOf($sender, $index));
         }
     }
 
@@ -114,7 +114,7 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
 
         self::assertSame(
             ['notifications/subscriptions/acknowledged', 'notifications/tools/list_changed'],
-            self::methodsOf($sender),
+            $this->methodsOf($sender),
         );
     }
 
@@ -152,7 +152,7 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
             'notifications/tools/list_changed',
             'notifications/prompts/list_changed',
             'notifications/resources/list_changed',
-        ], self::methodsOf($sender));
+        ], $this->methodsOf($sender));
     }
 
     public function testAResourceUpdateReachesOnlyTheStreamsWatchingThatUri(): void
@@ -168,10 +168,10 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
 
         self::assertSame(
             ['notifications/subscriptions/acknowledged', 'notifications/resources/updated'],
-            self::methodsOf($watching),
+            $this->methodsOf($watching),
         );
-        self::assertSame(['notifications/subscriptions/acknowledged'], self::methodsOf($elsewhere));
-        self::assertSame('file:///a', self::paramsOf($watching, 1)['uri'] ?? null);
+        self::assertSame(['notifications/subscriptions/acknowledged'], $this->methodsOf($elsewhere));
+        self::assertSame('file:///a', $this->paramsOf($watching, 1)['uri'] ?? null);
     }
 
     public function testDistinctResourceUrisAreEachAnnounced(): void
@@ -254,7 +254,7 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
             $sender,
         );
 
-        self::assertInstanceOf(\stdClass::class, self::paramsOf($sender, 0)['notifications'] ?? null);
+        self::assertInstanceOf(\stdClass::class, $this->paramsOf($sender, 0)['notifications'] ?? null);
 
         $store->emitToolListChanged();
         $store->emitPromptListChanged();
@@ -277,7 +277,7 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
         self::assertTrue($entry->closed->isComplete());
         self::assertSame(
             ['notifications/subscriptions/acknowledged', 'notifications/cancelled'],
-            self::methodsOf($sender),
+            $this->methodsOf($sender),
             'The spec has the server name the listen request it is tearing down.',
         );
     }
@@ -365,7 +365,7 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
 
         self::assertSame(
             ['notifications/subscriptions/acknowledged', 'notifications/resources/updated'],
-            self::methodsOf($sender),
+            $this->methodsOf($sender),
         );
 
         $updated = $sender->notifications[1] ?? null;
@@ -404,7 +404,7 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
 
         self::assertSame(
             ['notifications/subscriptions/acknowledged', 'notifications/tools/list_changed'],
-            self::methodsOf($reachable),
+            $this->methodsOf($reachable),
             'A stream whose peer vanished must not cost the streams behind it.',
         );
     }
@@ -421,7 +421,7 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
 
         self::assertSame(
             ['notifications/subscriptions/acknowledged'],
-            self::methodsOf($sender),
+            $this->methodsOf($sender),
             'A settled stream is terminal, so nothing may follow its result.',
         );
     }
@@ -440,7 +440,7 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
             self::assertSame(ProtocolErrorCode::InternalError, $e::getErrorCode());
         }
 
-        self::assertSame([], self::methodsOf($sender), 'A refused stream is never acknowledged.');
+        self::assertSame([], $this->methodsOf($sender), 'A refused stream is never acknowledged.');
     }
 
     public function testOpeningPastThePerPeerLimitIsRefused(): void
@@ -457,7 +457,7 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
             self::assertSame(ProtocolErrorCode::InternalError, $e::getErrorCode());
         }
 
-        self::assertSame([], self::methodsOf($sender), 'A refused stream is never acknowledged.');
+        self::assertSame([], $this->methodsOf($sender), 'A refused stream is never acknowledged.');
     }
 
     public function testDistinctPeersSpendSeparateBudgets(): void
@@ -563,7 +563,7 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
             self::assertSame('Subscription limit reached: this server holds at most 1 open streams.', $e->getMessage());
         }
 
-        self::assertSame([], self::methodsOf($sender), 'A refused stream is never acknowledged.');
+        self::assertSame([], $this->methodsOf($sender), 'A refused stream is never acknowledged.');
 
         $gate->complete(null);
         $first->await();
@@ -593,7 +593,7 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
         $sender = new RecordingSender();
         $store->open(new RequestId(id: 2), new SubscriptionFilter(toolsListChanged: true), $sender);
 
-        self::assertSame(['notifications/subscriptions/acknowledged'], self::methodsOf($sender));
+        self::assertSame(['notifications/subscriptions/acknowledged'], $this->methodsOf($sender));
     }
 
     #[DataProvider('provideTheSubscriptionLimitMustBePositiveCases')]
@@ -648,7 +648,7 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
 
         $store->close($entry);
 
-        self::assertSame(['notifications/subscriptions/acknowledged'], self::methodsOf($sender));
+        self::assertSame(['notifications/subscriptions/acknowledged'], $this->methodsOf($sender));
     }
 
     public function testTwoStreamsSharingASubscriptionIdStayIndependent(): void
@@ -666,12 +666,12 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
 
         self::assertSame(
             ['notifications/subscriptions/acknowledged', 'notifications/tools/list_changed'],
-            self::methodsOf($first),
+            $this->methodsOf($first),
             'Neither stream may evict the other.',
         );
         self::assertSame(
             ['notifications/subscriptions/acknowledged', 'notifications/tools/list_changed'],
-            self::methodsOf($second),
+            $this->methodsOf($second),
         );
 
         $store->close($firstEntry);
@@ -683,7 +683,7 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
     /**
      * @return array<array-key, mixed>
      */
-    private static function paramsOf(RecordingSender $sender, int $index): array
+    private function paramsOf(RecordingSender $sender, int $index): array
     {
         $notification = $sender->notifications[$index] ?? null;
 
@@ -698,9 +698,9 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
     /**
      * @return array<array-key, mixed>
      */
-    private static function metaOf(RecordingSender $sender, int $index): array
+    private function metaOf(RecordingSender $sender, int $index): array
     {
-        $meta = self::paramsOf($sender, $index)['_meta'] ?? [];
+        $meta = $this->paramsOf($sender, $index)['_meta'] ?? [];
         self::assertIsArray($meta);
 
         return $meta;
@@ -709,7 +709,7 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
     /**
      * @return list<string>
      */
-    private static function methodsOf(RecordingSender $sender): array
+    private function methodsOf(RecordingSender $sender): array
     {
         return array_map(
             static fn(JsonRpcNotification $notification): string => $notification::getMethod(),

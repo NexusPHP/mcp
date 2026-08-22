@@ -68,7 +68,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
 
     public function testListenerRegistrationReturnsDistinctSubscriptionsPerChannel(): void
     {
-        $transport = self::buildTransport(new ScriptedSubprocessLauncher());
+        $transport = $this->buildTransport(new ScriptedSubprocessLauncher());
 
         $error = $transport->onError(static function (): void {});
         $drain = $transport->onDrain(static function (): void {});
@@ -81,11 +81,11 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
 
     public function testSendBeforeStartThrows(): void
     {
-        $transport = self::buildTransport(new ScriptedSubprocessLauncher());
+        $transport = $this->buildTransport(new ScriptedSubprocessLauncher());
 
         $this->expectException(TransportNotStartedException::class);
 
-        $transport->send(self::request());
+        $transport->send($this->request());
     }
 
     public function testStartLaunchesTheConfiguredCommandInTheConfiguredDirectory(): void
@@ -108,7 +108,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
 
         try {
             $launcher = new ScriptedSubprocessLauncher();
-            $transport = self::buildTransport($launcher);
+            $transport = $this->buildTransport($launcher);
 
             $transport->start();
             $transport->close();
@@ -135,7 +135,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
     public function testStartLogsTheSpawnedSubprocess(): void
     {
         $logger = new ArrayLogger();
-        $transport = self::buildTransport(new ScriptedSubprocessLauncher(), $logger);
+        $transport = $this->buildTransport(new ScriptedSubprocessLauncher(), $logger);
 
         $transport->start();
         $transport->close();
@@ -169,7 +169,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
     public function testStartAfterStartThrowsWithoutSpawningASecondSubprocess(): void
     {
         $launcher = new ScriptedSubprocessLauncher();
-        $transport = self::buildTransport($launcher);
+        $transport = $this->buildTransport($launcher);
         $transport->start();
 
         try {
@@ -187,7 +187,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
     public function testAConcurrentStartDuringTheLaunchTearsItsOwnSubprocessDown(): void
     {
         $launcher = new ScriptedSubprocessLauncher(launchDelay: 0.01);
-        $transport = self::buildTransport($launcher);
+        $transport = $this->buildTransport($launcher);
 
         $first = async(static fn() => $transport->start());
         $second = async(static function () use ($transport): void {
@@ -214,7 +214,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
     public function testStartAfterCloseThrowsWithoutSpawningASubprocess(): void
     {
         $launcher = new ScriptedSubprocessLauncher();
-        $transport = self::buildTransport($launcher);
+        $transport = $this->buildTransport($launcher);
         $transport->close();
 
         try {
@@ -228,7 +228,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
 
     public function testAFailedLaunchSurfacesToTheCaller(): void
     {
-        $transport = self::buildTransport(new ScriptedSubprocessLauncher(new ProcessException('boom')));
+        $transport = $this->buildTransport(new ScriptedSubprocessLauncher(new ProcessException('boom')));
 
         $this->expectException(ProcessException::class);
         $this->expectExceptionMessageIs('boom');
@@ -239,7 +239,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
     public function testCloseBeforeStartIsNoOp(): void
     {
         $launcher = new ScriptedSubprocessLauncher();
-        $transport = self::buildTransport($launcher);
+        $transport = $this->buildTransport($launcher);
 
         $transport->close();
         $transport->close();
@@ -250,7 +250,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
     public function testCloseShutsTheSubprocessStdinAndKillsIt(): void
     {
         $launcher = new ScriptedSubprocessLauncher();
-        $transport = self::buildTransport($launcher);
+        $transport = $this->buildTransport($launcher);
         $transport->start();
         $subprocess = $launcher->lastSubprocess();
 
@@ -266,7 +266,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
     public function testCloseLogsAtInfoLevel(): void
     {
         $logger = new ArrayLogger();
-        $transport = self::buildTransport(new ScriptedSubprocessLauncher(), $logger);
+        $transport = $this->buildTransport(new ScriptedSubprocessLauncher(), $logger);
         $transport->start();
         $transport->close();
 
@@ -278,7 +278,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
     public function testStartLogsTheSpawnBeforeTheDuplexStart(): void
     {
         $logger = new ArrayLogger();
-        $transport = self::buildTransport(new ScriptedSubprocessLauncher(), $logger);
+        $transport = $this->buildTransport(new ScriptedSubprocessLauncher(), $logger);
         $transport->start();
 
         $lifecycle = array_values(array_filter(
@@ -298,7 +298,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
     public function testCloseLogsTheEndOfTheExitWatchAtDebug(): void
     {
         $logger = new ArrayLogger();
-        $transport = self::buildTransport(new ScriptedSubprocessLauncher(), $logger);
+        $transport = $this->buildTransport(new ScriptedSubprocessLauncher(), $logger);
         $transport->start();
         $transport->close();
         delay(0);
@@ -311,7 +311,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
     public function testDeliversAnEnvelopeReadFromTheSubprocessStdout(): void
     {
         $launcher = new ScriptedSubprocessLauncher();
-        $transport = self::buildTransport($launcher);
+        $transport = $this->buildTransport($launcher);
         /** @var DeferredFuture<array<string, mixed>> $messageReceived */
         $messageReceived = new DeferredFuture();
         $transport->onMessage(static function (array $envelope) use ($messageReceived): void {
@@ -335,7 +335,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
     {
         $logger = new ArrayLogger();
         $launcher = new ScriptedSubprocessLauncher();
-        $transport = self::buildTransport($launcher, $logger);
+        $transport = $this->buildTransport($launcher, $logger);
 
         $transport->start();
         $transport->send(new ToolListChangedNotification());
@@ -351,13 +351,13 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
 
     public function testSendAfterCloseThrowsTransportAlreadyClosed(): void
     {
-        $transport = self::buildTransport(new ScriptedSubprocessLauncher());
+        $transport = $this->buildTransport(new ScriptedSubprocessLauncher());
         $transport->start();
         $transport->close();
 
         $this->expectException(TransportAlreadyClosedException::class);
 
-        $transport->send(self::request());
+        $transport->send($this->request());
     }
 
     #[DataProvider('provideSubprocessStderrIsSanitisedAndForwardedToTheLoggerCases')]
@@ -365,7 +365,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
     {
         $logger = new ArrayLogger();
         $launcher = new ScriptedSubprocessLauncher();
-        $transport = self::buildTransport($launcher, $logger);
+        $transport = $this->buildTransport($launcher, $logger);
 
         $transport->start();
         $launcher->lastSubprocess()->emitStderr($emitted."\n");
@@ -390,7 +390,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
     public function testAnUnrequestedSubprocessExitNotifiesTheExitListenerWithItsCode(): void
     {
         $launcher = new ScriptedSubprocessLauncher();
-        $transport = self::buildTransport($launcher);
+        $transport = $this->buildTransport($launcher);
         /** @var DeferredFuture<null|int> $exited */
         $exited = new DeferredFuture();
         $transport->onUnexpectedExit(static function (?int $exitCode) use ($exited): void {
@@ -411,7 +411,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
     {
         $logger = new ArrayLogger();
         $launcher = new ScriptedSubprocessLauncher();
-        $transport = self::buildTransport($launcher, $logger);
+        $transport = $this->buildTransport($launcher, $logger);
         /** @var DeferredFuture<null|int> $exited */
         $exited = new DeferredFuture();
         $transport->onUnexpectedExit(static function (?int $exitCode) use ($exited): void {
@@ -437,7 +437,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
     {
         $logger = new ArrayLogger();
         $launcher = new ScriptedSubprocessLauncher();
-        $transport = self::buildTransport($launcher, $logger);
+        $transport = $this->buildTransport($launcher, $logger);
         /** @var DeferredFuture<null|int> $exited */
         $exited = new DeferredFuture();
         $observed = 0;
@@ -469,7 +469,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
     {
         $logger = new ArrayLogger();
         $launcher = new ScriptedSubprocessLauncher();
-        $transport = self::buildTransport($launcher, $logger);
+        $transport = $this->buildTransport($launcher, $logger);
         $notified = 0;
         $transport->onUnexpectedExit(static function () use (&$notified): void {
             ++$notified;
@@ -491,7 +491,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
     public function testDisposingTheExitSubscriptionStopsTheNotification(): void
     {
         $launcher = new ScriptedSubprocessLauncher();
-        $transport = self::buildTransport($launcher);
+        $transport = $this->buildTransport($launcher);
         $notified = 0;
         $subscription = $transport->onUnexpectedExit(static function () use (&$notified): void {
             ++$notified;
@@ -510,7 +510,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
     {
         $logger = new ArrayLogger();
         $launcher = new ScriptedSubprocessLauncher();
-        $transport = self::buildTransport($launcher, $logger);
+        $transport = $this->buildTransport($launcher, $logger);
         /** @var DeferredFuture<null|int> $second */
         $second = new DeferredFuture();
         $failure = new \RuntimeException('listener blew up');
@@ -623,7 +623,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
         self::assertSame(['USERPROFILE' => 'C:\\Users\\me'], $environment);
     }
 
-    private static function buildTransport(
+    private function buildTransport(
         ScriptedSubprocessLauncher $launcher,
         ?ArrayLogger $logger = null,
     ): StdioClientTransport {
@@ -634,7 +634,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
         );
     }
 
-    private static function request(): DiscoverRequest
+    private function request(): DiscoverRequest
     {
         return new DiscoverRequest(
             id: new RequestId(id: 1),

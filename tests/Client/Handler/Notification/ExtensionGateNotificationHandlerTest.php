@@ -35,7 +35,7 @@ final class ExtensionGateNotificationHandlerTest extends AbstractMcpTestCase
     public function testDeliversBeforeDiscovery(): void
     {
         $delivered = 0;
-        $handler = self::buildGate(new DiscoveredServerCapabilities(), $delivered);
+        $handler = $this->buildGate(new DiscoveredServerCapabilities(), $delivered);
 
         $handler->handle(new TestNotification());
 
@@ -47,7 +47,7 @@ final class ExtensionGateNotificationHandlerTest extends AbstractMcpTestCase
         $delivered = 0;
         $discovered = new DiscoveredServerCapabilities();
         $discovered->record(new ServerCapabilities(extensions: ['com.example/feature' => []]));
-        $handler = self::buildGate($discovered, $delivered);
+        $handler = $this->buildGate($discovered, $delivered);
 
         $handler->handle(new TestNotification());
 
@@ -60,7 +60,7 @@ final class ExtensionGateNotificationHandlerTest extends AbstractMcpTestCase
         $discovered = new DiscoveredServerCapabilities();
         $discovered->record(new ServerCapabilities(extensions: ['com.example/other' => []]));
         $logger = new ArrayLogger();
-        $handler = self::buildGate($discovered, $delivered, $logger);
+        $handler = $this->buildGate($discovered, $delivered, $logger);
 
         $handler->handle(new TestNotification());
 
@@ -78,14 +78,14 @@ final class ExtensionGateNotificationHandlerTest extends AbstractMcpTestCase
         $delivered = 0;
         $discovered = new DiscoveredServerCapabilities();
         $discovered->record(new ServerCapabilities(tools: []));
-        $handler = self::buildGate($discovered, $delivered);
+        $handler = $this->buildGate($discovered, $delivered);
 
         $handler->handle(new TestNotification());
 
         self::assertSame(0, $delivered);
     }
 
-    private static function buildGate(
+    private function buildGate(
         DiscoveredServerCapabilities $discovered,
         int &$delivered,
         ?ArrayLogger $logger = null,

@@ -39,9 +39,9 @@ final class ExtensionGateRequestHandlerTest extends AbstractMcpTestCase
     public function testServesBeforeDiscovery(): void
     {
         $marker = new EmptyResult();
-        $handler = self::buildGate(new DiscoveredServerCapabilities(), $marker);
+        $handler = $this->buildGate(new DiscoveredServerCapabilities(), $marker);
 
-        $result = $handler->handle(new TestRequest(new RequestId(id: 7)), self::makeContext());
+        $result = $handler->handle(new TestRequest(new RequestId(id: 7)), $this->makeContext());
 
         self::assertSame($marker, $result);
     }
@@ -51,9 +51,9 @@ final class ExtensionGateRequestHandlerTest extends AbstractMcpTestCase
         $marker = new EmptyResult();
         $discovered = new DiscoveredServerCapabilities();
         $discovered->record(new ServerCapabilities(extensions: ['com.example/feature' => []]));
-        $handler = self::buildGate($discovered, $marker);
+        $handler = $this->buildGate($discovered, $marker);
 
-        $result = $handler->handle(new TestRequest(new RequestId(id: 7)), self::makeContext());
+        $result = $handler->handle(new TestRequest(new RequestId(id: 7)), $this->makeContext());
 
         self::assertSame($marker, $result);
     }
@@ -62,34 +62,34 @@ final class ExtensionGateRequestHandlerTest extends AbstractMcpTestCase
     {
         $discovered = new DiscoveredServerCapabilities();
         $discovered->record(new ServerCapabilities(extensions: ['com.example/other' => []]));
-        $handler = self::buildGate($discovered, new EmptyResult());
+        $handler = $this->buildGate($discovered, new EmptyResult());
 
         $this->expectException(MethodNotFoundException::class);
         $this->expectExceptionMessageIs('No registration found for method "tests/test-request".');
 
-        $handler->handle(new TestRequest(new RequestId(id: 7)), self::makeContext());
+        $handler->handle(new TestRequest(new RequestId(id: 7)), $this->makeContext());
     }
 
     public function testRejectsWhenTheServerAdvertisedNoExtensionsAtAll(): void
     {
         $discovered = new DiscoveredServerCapabilities();
         $discovered->record(new ServerCapabilities(tools: []));
-        $handler = self::buildGate($discovered, new EmptyResult());
+        $handler = $this->buildGate($discovered, new EmptyResult());
 
         $this->expectException(MethodNotFoundException::class);
         $this->expectExceptionMessageIs('No registration found for method "tests/test-request".');
 
-        $handler->handle(new TestRequest(new RequestId(id: 7)), self::makeContext());
+        $handler->handle(new TestRequest(new RequestId(id: 7)), $this->makeContext());
     }
 
-    private static function buildGate(DiscoveredServerCapabilities $discovered, EmptyResult $marker): ExtensionGateRequestHandler
+    private function buildGate(DiscoveredServerCapabilities $discovered, EmptyResult $marker): ExtensionGateRequestHandler
     {
         return new ExtensionGateRequestHandler('com.example/feature', new ClosureRequestHandler(
             static fn(): EmptyResult => $marker,
         ), $discovered);
     }
 
-    private static function makeContext(): ClientContext
+    private function makeContext(): ClientContext
     {
         return new ClientContext(
             new RequestId(id: 7),

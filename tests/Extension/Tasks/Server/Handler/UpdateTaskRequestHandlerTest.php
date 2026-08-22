@@ -55,12 +55,12 @@ final class UpdateTaskRequestHandlerTest extends AbstractMcpTestCase
 {
     public function testAnUnknownTaskIdIsInvalidParams(): void
     {
-        $handler = new UpdateTaskRequestHandler(new InMemoryTaskStore(), self::buildUnboundRunner(new InMemoryTaskStore()));
+        $handler = new UpdateTaskRequestHandler(new InMemoryTaskStore(), $this->buildUnboundRunner(new InMemoryTaskStore()));
 
         $this->expectException(InvalidParamsException::class);
         $this->expectExceptionMessageIs('"params.taskId" does not name a known task.');
 
-        $handler->handle(self::buildRequest('missing'), self::buildContext());
+        $handler->handle($this->buildRequest('missing'), $this->buildContext());
     }
 
     public function testATerminalTaskAcksWithoutARedispatch(): void
@@ -69,9 +69,9 @@ final class UpdateTaskRequestHandlerTest extends AbstractMcpTestCase
         $taskId = $store->createTask('slow_compute', null, null, 1_000)->taskId;
         $store->trySetCompleted($taskId, ['resultType' => 'complete']);
 
-        $handler = new UpdateTaskRequestHandler($store, self::buildUnboundRunner($store));
+        $handler = new UpdateTaskRequestHandler($store, $this->buildUnboundRunner($store));
 
-        $handler->handle(self::buildRequest($taskId), self::buildContext());
+        $handler->handle($this->buildRequest($taskId), $this->buildContext());
 
         $record = $store->findTask($taskId);
         self::assertInstanceOf(TaskRecord::class, $record);
@@ -83,13 +83,13 @@ final class UpdateTaskRequestHandlerTest extends AbstractMcpTestCase
         $store = new InMemoryTaskStore();
         $taskId = $store->createTask('multi_input', null, null, 1_000)->taskId;
         $store->trySetInputRequired($taskId, [
-            'first' => self::buildElicitRequest(),
-            'second' => self::buildElicitRequest(),
+            'first' => $this->buildElicitRequest(),
+            'second' => $this->buildElicitRequest(),
         ], 'state-1');
 
-        $handler = new UpdateTaskRequestHandler($store, self::buildUnboundRunner($store));
+        $handler = new UpdateTaskRequestHandler($store, $this->buildUnboundRunner($store));
 
-        $handler->handle(self::buildRequest($taskId, ['first' => ['action' => 'accept']]), self::buildContext());
+        $handler->handle($this->buildRequest($taskId, ['first' => ['action' => 'accept']]), $this->buildContext());
 
         $record = $store->findTask($taskId);
         self::assertInstanceOf(TaskRecord::class, $record);
@@ -101,11 +101,11 @@ final class UpdateTaskRequestHandlerTest extends AbstractMcpTestCase
     {
         $store = new InMemoryTaskStore();
         $taskId = $store->createTask('confirm_delete', null, null, 1_000)->taskId;
-        $store->trySetInputRequired($taskId, ['confirm' => self::buildElicitRequest()], 'state-1');
+        $store->trySetInputRequired($taskId, ['confirm' => $this->buildElicitRequest()], 'state-1');
 
-        $handler = new UpdateTaskRequestHandler($store, self::buildUnboundRunner($store));
+        $handler = new UpdateTaskRequestHandler($store, $this->buildUnboundRunner($store));
 
-        $handler->handle(self::buildRequest($taskId, ['unknown-key' => ['ignored' => true]]), self::buildContext());
+        $handler->handle($this->buildRequest($taskId, ['unknown-key' => ['ignored' => true]]), $this->buildContext());
 
         $record = $store->findTask($taskId);
         self::assertInstanceOf(TaskRecord::class, $record);
@@ -117,21 +117,21 @@ final class UpdateTaskRequestHandlerTest extends AbstractMcpTestCase
     {
         $store = new InMemoryTaskStore();
         $taskId = $store->createTask('confirm_delete', null, null, 1_000)->taskId;
-        $store->trySetInputRequired($taskId, ['confirm' => self::buildElicitRequest()], 'state-1');
+        $store->trySetInputRequired($taskId, ['confirm' => $this->buildElicitRequest()], 'state-1');
 
-        $handler = new UpdateTaskRequestHandler($store, self::buildUnboundRunner($store));
+        $handler = new UpdateTaskRequestHandler($store, $this->buildUnboundRunner($store));
 
         $this->expectException(InvalidParamsException::class);
         $this->expectExceptionMessageIs('"params.inputResponses" entry "confirm" is not a valid input response.');
 
-        $handler->handle(self::buildRequest($taskId, ['confirm' => ['garbled' => true]]), self::buildContext());
+        $handler->handle($this->buildRequest($taskId, ['confirm' => ['garbled' => true]]), $this->buildContext());
     }
 
     public function testAFullFulfilmentFlipsToWorkingAndRedispatches(): void
     {
         $store = new InMemoryTaskStore();
         $taskId = $store->createTask('confirm_delete', ['target' => 'archive'], null, 1_000)->taskId;
-        $store->trySetInputRequired($taskId, ['confirm' => self::buildElicitRequest()], 'state-1');
+        $store->trySetInputRequired($taskId, ['confirm' => $this->buildElicitRequest()], 'state-1');
 
         $seen = null;
         $runner = new ToolTaskRunner($store, new TaskCancellationRegistry(), new ArrayLogger());
@@ -151,7 +151,7 @@ final class UpdateTaskRequestHandlerTest extends AbstractMcpTestCase
         ));
 
         $handler = new UpdateTaskRequestHandler($store, $runner);
-        $handler->handle(self::buildRequest($taskId, ['confirm' => ['action' => 'accept']]), self::buildContext());
+        $handler->handle($this->buildRequest($taskId, ['confirm' => ['action' => 'accept']]), $this->buildContext());
 
         $flipped = $store->findTask($taskId);
         self::assertInstanceOf(TaskRecord::class, $flipped);
@@ -186,14 +186,14 @@ final class UpdateTaskRequestHandlerTest extends AbstractMcpTestCase
         $runner->startTask($store->createTask('other', null, null, 1_000)->taskId, CallToolRequest::fromArray([
             'id' => 1,
             'params' => ['_meta' => RequestMetaObjectFactory::shape(), 'name' => 'other'],
-        ]), self::buildContext(), null, null);
+        ]), $this->buildContext(), null, null);
 
         $taskId = $store->createTask('confirm_delete', null, null, 1_000)->taskId;
-        $store->trySetInputRequired($taskId, ['confirm' => self::buildElicitRequest()], 'state-1');
+        $store->trySetInputRequired($taskId, ['confirm' => $this->buildElicitRequest()], 'state-1');
         $handler = new UpdateTaskRequestHandler($store, $runner);
 
         try {
-            $handler->handle(self::buildRequest($taskId, ['confirm' => ['action' => 'accept']]), self::buildContext());
+            $handler->handle($this->buildRequest($taskId, ['confirm' => ['action' => 'accept']]), $this->buildContext());
             self::fail('The resume must be refused while the cap is running.');
         } catch (TaskLimitReachedException $e) {
             self::assertSame(['limit' => 1], $e->errorData);
@@ -207,7 +207,7 @@ final class UpdateTaskRequestHandlerTest extends AbstractMcpTestCase
         delay(0);
     }
 
-    private static function buildUnboundRunner(InMemoryTaskStore $store): ToolTaskRunner
+    private function buildUnboundRunner(InMemoryTaskStore $store): ToolTaskRunner
     {
         return new ToolTaskRunner($store, new TaskCancellationRegistry(), new ArrayLogger());
     }
@@ -216,7 +216,7 @@ final class UpdateTaskRequestHandlerTest extends AbstractMcpTestCase
      * @param non-empty-string                    $taskId
      * @param array<string, array<string, mixed>> $responses
      */
-    private static function buildRequest(string $taskId, array $responses = []): UpdateTaskRequest
+    private function buildRequest(string $taskId, array $responses = []): UpdateTaskRequest
     {
         return UpdateTaskRequest::fromArray([
             'id' => 7,
@@ -228,7 +228,7 @@ final class UpdateTaskRequestHandlerTest extends AbstractMcpTestCase
         ]);
     }
 
-    private static function buildContext(): ServerContext
+    private function buildContext(): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 7),
@@ -238,7 +238,7 @@ final class UpdateTaskRequestHandlerTest extends AbstractMcpTestCase
         );
     }
 
-    private static function buildElicitRequest(): ElicitRequest
+    private function buildElicitRequest(): ElicitRequest
     {
         return new ElicitRequest(new ElicitRequestFormParams(
             message: 'Confirm?',

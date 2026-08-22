@@ -58,7 +58,7 @@ final class PendingOutboundRequests implements \Countable
         ?JsonRpcRequest $request = null,
         ?SendContext $context = null,
     ): Future {
-        $key = self::buildKey($id);
+        $key = $this->buildKey($id);
 
         if (\array_key_exists($key, $this->map)) {
             throw new LogicException(\sprintf(
@@ -84,7 +84,7 @@ final class PendingOutboundRequests implements \Countable
      */
     public function resolveResponseClass(RequestId $id): ?string
     {
-        return $this->map[self::buildKey($id)]['response'] ?? null;
+        return $this->map[$this->buildKey($id)]['response'] ?? null;
     }
 
     /**
@@ -92,7 +92,7 @@ final class PendingOutboundRequests implements \Countable
      */
     public function resolve(RequestId $id, JsonRpcResultResponse $response): bool
     {
-        $key = self::buildKey($id);
+        $key = $this->buildKey($id);
 
         if (! \array_key_exists($key, $this->map)) {
             return false;
@@ -110,7 +110,7 @@ final class PendingOutboundRequests implements \Countable
      */
     public function reject(RequestId $id, \Throwable $error): bool
     {
-        $key = self::buildKey($id);
+        $key = $this->buildKey($id);
 
         if (! \array_key_exists($key, $this->map)) {
             return false;
@@ -128,7 +128,7 @@ final class PendingOutboundRequests implements \Countable
      */
     public function forget(RequestId $id): bool
     {
-        $key = self::buildKey($id);
+        $key = $this->buildKey($id);
 
         if (! \array_key_exists($key, $this->map)) {
             return false;
@@ -198,7 +198,7 @@ final class PendingOutboundRequests implements \Countable
     /**
      * @return non-empty-string
      */
-    private static function buildKey(RequestId $id): string
+    private function buildKey(RequestId $id): string
     {
         return \sprintf('"id":%s', var_export($id->id, true));
     }

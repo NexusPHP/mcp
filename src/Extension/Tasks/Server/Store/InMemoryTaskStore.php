@@ -62,7 +62,7 @@ final class InMemoryTaskStore implements TaskStoreInterface
     public function createTask(string $toolName, ?array $arguments, ?int $ttlMs, int $pollIntervalMs): TaskRecord
     {
         $instant = ($this->clock)();
-        $this->reclaim(self::toMillisecondTimestamp($instant));
+        $this->reclaim($this->toMillisecondTimestamp($instant));
 
         $now = $instant->format(\DateTimeInterface::ATOM);
         $taskId = bin2hex(random_bytes(16));
@@ -323,7 +323,7 @@ final class InMemoryTaskStore implements TaskStoreInterface
 
         $this->records[$record->taskId] = $updated;
 
-        if (self::isTerminal($status)) {
+        if ($this->isTerminal($status)) {
             $this->terminalAt[$record->taskId] = $instant;
         }
 
@@ -343,7 +343,7 @@ final class InMemoryTaskStore implements TaskStoreInterface
             return null;
         }
 
-        return self::isTerminal($record->status) ? null : $record;
+        return $this->isTerminal($record->status) ? null : $record;
     }
 
     /**
@@ -361,9 +361,9 @@ final class InMemoryTaskStore implements TaskStoreInterface
             return false;
         }
 
-        $nowMs ??= self::toMillisecondTimestamp(($this->clock)());
+        $nowMs ??= $this->toMillisecondTimestamp(($this->clock)());
 
-        return $record->ttlMs <= $nowMs - self::toMillisecondTimestamp($terminalAt);
+        return $record->ttlMs <= $nowMs - $this->toMillisecondTimestamp($terminalAt);
     }
 
     /**
@@ -371,16 +371,16 @@ final class InMemoryTaskStore implements TaskStoreInterface
      */
     private function hasOverstayed(TaskRecord $record, ?int $nowMs): bool
     {
-        if (null === $record->ttlMs || self::isTerminal($record->status)) {
+        if (null === $record->ttlMs || $this->isTerminal($record->status)) {
             return false;
         }
 
-        $nowMs ??= self::toMillisecondTimestamp(($this->clock)());
+        $nowMs ??= $this->toMillisecondTimestamp(($this->clock)());
 
-        return $record->ttlMs <= $nowMs - self::toMillisecondTimestamp(new \DateTimeImmutable($record->createdAt));
+        return $record->ttlMs <= $nowMs - $this->toMillisecondTimestamp(new \DateTimeImmutable($record->createdAt));
     }
 
-    private static function isTerminal(TaskStatus $status): bool
+    private function isTerminal(TaskStatus $status): bool
     {
         return match ($status) {
             TaskStatus::Completed, TaskStatus::Cancelled, TaskStatus::Failed => true,
@@ -388,7 +388,7 @@ final class InMemoryTaskStore implements TaskStoreInterface
         };
     }
 
-    private static function toMillisecondTimestamp(\DateTimeImmutable $instant): int
+    private function toMillisecondTimestamp(\DateTimeImmutable $instant): int
     {
         return $instant->getTimestamp() * 1_000 + intdiv((int) $instant->format('u'), 1_000);
     }

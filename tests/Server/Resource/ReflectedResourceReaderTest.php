@@ -37,14 +37,14 @@ final class ReflectedResourceReaderTest extends AbstractMcpTestCase
 {
     public function testReturnsReadResourceResultUnchanged(): void
     {
-        $result = self::read('resourceResult', 'mem://anything');
+        $result = $this->read('resourceResult', 'mem://anything');
 
-        self::assertSame('body', self::firstText($result));
+        self::assertSame('body', $this->firstText($result));
     }
 
     public function testWrapsStringAsTextResourceContentsBoundToUri(): void
     {
-        $result = self::read('resourceUri', 'mem://fixed');
+        $result = $this->read('resourceUri', 'mem://fixed');
 
         $contents = $result->contents[0] ?? null;
 
@@ -59,24 +59,24 @@ final class ReflectedResourceReaderTest extends AbstractMcpTestCase
         $this->expectException(UnsupportedReturnValueException::class);
         $this->expectExceptionMessageIs(ReflectedHandlers::class.'::resourceUnsupported() must return a '.ReadResourceResult::class.', a string, or resource contents, bool given.');
 
-        self::read('resourceUnsupported', 'mem://x');
+        $this->read('resourceUnsupported', 'mem://x');
     }
 
     /**
      * @param non-empty-string $uri
      */
-    private static function read(string $method, string $uri): ReadResourceResult
+    private function read(string $method, string $uri): ReadResourceResult
     {
         $reader = new ReflectedResourceReader(new ReflectedHandlers(), new \ReflectionMethod(ReflectedHandlers::class, $method));
 
-        $result = $reader->read($uri, self::makeContext());
+        $result = $reader->read($uri, $this->makeContext());
 
         self::assertInstanceOf(ReadResourceResult::class, $result);
 
         return $result;
     }
 
-    private static function firstText(ReadResourceResult $result): string
+    private function firstText(ReadResourceResult $result): string
     {
         $contents = $result->contents[0] ?? null;
 
@@ -85,7 +85,7 @@ final class ReflectedResourceReaderTest extends AbstractMcpTestCase
         return $contents->text;
     }
 
-    private static function makeContext(): ServerContext
+    private function makeContext(): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 7),

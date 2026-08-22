@@ -43,7 +43,7 @@ final class OpisSchemaValidatorTest extends AbstractMcpTestCase
     {
         self::assertSame(
             [['pointer' => '/n', 'message' => '"n" must be an integer, string given.']],
-            self::describe((new OpisSchemaValidator())->validate(['n' => 'not-an-int'], self::SCHEMA)),
+            $this->describe((new OpisSchemaValidator())->validate(['n' => 'not-an-int'], self::SCHEMA)),
         );
     }
 
@@ -51,7 +51,7 @@ final class OpisSchemaValidatorTest extends AbstractMcpTestCase
     {
         self::assertSame(
             [['pointer' => '', 'message' => 'missing the required "n" key.']],
-            self::describe((new OpisSchemaValidator())->validate(['other' => 1], self::SCHEMA)),
+            $this->describe((new OpisSchemaValidator())->validate(['other' => 1], self::SCHEMA)),
         );
     }
 
@@ -67,7 +67,7 @@ final class OpisSchemaValidatorTest extends AbstractMcpTestCase
 
         self::assertSame(
             ['"a" must be a string, int given.', '"b" must be an integer, string given.'],
-            self::messagesOf($errors),
+            $this->messagesOf($errors),
         );
     }
 
@@ -164,7 +164,7 @@ final class OpisSchemaValidatorTest extends AbstractMcpTestCase
      *
      * @return list<array{pointer: string, message: string}>
      */
-    private static function describe(array $violations): array
+    private function describe(array $violations): array
     {
         return array_map(static fn(SchemaViolation $violation): array => $violation->toArray(), $violations);
     }
@@ -174,7 +174,7 @@ final class OpisSchemaValidatorTest extends AbstractMcpTestCase
      *
      * @return list<string>
      */
-    private static function messagesOf(array $violations): array
+    private function messagesOf(array $violations): array
     {
         return array_map(static fn(SchemaViolation $violation): string => $violation->message, $violations);
     }

@@ -44,7 +44,7 @@ final class CancelTaskRequestHandlerTest extends AbstractMcpTestCase
         $this->expectException(InvalidParamsException::class);
         $this->expectExceptionMessageIs('"params.taskId" does not name a known task.');
 
-        $handler->handle(self::buildRequest('missing'), self::buildContext());
+        $handler->handle($this->buildRequest('missing'), $this->buildContext());
     }
 
     public function testCancelMarksTheRecordAndCancelsTheInFlightFiber(): void
@@ -55,7 +55,7 @@ final class CancelTaskRequestHandlerTest extends AbstractMcpTestCase
         $token = $registry->register($taskId);
 
         $handler = new CancelTaskRequestHandler($store, $registry);
-        $handler->handle(self::buildRequest($taskId), self::buildContext());
+        $handler->handle($this->buildRequest($taskId), $this->buildContext());
 
         self::assertTrue($token->isRequested());
 
@@ -71,7 +71,7 @@ final class CancelTaskRequestHandlerTest extends AbstractMcpTestCase
         $store->trySetCompleted($taskId, ['resultType' => 'complete']);
 
         $handler = new CancelTaskRequestHandler($store, new TaskCancellationRegistry());
-        $handler->handle(self::buildRequest($taskId), self::buildContext());
+        $handler->handle($this->buildRequest($taskId), $this->buildContext());
 
         $record = $store->findTask($taskId);
         self::assertInstanceOf(TaskRecord::class, $record);
@@ -81,7 +81,7 @@ final class CancelTaskRequestHandlerTest extends AbstractMcpTestCase
     /**
      * @param non-empty-string $taskId
      */
-    private static function buildRequest(string $taskId): CancelTaskRequest
+    private function buildRequest(string $taskId): CancelTaskRequest
     {
         return CancelTaskRequest::fromArray([
             'id' => 7,
@@ -89,7 +89,7 @@ final class CancelTaskRequestHandlerTest extends AbstractMcpTestCase
         ]);
     }
 
-    private static function buildContext(): ServerContext
+    private function buildContext(): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 7),

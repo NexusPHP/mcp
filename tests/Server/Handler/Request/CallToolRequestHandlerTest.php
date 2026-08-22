@@ -63,7 +63,7 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
 
         $handler->handle(
             new CallToolRequest(id: new RequestId(id: 42), params: new CallToolRequestParams(name: 'echo', meta: RequestMetaObjectFactory::create(), arguments: ['x' => 1])),
-            self::makeContext(),
+            $this->makeContext(),
         );
 
         self::assertSame(['arguments' => ['x' => 1], 'requestId' => 99], $captured);
@@ -81,7 +81,7 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
 
         $result = (new CallToolRequestHandler($store))->handle(
             new CallToolRequest(id: new RequestId(id: 42), params: new CallToolRequestParams(name: 'ask', meta: RequestMetaObjectFactory::create())),
-            self::makeContext(),
+            $this->makeContext(),
         );
 
         self::assertSame($asked, $result, 'A tool awaiting input has no content to back-fill.');
@@ -100,7 +100,7 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
 
         $result = $handler->handle(
             new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'echo', meta: RequestMetaObjectFactory::create())),
-            self::makeContext(),
+            $this->makeContext(),
         );
 
         self::assertInstanceOf(CallToolResult::class, $result);
@@ -125,7 +125,7 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
 
         $result = $handler->handle(
             new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'report', meta: RequestMetaObjectFactory::create())),
-            self::makeContext(),
+            $this->makeContext(),
         );
 
         self::assertInstanceOf(CallToolResult::class, $result);
@@ -156,7 +156,7 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
 
         $result = $handler->handle(
             new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'report', meta: RequestMetaObjectFactory::create())),
-            self::makeContext(),
+            $this->makeContext(),
         );
 
         self::assertInstanceOf(CallToolResult::class, $result);
@@ -179,7 +179,7 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
 
         $result = $handler->handle(
             new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'report', meta: RequestMetaObjectFactory::create())),
-            self::makeContext(),
+            $this->makeContext(),
         );
 
         self::assertInstanceOf(CallToolResult::class, $result);
@@ -217,7 +217,7 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
 
         $handler->handle(
             new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'search', meta: RequestMetaObjectFactory::create(), arguments: ['q' => 123])),
-            self::makeContext(),
+            $this->makeContext(),
         );
     }
 
@@ -238,7 +238,7 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
 
         $result = $handler->handle(
             new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'report', meta: RequestMetaObjectFactory::create())),
-            self::makeContext(),
+            $this->makeContext(),
         );
 
         self::assertInstanceOf(CallToolResult::class, $result);
@@ -274,7 +274,7 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
 
         $result = $handler->handle(
             new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'report', meta: RequestMetaObjectFactory::create())),
-            self::makeContext(),
+            $this->makeContext(),
         );
 
         self::assertInstanceOf(CallToolResult::class, $result);
@@ -301,7 +301,7 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
 
         $handler->handle(
             new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'missing', meta: RequestMetaObjectFactory::create())),
-            self::makeContext(),
+            $this->makeContext(),
         );
     }
 
@@ -321,7 +321,7 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
 
         $result = $handler->handle(
             new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'flaky', meta: RequestMetaObjectFactory::create())),
-            self::makeContext(),
+            $this->makeContext(),
         );
 
         self::assertInstanceOf(CallToolResult::class, $result);
@@ -361,7 +361,7 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
 
         $result = $handler->handle(
             new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'flaky', meta: RequestMetaObjectFactory::create())),
-            self::makeContext(),
+            $this->makeContext(),
         );
 
         self::assertInstanceOf(CallToolResult::class, $result);
@@ -380,7 +380,7 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
         self::assertSame($exception, $matches[0]['context']['exception'] ?? null);
     }
 
-    private static function makeContext(): ServerContext
+    private function makeContext(): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 99),

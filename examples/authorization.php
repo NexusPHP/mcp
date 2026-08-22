@@ -112,16 +112,16 @@ final class StubAuthorizationServer implements AccessTokenValidatorInterface, Re
     private function authorize(ServerRequestInterface $request): ResponseInterface
     {
         $query = $request->getQueryParams();
-        $clientId = self::text($query, 'client_id');
-        $redirectUri = self::text($query, 'redirect_uri');
-        $challenge = self::text($query, 'code_challenge');
+        $clientId = $this->text($query, 'client_id');
+        $redirectUri = $this->text($query, 'redirect_uri');
+        $challenge = $this->text($query, 'code_challenge');
 
         if ('' === $clientId || '' === $redirectUri || '' === $challenge
-            || self::text($query, 'code_challenge_method') !== 'S256') {
+            || $this->text($query, 'code_challenge_method') !== 'S256') {
             return $this->json(['error' => 'invalid_request'], 400);
         }
 
-        $scope = self::text($query, 'scope');
+        $scope = $this->text($query, 'scope');
         $code = bin2hex(random_bytes(16));
         $this->codes[$code] = [
             'challenge' => $challenge,
@@ -132,7 +132,7 @@ final class StubAuthorizationServer implements AccessTokenValidatorInterface, Re
         $location = sprintf(
             '%s?%s',
             $redirectUri,
-            http_build_query(['code' => $code, 'state' => self::text($query, 'state'), 'iss' => ISSUER]),
+            http_build_query(['code' => $code, 'state' => $this->text($query, 'state'), 'iss' => ISSUER]),
         );
 
         return $this->responseFactory->createResponse(302)->withHeader('Location', $location);
@@ -141,13 +141,13 @@ final class StubAuthorizationServer implements AccessTokenValidatorInterface, Re
     private function token(ServerRequestInterface $request): ResponseInterface
     {
         parse_str((string) $request->getBody(), $form);
-        $code = self::text($form, 'code');
+        $code = $this->text($form, 'code');
         $grant = $this->codes[$code] ?? null;
-        $verifier = self::text($form, 'code_verifier');
+        $verifier = $this->text($form, 'code_verifier');
         $expectedChallenge = rtrim(strtr(base64_encode(hash('sha256', $verifier, true)), '+/', '-_'), '=');
 
         if (null === $grant
-            || self::text($form, 'grant_type') !== 'authorization_code'
+            || $this->text($form, 'grant_type') !== 'authorization_code'
             || $grant['challenge'] !== $expectedChallenge) {
             return $this->json(['error' => 'invalid_grant'], 400);
         }
@@ -182,7 +182,7 @@ final class StubAuthorizationServer implements AccessTokenValidatorInterface, Re
     /**
      * @param array<array-key, mixed> $params
      */
-    private static function text(array $params, string $name): string
+    private function text(array $params, string $name): string
     {
         $value = $params[$name] ?? null;
 

@@ -63,7 +63,7 @@ final class ToolTest extends AbstractMcpTestCase
     {
         $tool = new Tool(
             name: 'read-file',
-            inputSchema: self::objectSchema(),
+            inputSchema: $this->objectSchema(),
             title: 'Read File',
             description: 'Reads contents.',
             outputSchema: ['type' => 'object', 'properties' => ['content' => ['type' => 'string']]],
@@ -75,7 +75,7 @@ final class ToolTest extends AbstractMcpTestCase
         self::assertSame(
             [
                 'name' => 'read-file',
-                'inputSchema' => self::objectSchema(),
+                'inputSchema' => $this->objectSchema(),
                 'title' => 'Read File',
                 'description' => 'Reads contents.',
                 'outputSchema' => ['type' => 'object', 'properties' => ['content' => ['type' => 'string']]],
@@ -99,7 +99,7 @@ final class ToolTest extends AbstractMcpTestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $tool = new Tool(name: 'read-file', inputSchema: self::objectSchema());
+        $tool = new Tool(name: 'read-file', inputSchema: $this->objectSchema());
 
         self::assertSame($tool->toArray(), $tool->jsonSerialize());
     }
@@ -116,7 +116,7 @@ final class ToolTest extends AbstractMcpTestCase
     {
         $tool = Tool::fromArray([
             'name' => 'read-file',
-            'inputSchema' => self::objectSchema(),
+            'inputSchema' => $this->objectSchema(),
             'title' => 'Read File',
             'description' => 'Reads contents.',
             'outputSchema' => ['type' => 'object'],
@@ -138,7 +138,7 @@ final class ToolTest extends AbstractMcpTestCase
     {
         $original = new Tool(
             name: 'read-file',
-            inputSchema: self::objectSchema(),
+            inputSchema: $this->objectSchema(),
             title: 'Read File',
             description: 'Reads contents.',
             outputSchema: ['type' => 'object', 'properties' => ['content' => ['type' => 'string']]],
@@ -580,7 +580,7 @@ final class ToolTest extends AbstractMcpTestCase
     /**
      * @return array{type: 'object', '$schema'?: non-empty-string, properties?: array<string, array<string, mixed>>, required?: list<string>}
      */
-    private static function objectSchema(): array
+    private function objectSchema(): array
     {
         return [
             'type' => 'object',

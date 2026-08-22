@@ -39,19 +39,19 @@ final class ReflectedPromptRendererTest extends AbstractMcpTestCase
 {
     public function testReturnsGetPromptResultUnchanged(): void
     {
-        $result = self::render('promptResult', null);
+        $result = $this->render('promptResult', null);
 
         self::assertSame('a description', $result->description);
-        self::assertSame(Role::Assistant, self::firstMessage($result)->role);
+        self::assertSame(Role::Assistant, $this->firstMessage($result)->role);
     }
 
     public function testWrapsStringAsUserMessage(): void
     {
-        $result = self::render('promptString', ['topic' => 'AI']);
+        $result = $this->render('promptString', ['topic' => 'AI']);
 
         self::assertNull($result->description);
 
-        $message = self::firstMessage($result);
+        $message = $this->firstMessage($result);
         self::assertSame(Role::User, $message->role);
 
         self::assertInstanceOf(TextContent::class, $message->content);
@@ -61,39 +61,39 @@ final class ReflectedPromptRendererTest extends AbstractMcpTestCase
 
     public function testWrapsSingleMessage(): void
     {
-        $result = self::render('promptMessage', null);
+        $result = $this->render('promptMessage', null);
 
         self::assertCount(1, $result->messages);
-        self::assertSame(Role::Assistant, self::firstMessage($result)->role);
+        self::assertSame(Role::Assistant, $this->firstMessage($result)->role);
     }
 
     public function testReturnsMessageList(): void
     {
-        $result = self::render('promptMessageList', null);
+        $result = $this->render('promptMessageList', null);
 
         self::assertCount(2, $result->messages);
-        self::assertSame(Role::User, self::firstMessage($result)->role);
+        self::assertSame(Role::User, $this->firstMessage($result)->role);
     }
 
     public function testThrowsOnMapOfMessages(): void
     {
         $this->expectException(UnsupportedReturnValueException::class);
 
-        self::render('promptMapOfMessages', null);
+        $this->render('promptMapOfMessages', null);
     }
 
     public function testThrowsOnEmptyArray(): void
     {
         $this->expectException(UnsupportedReturnValueException::class);
 
-        self::render('promptEmpty', null);
+        $this->render('promptEmpty', null);
     }
 
     public function testThrowsOnNonMessageList(): void
     {
         $this->expectException(UnsupportedReturnValueException::class);
 
-        self::render('promptNonMessageList', null);
+        $this->render('promptNonMessageList', null);
     }
 
     public function testThrowsOnUnsupportedReturn(): void
@@ -101,24 +101,24 @@ final class ReflectedPromptRendererTest extends AbstractMcpTestCase
         $this->expectException(UnsupportedReturnValueException::class);
         $this->expectExceptionMessageIs(ReflectedHandlers::class.'::promptUnsupported() must return a '.GetPromptResult::class.', a string, or prompt messages, float given.');
 
-        self::render('promptUnsupported', null);
+        $this->render('promptUnsupported', null);
     }
 
     /**
      * @param null|array<string, string> $arguments
      */
-    private static function render(string $method, ?array $arguments): GetPromptResult
+    private function render(string $method, ?array $arguments): GetPromptResult
     {
         $renderer = new ReflectedPromptRenderer(new ReflectedHandlers(), new \ReflectionMethod(ReflectedHandlers::class, $method));
 
-        $result = $renderer->render($arguments, self::makeContext());
+        $result = $renderer->render($arguments, $this->makeContext());
 
         self::assertInstanceOf(GetPromptResult::class, $result);
 
         return $result;
     }
 
-    private static function firstMessage(GetPromptResult $result): PromptMessage
+    private function firstMessage(GetPromptResult $result): PromptMessage
     {
         $message = $result->messages[0] ?? null;
 
@@ -127,7 +127,7 @@ final class ReflectedPromptRendererTest extends AbstractMcpTestCase
         return $message;
     }
 
-    private static function makeContext(): ServerContext
+    private function makeContext(): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 7),

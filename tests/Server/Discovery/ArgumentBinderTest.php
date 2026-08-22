@@ -51,7 +51,7 @@ final class ArgumentBinderTest extends AbstractMcpTestCase
 
     public function testInjectsServerContext(): void
     {
-        $context = self::makeContext();
+        $context = $this->makeContext();
 
         self::assertSame([$context], $this->bind('contextOnly', [], $context));
     }
@@ -190,14 +190,14 @@ final class ArgumentBinderTest extends AbstractMcpTestCase
 
     public function testBindsParametersInDeclarationOrder(): void
     {
-        $context = self::makeContext();
+        $context = $this->makeContext();
 
         self::assertSame(['Ada', $context, 2], $this->bind('mixedOrder', ['name' => 'Ada', 'age' => 2], $context));
     }
 
     public function testBindsTrailingDefaultAroundInjectedContext(): void
     {
-        $context = self::makeContext();
+        $context = $this->makeContext();
 
         self::assertSame(['Ada', $context, 1], $this->bind('mixedOrder', ['name' => 'Ada'], $context));
     }
@@ -381,11 +381,11 @@ final class ArgumentBinderTest extends AbstractMcpTestCase
         return $this->binder->bind(
             new \ReflectionMethod(ReflectedHandlers::class, $method),
             $values,
-            $context ?? self::makeContext(),
+            $context ?? $this->makeContext(),
         );
     }
 
-    private static function makeContext(): ServerContext
+    private function makeContext(): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 7),

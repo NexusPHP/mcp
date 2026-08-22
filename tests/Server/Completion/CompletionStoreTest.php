@@ -44,7 +44,7 @@ final class CompletionStoreTest extends AbstractMcpTestCase
             'arg',
             'partial',
             null,
-            self::makeContext(),
+            $this->makeContext(),
         );
 
         self::assertSame([], $result->completion['values']);
@@ -59,7 +59,7 @@ final class CompletionStoreTest extends AbstractMcpTestCase
             'arg',
             'partial',
             null,
-            self::makeContext(),
+            $this->makeContext(),
         );
 
         self::assertSame([], $result->completion['values']);
@@ -78,7 +78,7 @@ final class CompletionStoreTest extends AbstractMcpTestCase
             'other-arg',
             'partial',
             null,
-            self::makeContext(),
+            $this->makeContext(),
         );
 
         self::assertSame([], $result->completion['values']);
@@ -97,7 +97,7 @@ final class CompletionStoreTest extends AbstractMcpTestCase
             'filename',
             'partial',
             null,
-            self::makeContext(),
+            $this->makeContext(),
         );
 
         self::assertSame([], $result->completion['values']);
@@ -121,7 +121,7 @@ final class CompletionStoreTest extends AbstractMcpTestCase
             'arg',
             'partial-value',
             ['other' => 'context-value'],
-            self::makeContext(),
+            $this->makeContext(),
         );
 
         self::assertSame(['suggestion-a', 'suggestion-b'], $result->completion['values']);
@@ -146,7 +146,7 @@ final class CompletionStoreTest extends AbstractMcpTestCase
             'filename',
             'rep',
             ['folder' => 'docs'],
-            self::makeContext(),
+            $this->makeContext(),
         );
 
         self::assertSame(['report.pdf', 'report.csv'], $result->completion['values']);
@@ -164,8 +164,8 @@ final class CompletionStoreTest extends AbstractMcpTestCase
             ],
         );
 
-        $promptResult = $store->complete(new PromptReference(name: 'p'), 'a', '', null, self::makeContext());
-        $templateResult = $store->complete(new ResourceTemplateReference(uri: 'file:///{x}'), 'x', '', null, self::makeContext());
+        $promptResult = $store->complete(new PromptReference(name: 'p'), 'a', '', null, $this->makeContext());
+        $templateResult = $store->complete(new ResourceTemplateReference(uri: 'file:///{x}'), 'x', '', null, $this->makeContext());
 
         self::assertSame(['from-prompt'], $promptResult->completion['values']);
         self::assertSame(['from-template'], $templateResult->completion['values']);
@@ -193,7 +193,7 @@ final class CompletionStoreTest extends AbstractMcpTestCase
             'who',
             'z',
             null,
-            self::makeContext(),
+            $this->makeContext(),
         );
 
         self::assertSame(['zero'], $result->completion['values']);
@@ -212,7 +212,7 @@ final class CompletionStoreTest extends AbstractMcpTestCase
             '7',
             's',
             null,
-            self::makeContext(),
+            $this->makeContext(),
         );
 
         self::assertSame(['seven'], $result->completion['values']);
@@ -268,7 +268,7 @@ final class CompletionStoreTest extends AbstractMcpTestCase
             'arg',
             'partial',
             null,
-            self::makeContext(),
+            $this->makeContext(),
         );
 
         self::assertSame(['b'], $result->completion['values']);
@@ -294,13 +294,13 @@ final class CompletionStoreTest extends AbstractMcpTestCase
             'arg',
             'x',
             null,
-            self::makeContext(),
+            $this->makeContext(),
         );
 
         self::assertSame(['provided-x'], $result->completion['values']);
     }
 
-    private static function makeContext(): ServerContext
+    private function makeContext(): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 99),

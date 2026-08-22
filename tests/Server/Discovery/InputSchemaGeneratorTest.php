@@ -48,12 +48,12 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
                 'score' => ['type' => 'number'],
             ],
             'required' => ['name', 'age', 'active', 'score'],
-        ], self::generate('scalars'));
+        ], $this->generate('scalars'));
     }
 
     public function testNoArgumentsOmitsPropertiesAndRequired(): void
     {
-        self::assertSame(['type' => 'object', '$schema' => self::DIALECT], self::generate('noArguments'));
+        self::assertSame(['type' => 'object', '$schema' => self::DIALECT], $this->generate('noArguments'));
     }
 
     public function testDescriptionComesFromDocblock(): void
@@ -63,7 +63,7 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
             '$schema' => self::DIALECT,
             'properties' => ['label' => ['type' => 'string', 'description' => 'A friendly label.']],
             'required' => ['label'],
-        ], self::generate('described'));
+        ], $this->generate('described'));
     }
 
     public function testOptionalAndNullableParameters(): void
@@ -75,7 +75,7 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
                 'nickname' => ['type' => ['null', 'string'], 'default' => null],
                 'count' => ['type' => 'integer', 'default' => 3],
             ],
-        ], self::generate('optionalAndNullable'));
+        ], $this->generate('optionalAndNullable'));
     }
 
     public function testEnumParameters(): void
@@ -89,7 +89,7 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
                 'flag' => ['type' => 'string', 'enum' => ['Yes', 'No']],
             ],
             'required' => ['color', 'level', 'flag'],
-        ], self::generate('enums'));
+        ], $this->generate('enums'));
     }
 
     public function testDocblockRefinesArrayParameters(): void
@@ -106,7 +106,7 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
                 ],
             ],
             'required' => ['tags', 'owner'],
-        ], self::generate('collections'));
+        ], $this->generate('collections'));
     }
 
     public function testVariadicParameterBecomesAnArray(): void
@@ -115,7 +115,7 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
             'type' => 'object',
             '$schema' => self::DIALECT,
             'properties' => ['tags' => ['type' => 'array', 'items' => ['type' => 'string']]],
-        ], self::generate('variadicStrings'));
+        ], $this->generate('variadicStrings'));
     }
 
     public function testVariadicParameterCarriesItsDocblockDescription(): void
@@ -126,7 +126,7 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
             'properties' => [
                 'labels' => ['type' => 'array', 'items' => ['type' => 'string'], 'description' => 'A label to apply.'],
             ],
-        ], self::generate('variadicDescribed'));
+        ], $this->generate('variadicDescribed'));
     }
 
     public function testUntypedVariadicParameterIsAnUntypedArray(): void
@@ -135,7 +135,7 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
             'type' => 'object',
             '$schema' => self::DIALECT,
             'properties' => ['values' => ['type' => 'array']],
-        ], self::generate('variadicUntyped'));
+        ], $this->generate('variadicUntyped'));
     }
 
     public function testLiteralUnionParameterBecomesEnum(): void
@@ -145,7 +145,7 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
             '$schema' => self::DIALECT,
             'properties' => ['unit' => ['type' => 'string', 'enum' => ['celsius', 'fahrenheit']]],
             'required' => ['unit'],
-        ], self::generate('literalUnion'));
+        ], $this->generate('literalUnion'));
     }
 
     public function testRefinedScalarParametersCarryConstraints(): void
@@ -158,7 +158,7 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
                 'rating' => ['type' => 'integer', 'minimum' => 1, 'maximum' => 5],
             ],
             'required' => ['code', 'rating'],
-        ], self::generate('refined'));
+        ], $this->generate('refined'));
     }
 
     public function testServerContextParameterIsExcluded(): void
@@ -168,7 +168,7 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
             '$schema' => self::DIALECT,
             'properties' => ['query' => ['type' => 'string']],
             'required' => ['query'],
-        ], self::generate('withContext'));
+        ], $this->generate('withContext'));
     }
 
     public function testParameterConstraintMergesOverInferred(): void
@@ -178,7 +178,7 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
             '$schema' => self::DIALECT,
             'properties' => ['email' => ['type' => 'string', 'format' => 'email', 'minLength' => 3]],
             'required' => ['email'],
-        ], self::generate('paramConstraint'));
+        ], $this->generate('paramConstraint'));
     }
 
     public function testParameterDefinitionOverridesInference(): void
@@ -188,7 +188,7 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
             '$schema' => self::DIALECT,
             'properties' => ['token' => ['type' => 'string', 'const' => 'fixed']],
             'required' => ['token'],
-        ], self::generate('paramDefinition'));
+        ], $this->generate('paramDefinition'));
     }
 
     public function testParameterExplicitTypeReplacesInferredSchema(): void
@@ -198,7 +198,7 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
             '$schema' => self::DIALECT,
             'properties' => ['color' => ['type' => 'string']],
             'required' => ['color'],
-        ], self::generate('explicitType'));
+        ], $this->generate('explicitType'));
     }
 
     public function testMethodDefinitionShortCircuitsAndInjectsDialect(): void
@@ -208,7 +208,7 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
             'type' => 'object',
             'properties' => ['x' => ['type' => 'integer']],
             'required' => ['x'],
-        ], self::generate('methodDefinition'));
+        ], $this->generate('methodDefinition'));
     }
 
     public function testMethodConstraintsMergeOverTheInferredSchema(): void
@@ -220,7 +220,7 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
             'required' => ['unit'],
             'description' => 'MY METHOD DESCRIPTION',
             'additionalProperties' => false,
-        ], self::generate('methodConstraints'));
+        ], $this->generate('methodConstraints'));
     }
 
     public function testAMethodPropertiesOverrideDiscardsTheInferredRequiredList(): void
@@ -229,7 +229,7 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
             'type' => 'object',
             '$schema' => self::DIALECT,
             'properties' => ['other' => ['type' => 'integer']],
-        ], self::generate('methodPropertiesOverride'));
+        ], $this->generate('methodPropertiesOverride'));
     }
 
     public function testUnsupportedParameterTypeThrows(): void
@@ -237,7 +237,7 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
         $this->expectException(LogicException::class);
         $this->expectExceptionMessageMatches('/parameter "\$when".+SampleToolHandlers::unsupported/');
 
-        self::generate('unsupported');
+        $this->generate('unsupported');
     }
 
     public function testBareArrayWithUnmappableDocblockFallsBackToArray(): void
@@ -247,7 +247,7 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
             '$schema' => self::DIALECT,
             'properties' => ['items' => ['type' => 'array']],
             'required' => ['items'],
-        ], self::generate('unmappableArrayDoc'));
+        ], $this->generate('unmappableArrayDoc'));
     }
 
     public function testUntypedParameterYieldsTheAlwaysValidSchema(): void
@@ -257,7 +257,7 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
             '$schema' => self::DIALECT,
             'properties' => ['anything' => true],
             'required' => ['anything'],
-        ], self::generate('untyped'));
+        ], $this->generate('untyped'));
     }
 
     public function testMixedParameterYieldsTheAlwaysValidSchema(): void
@@ -267,7 +267,7 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
             '$schema' => self::DIALECT,
             'properties' => ['value' => true],
             'required' => ['value'],
-        ], self::generate('mixedParameter'));
+        ], $this->generate('mixedParameter'));
     }
 
     public function testMixedNestedInAShapeYieldsTheAlwaysValidSchema(): void
@@ -283,7 +283,7 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
                 ],
             ],
             'required' => ['entry'],
-        ], self::generate('mixedInsideAShape'));
+        ], $this->generate('mixedInsideAShape'));
     }
 
     public function testMixedNestedInATupleYieldsTheAlwaysValidSchema(): void
@@ -300,7 +300,7 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
                 ],
             ],
             'required' => ['pair'],
-        ], self::generate('mixedInsideATuple'));
+        ], $this->generate('mixedInsideATuple'));
     }
 
     public function testEnumDefaultsAreUnwrapped(): void
@@ -312,7 +312,7 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
                 'color' => ['type' => 'string', 'enum' => ['a', 'b'], 'default' => 'a'],
                 'flag' => ['type' => 'string', 'enum' => ['Yes', 'No'], 'default' => 'Yes'],
             ],
-        ], self::generate('enumDefaults'));
+        ], $this->generate('enumDefaults'));
     }
 
     public function testInjectedContextBeforeOtherParametersIsExcluded(): void
@@ -322,7 +322,7 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
             '$schema' => self::DIALECT,
             'properties' => ['value' => ['type' => 'string']],
             'required' => ['value'],
-        ], self::generate('contextNotLast'));
+        ], $this->generate('contextNotLast'));
     }
 
     public function testParameterDefinitionIgnoresDocblockDescription(): void
@@ -332,7 +332,7 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
             '$schema' => self::DIALECT,
             'properties' => ['token' => ['type' => 'string', 'const' => 'fixed']],
             'required' => ['token'],
-        ], self::generate('definitionWithDocblock'));
+        ], $this->generate('definitionWithDocblock'));
     }
 
     public function testClassParameterExpandsToAnObject(): void
@@ -352,7 +352,7 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
                 ],
             ],
             'required' => ['point'],
-        ], self::generate('geoPoint'));
+        ], $this->generate('geoPoint'));
     }
 
     public function testClassWithoutConstructorExpandsToAnEmptyObject(): void
@@ -362,7 +362,7 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
             '$schema' => self::DIALECT,
             'properties' => ['thing' => ['type' => 'object']],
             'required' => ['thing'],
-        ], self::generate('noConstructorObject'));
+        ], $this->generate('noConstructorObject'));
     }
 
     public function testNestedClassParameterThrows(): void
@@ -370,21 +370,21 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
         $this->expectException(LogicException::class);
         $this->expectExceptionMessageMatches('/parameter "\$at".+Place::__construct/');
 
-        self::generate('nestedObject');
+        $this->generate('nestedObject');
     }
 
     public function testAbstractClassParameterThrows(): void
     {
         $this->expectException(LogicException::class);
 
-        self::generate('abstractObject');
+        $this->generate('abstractObject');
     }
 
     public function testInterfaceParameterThrows(): void
     {
         $this->expectException(LogicException::class);
 
-        self::generate('interfaceObject');
+        $this->generate('interfaceObject');
     }
 
     #[DataProvider('provideIsExpandableCases')]
@@ -413,22 +413,22 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
 
     public function testIsInjectedContextIdentifiesTheServerContextParameter(): void
     {
-        self::assertFalse(InputSchemaGenerator::isInjectedContext(self::parameterAt('withContext', 0)));
-        self::assertTrue(InputSchemaGenerator::isInjectedContext(self::parameterAt('withContext', 1)));
+        self::assertFalse(InputSchemaGenerator::isInjectedContext($this->parameterAt('withContext', 0)));
+        self::assertTrue(InputSchemaGenerator::isInjectedContext($this->parameterAt('withContext', 1)));
     }
 
     public function testResolveExpandableNativeClassAnswersOnlyForAnInstantiableClass(): void
     {
         self::assertSame(
             Place::class,
-            InputSchemaGenerator::resolveExpandableNativeClass(self::parameterAt('nestedObject', 0)),
+            InputSchemaGenerator::resolveExpandableNativeClass($this->parameterAt('nestedObject', 0)),
         );
         self::assertNull(
-            InputSchemaGenerator::resolveExpandableNativeClass(self::parameterAt('withContext', 0)),
+            InputSchemaGenerator::resolveExpandableNativeClass($this->parameterAt('withContext', 0)),
         );
     }
 
-    private static function parameterAt(string $method, int $position): \ReflectionParameter
+    private function parameterAt(string $method, int $position): \ReflectionParameter
     {
         $parameters = (new \ReflectionMethod(SampleToolHandlers::class, $method))->getParameters();
 
@@ -442,7 +442,7 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
     /**
      * @return array<string, mixed>
      */
-    private static function generate(string $method): array
+    private function generate(string $method): array
     {
         return (new InputSchemaGenerator())->generate(new \ReflectionMethod(SampleToolHandlers::class, $method));
     }

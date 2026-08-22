@@ -41,14 +41,14 @@ final class ListResourceTemplatesRequestHandlerTest extends AbstractMcpTestCase
     public function testReturnsAllRegisteredTemplatesWhenCursorIsNull(): void
     {
         $store = new ResourceTemplateStore([
-            'file:///{x}.alpha' => self::entry(new ResourceTemplate(name: 'alpha', uriTemplate: 'file:///{x}.alpha')),
-            'file:///{x}.beta' => self::entry(new ResourceTemplate(name: 'beta', uriTemplate: 'file:///{x}.beta')),
+            'file:///{x}.alpha' => $this->entry(new ResourceTemplate(name: 'alpha', uriTemplate: 'file:///{x}.alpha')),
+            'file:///{x}.beta' => $this->entry(new ResourceTemplate(name: 'beta', uriTemplate: 'file:///{x}.beta')),
         ]);
         $handler = new ListResourceTemplatesRequestHandler($store);
 
         $result = $handler->handle(
             new ListResourceTemplatesRequest(id: new RequestId(id: 1), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create())),
-            self::makeContext(),
+            $this->makeContext(),
         );
 
         self::assertCount(2, $result->resourceTemplates);
@@ -60,9 +60,9 @@ final class ListResourceTemplatesRequestHandlerTest extends AbstractMcpTestCase
     {
         $store = new ResourceTemplateStore(
             [
-                'file:///{x}.a' => self::entry(new ResourceTemplate(name: 'a', uriTemplate: 'file:///{x}.a')),
-                'file:///{x}.b' => self::entry(new ResourceTemplate(name: 'b', uriTemplate: 'file:///{x}.b')),
-                'file:///{x}.c' => self::entry(new ResourceTemplate(name: 'c', uriTemplate: 'file:///{x}.c')),
+                'file:///{x}.a' => $this->entry(new ResourceTemplate(name: 'a', uriTemplate: 'file:///{x}.a')),
+                'file:///{x}.b' => $this->entry(new ResourceTemplate(name: 'b', uriTemplate: 'file:///{x}.b')),
+                'file:///{x}.c' => $this->entry(new ResourceTemplate(name: 'c', uriTemplate: 'file:///{x}.c')),
             ],
             pageSize: 2,
         );
@@ -70,14 +70,14 @@ final class ListResourceTemplatesRequestHandlerTest extends AbstractMcpTestCase
 
         $result = $handler->handle(
             new ListResourceTemplatesRequest(id: new RequestId(id: 2), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create(), cursor: new Cursor(cursor: 'file:///{x}.b'))),
-            self::makeContext(),
+            $this->makeContext(),
         );
 
         self::assertCount(1, $result->resourceTemplates);
         self::assertSame('c', $result->resourceTemplates[0]->name);
     }
 
-    private static function makeContext(): ServerContext
+    private function makeContext(): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 1),
@@ -87,7 +87,7 @@ final class ListResourceTemplatesRequestHandlerTest extends AbstractMcpTestCase
         );
     }
 
-    private static function entry(ResourceTemplate $template): ResourceTemplateEntry
+    private function entry(ResourceTemplate $template): ResourceTemplateEntry
     {
         return new ResourceTemplateEntry(
             $template,

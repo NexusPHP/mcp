@@ -43,7 +43,7 @@ final class DiscoverRequestHandlerTest extends AbstractMcpTestCase
         $capabilities = new ServerCapabilities(tools: ['listChanged' => true]);
         $handler = new DiscoverRequestHandler($capabilities);
 
-        $result = $handler->handle(self::makeRequest(), self::makeContext());
+        $result = $handler->handle($this->makeRequest(), $this->makeContext());
 
         self::assertSame([ProtocolVersion::LATEST_VERSION], $result->supportedVersions);
         self::assertSame($capabilities, $result->capabilities);
@@ -62,7 +62,7 @@ final class DiscoverRequestHandlerTest extends AbstractMcpTestCase
             serverInfo: $serverInfo,
         );
 
-        $result = $handler->handle(self::makeRequest(), self::makeContext());
+        $result = $handler->handle($this->makeRequest(), $this->makeContext());
 
         self::assertSame($serverInfo, $result->meta->serverInfo);
         self::assertSame(['vendor' => 'x'], $result->meta->extras);
@@ -78,7 +78,7 @@ final class DiscoverRequestHandlerTest extends AbstractMcpTestCase
             new GenericResultMetaObject(extras: ['vendor' => 'x']),
         );
 
-        $result = $handler->handle(self::makeRequest(), self::makeContext());
+        $result = $handler->handle($this->makeRequest(), $this->makeContext());
 
         self::assertSame('Use the tools wisely.', $result->instructions);
         self::assertSame(5_000, $result->ttlMs);
@@ -86,7 +86,7 @@ final class DiscoverRequestHandlerTest extends AbstractMcpTestCase
         self::assertSame(['vendor' => 'x'], $result->meta->toArray());
     }
 
-    private static function makeRequest(): DiscoverRequest
+    private function makeRequest(): DiscoverRequest
     {
         return new DiscoverRequest(
             id: new RequestId(id: 1),
@@ -94,7 +94,7 @@ final class DiscoverRequestHandlerTest extends AbstractMcpTestCase
         );
     }
 
-    private static function makeContext(): ServerContext
+    private function makeContext(): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 1),

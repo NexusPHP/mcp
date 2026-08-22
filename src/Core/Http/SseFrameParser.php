@@ -108,7 +108,7 @@ final class SseFrameParser
             return $this->dispatch();
         }
 
-        [$field, $value] = self::split($line);
+        [$field, $value] = $this->split($line);
 
         if ('data' === $field) {
             $this->data[] = $value;
@@ -139,7 +139,7 @@ final class SseFrameParser
      *
      * @return array{string, string}
      */
-    private static function split(string $line): array
+    private function split(string $line): array
     {
         $position = strpos($line, ':');
 

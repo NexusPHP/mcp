@@ -45,7 +45,7 @@ final class ExtensionGateRequestHandlerTest extends AbstractMcpTestCase
 
         $result = $handler->handle(
             TestClientRequest::fromArray(['id' => 7, 'params' => ['_meta' => RequestMetaObjectFactory::shape()]]),
-            self::makeContext(new ClientCapabilities(extensions: ['com.example/feature' => []])),
+            $this->makeContext(new ClientCapabilities(extensions: ['com.example/feature' => []])),
         );
 
         self::assertSame($marker, $result);
@@ -60,7 +60,7 @@ final class ExtensionGateRequestHandlerTest extends AbstractMcpTestCase
 
         $result = $handler->handle(
             TestClientRequest::fromArray(['id' => 7, 'params' => ['_meta' => RequestMetaObjectFactory::shape()]]),
-            self::makeContext(new ClientCapabilities(extensions: ['com.example/feature' => ['mode' => 'fast']])),
+            $this->makeContext(new ClientCapabilities(extensions: ['com.example/feature' => ['mode' => 'fast']])),
         );
 
         self::assertSame($marker, $result);
@@ -77,7 +77,7 @@ final class ExtensionGateRequestHandlerTest extends AbstractMcpTestCase
 
         $handler->handle(
             TestClientRequest::fromArray(['id' => 7, 'params' => ['_meta' => RequestMetaObjectFactory::shape()]]),
-            self::makeContext(new ClientCapabilities(extensions: ['com.example/other' => []])),
+            $this->makeContext(new ClientCapabilities(extensions: ['com.example/other' => []])),
         );
     }
 
@@ -92,7 +92,7 @@ final class ExtensionGateRequestHandlerTest extends AbstractMcpTestCase
 
         $handler->handle(
             TestClientRequest::fromArray(['id' => 7, 'params' => ['_meta' => RequestMetaObjectFactory::shape()]]),
-            self::makeContext(new ClientCapabilities()),
+            $this->makeContext(new ClientCapabilities()),
         );
     }
 
@@ -105,7 +105,7 @@ final class ExtensionGateRequestHandlerTest extends AbstractMcpTestCase
         try {
             $handler->handle(
                 TestClientRequest::fromArray(['id' => 7, 'params' => ['_meta' => RequestMetaObjectFactory::shape()]]),
-                self::makeContext(new ClientCapabilities()),
+                $this->makeContext(new ClientCapabilities()),
             );
             self::fail('An undeclared extension must be rejected.');
         } catch (MissingRequiredClientCapabilityException $e) {
@@ -114,7 +114,7 @@ final class ExtensionGateRequestHandlerTest extends AbstractMcpTestCase
         }
     }
 
-    private static function makeContext(ClientCapabilities $clientCapabilities): ServerContext
+    private function makeContext(ClientCapabilities $clientCapabilities): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 7),

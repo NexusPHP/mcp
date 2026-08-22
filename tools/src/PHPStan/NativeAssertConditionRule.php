@@ -53,7 +53,7 @@ final class NativeAssertConditionRule implements Rule
 
         $condition = ($node->getArgs()[0] ?? null)?->value;
 
-        if (null === $condition || self::carriesNoMutant($condition)) {
+        if (null === $condition || $this->carriesNoMutant($condition)) {
             return [];
         }
 
@@ -68,10 +68,10 @@ final class NativeAssertConditionRule implements Rule
         ];
     }
 
-    private static function carriesNoMutant(Node\Expr $condition): bool
+    private function carriesNoMutant(Node\Expr $condition): bool
     {
         if ($condition instanceof Node\Expr\Instanceof_) {
-            return $condition->class instanceof Node\Name && self::isPlainOperand($condition->expr);
+            return $condition->class instanceof Node\Name && $this->isPlainOperand($condition->expr);
         }
 
         if (! $condition instanceof Node\Expr\FuncCall
@@ -84,13 +84,13 @@ final class NativeAssertConditionRule implements Rule
         $args = $condition->getArgs();
         $argument = \count($args) === 1 ? ($args[0] ?? null)?->value : null;
 
-        return null !== $argument && self::isPlainOperand($argument);
+        return null !== $argument && $this->isPlainOperand($argument);
     }
 
     /**
      * An operand carrying no sub-expression of its own, so nothing inside it can be mutated.
      */
-    private static function isPlainOperand(Node\Expr $expr): bool
+    private function isPlainOperand(Node\Expr $expr): bool
     {
         if ($expr instanceof Node\Expr\Variable) {
             return true;
@@ -98,6 +98,6 @@ final class NativeAssertConditionRule implements Rule
 
         return $expr instanceof Node\Expr\PropertyFetch
             && $expr->name instanceof Node\Identifier
-            && self::isPlainOperand($expr->var);
+            && $this->isPlainOperand($expr->var);
     }
 }

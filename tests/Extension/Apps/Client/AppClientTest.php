@@ -45,8 +45,8 @@ final class AppClientTest extends AbstractMcpTestCase
 {
     public function testResolvesTheNestedToolMeta(): void
     {
-        [$app] = self::buildAppClient();
-        $tool = self::buildTool(['ui' => ['resourceUri' => 'ui://demo/panel', 'visibility' => ['app']]]);
+        [$app] = $this->buildAppClient();
+        $tool = $this->buildTool(['ui' => ['resourceUri' => 'ui://demo/panel', 'visibility' => ['app']]]);
 
         $meta = $app->resolveToolMeta($tool);
 
@@ -57,8 +57,8 @@ final class AppClientTest extends AbstractMcpTestCase
 
     public function testFallsBackToTheDeprecatedFlatKey(): void
     {
-        [$app] = self::buildAppClient();
-        $tool = self::buildTool(['ui/resourceUri' => 'ui://demo/panel']);
+        [$app] = $this->buildAppClient();
+        $tool = $this->buildTool(['ui/resourceUri' => 'ui://demo/panel']);
 
         $meta = $app->resolveToolMeta($tool);
 
@@ -69,8 +69,8 @@ final class AppClientTest extends AbstractMcpTestCase
 
     public function testTheNestedKeyWinsOverTheDeprecatedOne(): void
     {
-        [$app] = self::buildAppClient();
-        $tool = self::buildTool([
+        [$app] = $this->buildAppClient();
+        $tool = $this->buildTool([
             'ui' => ['resourceUri' => 'ui://demo/nested'],
             'ui/resourceUri' => 'ui://demo/flat',
         ]);
@@ -80,15 +80,15 @@ final class AppClientTest extends AbstractMcpTestCase
 
     public function testResolvesNullForAToolWithoutUiMeta(): void
     {
-        [$app] = self::buildAppClient();
+        [$app] = $this->buildAppClient();
 
-        self::assertNull($app->resolveToolMeta(self::buildTool([])));
+        self::assertNull($app->resolveToolMeta($this->buildTool([])));
     }
 
     public function testRejectsANestedToolMetaThatIsNotAnObject(): void
     {
-        [$app] = self::buildAppClient();
-        $tool = self::buildTool(['ui' => 'ui://demo/panel']);
+        [$app] = $this->buildAppClient();
+        $tool = $this->buildTool(['ui' => 'ui://demo/panel']);
 
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('tool "_meta.ui" must be an array, string given.');
@@ -98,8 +98,8 @@ final class AppClientTest extends AbstractMcpTestCase
 
     public function testRejectsADeprecatedKeyThatIsNotAString(): void
     {
-        [$app] = self::buildAppClient();
-        $tool = self::buildTool(['ui/resourceUri' => 123]);
+        [$app] = $this->buildAppClient();
+        $tool = $this->buildTool(['ui/resourceUri' => 123]);
 
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('tool "_meta" key "ui/resourceUri" must be a non-empty string, int given.');
@@ -109,7 +109,7 @@ final class AppClientTest extends AbstractMcpTestCase
 
     public function testResolvesTheResourceMetaOffADescriptor(): void
     {
-        [$app] = self::buildAppClient();
+        [$app] = $this->buildAppClient();
         $resource = new Resource(
             name: 'panel',
             uri: 'ui://demo/panel',
@@ -125,7 +125,7 @@ final class AppClientTest extends AbstractMcpTestCase
 
     public function testResolvesTheResourceMetaOffAContentItem(): void
     {
-        [$app] = self::buildAppClient();
+        [$app] = $this->buildAppClient();
         $contents = new TextResourceContents(
             uri: 'ui://demo/panel',
             text: '<!DOCTYPE html><html></html>',
@@ -141,14 +141,14 @@ final class AppClientTest extends AbstractMcpTestCase
 
     public function testResolvesNullForAResourceWithoutUiMeta(): void
     {
-        [$app] = self::buildAppClient();
+        [$app] = $this->buildAppClient();
 
         self::assertNull($app->resolveResourceMeta(new Resource(name: 'panel', uri: 'ui://demo/panel')));
     }
 
     public function testRejectsAResourceMetaThatIsNotAnObject(): void
     {
-        [$app] = self::buildAppClient();
+        [$app] = $this->buildAppClient();
         $resource = new Resource(
             name: 'panel',
             uri: 'ui://demo/panel',
@@ -163,11 +163,11 @@ final class AppClientTest extends AbstractMcpTestCase
 
     public function testFindsTheToolsLinkingAUiResource(): void
     {
-        [$app] = self::buildAppClient();
-        $linked = self::buildTool(['ui' => ['resourceUri' => 'ui://demo/panel']], name: 'linked');
-        $unlinked = self::buildTool([], name: 'unlinked');
-        $emptyMeta = self::buildTool(['ui' => []], name: 'empty_meta');
-        $legacy = self::buildTool(['ui/resourceUri' => 'ui://demo/legacy'], name: 'legacy');
+        [$app] = $this->buildAppClient();
+        $linked = $this->buildTool(['ui' => ['resourceUri' => 'ui://demo/panel']], name: 'linked');
+        $unlinked = $this->buildTool([], name: 'unlinked');
+        $emptyMeta = $this->buildTool(['ui' => []], name: 'empty_meta');
+        $legacy = $this->buildTool(['ui/resourceUri' => 'ui://demo/legacy'], name: 'legacy');
         $result = new ListToolsResult(tools: [$linked, $unlinked, $emptyMeta, $legacy], ttlMs: 0, cacheScope: CacheScope::Private);
 
         $found = $app->findAppTools($result);
@@ -181,9 +181,9 @@ final class AppClientTest extends AbstractMcpTestCase
 
     public function testSkipsAToolWithMalformedMetaWhenFiltering(): void
     {
-        [$app] = self::buildAppClient();
-        $malformed = self::buildTool(['ui' => 'oops'], name: 'malformed');
-        $linked = self::buildTool(['ui' => ['resourceUri' => 'ui://demo/panel']], name: 'linked');
+        [$app] = $this->buildAppClient();
+        $malformed = $this->buildTool(['ui' => 'oops'], name: 'malformed');
+        $linked = $this->buildTool(['ui' => ['resourceUri' => 'ui://demo/panel']], name: 'linked');
         $result = new ListToolsResult(tools: [$malformed, $linked], ttlMs: 0, cacheScope: CacheScope::Private);
 
         $found = $app->findAppTools($result);
@@ -194,8 +194,8 @@ final class AppClientTest extends AbstractMcpTestCase
 
     public function testMergesTheFlatKeyIntoAUriLessNestedObject(): void
     {
-        [$app] = self::buildAppClient();
-        $tool = self::buildTool([
+        [$app] = $this->buildAppClient();
+        $tool = $this->buildTool([
             'ui' => ['visibility' => ['model']],
             'ui/resourceUri' => 'ui://demo/flat',
         ]);
@@ -209,7 +209,7 @@ final class AppClientTest extends AbstractMcpTestCase
 
     public function testReadsAConformingAppResource(): void
     {
-        [$app, $transport] = self::buildAppClient();
+        [$app, $transport] = $this->buildAppClient();
 
         $read = async(static fn(): InputRequiredResult|ReadResourceResult => $app->readAppResource('ui://demo/panel'));
         $transport->nextSend()->await();
@@ -242,7 +242,7 @@ final class AppClientTest extends AbstractMcpTestCase
 
     public function testRejectsAReadThatReturnedNoContents(): void
     {
-        [$app, $transport] = self::buildAppClient();
+        [$app, $transport] = $this->buildAppClient();
 
         $read = async(static fn(): InputRequiredResult|ReadResourceResult => $app->readAppResource('ui://demo/panel'));
         $transport->nextSend()->await();
@@ -273,7 +273,7 @@ final class AppClientTest extends AbstractMcpTestCase
 
     public function testRejectsAReadWhoseContentsAreNotTheUiProfile(): void
     {
-        [$app, $transport] = self::buildAppClient();
+        [$app, $transport] = $this->buildAppClient();
 
         $read = async(static fn(): InputRequiredResult|ReadResourceResult => $app->readAppResource('ui://demo/panel'));
         $transport->nextSend()->await();
@@ -311,7 +311,7 @@ final class AppClientTest extends AbstractMcpTestCase
 
     public function testAcceptsContentsMatchingAConfiguredMimeType(): void
     {
-        [$app, $transport] = self::buildAppClient(mimeTypes: ['text/html;profile=mcp-app', 'text/html']);
+        [$app, $transport] = $this->buildAppClient(mimeTypes: ['text/html;profile=mcp-app', 'text/html']);
 
         $read = async(static fn(): InputRequiredResult|ReadResourceResult => $app->readAppResource('ui://demo/panel'));
         $transport->nextSend()->await();
@@ -340,7 +340,7 @@ final class AppClientTest extends AbstractMcpTestCase
 
     public function testPassesAnInputRequiredResultThroughUnverified(): void
     {
-        [$app, $transport] = self::buildAppClient();
+        [$app, $transport] = $this->buildAppClient();
 
         $read = async(static fn(): InputRequiredResult|ReadResourceResult => $app->readAppResource('ui://demo/panel'));
         $transport->nextSend()->await();
@@ -364,7 +364,7 @@ final class AppClientTest extends AbstractMcpTestCase
 
     public function testRejectsAReadOutsideTheUiScheme(): void
     {
-        [$app] = self::buildAppClient();
+        [$app] = $this->buildAppClient();
 
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('UI resource "uri" must start with "ui://".');
@@ -378,7 +378,7 @@ final class AppClientTest extends AbstractMcpTestCase
         $this->expectExceptionMessageIs('"mimeTypes" must be a list, array given.');
 
         // @phpstan-ignore argument.type
-        new AppClient(self::buildBareClient(), mimeTypes: ['html' => 'text/html;profile=mcp-app']);
+        new AppClient($this->buildBareClient(), mimeTypes: ['html' => 'text/html;profile=mcp-app']);
     }
 
     public function testRejectsAnEmptyMimeTypeList(): void
@@ -386,7 +386,7 @@ final class AppClientTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"mimeTypes" must not be empty.');
 
-        new AppClient(self::buildBareClient(), mimeTypes: []);
+        new AppClient($this->buildBareClient(), mimeTypes: []);
     }
 
     public function testRejectsAMalformedMimeType(): void
@@ -395,14 +395,14 @@ final class AppClientTest extends AbstractMcpTestCase
         $this->expectExceptionMessageIs('each "mimeTypes" must be a non-empty string, string given.');
 
         // @phpstan-ignore argument.type
-        new AppClient(self::buildBareClient(), mimeTypes: ['']);
+        new AppClient($this->buildBareClient(), mimeTypes: ['']);
     }
 
     /**
      * @param array<string, mixed> $extras
      * @param non-empty-string     $name
      */
-    private static function buildTool(array $extras, string $name = 'demo_tool'): Tool
+    private function buildTool(array $extras, string $name = 'demo_tool'): Tool
     {
         return new Tool(
             name: $name,
@@ -416,7 +416,7 @@ final class AppClientTest extends AbstractMcpTestCase
      *
      * @return array{AppClient, RecordingTransport}
      */
-    private static function buildAppClient(?array $mimeTypes = null): array
+    private function buildAppClient(?array $mimeTypes = null): array
     {
         $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
@@ -432,7 +432,7 @@ final class AppClientTest extends AbstractMcpTestCase
         return [$app, $transport];
     }
 
-    private static function buildBareClient(): Client
+    private function buildBareClient(): Client
     {
         return (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
     }

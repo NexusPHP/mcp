@@ -60,7 +60,7 @@ final class StdioServerTransportTest extends AbstractMcpTestCase
 
     public function testEmitsDecodedEnvelope(): void
     {
-        $transport = self::buildTransportReading(['{"jsonrpc":"2.0","id":1,"method":"server/discover"}'."\n"]);
+        $transport = $this->buildTransportReading(['{"jsonrpc":"2.0","id":1,"method":"server/discover"}'."\n"]);
         $envelopes = [];
         $transport->onMessage(static function (array $envelope) use (&$envelopes): void {
             $envelopes[] = $envelope;
@@ -169,12 +169,12 @@ final class StdioServerTransportTest extends AbstractMcpTestCase
         $transport = new StdioServerTransport(new ReadableBuffer(''), $writable);
 
         $transport->start();
-        $transport->send(self::discoverRequest(99));
+        $transport->send($this->discoverRequest(99));
 
         EventLoop::run();
         $writable->close();
 
-        self::assertSame(self::expectedLine(99), $writable->buffer());
+        self::assertSame($this->expectedLine(99), $writable->buffer());
     }
 
     public function testSendIgnoresContextForStdio(): void
@@ -183,12 +183,12 @@ final class StdioServerTransportTest extends AbstractMcpTestCase
         $transport = new StdioServerTransport(new ReadableBuffer(''), $writable);
 
         $transport->start();
-        $transport->send(self::discoverRequest(7), new SendContext(new RequestId(id: 99)));
+        $transport->send($this->discoverRequest(7), new SendContext(new RequestId(id: 99)));
 
         EventLoop::run();
         $writable->close();
 
-        self::assertSame(self::expectedLine(7), $writable->buffer());
+        self::assertSame($this->expectedLine(7), $writable->buffer());
     }
 
     public function testSendFailureClosesAndRethrows(): void
@@ -206,7 +206,7 @@ final class StdioServerTransportTest extends AbstractMcpTestCase
         $transport->start();
 
         try {
-            $transport->send(self::discoverRequest(1));
+            $transport->send($this->discoverRequest(1));
             self::fail('Expected send() to rethrow the underlying write failure.');
         } catch (\RuntimeException $caught) {
             self::assertSame($boom, $caught);
@@ -225,7 +225,7 @@ final class StdioServerTransportTest extends AbstractMcpTestCase
         $this->expectException(TransportNotStartedException::class);
         $this->expectExceptionMessageIs('Cannot send before start() has been called.');
 
-        $transport->send(self::discoverRequest(1));
+        $transport->send($this->discoverRequest(1));
     }
 
     public function testSendAfterCloseThrows(): void
@@ -238,7 +238,7 @@ final class StdioServerTransportTest extends AbstractMcpTestCase
         EventLoop::run();
 
         try {
-            $transport->send(self::discoverRequest(1));
+            $transport->send($this->discoverRequest(1));
             self::fail('Expected send() to throw on a closed transport.');
         } catch (TransportAlreadyClosedException $caught) {
             self::assertSame('Cannot send on a closed transport.', $caught->getMessage());
@@ -303,7 +303,7 @@ final class StdioServerTransportTest extends AbstractMcpTestCase
     /**
      * @param list<string> $chunks
      */
-    private static function buildTransportReading(array $chunks): StdioServerTransport
+    private function buildTransportReading(array $chunks): StdioServerTransport
     {
         return new StdioServerTransport(
             new ReadableIterableStream(new \ArrayIterator($chunks)),
@@ -311,7 +311,7 @@ final class StdioServerTransportTest extends AbstractMcpTestCase
         );
     }
 
-    private static function discoverRequest(int $id): DiscoverRequest
+    private function discoverRequest(int $id): DiscoverRequest
     {
         return new DiscoverRequest(
             id: new RequestId(id: $id),
@@ -319,7 +319,7 @@ final class StdioServerTransportTest extends AbstractMcpTestCase
         );
     }
 
-    private static function expectedLine(int $id): string
+    private function expectedLine(int $id): string
     {
         return json_encode([
             'jsonrpc' => '2.0',

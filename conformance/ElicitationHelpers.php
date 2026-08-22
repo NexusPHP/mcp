@@ -31,7 +31,7 @@ trait ElicitationHelpers
      * @param non-empty-string $message
      * @param non-empty-string $field
      */
-    private static function ask(
+    private function ask(
         string $key,
         string $message,
         string $field,
@@ -39,7 +39,7 @@ trait ElicitationHelpers
         ?string $state = null,
     ): InputRequiredResult {
         return new InputRequiredResult(
-            inputRequests: [$key => self::buildInputRequest($message, $field, $schema ?? new StringSchema())],
+            inputRequests: [$key => $this->buildInputRequest($message, $field, $schema ?? new StringSchema())],
             requestState: $state,
         );
     }
@@ -48,7 +48,7 @@ trait ElicitationHelpers
      * @param non-empty-string $message
      * @param non-empty-string $field
      */
-    private static function buildInputRequest(string $message, string $field, PrimitiveSchemaDefinition $schema): ElicitRequest
+    private function buildInputRequest(string $message, string $field, PrimitiveSchemaDefinition $schema): ElicitRequest
     {
         return new ElicitRequest(params: new ElicitRequestFormParams(
             message: $message,
@@ -59,12 +59,12 @@ trait ElicitationHelpers
         ));
     }
 
-    private static function hasAnyAnswer(ServerContext $context, string $key): bool
+    private function hasAnyAnswer(ServerContext $context, string $key): bool
     {
         return isset($context->inputResponses[$key]);
     }
 
-    private static function readAcceptedAnswer(ServerContext $context, string $key, string $field): mixed
+    private function readAcceptedAnswer(ServerContext $context, string $key, string $field): mixed
     {
         $response = $context->inputResponses[$key] ?? null;
 

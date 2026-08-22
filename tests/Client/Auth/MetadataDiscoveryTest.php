@@ -348,7 +348,7 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
 
     public function testTheAuthorizationServerDocumentIsRead(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson(self::serverDocument());
+        $http = (new RecordingHttpClient())->willAnswerJson($this->serverDocument());
 
         $metadata = (new MetadataDiscovery($http))->discoverServer(self::ISSUER, new NullCancellation());
 
@@ -364,7 +364,7 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())
             ->willAnswerJson([], 404)
-            ->willAnswerJson(self::serverDocument())
+            ->willAnswerJson($this->serverDocument())
         ;
 
         (new MetadataDiscovery($http))->discoverServer(self::ISSUER, new NullCancellation());
@@ -381,7 +381,7 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
         $http = (new RecordingHttpClient())
             ->willAnswerJson([], 404)
             ->willAnswerJson([], 404)
-            ->willAnswerJson(self::serverDocument(['issuer' => 'https://auth.example.com/tenant1']))
+            ->willAnswerJson($this->serverDocument(['issuer' => 'https://auth.example.com/tenant1']))
         ;
 
         (new MetadataDiscovery($http))->discoverServer('https://auth.example.com/tenant1', new NullCancellation());
@@ -395,7 +395,7 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
 
     public function testAServerDocumentNamingAnotherIssuerIsRefused(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson(self::serverDocument(['issuer' => 'https://honest.example']));
+        $http = (new RecordingHttpClient())->willAnswerJson($this->serverDocument(['issuer' => 'https://honest.example']));
 
         $this->expectException(UntrustedAuthorizationMetadataException::class);
         $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the document served for "https://auth.example.com" names the issuer "https://honest.example".');
@@ -435,7 +435,7 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
 
     public function testAServerAdvertisingNoCodeChallengeMethodsIsRefused(): void
     {
-        $document = self::serverDocument();
+        $document = $this->serverDocument();
         unset($document['code_challenge_methods_supported']);
         $http = (new RecordingHttpClient())->willAnswerJson($document);
 
@@ -447,7 +447,7 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
 
     public function testAServerAdvertisingOnlyPlainIsRefused(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson(self::serverDocument(['code_challenge_methods_supported' => ['plain']]));
+        $http = (new RecordingHttpClient())->willAnswerJson($this->serverDocument(['code_challenge_methods_supported' => ['plain']]));
 
         $this->expectException(PkceNotSupportedException::class);
         $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not advertise the S256 code challenge method, so authorization cannot proceed.');
@@ -506,7 +506,7 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
 
     public function testTheTimeoutBoundsBothTheTransferAndTheStall(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson(self::serverDocument());
+        $http = (new RecordingHttpClient())->willAnswerJson($this->serverDocument());
 
         (new MetadataDiscovery($http, 2.5))->discoverServer(self::ISSUER, new NullCancellation());
 
@@ -529,7 +529,7 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
      *
      * @return array<string, mixed>
      */
-    private static function serverDocument(array $overrides = []): array
+    private function serverDocument(array $overrides = []): array
     {
         return [
             'issuer' => self::ISSUER,

@@ -57,8 +57,8 @@ final readonly class IdentityAssertionGrant implements GrantStrategyInterface
     public function grant(GrantContext $context, Cancellation $cancellation): AccessToken
     {
         $server = $context->discovered->server;
-        self::verifyAdvertisedSupport($server, $context->logger);
-        $registration = self::resolveRegistration($context, $cancellation);
+        $this->verifyAdvertisedSupport($server, $context->logger);
+        $registration = $this->resolveRegistration($context, $cancellation);
 
         $idJag = (new IdentityAssertionExchanger(
             $this->idpTokenEndpoint,
@@ -97,7 +97,7 @@ final readonly class IdentityAssertionGrant implements GrantStrategyInterface
      * Holds the authorization server to the grant profile it published, and takes ID-JAG support on trust
      * where it publishes no profile list at all.
      */
-    private static function verifyAdvertisedSupport(AuthorizationServerMetadata $server, LoggerInterface $logger): void
+    private function verifyAdvertisedSupport(AuthorizationServerMetadata $server, LoggerInterface $logger): void
     {
         GrantTypeAdvertisement::verify($server, EnterpriseAuthorization::JWT_BEARER_GRANT_TYPE);
 
@@ -125,7 +125,7 @@ final readonly class IdentityAssertionGrant implements GrantStrategyInterface
      * a Client ID Metadata Document, never Dynamic Client Registration, so the registrar only runs once one
      * of the two is configured.
      */
-    private static function resolveRegistration(GrantContext $context, Cancellation $cancellation): ClientRegistration
+    private function resolveRegistration(GrantContext $context, Cancellation $cancellation): ClientRegistration
     {
         $server = $context->discovered->server;
         $options = $context->options;

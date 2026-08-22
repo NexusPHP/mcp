@@ -43,7 +43,7 @@ final class IdentityAssertionExchangerTest extends AbstractMcpTestCase
 
     public function testExchangesTheAssertionForAnIdJag(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson(self::exchangeResponse());
+        $http = (new RecordingHttpClient())->willAnswerJson($this->exchangeResponse());
         $exchanger = new IdentityAssertionExchanger(self::IDP_ENDPOINT, $http, 'the-idp-client');
 
         $idJag = $exchanger->exchangeForGrant(
@@ -67,12 +67,12 @@ final class IdentityAssertionExchangerTest extends AbstractMcpTestCase
             'audience' => self::ISSUER,
             'resource' => self::RESOURCE,
             'client_id' => 'the-idp-client',
-        ], self::readForm($request));
+        ], $this->readForm($request));
     }
 
     public function testTheClientIdentifierIsLeftOffWhenNoneIsConfigured(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson(self::exchangeResponse());
+        $http = (new RecordingHttpClient())->willAnswerJson($this->exchangeResponse());
 
         (new IdentityAssertionExchanger(self::IDP_ENDPOINT, $http))->exchangeForGrant(
             new IdentityAssertion('the-saml-refresh-token', IdentityAssertionType::RefreshToken),
@@ -88,7 +88,7 @@ final class IdentityAssertionExchangerTest extends AbstractMcpTestCase
             'subject_token_type' => 'urn:ietf:params:oauth:token-type:refresh_token',
             'audience' => self::ISSUER,
             'resource' => self::RESOURCE,
-        ], self::readForm($http->readRequest()));
+        ], $this->readForm($http->readRequest()));
     }
 
     public function testARefusedExchangeSurfacesTheError(): void
@@ -101,7 +101,7 @@ final class IdentityAssertionExchangerTest extends AbstractMcpTestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('The enterprise IdP refused the token exchange with "invalid_grant": The assertion has expired.');
 
-        self::exchange($http);
+        $this->exchange($http);
     }
 
     public function testARefusalWithoutADescriptionStillNamesTheError(): void
@@ -111,7 +111,7 @@ final class IdentityAssertionExchangerTest extends AbstractMcpTestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('The enterprise IdP refused the token exchange with "invalid_target".');
 
-        self::exchange($http);
+        $this->exchange($http);
     }
 
     public function testARefusalWhoseBodyIsNotJsonNamesTheStatus(): void
@@ -121,7 +121,7 @@ final class IdentityAssertionExchangerTest extends AbstractMcpTestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('The enterprise IdP answered 502 with a body that is not a JSON object.');
 
-        self::exchange($http);
+        $this->exchange($http);
     }
 
     public function testASuccessWhoseBodyIsNotJsonIsReportedAsMalformed(): void
@@ -130,24 +130,24 @@ final class IdentityAssertionExchangerTest extends AbstractMcpTestCase
 
         $this->expectException(MalformedAuthorizationResponseException::class);
 
-        self::exchange($http);
+        $this->exchange($http);
     }
 
     public function testAWrongIssuedTokenTypeIsRefused(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson(self::exchangeResponse([
+        $http = (new RecordingHttpClient())->willAnswerJson($this->exchangeResponse([
             'issued_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
         ]));
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('The enterprise IdP issued a "urn:ietf:params:oauth:token-type:access_token" token where an ID-JAG was requested.');
 
-        self::exchange($http);
+        $this->exchange($http);
     }
 
     public function testAHostileIssuedTokenTypeIsBoundedAndEscapedInTheRefusal(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson(self::exchangeResponse([
+        $http = (new RecordingHttpClient())->willAnswerJson($this->exchangeResponse([
             'issued_token_type' => str_repeat('u', 200)."\x1b",
         ]));
 
@@ -157,7 +157,7 @@ final class IdentityAssertionExchangerTest extends AbstractMcpTestCase
             str_repeat('u', 77),
         ));
 
-        self::exchange($http);
+        $this->exchange($http);
     }
 
     public function testACleartextIdpEndpointIsRefused(): void
@@ -176,7 +176,7 @@ final class IdentityAssertionExchangerTest extends AbstractMcpTestCase
         new IdentityAssertionExchanger('http://127.0.0.1:1/token', new RecordingHttpClient());
     }
 
-    private static function exchange(RecordingHttpClient $http): string
+    private function exchange(RecordingHttpClient $http): string
     {
         return (new IdentityAssertionExchanger(self::IDP_ENDPOINT, $http))->exchangeForGrant(
             new IdentityAssertion('the-id-token', IdentityAssertionType::IdToken),
@@ -191,7 +191,7 @@ final class IdentityAssertionExchangerTest extends AbstractMcpTestCase
      *
      * @return array<string, mixed>
      */
-    private static function exchangeResponse(array $overrides = []): array
+    private function exchangeResponse(array $overrides = []): array
     {
         return [
             'access_token' => 'the-id-jag',
@@ -204,7 +204,7 @@ final class IdentityAssertionExchangerTest extends AbstractMcpTestCase
     /**
      * @return array<array-key, string>
      */
-    private static function readForm(Request $request): array
+    private function readForm(Request $request): array
     {
         parse_str(buffer($request->getBody()->getContent()), $parsed);
 

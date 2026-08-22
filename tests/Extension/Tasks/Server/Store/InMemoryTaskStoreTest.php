@@ -138,7 +138,7 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         self::assertFalse($store->trySetCancelled($taskId));
         self::assertFalse($store->trySetFailed($taskId, ['code' => -32_603]));
         self::assertFalse($store->trySetWorking($taskId));
-        self::assertFalse($store->trySetInputRequired($taskId, ['k' => self::buildElicitRequest()], null));
+        self::assertFalse($store->trySetInputRequired($taskId, ['k' => $this->buildElicitRequest()], null));
 
         $record = $store->findTask($taskId);
         self::assertInstanceOf(TaskRecord::class, $record);
@@ -175,7 +175,7 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
     {
         $store = $this->buildStore();
         $taskId = $store->createTask('confirm_delete', null, null, 1_000)->taskId;
-        $request = self::buildElicitRequest();
+        $request = $this->buildElicitRequest();
 
         self::assertTrue($store->trySetInputRequired($taskId, ['confirm' => $request], 'state-1'));
 
@@ -191,25 +191,25 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
     {
         $store = $this->buildStore();
         $taskId = $store->createTask('confirm_delete', null, null, 1_000)->taskId;
-        $store->trySetInputRequired($taskId, ['confirm' => self::buildElicitRequest()], 'state-1');
-        $store->resolveInputRequests($taskId, ['confirm' => self::buildElicitResult()]);
+        $store->trySetInputRequired($taskId, ['confirm' => $this->buildElicitRequest()], 'state-1');
+        $store->resolveInputRequests($taskId, ['confirm' => $this->buildElicitResult()]);
         $store->trySetWorking($taskId);
 
         $this->expectException(InputRequestKeyReusedException::class);
         $this->expectExceptionMessageIs(\sprintf('Task "%s" already issued the input-request key "confirm".', $taskId));
 
-        $store->trySetInputRequired($taskId, ['confirm' => self::buildElicitRequest()], 'state-2');
+        $store->trySetInputRequired($taskId, ['confirm' => $this->buildElicitRequest()], 'state-2');
     }
 
     public function testTrySetInputRequiredAccumulatesTheKeyLedgerAcrossRounds(): void
     {
         $store = $this->buildStore();
         $taskId = $store->createTask('multi_input', null, null, 1_000)->taskId;
-        $store->trySetInputRequired($taskId, ['first' => self::buildElicitRequest()], 'state-1');
-        $store->resolveInputRequests($taskId, ['first' => self::buildElicitResult()]);
+        $store->trySetInputRequired($taskId, ['first' => $this->buildElicitRequest()], 'state-1');
+        $store->resolveInputRequests($taskId, ['first' => $this->buildElicitResult()]);
         $store->trySetWorking($taskId);
 
-        self::assertTrue($store->trySetInputRequired($taskId, ['second' => self::buildElicitRequest()], 'state-2'));
+        self::assertTrue($store->trySetInputRequired($taskId, ['second' => $this->buildElicitRequest()], 'state-2'));
 
         $record = $store->findTask($taskId);
         self::assertInstanceOf(TaskRecord::class, $record);
@@ -221,14 +221,14 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         $store = $this->buildStore();
         $taskId = $store->createTask('multi_input', null, null, 1_000)->taskId;
         $store->trySetInputRequired($taskId, [
-            'first' => self::buildElicitRequest(),
-            'second' => self::buildElicitRequest(),
+            'first' => $this->buildElicitRequest(),
+            'second' => $this->buildElicitRequest(),
         ], 'state-1');
 
-        $answer = self::buildElicitResult();
+        $answer = $this->buildElicitResult();
         $record = $store->resolveInputRequests($taskId, [
             'first' => $answer,
-            'unknown' => self::buildElicitResult(),
+            'unknown' => $this->buildElicitResult(),
         ]);
 
         self::assertInstanceOf(TaskRecord::class, $record);
@@ -242,11 +242,11 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
     {
         $store = $this->buildStore();
         $taskId = $store->createTask('multi_input', null, null, 1_000)->taskId;
-        $store->trySetInputRequired($taskId, ['first' => self::buildElicitRequest()], 'state-1');
+        $store->trySetInputRequired($taskId, ['first' => $this->buildElicitRequest()], 'state-1');
 
-        $answer = self::buildElicitResult();
+        $answer = $this->buildElicitResult();
         $record = $store->resolveInputRequests($taskId, [
-            'unknown' => self::buildElicitResult(),
+            'unknown' => $this->buildElicitResult(),
             'first' => $answer,
         ]);
 
@@ -259,10 +259,10 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
     {
         $store = $this->buildStore();
         $taskId = $store->createTask('multi_input', null, null, 1_000)->taskId;
-        $store->trySetInputRequired($taskId, ['first' => self::buildElicitRequest()], 'state-1');
+        $store->trySetInputRequired($taskId, ['first' => $this->buildElicitRequest()], 'state-1');
         $before = $store->findTask($taskId);
 
-        $record = $store->resolveInputRequests($taskId, ['unknown' => self::buildElicitResult()]);
+        $record = $store->resolveInputRequests($taskId, ['unknown' => $this->buildElicitResult()]);
 
         self::assertSame($before, $record);
     }
@@ -274,7 +274,7 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         $store->trySetCompleted($taskId, ['resultType' => 'complete']);
         $before = $store->findTask($taskId);
 
-        $record = $store->resolveInputRequests($taskId, ['confirm' => self::buildElicitResult()]);
+        $record = $store->resolveInputRequests($taskId, ['confirm' => $this->buildElicitResult()]);
 
         self::assertSame($before, $record);
     }
@@ -284,10 +284,10 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         $store = $this->buildStore();
         $taskId = $store->createTask('multi_input', null, null, 1_000)->taskId;
         $store->trySetInputRequired($taskId, [
-            'first' => self::buildElicitRequest(),
-            'second' => self::buildElicitRequest(),
+            'first' => $this->buildElicitRequest(),
+            'second' => $this->buildElicitRequest(),
         ], 'state-1');
-        $answer = self::buildElicitResult();
+        $answer = $this->buildElicitResult();
         $store->resolveInputRequests($taskId, ['first' => $answer]);
 
         self::assertTrue($store->trySetWorking($taskId));
@@ -305,7 +305,7 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
     {
         $store = $this->buildStore();
         $taskId = $store->createTask('confirm_delete', null, null, 1_000)->taskId;
-        $store->trySetInputRequired($taskId, ['confirm' => self::buildElicitRequest()], 'state-1');
+        $store->trySetInputRequired($taskId, ['confirm' => $this->buildElicitRequest()], 'state-1');
 
         self::assertTrue($store->trySetCancelled($taskId));
 
@@ -342,7 +342,7 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
     {
         $store = $this->buildStore();
         $taskId = $store->createTask('needs_input', null, 1_000, 1_000)->taskId;
-        self::assertTrue($store->trySetInputRequired($taskId, ['city' => self::buildElicitRequest()], 'state-token'));
+        self::assertTrue($store->trySetInputRequired($taskId, ['city' => $this->buildElicitRequest()], 'state-token'));
 
         $this->now = new \DateTimeImmutable('2026-08-04T12:00:02+00:00');
         $record = $store->findTask($taskId);
@@ -407,7 +407,7 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         $this->now = $this->now->modify('+2 seconds');
         $created = $store->createTask('slow_compute', null, 1_000, 1_000)->taskId;
 
-        self::assertSame([$longLived, $shortLived, $created], array_keys(self::readRecords($store)));
+        self::assertSame([$longLived, $shortLived, $created], array_keys($this->readRecords($store)));
     }
 
     public function testCreateTaskLeavesAnOverdueRecordToItsNextObservation(): void
@@ -418,7 +418,7 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         $this->now = $this->now->modify('+2 seconds');
         $store->createTask('slow_compute', null, 1_000, 1_000);
 
-        $records = self::readRecords($store);
+        $records = $this->readRecords($store);
         self::assertArrayHasKey($overdue, $records);
         self::assertSame(TaskStatus::Working, $records[$overdue]->status);
     }
@@ -432,7 +432,7 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         $this->now = $this->now->modify('+2 seconds');
         $created = $store->createTask('slow_compute', null, 1_000, 1_000)->taskId;
 
-        self::assertSame([$live, $created], array_keys(self::readRecords($store)));
+        self::assertSame([$live, $created], array_keys($this->readRecords($store)));
         self::assertNull($store->findTask($overdue));
     }
 
@@ -447,8 +447,8 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
 
         $created = $store->createTask('slow_compute', null, null, 1_000)->taskId;
 
-        self::assertSame([$first, $live, $created], array_keys(self::readRecords($store)));
-        self::assertSame([$first], array_keys(self::readTerminalAt($store)));
+        self::assertSame([$first, $live, $created], array_keys($this->readRecords($store)));
+        self::assertSame([$first], array_keys($this->readTerminalAt($store)));
     }
 
     public function testAtTheCeilingCreateTaskRefusesWhenEveryRecordIsLive(): void
@@ -471,7 +471,7 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
 
         $created = $store->createTask('slow_compute', null, null, 1_000)->taskId;
 
-        self::assertSame([$settled, $created], array_keys(self::readRecords($store)));
+        self::assertSame([$settled, $created], array_keys($this->readRecords($store)));
     }
 
     public function testConstructorRejectsANonPositiveCeiling(): void
@@ -502,7 +502,7 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         $store->createTask('slow_compute', null, 300_000, 1_000);
 
         self::assertSame(1, $this->clockReads);
-        self::assertCount(4, self::readRecords($store));
+        self::assertCount(4, $this->readRecords($store));
     }
 
     public function testAtTheCeilingCreateTaskStopsOnceTheResolveFreesRoom(): void
@@ -516,8 +516,8 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         $this->now = $this->now->modify('+2 seconds');
         $created = $store->createTask('slow_compute', null, 1_000, 1_000)->taskId;
 
-        self::assertSame([$longLived, $created], array_keys(self::readRecords($store)));
-        self::assertSame([$longLived], array_keys(self::readTerminalAt($store)));
+        self::assertSame([$longLived, $created], array_keys($this->readRecords($store)));
+        self::assertSame([$longLived], array_keys($this->readTerminalAt($store)));
     }
 
     public function testATerminalTaskExpiresAtItsRetentionBoundary(): void
@@ -569,7 +569,7 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
     /**
      * @return array<array-key, TaskRecord>
      */
-    private static function readRecords(InMemoryTaskStore $store): array
+    private function readRecords(InMemoryTaskStore $store): array
     {
         $records = (new \ReflectionProperty(InMemoryTaskStore::class, 'records'))->getValue($store);
         self::assertIsArray($records);
@@ -581,7 +581,7 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
     /**
      * @return array<array-key, \DateTimeImmutable>
      */
-    private static function readTerminalAt(InMemoryTaskStore $store): array
+    private function readTerminalAt(InMemoryTaskStore $store): array
     {
         $terminalAt = (new \ReflectionProperty(InMemoryTaskStore::class, 'terminalAt'))->getValue($store);
         self::assertIsArray($terminalAt);
@@ -590,7 +590,7 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         return $terminalAt;
     }
 
-    private static function buildElicitRequest(): ElicitRequest
+    private function buildElicitRequest(): ElicitRequest
     {
         return new ElicitRequest(new ElicitRequestFormParams(
             message: 'Confirm?',
@@ -598,7 +598,7 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         ));
     }
 
-    private static function buildElicitResult(): ElicitResult
+    private function buildElicitResult(): ElicitResult
     {
         return new ElicitResult(action: ElicitAction::Accept);
     }

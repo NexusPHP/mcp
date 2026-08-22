@@ -76,7 +76,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $outbound = new PendingOutboundRequests();
         $future = $outbound->register(new RequestId(id: 7), CallToolResultResponse::class);
         $logger = new ArrayLogger();
-        $dispatcher = self::buildDispatcher($outbound, logger: $logger);
+        $dispatcher = $this->buildDispatcher($outbound, logger: $logger);
         $transport = new RecordingTransport();
 
         $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 7, 'result' => ['content' => []]], $transport, new ReceiveContext());
@@ -95,7 +95,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $outbound = new PendingOutboundRequests();
         $future = $outbound->register(new RequestId(id: 1), CallToolResultResponse::class);
-        $dispatcher = self::buildDispatcher($outbound);
+        $dispatcher = $this->buildDispatcher($outbound);
         $transport = new RecordingTransport();
 
         $dispatcher->dispatch([
@@ -119,7 +119,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $outbound = new PendingOutboundRequests();
         $future = $outbound->register(new RequestId(id: 1), CallToolResultResponse::class);
-        $dispatcher = self::buildDispatcher($outbound);
+        $dispatcher = $this->buildDispatcher($outbound);
         $transport = new RecordingTransport();
 
         $dispatcher->dispatch([
@@ -143,7 +143,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $outbound = new PendingOutboundRequests();
         $logger = new ArrayLogger();
-        $dispatcher = self::buildDispatcher($outbound, logger: $logger);
+        $dispatcher = $this->buildDispatcher($outbound, logger: $logger);
         $transport = new RecordingTransport();
 
         $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 999, 'result' => []], $transport, new ReceiveContext());
@@ -159,7 +159,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $outbound = new PendingOutboundRequests();
         $logger = new ArrayLogger();
-        $dispatcher = self::buildDispatcher($outbound, logger: $logger);
+        $dispatcher = $this->buildDispatcher($outbound, logger: $logger);
         $transport = new RecordingTransport();
 
         $dispatcher->dispatch([
@@ -179,7 +179,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $outbound = new PendingOutboundRequests();
         $logger = new ArrayLogger();
-        $dispatcher = self::buildDispatcher($outbound, logger: $logger);
+        $dispatcher = $this->buildDispatcher($outbound, logger: $logger);
         $transport = new RecordingTransport();
 
         $dispatcher->dispatch([
@@ -199,7 +199,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $outbound = new PendingOutboundRequests();
         $logger = new ArrayLogger();
-        $dispatcher = self::buildDispatcher($outbound, logger: $logger);
+        $dispatcher = $this->buildDispatcher($outbound, logger: $logger);
         $transport = new RecordingTransport();
 
         $dispatcher->dispatch([
@@ -225,7 +225,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $outbound = new PendingOutboundRequests();
         $logger = new ArrayLogger();
-        $dispatcher = self::buildDispatcher($outbound, logger: $logger);
+        $dispatcher = $this->buildDispatcher($outbound, logger: $logger);
         $transport = new RecordingTransport();
 
         $dispatcher->dispatch([
@@ -245,7 +245,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $outbound = new PendingOutboundRequests();
         $logger = new ArrayLogger();
-        $dispatcher = self::buildDispatcher($outbound, logger: $logger);
+        $dispatcher = $this->buildDispatcher($outbound, logger: $logger);
         $transport = new RecordingTransport();
 
         $dispatcher->dispatch([
@@ -265,7 +265,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $outbound = new PendingOutboundRequests();
         $future = $outbound->register(new RequestId(id: 1), CallToolResultResponse::class);
-        $dispatcher = self::buildDispatcher($outbound);
+        $dispatcher = $this->buildDispatcher($outbound);
         $transport = new RecordingTransport();
 
         $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'result' => 'not-an-object'], $transport, new ReceiveContext());
@@ -282,7 +282,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $outbound = new PendingOutboundRequests();
         $future = $outbound->register(new RequestId(id: 1), CallToolResultResponse::class);
         $logger = new ArrayLogger();
-        $dispatcher = self::buildDispatcher($outbound, logger: $logger);
+        $dispatcher = $this->buildDispatcher($outbound, logger: $logger);
         $transport = new RecordingTransport();
 
         $dispatcher->dispatch([
@@ -309,7 +309,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $outbound = new PendingOutboundRequests();
         $logger = new ArrayLogger();
-        $dispatcher = self::buildDispatcher($outbound, logger: $logger);
+        $dispatcher = $this->buildDispatcher($outbound, logger: $logger);
         $transport = new RecordingTransport();
 
         $dispatcher->dispatch(
@@ -331,7 +331,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     public function testAnAmbiguousEnvelopeSettlesTheOutboundRequestItNames(): void
     {
         $outbound = new PendingOutboundRequests();
-        $dispatcher = self::buildDispatcher($outbound);
+        $dispatcher = $this->buildDispatcher($outbound);
         $transport = new RecordingTransport();
 
         $future = $outbound->register(new RequestId(id: 7), CallToolResultResponse::class);
@@ -357,7 +357,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     public function testAMalformedInboundRequestLeavesAnOutboundRequestSharingItsIdPending(): void
     {
         $outbound = new PendingOutboundRequests();
-        $dispatcher = self::buildDispatcher($outbound);
+        $dispatcher = $this->buildDispatcher($outbound);
         $transport = new RecordingTransport();
 
         $future = $outbound->register(new RequestId(id: 7), CallToolResultResponse::class);
@@ -378,7 +378,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $outbound = new PendingOutboundRequests();
         $logger = new ArrayLogger();
-        $dispatcher = self::buildDispatcher($outbound, logger: $logger);
+        $dispatcher = $this->buildDispatcher($outbound, logger: $logger);
         $transport = new RecordingTransport();
 
         $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 5], $transport, new ReceiveContext());
@@ -396,7 +396,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $outbound = new PendingOutboundRequests();
         $logger = new ArrayLogger();
-        $dispatcher = self::buildDispatcher($outbound, logger: $logger);
+        $dispatcher = $this->buildDispatcher($outbound, logger: $logger);
         $transport = new RecordingTransport();
 
         $envelope = ['id' => 1, 'result' => []];
@@ -413,7 +413,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $outbound = new PendingOutboundRequests();
         $logger = new ArrayLogger();
-        $dispatcher = self::buildDispatcher($outbound, logger: $logger);
+        $dispatcher = $this->buildDispatcher($outbound, logger: $logger);
         $transport = new RecordingTransport();
 
         $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 999, 'result' => []], $transport, new ReceiveContext());
@@ -428,7 +428,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $outbound = new PendingOutboundRequests();
         $attempts = 0;
-        $dispatcher = self::buildDispatcher(
+        $dispatcher = $this->buildDispatcher(
             $outbound,
             requestHandlers: [
                 'tests/test-request' => new ClosureRequestHandler(
@@ -459,7 +459,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     public function testToErrorResponseUsesExceptionRequestIdWhenItIsSetEvenIfDifferentFromFallback(): void
     {
         $outbound = new PendingOutboundRequests();
-        $dispatcher = self::buildDispatcher(
+        $dispatcher = $this->buildDispatcher(
             $outbound,
             requestHandlers: [
                 'tests/test-request' => new ClosureRequestHandler(
@@ -485,7 +485,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     public function testInboundRequestIsDispatchedToTheRegisteredHandlerAndItsResultIsSent(): void
     {
         $outbound = new PendingOutboundRequests();
-        $dispatcher = self::buildDispatcher(
+        $dispatcher = $this->buildDispatcher(
             $outbound,
             requestHandlers: ['tests/test-request' => new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult())],
         );
@@ -505,7 +505,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $outbound = new PendingOutboundRequests();
         $logger = new ArrayLogger();
-        $dispatcher = self::buildDispatcher(
+        $dispatcher = $this->buildDispatcher(
             $outbound,
             requestHandlers: [
                 'server/discover' => new ClosureRequestHandler(
@@ -547,7 +547,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $outbound = new PendingOutboundRequests();
         $handled = false;
         $captured = new ProgressToken(token: 'sentinel');
-        $dispatcher = self::buildDispatcher(
+        $dispatcher = $this->buildDispatcher(
             $outbound,
             requestHandlers: [
                 'tests/test-request' => new ClosureRequestHandler(
@@ -582,7 +582,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     public function testInboundRequestForUnknownMethodResponseIsMethodNotFound(): void
     {
         $outbound = new PendingOutboundRequests();
-        $dispatcher = self::buildDispatcher($outbound);
+        $dispatcher = $this->buildDispatcher($outbound);
         $transport = new RecordingTransport();
 
         $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
@@ -599,7 +599,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $outbound = new PendingOutboundRequests();
         $invocations = 0;
-        $dispatcher = self::buildDispatcher(
+        $dispatcher = $this->buildDispatcher(
             $outbound,
             notificationHandlers: [
                 'notifications/cancelled' => new ClosureNotificationHandler(
@@ -624,7 +624,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $outbound = new PendingOutboundRequests();
         $logger = new ArrayLogger();
-        $dispatcher = self::buildDispatcher(
+        $dispatcher = $this->buildDispatcher(
             $outbound,
             notificationHandlers: [
                 'notifications/cancelled' => new ClosureNotificationHandler(
@@ -652,7 +652,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     public function testDuplicateInboundRequestIdIsRejectedSynchronouslyWithInvalidRequest(): void
     {
         $outbound = new PendingOutboundRequests();
-        $dispatcher = self::buildDispatcher(
+        $dispatcher = $this->buildDispatcher(
             $outbound,
             requestHandlers: ['tests/test-request' => new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult())],
         );
@@ -673,7 +673,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $outbound = new PendingOutboundRequests();
         $invocations = 0;
-        $dispatcher = self::buildDispatcher(
+        $dispatcher = $this->buildDispatcher(
             $outbound,
             requestHandlers: ['tests/test-request' => new ClosureRequestHandler(static function () use (&$invocations): EmptyResult {
                 ++$invocations;
@@ -698,7 +698,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $outbound = new PendingOutboundRequests();
         $logger = new ArrayLogger();
-        $dispatcher = self::buildDispatcher($outbound, logger: $logger);
+        $dispatcher = $this->buildDispatcher($outbound, logger: $logger);
         $transport = new RecordingTransport();
 
         $envelope = [
@@ -730,7 +730,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $outbound = new PendingOutboundRequests();
         $logger = new ArrayLogger();
-        $dispatcher = self::buildDispatcher($outbound, logger: $logger);
+        $dispatcher = $this->buildDispatcher($outbound, logger: $logger);
         $transport = new RecordingTransport();
 
         $envelope = ['jsonrpc' => '2.0', 'method' => 'tests/test-request'];
@@ -749,7 +749,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $outbound = new PendingOutboundRequests();
         $logger = new ArrayLogger();
-        $dispatcher = self::buildDispatcher($outbound, logger: $logger);
+        $dispatcher = $this->buildDispatcher($outbound, logger: $logger);
         $transport = new RecordingTransport();
 
         $envelope = ['jsonrpc' => '1.0', 'id' => 7, 'method' => 'tests/test-request'];
@@ -767,7 +767,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $outbound = new PendingOutboundRequests();
         $logger = new ArrayLogger();
-        $dispatcher = self::buildDispatcher($outbound, logger: $logger);
+        $dispatcher = $this->buildDispatcher($outbound, logger: $logger);
         $transport = new RecordingTransport();
 
         $envelope = ['jsonrpc' => '1.0', 'method' => 'notifications/cancelled'];
@@ -785,7 +785,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $outbound = new PendingOutboundRequests();
         $logger = new ArrayLogger();
-        $dispatcher = self::buildDispatcher($outbound, logger: $logger);
+        $dispatcher = $this->buildDispatcher($outbound, logger: $logger);
         $transport = new RecordingTransport();
 
         $dispatcher->dispatch([
@@ -803,7 +803,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     public function testIdsAreReleasedAfterTheHandlerCompletesSoSequentialReuseSucceeds(): void
     {
         $outbound = new PendingOutboundRequests();
-        $dispatcher = self::buildDispatcher(
+        $dispatcher = $this->buildDispatcher(
             $outbound,
             requestHandlers: ['tests/test-request' => new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult())],
         );
@@ -822,7 +822,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     public function testHandlerThrowingMcpExceptionTranslatesToTypedErrorResponse(): void
     {
         $outbound = new PendingOutboundRequests();
-        $dispatcher = self::buildDispatcher(
+        $dispatcher = $this->buildDispatcher(
             $outbound,
             requestHandlers: [
                 'tests/test-request' => new ClosureRequestHandler(
@@ -845,7 +845,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $outbound = new PendingOutboundRequests();
         $logger = new ArrayLogger();
-        $dispatcher = self::buildDispatcher(
+        $dispatcher = $this->buildDispatcher(
             $outbound,
             requestHandlers: [
                 'tests/test-request' => new ClosureRequestHandler(
@@ -874,7 +874,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $outbound = new PendingOutboundRequests();
         $logger = new ArrayLogger();
-        $dispatcher = self::buildDispatcher(
+        $dispatcher = $this->buildDispatcher(
             $outbound,
             requestHandlers: [
                 'tests/test-request' => new ClosureRequestHandler(
@@ -899,7 +899,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $outbound = new PendingOutboundRequests();
         $logger = new ArrayLogger();
-        $dispatcher = self::buildDispatcher(
+        $dispatcher = $this->buildDispatcher(
             $outbound,
             requestHandlers: [
                 'tests/test-request' => new ClosureRequestHandler(
@@ -925,7 +925,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $logger = new ArrayLogger();
         $transport = new RecordingTransport();
         $transport->sendError = new \RuntimeException('write failed');
-        $dispatcher = self::buildDispatcher(
+        $dispatcher = $this->buildDispatcher(
             $outbound,
             requestHandlers: ['tests/test-request' => new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult())],
             logger: $logger,
@@ -946,7 +946,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $logger = new ArrayLogger();
         $transport = new RecordingTransport();
         $transport->sendError = new TransportAlreadyClosedException('send');
-        $dispatcher = self::buildDispatcher(
+        $dispatcher = $this->buildDispatcher(
             $outbound,
             requestHandlers: ['tests/test-request' => new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult())],
             logger: $logger,
@@ -963,7 +963,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     public function testErrorResponseUsesExceptionRequestIdWhenSetEvenIfDifferentFromIncomingRequestId(): void
     {
         $outbound = new PendingOutboundRequests();
-        $dispatcher = self::buildDispatcher(
+        $dispatcher = $this->buildDispatcher(
             $outbound,
             requestHandlers: [
                 'tests/test-request' => new ClosureRequestHandler(
@@ -988,7 +988,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $transport = new RecordingTransport();
         $captured = ['requestId' => null];
 
-        $dispatcher = self::buildDispatcher(
+        $dispatcher = $this->buildDispatcher(
             $outbound,
             requestHandlers: [
                 'tests/test-request' => new ClosureRequestHandler(
@@ -1012,7 +1012,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     public function testFlushPendingWithNothingScheduledIsANoOp(): void
     {
         $outbound = new PendingOutboundRequests();
-        $dispatcher = self::buildDispatcher($outbound);
+        $dispatcher = $this->buildDispatcher($outbound);
 
         $dispatcher->flushPending();
 
@@ -1023,7 +1023,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $outbound = new PendingOutboundRequests();
         $transport = new RecordingTransport();
-        $dispatcher = self::buildDispatcher(
+        $dispatcher = $this->buildDispatcher(
             $outbound,
             requestHandlers: ['tests/test-request' => new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult())],
         );
@@ -1039,7 +1039,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $outbound = new PendingOutboundRequests();
         $logger = new ArrayLogger();
-        $dispatcher = self::buildDispatcher(
+        $dispatcher = $this->buildDispatcher(
             $outbound,
             notificationHandlers: [
                 'notifications/cancelled' => new ClosureNotificationHandler(
@@ -1068,7 +1068,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $transport = new RecordingTransport();
         $seen = [];
-        $dispatcher = self::buildDispatcher(
+        $dispatcher = $this->buildDispatcher(
             new PendingOutboundRequests(),
             requestHandlers: [
                 'tests/test-request' => new ClosureRequestHandler(
@@ -1096,7 +1096,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $transport = new RecordingTransport();
         $logger = new ArrayLogger();
-        $dispatcher = self::buildDispatcher(
+        $dispatcher = $this->buildDispatcher(
             new PendingOutboundRequests(),
             requestHandlers: [
                 'tests/test-request' => new ClosureRequestHandler(
@@ -1124,7 +1124,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $transport = new RecordingTransport();
         $logger = new ArrayLogger();
-        $dispatcher = self::buildDispatcher(
+        $dispatcher = $this->buildDispatcher(
             new PendingOutboundRequests(),
             requestHandlers: [
                 'tests/test-request' => new ClosureRequestHandler(
@@ -1153,7 +1153,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
 
     public function testCancellingAnIdThatIsNotInFlightIsHarmless(): void
     {
-        $dispatcher = self::buildDispatcher(new PendingOutboundRequests());
+        $dispatcher = $this->buildDispatcher(new PendingOutboundRequests());
 
         $dispatcher->cancelRequest(new RequestId(id: 'never-claimed'));
 
@@ -1167,14 +1167,14 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $handler = new ClosureNotificationHandler(static function () use (&$handled): void {
             ++$handled;
         });
-        $dispatcher = self::buildDispatcher(
+        $dispatcher = $this->buildDispatcher(
             new PendingOutboundRequests(),
             notificationHandlers: ['notifications/tools/list_changed' => $handler],
             subscriptions: $listeners,
         );
 
         $seen = [];
-        $listeners->register(self::buildSubscription(new RequestId(id: 7), static function (JsonRpcNotification $notification) use (&$seen): void {
+        $listeners->register($this->buildSubscription(new RequestId(id: 7), static function (JsonRpcNotification $notification) use (&$seen): void {
             $seen[] = $notification::getMethod();
         }));
 
@@ -1197,7 +1197,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $handler = new ClosureNotificationHandler(static function () use (&$handled): void {
             ++$handled;
         });
-        $dispatcher = self::buildDispatcher(
+        $dispatcher = $this->buildDispatcher(
             new PendingOutboundRequests(),
             notificationHandlers: ['notifications/tools/list_changed' => $handler],
             subscriptions: $listeners,
@@ -1218,13 +1218,13 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $listeners = new SubscriptionRegistry();
         $logger = new ArrayLogger();
-        $dispatcher = self::buildDispatcher(
+        $dispatcher = $this->buildDispatcher(
             new PendingOutboundRequests(),
             logger: $logger,
             subscriptions: $listeners,
         );
 
-        $listeners->register(self::buildSubscription(new RequestId(id: 7), static function (JsonRpcNotification $notification): void {
+        $listeners->register($this->buildSubscription(new RequestId(id: 7), static function (JsonRpcNotification $notification): void {
             throw new \RuntimeException('listener blew up');
         }));
 
@@ -1248,14 +1248,14 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $handler = new ClosureNotificationHandler(static function () use (&$handled): void {
             ++$handled;
         });
-        $dispatcher = self::buildDispatcher(
+        $dispatcher = $this->buildDispatcher(
             new PendingOutboundRequests(),
             notificationHandlers: ['notifications/progress' => $handler],
             subscriptions: $listeners,
         );
 
         $stolen = 0;
-        $listeners->register(self::buildSubscription(new RequestId(id: 7), static function () use (&$stolen): void {
+        $listeners->register($this->buildSubscription(new RequestId(id: 7), static function () use (&$stolen): void {
             ++$stolen;
         }));
 
@@ -1278,7 +1278,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     public function testAParseFailureLogsNothingOfThePeerEnvelopeBeyondTheException(): void
     {
         $logger = new ArrayLogger();
-        $dispatcher = self::buildDispatcher(new PendingOutboundRequests(), logger: $logger);
+        $dispatcher = $this->buildDispatcher(new PendingOutboundRequests(), logger: $logger);
         $transport = new RecordingTransport();
 
         $dispatcher->dispatch([
@@ -1298,7 +1298,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $logger = new ArrayLogger();
         $transport = new RecordingTransport();
-        $dispatcher = self::buildDispatcher(new PendingOutboundRequests(), logger: $logger, maxInFlight: 1);
+        $dispatcher = $this->buildDispatcher(new PendingOutboundRequests(), logger: $logger, maxInFlight: 1);
 
         $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
         $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 2, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
@@ -1324,7 +1324,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $handled = 0;
         $logger = new ArrayLogger();
         $transport = new RecordingTransport();
-        $dispatcher = self::buildDispatcher(
+        $dispatcher = $this->buildDispatcher(
             new PendingOutboundRequests(),
             notificationHandlers: [
                 'notifications/tools/list_changed' => new ClosureNotificationHandler(static function () use (&$handled): void {
@@ -1354,7 +1354,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $cancelled = null;
         $transport = new RecordingTransport();
-        $dispatcher = self::buildDispatcher(
+        $dispatcher = $this->buildDispatcher(
             new PendingOutboundRequests(),
             notificationHandlers: [
                 'notifications/cancelled' => new ClosureNotificationHandler(static function () use (&$cancelled): void {
@@ -1381,7 +1381,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $cancelled = 0;
         $logger = new ArrayLogger();
         $transport = new RecordingTransport();
-        $dispatcher = self::buildDispatcher(
+        $dispatcher = $this->buildDispatcher(
             new PendingOutboundRequests(),
             notificationHandlers: [
                 'notifications/cancelled' => new ClosureNotificationHandler(static function () use (&$cancelled): void {
@@ -1414,7 +1414,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $cancelled = 0;
         $transport = new RecordingTransport();
-        $dispatcher = self::buildDispatcher(
+        $dispatcher = $this->buildDispatcher(
             new PendingOutboundRequests(),
             notificationHandlers: [
                 'notifications/cancelled' => new ClosureNotificationHandler(static function () use (&$cancelled): void {
@@ -1440,7 +1440,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $parked = new DeferredFuture();
         $observed = null;
         $transport = new RecordingTransport();
-        $dispatcher = self::buildDispatcher(
+        $dispatcher = $this->buildDispatcher(
             new PendingOutboundRequests(),
             requestHandlers: ['tests/test-request' => new ClosureRequestHandler(
                 static function ($request, AbstractContext $context) use ($parked, &$observed): Result {
@@ -1476,7 +1476,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $parked = new DeferredFuture();
         $observed = null;
         $transport = new RecordingTransport();
-        $dispatcher = self::buildDispatcher(
+        $dispatcher = $this->buildDispatcher(
             new PendingOutboundRequests(),
             requestHandlers: ['tests/test-request' => new ClosureRequestHandler(
                 static function ($request, AbstractContext $context) use ($parked, &$observed): Result {
@@ -1510,7 +1510,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     {
         $logger = new ArrayLogger();
         $transport = new RecordingTransport();
-        $dispatcher = self::buildDispatcher(
+        $dispatcher = $this->buildDispatcher(
             new PendingOutboundRequests(),
             notificationHandlers: [
                 'notifications/tools/list_changed' => new ClosureNotificationHandler(static function (): void {}),
@@ -1539,12 +1539,12 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $listeners = new SubscriptionRegistry();
         $logger = new ArrayLogger();
         $transport = new RecordingTransport();
-        $dispatcher = self::buildDispatcher(new PendingOutboundRequests(), logger: $logger, subscriptions: $listeners, maxInFlight: 1);
+        $dispatcher = $this->buildDispatcher(new PendingOutboundRequests(), logger: $logger, subscriptions: $listeners, maxInFlight: 1);
 
         /** @var DeferredFuture<SubscriptionsListenResult> $outcome */
         $outcome = new DeferredFuture();
         $seen = [];
-        $listeners->register(self::buildSubscription(new RequestId(id: 7), static function (JsonRpcNotification $notification) use (&$seen): void {
+        $listeners->register($this->buildSubscription(new RequestId(id: 7), static function (JsonRpcNotification $notification) use (&$seen): void {
             $seen[] = $notification::getMethod();
         }, $outcome));
 
@@ -1580,12 +1580,12 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $listeners = new SubscriptionRegistry();
         $logger = new ArrayLogger();
         $transport = new RecordingTransport();
-        $dispatcher = self::buildDispatcher(new PendingOutboundRequests(), logger: $logger, subscriptions: $listeners, maxInFlight: 1);
+        $dispatcher = $this->buildDispatcher(new PendingOutboundRequests(), logger: $logger, subscriptions: $listeners, maxInFlight: 1);
 
         /** @var DeferredFuture<SubscriptionsListenResult> $outcome */
         $outcome = new DeferredFuture();
         $outcome->getFuture()->ignore();
-        $listeners->register(self::buildSubscription(new RequestId(id: 7), static function (): void {}, $outcome));
+        $listeners->register($this->buildSubscription(new RequestId(id: 7), static function (): void {}, $outcome));
 
         $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
 
@@ -1611,7 +1611,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
      * @param array<non-empty-string, NotificationHandlerInterface<non-empty-string>>                   $notificationHandlers
      * @param null|int<1, max>                                                                          $maxInFlight
      */
-    private static function buildDispatcher(
+    private function buildDispatcher(
         PendingOutboundRequests $outbound,
         array $requestHandlers = [],
         array $notificationHandlers = [],
@@ -1634,7 +1634,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
      * @param \Closure(JsonRpcNotification<non-empty-string>): void $onNotification
      * @param null|DeferredFuture<SubscriptionsListenResult>        $outcome
      */
-    private static function buildSubscription(RequestId $id, \Closure $onNotification, ?DeferredFuture $outcome = null): OpenSubscription
+    private function buildSubscription(RequestId $id, \Closure $onNotification, ?DeferredFuture $outcome = null): OpenSubscription
     {
         if (null === $outcome) {
             /** @var DeferredFuture<SubscriptionsListenResult> $outcome */

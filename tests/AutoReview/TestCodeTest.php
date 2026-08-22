@@ -53,7 +53,7 @@ final class TestCodeTest extends AbstractMcpTestCase
         $expectedTestClassName = str_replace('Nexus\\Mcp\\', 'Nexus\\Mcp\\Tests\\', $class).'Test';
 
         if (! class_exists($expectedTestClassName)) {
-            foreach (self::getCoveredClassesByTest() as $testClassName => $coveredClasses) {
+            foreach ($this->getCoveredClassesByTest() as $testClassName => $coveredClasses) {
                 if (\in_array($class, $coveredClasses, true)) {
                     $expectedTestClassName = $testClassName;
 
@@ -158,7 +158,7 @@ final class TestCodeTest extends AbstractMcpTestCase
     /**
      * @return array<class-string, list<class-string>>
      */
-    private static function getCoveredClassesByTest(): array
+    private function getCoveredClassesByTest(): array
     {
         if ([] !== self::$coveredClassesByTest) {
             return self::$coveredClassesByTest;
@@ -166,7 +166,7 @@ final class TestCodeTest extends AbstractMcpTestCase
 
         $index = [];
 
-        foreach (self::getTestClasses() as $testClassName) {
+        foreach ($this->getTestClasses() as $testClassName) {
             $reflection = new \ReflectionClass($testClassName);
             $covered = array_map(
                 static function (\ReflectionAttribute $attribute): string {
@@ -191,7 +191,7 @@ final class TestCodeTest extends AbstractMcpTestCase
     /**
      * @return list<class-string<TestCase>>
      */
-    private static function getTestClasses(): array
+    private function getTestClasses(): array
     {
         if ([] !== self::$testClasses) {
             return self::$testClasses;

@@ -41,7 +41,7 @@ final class ResourceStoreTest extends AbstractMcpTestCase
 {
     public function testListReturnsRegisteredResources(): void
     {
-        $store = new ResourceStore(self::makeEntries(
+        $store = new ResourceStore($this->makeEntries(
             ['alpha', 'file:///tmp/a.txt'],
             ['beta', 'file:///tmp/b.txt'],
         ));
@@ -59,7 +59,7 @@ final class ResourceStoreTest extends AbstractMcpTestCase
     public function testListReflectsConfiguredTtlAndCacheScope(): void
     {
         $store = new ResourceStore(
-            self::makeEntries(['alpha', 'file:///tmp/a.txt']),
+            $this->makeEntries(['alpha', 'file:///tmp/a.txt']),
             ttlMs: 120_000,
             cacheScope: CacheScope::Public,
         );
@@ -73,7 +73,7 @@ final class ResourceStoreTest extends AbstractMcpTestCase
     public function testListPaginatesWithCursor(): void
     {
         $store = new ResourceStore(
-            self::makeEntries(['a', 'file:///a'], ['b', 'file:///b'], ['c', 'file:///c']),
+            $this->makeEntries(['a', 'file:///a'], ['b', 'file:///b'], ['c', 'file:///c']),
             pageSize: 2,
         );
 
@@ -110,7 +110,7 @@ final class ResourceStoreTest extends AbstractMcpTestCase
         $this->expectExceptionMessageMatches('/^Resource store entry key must be a non-empty string\.$/');
 
         // @phpstan-ignore argument.type
-        new ResourceStore([1 => new ResourceEntry(new Resource(name: 'one', uri: 'file:///one'), self::makeReader())]);
+        new ResourceStore([1 => new ResourceEntry(new Resource(name: 'one', uri: 'file:///one'), $this->makeReader())]);
     }
 
     public function testConstructorRejectsEmptyStringEntryKey(): void
@@ -119,7 +119,7 @@ final class ResourceStoreTest extends AbstractMcpTestCase
         $this->expectExceptionMessageMatches('/^Resource store entry key must be a non-empty string\.$/');
 
         // @phpstan-ignore argument.type
-        new ResourceStore(['' => new ResourceEntry(new Resource(name: 'one', uri: 'file:///one'), self::makeReader())]);
+        new ResourceStore(['' => new ResourceEntry(new Resource(name: 'one', uri: 'file:///one'), $this->makeReader())]);
     }
 
     public function testConstructorRejectsAnEntryKeyThatDoesNotMatchItsResourceUri(): void
@@ -127,7 +127,7 @@ final class ResourceStoreTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Resource store entry key "\'file:///WRONG\'" must match its resource URI "\'file:///actual\'".');
 
-        new ResourceStore(['file:///WRONG' => new ResourceEntry(new Resource(name: 'r', uri: 'file:///actual'), self::makeReader())]);
+        new ResourceStore(['file:///WRONG' => new ResourceEntry(new Resource(name: 'r', uri: 'file:///actual'), $this->makeReader())]);
     }
 
     public function testReadInvokesTheReaderMatchingTheUri(): void
@@ -154,8 +154,8 @@ final class ResourceStoreTest extends AbstractMcpTestCase
             ),
         ]);
 
-        self::assertSame($betaResult, $store->read('file:///beta.txt', self::makeContext()));
-        self::assertSame($alphaResult, $store->read('file:///alpha.txt', self::makeContext()));
+        self::assertSame($betaResult, $store->read('file:///beta.txt', $this->makeContext()));
+        self::assertSame($alphaResult, $store->read('file:///alpha.txt', $this->makeContext()));
         self::assertSame([
             ['key' => 'beta', 'uri' => 'file:///beta.txt', 'requestId' => 1],
             ['key' => 'alpha', 'uri' => 'file:///alpha.txt', 'requestId' => 1],
@@ -169,16 +169,16 @@ final class ResourceStoreTest extends AbstractMcpTestCase
         $this->expectException(ResourceNotRegisteredException::class);
         $this->expectExceptionMessageMatches('/^No resource registered under URI "file:\\/\\/\\/missing"\.$/');
 
-        $store->read('file:///missing', self::makeContext());
+        $store->read('file:///missing', $this->makeContext());
     }
 
     public function testAddResourceRegistersItAndAnnouncesTheChange(): void
     {
-        $store = new ResourceStore(self::makeEntries(['cfg', 'file:///a']));
+        $store = new ResourceStore($this->makeEntries(['cfg', 'file:///a']));
         $changes = 0;
         $store->onListChanged(static function () use (&$changes): void { ++$changes; });
 
-        $store->addResource(new Resource(name: 'log', uri: 'file:///b'), self::makeReader());
+        $store->addResource(new Resource(name: 'log', uri: 'file:///b'), $this->makeReader());
 
         self::assertSame(
             ['file:///a', 'file:///b'],
@@ -189,9 +189,9 @@ final class ResourceStoreTest extends AbstractMcpTestCase
 
     public function testAddResourceReplacesAResourceOfTheSameUri(): void
     {
-        $store = new ResourceStore(self::makeEntries(['cfg', 'file:///a']));
+        $store = new ResourceStore($this->makeEntries(['cfg', 'file:///a']));
 
-        $store->addResource(new Resource(name: 'renamed', uri: 'file:///a'), self::makeReader());
+        $store->addResource(new Resource(name: 'renamed', uri: 'file:///a'), $this->makeReader());
 
         $resources = $store->list(null)->resources;
         self::assertCount(1, $resources);
@@ -200,7 +200,7 @@ final class ResourceStoreTest extends AbstractMcpTestCase
 
     public function testRemoveResourceDropsItAndAnnouncesTheChange(): void
     {
-        $store = new ResourceStore(self::makeEntries(['cfg', 'file:///a'], ['log', 'file:///b']));
+        $store = new ResourceStore($this->makeEntries(['cfg', 'file:///a'], ['log', 'file:///b']));
         $changes = 0;
         $store->onListChanged(static function () use (&$changes): void { ++$changes; });
 
@@ -214,7 +214,7 @@ final class ResourceStoreTest extends AbstractMcpTestCase
 
     public function testRemoveResourceIsSilentWhenNoResourceMatches(): void
     {
-        $store = new ResourceStore(self::makeEntries(['cfg', 'file:///a']));
+        $store = new ResourceStore($this->makeEntries(['cfg', 'file:///a']));
         $changes = 0;
         $store->onListChanged(static function () use (&$changes): void { ++$changes; });
 
@@ -230,7 +230,7 @@ final class ResourceStoreTest extends AbstractMcpTestCase
         $store->onListChanged(static function () use (&$heard): void { $heard[] = 'first'; });
         $store->onListChanged(static function () use (&$heard): void { $heard[] = 'second'; });
 
-        $store->addResource(new Resource(name: 'cfg', uri: 'file:///a'), self::makeReader());
+        $store->addResource(new Resource(name: 'cfg', uri: 'file:///a'), $this->makeReader());
 
         self::assertSame(['first', 'second'], $heard);
     }
@@ -238,9 +238,9 @@ final class ResourceStoreTest extends AbstractMcpTestCase
     public function testAnAddedResourceIsReadable(): void
     {
         $store = new ResourceStore();
-        $store->addResource(new Resource(name: 'cfg', uri: 'file:///a'), self::makeReader());
+        $store->addResource(new Resource(name: 'cfg', uri: 'file:///a'), $this->makeReader());
 
-        $result = $store->read('file:///a', self::makeContext());
+        $result = $store->read('file:///a', $this->makeContext());
 
         self::assertInstanceOf(ReadResourceResult::class, $result);
 
@@ -252,7 +252,7 @@ final class ResourceStoreTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('resource "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.');
 
-        new ResourceStore(['file:///x' => new ResourceEntry(new Resource(name: 'Project Files', uri: 'file:///x'), self::makeReader())]);
+        new ResourceStore(['file:///x' => new ResourceEntry(new Resource(name: 'Project Files', uri: 'file:///x'), $this->makeReader())]);
     }
 
     public function testAddRefusesAnUnconventionalName(): void
@@ -260,7 +260,7 @@ final class ResourceStoreTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('resource "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.');
 
-        (new ResourceStore())->addResource(new Resource(name: 'Project Files', uri: 'file:///x'), self::makeReader());
+        (new ResourceStore())->addResource(new Resource(name: 'Project Files', uri: 'file:///x'), $this->makeReader());
     }
 
     public function testConstructorRefusesANonConservativeIconSrc(): void
@@ -268,7 +268,7 @@ final class ResourceStoreTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('resource "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.');
 
-        new ResourceStore(['file:///x' => new ResourceEntry(new Resource(name: 'r', uri: 'file:///x', icons: [new Icon(src: 'ftp://example.com/icon.png')]), self::makeReader())]);
+        new ResourceStore(['file:///x' => new ResourceEntry(new Resource(name: 'r', uri: 'file:///x', icons: [new Icon(src: 'ftp://example.com/icon.png')]), $this->makeReader())]);
     }
 
     public function testAddRefusesANonConservativeIconSrc(): void
@@ -276,7 +276,7 @@ final class ResourceStoreTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('resource "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.');
 
-        (new ResourceStore())->addResource(new Resource(name: 'r', uri: 'file:///x', icons: [new Icon(src: 'ftp://example.com/icon.png')]), self::makeReader());
+        (new ResourceStore())->addResource(new Resource(name: 'r', uri: 'file:///x', icons: [new Icon(src: 'ftp://example.com/icon.png')]), $this->makeReader());
     }
 
     public function testReadWrapsABindingFailureWithTheResourceUri(): void
@@ -293,7 +293,7 @@ final class ResourceStoreTest extends AbstractMcpTestCase
         $this->expectException(InvalidParamsException::class);
         $this->expectExceptionMessageIs('Invalid arguments for resource "file:///a.txt": "uri" must be a string, int given.');
 
-        $store->read('file:///a.txt', self::makeContext());
+        $store->read('file:///a.txt', $this->makeContext());
     }
 
     /**
@@ -301,25 +301,25 @@ final class ResourceStoreTest extends AbstractMcpTestCase
      *
      * @return array<non-empty-string, ResourceEntry>
      */
-    private static function makeEntries(array ...$pairs): array
+    private function makeEntries(array ...$pairs): array
     {
         $entries = [];
 
         foreach ($pairs as [$name, $uri]) {
-            $entries[$uri] = new ResourceEntry(new Resource(name: $name, uri: $uri), self::makeReader());
+            $entries[$uri] = new ResourceEntry(new Resource(name: $name, uri: $uri), $this->makeReader());
         }
 
         return $entries;
     }
 
-    private static function makeReader(): ClosureResourceReader
+    private function makeReader(): ClosureResourceReader
     {
         return new ClosureResourceReader(
             static fn(string $uri, ServerContext $context): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
         );
     }
 
-    private static function makeContext(): ServerContext
+    private function makeContext(): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 1),

@@ -39,9 +39,9 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
 
     public function testAValidTokenReachesTheHandler(): void
     {
-        $handler = self::handler();
+        $handler = $this->handler();
 
-        $response = self::middleware()->process(self::request('the-token'), $handler);
+        $response = $this->middleware()->process($this->request('the-token'), $handler);
 
         self::assertSame(200, $response->getStatusCode());
         self::assertTrue($handler->called);
@@ -50,10 +50,10 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
     #[DataProvider('provideAnExpiredTokenIsRefusedCases')]
     public function testAnExpiredTokenIsRefused(int $expiresAt): void
     {
-        $handler = self::handler();
+        $handler = $this->handler();
         $token = new VerifiedAccessToken([self::RESOURCE], subject: 'the-subject', expiresAt: $expiresAt);
 
-        $response = self::middleware($token, now: 1_000)->process(self::request('the-token'), $handler);
+        $response = $this->middleware($token, now: 1_000)->process($this->request('the-token'), $handler);
 
         self::assertFalse($handler->called);
         self::assertSame(401, $response->getStatusCode());
@@ -73,10 +73,10 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
 
     public function testATokenExpiringInTheNextSecondIsStillAccepted(): void
     {
-        $handler = self::handler();
+        $handler = $this->handler();
         $token = new VerifiedAccessToken([self::RESOURCE], subject: 'the-subject', expiresAt: 1_001);
 
-        $response = self::middleware($token, now: 1_000)->process(self::request('the-token'), $handler);
+        $response = $this->middleware($token, now: 1_000)->process($this->request('the-token'), $handler);
 
         self::assertTrue($handler->called);
         self::assertSame(200, $response->getStatusCode());
@@ -84,11 +84,11 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
 
     public function testConfiguredLeewayToleratesATokenExpiredWithinIt(): void
     {
-        $handler = self::handler();
+        $handler = $this->handler();
         $token = new VerifiedAccessToken([self::RESOURCE], subject: 'the-subject', expiresAt: 940);
 
-        $response = self::middleware($token, now: 1_000, expiryLeewaySeconds: 300)
-            ->process(self::request('the-token'), $handler)
+        $response = $this->middleware($token, now: 1_000, expiryLeewaySeconds: 300)
+            ->process($this->request('the-token'), $handler)
         ;
 
         self::assertTrue($handler->called);
@@ -97,11 +97,11 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
 
     public function testConfiguredLeewayStillRefusesATokenExpiredBeyondIt(): void
     {
-        $handler = self::handler();
+        $handler = $this->handler();
         $token = new VerifiedAccessToken([self::RESOURCE], subject: 'the-subject', expiresAt: 699);
 
-        $response = self::middleware($token, now: 1_000, expiryLeewaySeconds: 300)
-            ->process(self::request('the-token'), $handler)
+        $response = $this->middleware($token, now: 1_000, expiryLeewaySeconds: 300)
+            ->process($this->request('the-token'), $handler)
         ;
 
         self::assertFalse($handler->called);
@@ -110,7 +110,7 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
 
     public function testTheDefaultToleratesNoClockSkew(): void
     {
-        $handler = self::handler();
+        $handler = $this->handler();
         $recognised = new VerifiedAccessToken([self::RESOURCE], subject: 'the-subject', expiresAt: 1_000);
         $validator = self::createStub(AccessTokenValidatorInterface::class);
         $validator->method('validate')->willReturn($recognised);
@@ -123,7 +123,7 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
             clock: static fn(): int => 1_000,
         );
 
-        $response = $middleware->process(self::request('the-token'), $handler);
+        $response = $middleware->process($this->request('the-token'), $handler);
 
         self::assertFalse($handler->called);
         self::assertSame(401, $response->getStatusCode());
@@ -146,10 +146,10 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
 
     public function testATokenReportingNoExpiryIsAccepted(): void
     {
-        $handler = self::handler();
+        $handler = $this->handler();
         $token = new VerifiedAccessToken([self::RESOURCE], subject: 'the-subject');
 
-        $response = self::middleware($token, now: 1_000)->process(self::request('the-token'), $handler);
+        $response = $this->middleware($token, now: 1_000)->process($this->request('the-token'), $handler);
 
         self::assertTrue($handler->called);
         self::assertSame(200, $response->getStatusCode());
@@ -157,9 +157,9 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
 
     public function testTheValidatedTokenTravelsOnTheRequest(): void
     {
-        $handler = self::handler();
+        $handler = $this->handler();
 
-        self::middleware()->process(self::request('the-token'), $handler);
+        $this->middleware()->process($this->request('the-token'), $handler);
 
         $token = $handler->received?->getAttribute(VerifiedAccessToken::REQUEST_ATTRIBUTE);
 
@@ -170,29 +170,29 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
 
     public function testARequestCarryingNoCredentialsIsChallenged(): void
     {
-        $handler = self::handler();
+        $handler = $this->handler();
 
-        $response = self::middleware()->process(self::request(null), $handler);
+        $response = $this->middleware()->process($this->request(null), $handler);
 
         self::assertSame(401, $response->getStatusCode());
         self::assertFalse($handler->called);
         self::assertSame(
             ['resource_metadata' => self::METADATA_URL],
-            self::readChallenge($response),
+            $this->readChallenge($response),
         );
     }
 
     #[DataProvider('provideARequestPresentingNoBearerCredentialIsChallengedWithoutAnErrorCodeCases')]
     public function testARequestPresentingNoBearerCredentialIsChallengedWithoutAnErrorCode(string $header): void
     {
-        $handler = self::handler();
+        $handler = $this->handler();
 
-        $response = self::middleware()->process(self::request(null)->withHeader('Authorization', $header), $handler);
+        $response = $this->middleware()->process($this->request(null)->withHeader('Authorization', $header), $handler);
 
         // RFC 6750 section 3 asks that neither an unsupported authentication method nor a credential-less request be told an error code.
         self::assertSame(401, $response->getStatusCode());
         self::assertFalse($handler->called);
-        self::assertSame(['resource_metadata' => self::METADATA_URL], self::readChallenge($response));
+        self::assertSame(['resource_metadata' => self::METADATA_URL], $this->readChallenge($response));
     }
 
     /**
@@ -212,15 +212,15 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
     #[DataProvider('provideAnUnreadableAuthorizationHeaderIsAnInvalidRequestCases')]
     public function testAnUnreadableAuthorizationHeaderIsAnInvalidRequest(string $header): void
     {
-        $handler = self::handler();
+        $handler = $this->handler();
 
-        $response = self::middleware()->process(self::request(null)->withHeader('Authorization', $header), $handler);
+        $response = $this->middleware()->process($this->request(null)->withHeader('Authorization', $header), $handler);
 
         self::assertSame(400, $response->getStatusCode());
         self::assertFalse($handler->called);
         self::assertSame(
             ['resource_metadata' => self::METADATA_URL, 'error' => 'invalid_request'],
-            self::readChallenge($response),
+            $this->readChallenge($response),
         );
     }
 
@@ -241,9 +241,9 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
     #[DataProvider('provideTheSchemeIsMatchedCaseInsensitivelyCases')]
     public function testTheSchemeIsMatchedCaseInsensitively(string $header): void
     {
-        $handler = self::handler();
+        $handler = $this->handler();
 
-        self::middleware()->process(self::request(null)->withHeader('Authorization', $header), $handler);
+        $this->middleware()->process($this->request(null)->withHeader('Authorization', $header), $handler);
 
         self::assertTrue($handler->called);
     }
@@ -262,13 +262,13 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
 
     public function testRepeatedAuthorizationHeadersAreRefused(): void
     {
-        $handler = self::handler();
-        $request = self::request(null)
+        $handler = $this->handler();
+        $request = $this->request(null)
             ->withHeader('Authorization', 'Bearer the-token')
             ->withAddedHeader('Authorization', 'Bearer another-token')
         ;
 
-        $response = self::middleware()->process($request, $handler);
+        $response = $this->middleware()->process($request, $handler);
 
         self::assertSame(400, $response->getStatusCode());
         self::assertFalse($handler->called);
@@ -276,33 +276,33 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
 
     public function testABearerCredentialSmuggledBesideAnotherSchemeIsRefused(): void
     {
-        $handler = self::handler();
-        $request = self::request(null)
+        $handler = $this->handler();
+        $request = $this->request(null)
             ->withHeader('Authorization', 'Basic dXNlcjpwYXNz')
             ->withAddedHeader('Authorization', 'Bearer the-token')
         ;
 
-        $response = self::middleware()->process($request, $handler);
+        $response = $this->middleware()->process($request, $handler);
 
         self::assertSame(400, $response->getStatusCode());
         self::assertFalse($handler->called);
         self::assertSame(
             ['resource_metadata' => self::METADATA_URL, 'error' => 'invalid_request'],
-            self::readChallenge($response),
+            $this->readChallenge($response),
         );
     }
 
     public function testAnUnrecognisedTokenIsChallengedAsInvalid(): void
     {
-        $handler = self::handler();
+        $handler = $this->handler();
 
-        $response = self::middleware()->process(self::request('some-other-token'), $handler);
+        $response = $this->middleware()->process($this->request('some-other-token'), $handler);
 
         self::assertSame(401, $response->getStatusCode());
         self::assertFalse($handler->called);
         self::assertSame(
             ['resource_metadata' => self::METADATA_URL, 'error' => 'invalid_token'],
-            self::readChallenge($response),
+            $this->readChallenge($response),
         );
     }
 
@@ -312,16 +312,16 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
     #[DataProvider('provideATokenForAnotherResourceIsRefusedCases')]
     public function testATokenForAnotherResourceIsRefused(array $audience): void
     {
-        $handler = self::handler();
-        $middleware = self::middleware(token: new VerifiedAccessToken($audience));
+        $handler = $this->handler();
+        $middleware = $this->middleware(token: new VerifiedAccessToken($audience));
 
-        $response = $middleware->process(self::request('the-token'), $handler);
+        $response = $middleware->process($this->request('the-token'), $handler);
 
         self::assertSame(401, $response->getStatusCode());
         self::assertFalse($handler->called);
         self::assertSame(
             ['resource_metadata' => self::METADATA_URL, 'error' => 'invalid_token'],
-            self::readChallenge($response),
+            $this->readChallenge($response),
         );
     }
 
@@ -339,23 +339,23 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
 
     public function testAnAudienceNamingThisServerAmongOthersIsAccepted(): void
     {
-        $handler = self::handler();
-        $middleware = self::middleware(token: new VerifiedAccessToken(['https://other.test/mcp', self::RESOURCE]));
+        $handler = $this->handler();
+        $middleware = $this->middleware(token: new VerifiedAccessToken(['https://other.test/mcp', self::RESOURCE]));
 
-        $middleware->process(self::request('the-token'), $handler);
+        $middleware->process($this->request('the-token'), $handler);
 
         self::assertTrue($handler->called);
     }
 
     public function testATooNarrowTokenIsChallengedForScope(): void
     {
-        $handler = self::handler();
-        $middleware = self::middleware(
+        $handler = $this->handler();
+        $middleware = $this->middleware(
             token: new VerifiedAccessToken([self::RESOURCE], ['files:read']),
             requiredScopes: ['files:read', 'files:write'],
         );
 
-        $response = $middleware->process(self::request('the-token'), $handler);
+        $response = $middleware->process($this->request('the-token'), $handler);
 
         self::assertSame(403, $response->getStatusCode());
         self::assertFalse($handler->called);
@@ -363,30 +363,30 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
             'resource_metadata' => self::METADATA_URL,
             'error' => 'insufficient_scope',
             'scope' => 'files:read files:write',
-        ], self::readChallenge($response));
+        ], $this->readChallenge($response));
     }
 
     public function testASufficientlyScopedTokenReachesTheHandler(): void
     {
-        $handler = self::handler();
-        $middleware = self::middleware(
+        $handler = $this->handler();
+        $middleware = $this->middleware(
             token: new VerifiedAccessToken([self::RESOURCE], ['files:read', 'files:write', 'files:admin']),
             requiredScopes: ['files:read', 'files:write'],
         );
 
-        $middleware->process(self::request('the-token'), $handler);
+        $middleware->process($this->request('the-token'), $handler);
 
         self::assertTrue($handler->called);
     }
 
     public function testTheRequiredScopesAreAdvertisedOnTheUnauthorizedChallenge(): void
     {
-        $response = self::middleware(requiredScopes: ['files:read'])->process(self::request(null), self::handler());
+        $response = $this->middleware(requiredScopes: ['files:read'])->process($this->request(null), $this->handler());
 
         self::assertSame([
             'resource_metadata' => self::METADATA_URL,
             'scope' => 'files:read',
-        ], self::readChallenge($response));
+        ], $this->readChallenge($response));
     }
 
     public function testTheTokenIsPresentedToTheValidatorVerbatim(): void
@@ -402,7 +402,7 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
         );
 
         (new BearerAuthenticationMiddleware($validator, self::RESOURCE, self::METADATA_URL, new Psr17Factory()))
-            ->process(self::request(null)->withHeader('Authorization', 'Bearer   Padded-Token  '), self::handler())
+            ->process($this->request(null)->withHeader('Authorization', 'Bearer   Padded-Token  '), $this->handler())
         ;
 
         self::assertSame(['Padded-Token'], $presented);
@@ -411,7 +411,7 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
     /**
      * @param list<non-empty-string> $requiredScopes
      */
-    private static function middleware(
+    private function middleware(
         ?VerifiedAccessToken $token = null,
         array $requiredScopes = [],
         ?int $now = null,
@@ -436,14 +436,14 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
         );
     }
 
-    private static function request(?string $token): ServerRequestInterface
+    private function request(?string $token): ServerRequestInterface
     {
         $request = (new Psr17Factory())->createServerRequest('POST', self::RESOURCE);
 
         return null === $token ? $request : $request->withHeader('Authorization', 'Bearer '.$token);
     }
 
-    private static function handler(): RecordingRequestHandler
+    private function handler(): RecordingRequestHandler
     {
         return new RecordingRequestHandler((new Psr17Factory())->createResponse(200));
     }
@@ -451,7 +451,7 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
     /**
      * @return array<non-empty-string, string>
      */
-    private static function readChallenge(ResponseInterface $response): array
+    private function readChallenge(ResponseInterface $response): array
     {
         $challenge = WwwAuthenticateChallenge::findBearer($response->getHeaderLine('WWW-Authenticate'));
 

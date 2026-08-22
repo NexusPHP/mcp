@@ -37,14 +37,14 @@ final class ReflectedTemplatedResourceReaderTest extends AbstractMcpTestCase
 {
     public function testReturnsReadResourceResultUnchanged(): void
     {
-        $result = self::read('templatedResult', 'mem://users/42', ['id' => '42']);
+        $result = $this->read('templatedResult', 'mem://users/42', ['id' => '42']);
 
-        self::assertSame('profile', self::firstText($result));
+        self::assertSame('profile', $this->firstText($result));
     }
 
     public function testWrapsStringAndBindsTemplateVariable(): void
     {
-        $result = self::read('templatedBinding', 'mem://users/42', ['id' => '42']);
+        $result = $this->read('templatedBinding', 'mem://users/42', ['id' => '42']);
 
         $contents = $result->contents[0] ?? null;
 
@@ -56,9 +56,9 @@ final class ReflectedTemplatedResourceReaderTest extends AbstractMcpTestCase
 
     public function testBindsBothUriAndTemplateVariable(): void
     {
-        $result = self::read('templatedUri', 'mem://users/42', ['id' => '42']);
+        $result = $this->read('templatedUri', 'mem://users/42', ['id' => '42']);
 
-        self::assertSame('mem://users/42#42', self::firstText($result));
+        self::assertSame('mem://users/42#42', $this->firstText($result));
     }
 
     public function testThrowsOnUnsupportedReturn(): void
@@ -66,25 +66,25 @@ final class ReflectedTemplatedResourceReaderTest extends AbstractMcpTestCase
         $this->expectException(UnsupportedReturnValueException::class);
         $this->expectExceptionMessageIs(ReflectedHandlers::class.'::resourceUnsupported() must return a '.ReadResourceResult::class.', a string, or resource contents, bool given.');
 
-        self::read('resourceUnsupported', 'mem://x', []);
+        $this->read('resourceUnsupported', 'mem://x', []);
     }
 
     /**
      * @param non-empty-string      $uri
      * @param array<string, string> $bindings
      */
-    private static function read(string $method, string $uri, array $bindings): ReadResourceResult
+    private function read(string $method, string $uri, array $bindings): ReadResourceResult
     {
         $reader = new ReflectedTemplatedResourceReader(new ReflectedHandlers(), new \ReflectionMethod(ReflectedHandlers::class, $method));
 
-        $result = $reader->read($uri, $bindings, self::makeContext());
+        $result = $reader->read($uri, $bindings, $this->makeContext());
 
         self::assertInstanceOf(ReadResourceResult::class, $result);
 
         return $result;
     }
 
-    private static function firstText(ReadResourceResult $result): string
+    private function firstText(ReadResourceResult $result): string
     {
         $contents = $result->contents[0] ?? null;
 
@@ -93,7 +93,7 @@ final class ReflectedTemplatedResourceReaderTest extends AbstractMcpTestCase
         return $contents->text;
     }
 
-    private static function makeContext(): ServerContext
+    private function makeContext(): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 7),

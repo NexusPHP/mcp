@@ -159,14 +159,14 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
     #[DataProvider('provideSchemaDescriptionIsAccurateCases')]
     public function testSchemaDescriptionIsAccurate(string $schema, string $schemaClass): void
     {
-        $description = self::getSchemaProperty($schema, 'description');
+        $description = $this->getSchemaProperty($schema, 'description');
         self::assertIsString($description, \sprintf('Description for schema "%s" is not a string.', $schema));
 
         $reflection = new \ReflectionClass($schemaClass);
         $docComment = $reflection->getDocComment();
         self::assertIsString($docComment, \sprintf('Schema class "%s" does not have a PHPDoc comment.', $schemaClass));
 
-        self::assertDescriptionMatches($description, $docComment, $schemaClass);
+        $this->assertDescriptionMatches($description, $docComment, $schemaClass);
     }
 
     /**
@@ -194,7 +194,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
     #[DataProvider('provideSchemaTypeMatchesPropertiesCases')]
     public function testSchemaTypeMatchesProperties(string $schema, string $schemaClass): void
     {
-        $type = self::getSchemaProperty($schema, 'type');
+        $type = $this->getSchemaProperty($schema, 'type');
         self::assertThat($type, self::logicalOr(self::isArray(), self::isString()), \sprintf('Type for schema "%s" is neither string nor array.', $schema));
         \assert(\is_string($type) || \is_array($type));
 
@@ -202,7 +202,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
         $properties = $reflection->getProperties();
 
         if (\is_array($type)) {
-            $type = array_map(self::normaliseJsonType(...), $type); // @phpstan-ignore argument.type
+            $type = array_map($this->normaliseJsonType(...), $type); // @phpstan-ignore argument.type
             sort($type);
 
             self::assertCount(1, $properties);
@@ -242,10 +242,10 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
 
             $findings = [];
 
-            $shape = self::extractArrayableShape($reflection);
+            $shape = $this->extractArrayableShape($reflection);
 
             if (null !== $shape) {
-                foreach (self::diffShapeAgainstSpec($shape, $specRequiredKeys, $specOptionalKeys, $schema) as $finding) {
+                foreach ($this->diffShapeAgainstSpec($shape, $specRequiredKeys, $specOptionalKeys, $schema) as $finding) {
                     $findings[] = \sprintf('[array shape] %s', $finding);
                 }
             }
@@ -259,7 +259,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
                 }
             }
 
-            foreach (self::diffPropertiesAgainstSpec($reflection, $specRequiredKeys, $specOptionalKeys, $typedSpecProperties) as $finding) {
+            foreach ($this->diffPropertiesAgainstSpec($reflection, $specRequiredKeys, $specOptionalKeys, $typedSpecProperties) as $finding) {
                 $findings[] = \sprintf('[property] %s', $finding);
             }
 
@@ -273,7 +273,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
             self::assertCount(1, $properties);
             self::assertInstanceOf(\ReflectionNamedType::class, $properties[0]->getType());
 
-            $type = self::normaliseJsonType($type);
+            $type = $this->normaliseJsonType($type);
             $propertyType = $properties[0]->getType()->getName();
 
             self::assertSame($type, $propertyType, \sprintf(
@@ -312,7 +312,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
     #[DataProvider('provideSchemaEnumMatchesCasesCases')]
     public function testSchemaEnumMatchesCases(string $schema, string $schemaClass): void
     {
-        $enum = self::getSchemaProperty($schema, 'enum');
+        $enum = $this->getSchemaProperty($schema, 'enum');
         self::assertIsArray($enum, \sprintf('Enum for schema "%s" is not an array.', $schema));
         self::assertSame($enum, array_filter($enum, is_string(...)), \sprintf('Enum for schema "%s" contains non-string values.', $schema));
 
@@ -397,7 +397,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
             return;
         }
 
-        $snapshot = self::loadAnchorSnapshot();
+        $snapshot = $this->loadAnchorSnapshot();
 
         $hash = strpos($expectedUrl, '#');
         $pageUrl = false === $hash ? $expectedUrl : substr($expectedUrl, 0, $hash);
@@ -560,7 +560,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
                     $key,
                 ));
 
-                $phpName = self::specKeyToPhpName($key);
+                $phpName = $this->specKeyToPhpName($key);
                 $modelled = \in_array($phpName, $ctorParams, true)
                     || ($reflection->hasProperty($phpName) && $reflection->getProperty($phpName)->isPublic());
 
@@ -682,9 +682,9 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
         }
     }
 
-    private static function assertDescriptionMatches(string $description, string $docComment, string $schemaClass): void
+    private function assertDescriptionMatches(string $description, string $docComment, string $schemaClass): void
     {
-        $body = self::extractDocblockNarrative($docComment);
+        $body = $this->extractDocblockNarrative($docComment);
 
         $normalise = static fn(string $s): string => rtrim(trim((string) preg_replace('/\s+/', ' ', $s)), '.');
 
@@ -703,7 +703,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
      *
      * @return list<string>
      */
-    private static function diffPropertiesAgainstSpec(
+    private function diffPropertiesAgainstSpec(
         \ReflectionClass $reflection,
         array $specRequired,
         array $specOptional,
@@ -777,7 +777,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
                 continue;
             }
 
-            $phpName = self::specKeyToPhpName($key);
+            $phpName = $this->specKeyToPhpName($key);
 
             if (\array_key_exists($phpName, $params)) {
                 $param = $params[$phpName];
@@ -829,10 +829,10 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
                 );
             }
 
-            $specScalar = self::resolveUnambiguousScalarJsonType($specProperties[$key] ?? []);
+            $specScalar = $this->resolveUnambiguousScalarJsonType($specProperties[$key] ?? []);
 
             if (
-                self::specAllowsAnyJsonValue($specProperties[$key] ?? [])
+                $this->specAllowsAnyJsonValue($specProperties[$key] ?? [])
                 && ! ($type instanceof \ReflectionNamedType && $type->getName() === 'mixed')
             ) {
                 $findings[] = \sprintf(
@@ -849,7 +849,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
                 && $type->isBuiltin()
                 && \in_array($type->getName(), ['int', 'float', 'string', 'bool'], true)
             ) {
-                $expectedPhp = self::normaliseJsonType($specScalar);
+                $expectedPhp = $this->normaliseJsonType($specScalar);
 
                 if ($type->getName() !== $expectedPhp) {
                     $findings[] = \sprintf(
@@ -872,7 +872,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
     /**
      * @param array<string, mixed> $propertyShape
      */
-    private static function specAllowsAnyJsonValue(array $propertyShape): bool
+    private function specAllowsAnyJsonValue(array $propertyShape): bool
     {
         foreach (['$ref', 'anyOf', 'oneOf', 'allOf', 'enum', 'const', 'type'] as $narrowing) {
             if (\array_key_exists($narrowing, $propertyShape)) {
@@ -886,7 +886,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
     /**
      * @param array<string, mixed> $propertyShape
      */
-    private static function resolveUnambiguousScalarJsonType(array $propertyShape): ?string
+    private function resolveUnambiguousScalarJsonType(array $propertyShape): ?string
     {
         foreach (['$ref', 'anyOf', 'oneOf', 'allOf', 'enum', 'const'] as $disqualifier) {
             if (\array_key_exists($disqualifier, $propertyShape)) {
@@ -906,7 +906,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
             : null;
     }
 
-    private static function specKeyToPhpName(string $key): string
+    private function specKeyToPhpName(string $key): string
     {
         return self::SPEC_KEY_TO_PHP_NAME[$key] ?? ltrim($key, '_');
     }
@@ -918,7 +918,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
      *
      * @return list<string>
      */
-    private static function diffShapeAgainstSpec(array $shape, array $specRequired, array $specOptional, string $schema): array
+    private function diffShapeAgainstSpec(array $shape, array $specRequired, array $specOptional, string $schema): array
     {
         $findings = [];
 
@@ -956,7 +956,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
      *
      * @return null|array{required: list<string>, optional: list<string>}
      */
-    private static function extractArrayableShape(\ReflectionClass $reflection): ?array
+    private function extractArrayableShape(\ReflectionClass $reflection): ?array
     {
         $docComment = $reflection->getDocComment();
 
@@ -964,14 +964,14 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
             return null;
         }
 
-        return self::parseShapeAfter($docComment, '/@implements\s+\w+\s*<\s*array\{/')
-            ?? self::parseShapeAfter($docComment, '/@extends\s+\w+\s*<\s*[^<>]*?array\{/');
+        return $this->parseShapeAfter($docComment, '/@implements\s+\w+\s*<\s*array\{/')
+            ?? $this->parseShapeAfter($docComment, '/@extends\s+\w+\s*<\s*[^<>]*?array\{/');
     }
 
     /**
      * @return null|array{required: list<string>, optional: list<string>}
      */
-    private static function parseShapeAfter(string $docComment, string $openerPattern): ?array
+    private function parseShapeAfter(string $docComment, string $openerPattern): ?array
     {
         if (preg_match($openerPattern, $docComment, $matches) !== 1) {
             return null;
@@ -990,7 +990,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
         }
 
         $start = $offset + \strlen($opener);
-        $inner = self::extractBalancedBraces($docComment, $start);
+        $inner = $this->extractBalancedBraces($docComment, $start);
 
         if (null === $inner) {
             return null;
@@ -998,10 +998,10 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
 
         $inner = (string) preg_replace('/\n\s*\*\s?/', "\n", $inner);
 
-        return self::parseShapeKeys($inner);
+        return $this->parseShapeKeys($inner);
     }
 
-    private static function extractBalancedBraces(string $haystack, int $start): ?string
+    private function extractBalancedBraces(string $haystack, int $start): ?string
     {
         $depth = 1;
         $offset = $start;
@@ -1045,7 +1045,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
     /**
      * @return array{required: list<string>, optional: list<string>}
      */
-    private static function parseShapeKeys(string $inner): array
+    private function parseShapeKeys(string $inner): array
     {
         $required = [];
         $optional = [];
@@ -1104,7 +1104,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
         return ['required' => $required, 'optional' => $optional];
     }
 
-    private static function extractDocblockNarrative(string $docComment): string
+    private function extractDocblockNarrative(string $docComment): string
     {
         $body = [];
 
@@ -1127,7 +1127,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
         return implode("\n", $body);
     }
 
-    private static function normaliseJsonType(string $type): string
+    private function normaliseJsonType(string $type): string
     {
         return match ($type) {
             'integer' => 'int',
@@ -1161,7 +1161,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
         self::$sortedSchema = McpSchemaProcessor::sortAndSaveSchema(self::$latestSchema);
     }
 
-    private static function getSchemaProperty(string $schema, string $property): mixed
+    private function getSchemaProperty(string $schema, string $property): mixed
     {
         self::assertArrayHasKey($schema, self::$latestSchema, \sprintf('Schema key "%s" is missing in the latest schema definitions.', $schema));
         self::assertIsArray(self::$latestSchema[$schema], \sprintf('Schema definition for "%s" is not an array.', $schema));
@@ -1227,7 +1227,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
     /**
      * @return array<string, list<string>>
      */
-    private static function loadAnchorSnapshot(): array
+    private function loadAnchorSnapshot(): array
     {
         if (null !== self::$anchorSnapshot) {
             return self::$anchorSnapshot;

@@ -36,7 +36,7 @@ final class NoAssignmentInControlFlowExpressionRule implements Rule
     #[\Override]
     public function processNode(Node $node, Scope $scope): array
     {
-        $keyword = self::resolveOffendingKeyword($node);
+        $keyword = $this->resolveOffendingKeyword($node);
 
         if (null === $keyword) {
             return [];
@@ -52,11 +52,11 @@ final class NoAssignmentInControlFlowExpressionRule implements Rule
         ];
     }
 
-    private static function resolveOffendingKeyword(Node\Stmt $node): ?string
+    private function resolveOffendingKeyword(Node\Stmt $node): ?string
     {
         // A nested call argument is `NoAssignmentInCallArgumentRule`'s concern, reported against its own call.
         if ($node instanceof Node\Stmt\Return_) {
-            return self::isAssignment($node->expr) ? 'return' : null;
+            return $this->isAssignment($node->expr) ? 'return' : null;
         }
 
         return match (true) {
@@ -70,7 +70,7 @@ final class NoAssignmentInControlFlowExpressionRule implements Rule
         };
     }
 
-    private static function isAssignment(?Node $node): bool
+    private function isAssignment(?Node $node): bool
     {
         return $node instanceof Node\Expr\Assign || $node instanceof Node\Expr\AssignOp;
     }

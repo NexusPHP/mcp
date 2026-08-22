@@ -42,24 +42,24 @@ final class ReflectedToolExecutorTest extends AbstractMcpTestCase
 {
     public function testReturnsCallToolResultUnchanged(): void
     {
-        $result = self::execute('toolResult');
+        $result = $this->execute('toolResult');
 
         self::assertTrue($result->isError);
-        self::assertSame('done', self::firstText($result));
+        self::assertSame('done', $this->firstText($result));
     }
 
     public function testWrapsStringReturnAsTextContent(): void
     {
-        $result = self::execute('requiredString', ['name' => 'Ada']);
+        $result = $this->execute('requiredString', ['name' => 'Ada']);
 
-        self::assertSame('Hello, Ada', self::firstText($result));
+        self::assertSame('Hello, Ada', $this->firstText($result));
         self::assertNull($result->structuredContent);
         self::assertNull($result->isError);
     }
 
     public function testWrapsArrayReturnAsStructuredContent(): void
     {
-        $result = self::execute('toolStructured');
+        $result = $this->execute('toolStructured');
 
         self::assertSame([], $result->content);
         self::assertSame(['ok' => true, 'count' => 2], $result->structuredContent);
@@ -71,7 +71,7 @@ final class ReflectedToolExecutorTest extends AbstractMcpTestCase
     #[DataProvider('provideWrapsSingleContentBlockCases')]
     public function testWrapsSingleContentBlock(string $method, string $expectedClass): void
     {
-        $result = self::execute($method);
+        $result = $this->execute($method);
 
         self::assertCount(1, $result->content);
         self::assertInstanceOf($expectedClass, $result->content[0]);
@@ -96,7 +96,7 @@ final class ReflectedToolExecutorTest extends AbstractMcpTestCase
 
     public function testWrapsListOfContentBlocks(): void
     {
-        $result = self::execute('toolBlockList');
+        $result = $this->execute('toolBlockList');
 
         self::assertCount(5, $result->content);
         self::assertNull($result->structuredContent);
@@ -104,7 +104,7 @@ final class ReflectedToolExecutorTest extends AbstractMcpTestCase
 
     public function testTreatsMapOfBlocksAsStructuredContent(): void
     {
-        $result = self::execute('toolMapOfBlocks');
+        $result = $this->execute('toolMapOfBlocks');
 
         self::assertSame([], $result->content);
         self::assertIsArray($result->structuredContent);
@@ -113,7 +113,7 @@ final class ReflectedToolExecutorTest extends AbstractMcpTestCase
 
     public function testTreatsEmptyArrayAsStructuredContent(): void
     {
-        $result = self::execute('toolEmpty');
+        $result = $this->execute('toolEmpty');
 
         self::assertSame([], $result->content);
         self::assertSame([], $result->structuredContent);
@@ -124,7 +124,7 @@ final class ReflectedToolExecutorTest extends AbstractMcpTestCase
         $this->expectException(UnsupportedReturnValueException::class);
         $this->expectExceptionMessageIs(ReflectedHandlers::class.'::toolList() must return a '.CallToolResult::class.', a string, content blocks, or an array, array given.');
 
-        self::execute('toolList');
+        $this->execute('toolList');
     }
 
     public function testRejectsIntegerKeyedArray(): void
@@ -132,7 +132,7 @@ final class ReflectedToolExecutorTest extends AbstractMcpTestCase
         $this->expectException(UnsupportedReturnValueException::class);
         $this->expectExceptionMessageIs(ReflectedHandlers::class.'::toolIntKeyedArray() must return a '.CallToolResult::class.', a string, content blocks, or an array, array given.');
 
-        self::execute('toolIntKeyedArray');
+        $this->execute('toolIntKeyedArray');
     }
 
     public function testThrowsOnUnsupportedReturn(): void
@@ -140,38 +140,38 @@ final class ReflectedToolExecutorTest extends AbstractMcpTestCase
         $this->expectException(UnsupportedReturnValueException::class);
         $this->expectExceptionMessageIs(ReflectedHandlers::class.'::toolUnsupported() must return a '.CallToolResult::class.', a string, content blocks, or an array, int given.');
 
-        self::execute('toolUnsupported');
+        $this->execute('toolUnsupported');
     }
 
     public function testBindsArgumentsHydratesEnumAndWrapsString(): void
     {
-        $result = self::execute('backedString', ['color' => 'a']);
+        $result = $this->execute('backedString', ['color' => 'a']);
 
-        self::assertSame('a', self::firstText($result));
+        self::assertSame('a', $this->firstText($result));
     }
 
     public function testInjectsContextWithNullArguments(): void
     {
-        $result = self::execute('contextOnly', null);
+        $result = $this->execute('contextOnly', null);
 
-        self::assertSame('test-client', self::firstText($result));
+        self::assertSame('test-client', $this->firstText($result));
     }
 
     /**
      * @param null|array<string, mixed> $arguments
      */
-    private static function execute(string $method, ?array $arguments = ['ignored' => true]): CallToolResult
+    private function execute(string $method, ?array $arguments = ['ignored' => true]): CallToolResult
     {
         $executor = new ReflectedToolExecutor(new ReflectedHandlers(), new \ReflectionMethod(ReflectedHandlers::class, $method));
 
-        $result = $executor->execute($arguments, self::makeContext());
+        $result = $executor->execute($arguments, $this->makeContext());
 
         self::assertInstanceOf(CallToolResult::class, $result);
 
         return $result;
     }
 
-    private static function firstText(CallToolResult $result): string
+    private function firstText(CallToolResult $result): string
     {
         $block = $result->content[0] ?? null;
 
@@ -180,7 +180,7 @@ final class ReflectedToolExecutorTest extends AbstractMcpTestCase
         return $block->text;
     }
 
-    private static function makeContext(): ServerContext
+    private function makeContext(): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 7),

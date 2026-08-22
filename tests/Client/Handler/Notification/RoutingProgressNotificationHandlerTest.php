@@ -49,7 +49,7 @@ final class RoutingProgressNotificationHandlerTest extends AbstractMcpTestCase
         });
 
         $handler = new RoutingProgressNotificationHandler($registry, $fallback);
-        $handler->handle(self::progressNotification('match', 0.5, 1.0, 'halfway'));
+        $handler->handle($this->progressNotification('match', 0.5, 1.0, 'halfway'));
 
         self::assertSame([0.5, 1.0, 'halfway'], $received);
         self::assertFalse($fallbackCalled, 'A matched token must not also reach the fallback.');
@@ -64,7 +64,7 @@ final class RoutingProgressNotificationHandlerTest extends AbstractMcpTestCase
         });
 
         $handler = new RoutingProgressNotificationHandler($registry, $fallback);
-        $notification = self::progressNotification('orphan', 0.25);
+        $notification = $this->progressNotification('orphan', 0.25);
         $handler->handle($notification);
 
         self::assertSame($notification, $delivered);
@@ -75,14 +75,14 @@ final class RoutingProgressNotificationHandlerTest extends AbstractMcpTestCase
         $this->expectNotToPerformAssertions();
 
         $handler = new RoutingProgressNotificationHandler(new ProgressListenerRegistry());
-        $handler->handle(self::progressNotification('orphan', 1.0));
+        $handler->handle($this->progressNotification('orphan', 1.0));
     }
 
     /**
      * @param int|non-empty-string  $token
      * @param null|non-empty-string $message
      */
-    private static function progressNotification(
+    private function progressNotification(
         int|string $token,
         float $progress,
         ?float $total = null,

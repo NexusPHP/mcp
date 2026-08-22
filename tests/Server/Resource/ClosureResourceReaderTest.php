@@ -45,13 +45,13 @@ final class ClosureResourceReaderTest extends AbstractMcpTestCase
             },
         );
 
-        $result = $reader->read('file:///a', self::makeContext());
+        $result = $reader->read('file:///a', $this->makeContext());
 
         self::assertSame($expected, $result);
         self::assertSame(['uri' => 'file:///a', 'requestId' => 7], $captured);
     }
 
-    private static function makeContext(): ServerContext
+    private function makeContext(): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 7),

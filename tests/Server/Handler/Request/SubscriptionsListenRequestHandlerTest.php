@@ -49,9 +49,9 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
         $sender = new RecordingSender();
         $handler = new SubscriptionsListenRequestHandler($store);
 
-        $running = async(static fn(): SubscriptionsListenResult => $handler->handle(
-            self::listenRequest(1),
-            self::contextFor(1, $sender),
+        $running = async(fn(): SubscriptionsListenResult => $handler->handle(
+            $this->listenRequest(1),
+            $this->contextFor(1, $sender),
         ));
 
         delay(0.0);
@@ -68,9 +68,9 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
         $store = new SubscriptionStore();
         $handler = new SubscriptionsListenRequestHandler($store);
 
-        $running = async(static fn(): SubscriptionsListenResult => $handler->handle(
-            self::listenRequest(1),
-            self::contextFor(1, new RecordingSender()),
+        $running = async(fn(): SubscriptionsListenResult => $handler->handle(
+            $this->listenRequest(1),
+            $this->contextFor(1, new RecordingSender()),
         ));
         delay(0.0);
         $store->closeAll();
@@ -95,7 +95,7 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
             new ReceiveContext(peerRequestId: new RequestId(id: 'client-7')),
         );
 
-        $running = async(static fn(): SubscriptionsListenResult => $handler->handle(self::listenRequest(41), $context));
+        $running = async(fn(): SubscriptionsListenResult => $handler->handle($this->listenRequest(41), $context));
         delay(0.0);
         $store->closeAll();
 
@@ -115,16 +115,16 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
         $store = new SubscriptionStore(toolsListChanged: true, maxSubscriptionsPerPeer: 1);
         $handler = new SubscriptionsListenRequestHandler($store);
 
-        $running = async(static fn(): SubscriptionsListenResult => $handler->handle(
-            self::listenRequest(1),
-            self::authorizedContextFor(1, new RecordingSender(), clientId: 'cli-1', subject: 'sub-a'),
+        $running = async(fn(): SubscriptionsListenResult => $handler->handle(
+            $this->listenRequest(1),
+            $this->authorizedContextFor(1, new RecordingSender(), clientId: 'cli-1', subject: 'sub-a'),
         ));
         delay(0.0);
 
         try {
             $handler->handle(
-                self::listenRequest(2),
-                self::authorizedContextFor(2, new RecordingSender(), clientId: 'cli-1', subject: 'sub-b'),
+                $this->listenRequest(2),
+                $this->authorizedContextFor(2, new RecordingSender(), clientId: 'cli-1', subject: 'sub-b'),
             );
             self::fail('A second stream for the same OAuth client must be refused.');
         } catch (SubscriptionLimitReachedException $e) {
@@ -140,9 +140,9 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
         $store = new SubscriptionStore(toolsListChanged: true, maxSubscriptionsPerPeer: 1);
         $handler = new SubscriptionsListenRequestHandler($store);
 
-        $running = async(static fn(): SubscriptionsListenResult => $handler->handle(
-            self::listenRequest(1),
-            self::authorizedContextFor(1, new RecordingSender(), clientId: null, subject: 'sub-1'),
+        $running = async(fn(): SubscriptionsListenResult => $handler->handle(
+            $this->listenRequest(1),
+            $this->authorizedContextFor(1, new RecordingSender(), clientId: null, subject: 'sub-1'),
         ));
         delay(0.0);
 
@@ -150,8 +150,8 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
 
         try {
             $handler->handle(
-                self::listenRequest(2),
-                self::authorizedContextFor(2, new RecordingSender(), clientId: null, subject: 'sub-1'),
+                $this->listenRequest(2),
+                $this->authorizedContextFor(2, new RecordingSender(), clientId: null, subject: 'sub-1'),
             );
         } finally {
             $store->closeAll();
@@ -172,7 +172,7 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
             $sender,
         );
 
-        $running = async(static fn(): SubscriptionsListenResult => $handler->handle(self::listenRequest(1), $context));
+        $running = async(fn(): SubscriptionsListenResult => $handler->handle($this->listenRequest(1), $context));
         delay(0.0);
         $deferred->cancel();
         $running->await();
@@ -192,7 +192,7 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
             new SubscriptionFilter(promptsListChanged: true, resourcesListChanged: true),
         );
 
-        $running = async(static fn(): SubscriptionsListenResult => $handler->handle(
+        $running = async(fn(): SubscriptionsListenResult => $handler->handle(
             new SubscriptionsListenRequest(
                 id: new RequestId(id: 1),
                 params: new SubscriptionsListenRequestParams(
@@ -200,7 +200,7 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
                     meta: RequestMetaObjectFactory::create(),
                 ),
             ),
-            self::contextFor(1, $sender),
+            $this->contextFor(1, $sender),
         ));
         delay(0.0);
         $store->closeAll();
@@ -223,7 +223,7 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
         $sender = new RecordingSender();
         $handler = new SubscriptionsListenRequestHandler($store, new SubscriptionFilter());
 
-        $running = async(static fn(): SubscriptionsListenResult => $handler->handle(
+        $running = async(fn(): SubscriptionsListenResult => $handler->handle(
             new SubscriptionsListenRequest(
                 id: new RequestId(id: 1),
                 params: new SubscriptionsListenRequestParams(
@@ -231,7 +231,7 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
                     meta: RequestMetaObjectFactory::create(),
                 ),
             ),
-            self::contextFor(1, $sender),
+            $this->contextFor(1, $sender),
         ));
         delay(0.0);
         $store->closeAll();
@@ -251,7 +251,7 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
     /**
      * @param int|non-empty-string $id
      */
-    private static function listenRequest(int|string $id): SubscriptionsListenRequest
+    private function listenRequest(int|string $id): SubscriptionsListenRequest
     {
         return new SubscriptionsListenRequest(
             id: new RequestId(id: $id),
@@ -265,7 +265,7 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
     /**
      * @param int|non-empty-string $id
      */
-    private static function contextFor(int|string $id, RecordingSender $sender): ServerContext
+    private function contextFor(int|string $id, RecordingSender $sender): ServerContext
     {
         return new ServerContext(
             new RequestId(id: $id),
@@ -280,7 +280,7 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
      * @param null|non-empty-string $clientId
      * @param null|non-empty-string $subject
      */
-    private static function authorizedContextFor(int|string $id, RecordingSender $sender, ?string $clientId, ?string $subject): ServerContext
+    private function authorizedContextFor(int|string $id, RecordingSender $sender, ?string $clientId, ?string $subject): ServerContext
     {
         return new ServerContext(
             new RequestId(id: $id),

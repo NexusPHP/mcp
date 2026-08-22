@@ -44,7 +44,7 @@ final class ClosureToolExecutorTest extends AbstractMcpTestCase
             },
         );
 
-        $result = $executor->execute(['x' => 1], self::makeContext());
+        $result = $executor->execute(['x' => 1], $this->makeContext());
 
         self::assertSame($expected, $result);
         self::assertSame(['arguments' => ['x' => 1], 'requestId' => 7], $captured);
@@ -61,12 +61,12 @@ final class ClosureToolExecutorTest extends AbstractMcpTestCase
             },
         );
 
-        $executor->execute(null, self::makeContext());
+        $executor->execute(null, $this->makeContext());
 
         self::assertNull($captured['arguments']);
     }
 
-    private static function makeContext(): ServerContext
+    private function makeContext(): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 7),

@@ -51,16 +51,16 @@ final class DataProviderConventionsRule implements Rule
         }
 
         return [
-            ...self::checkNaming($method),
+            ...$this->checkNaming($method),
             // The type-inference data files drive PHPStan itself, so their providers yield file paths, not cases.
-            ...str_ends_with($class->getName(), 'TypeInferenceTest') ? [] : self::checkReturnShape($method),
+            ...str_ends_with($class->getName(), 'TypeInferenceTest') ? [] : $this->checkReturnShape($method),
         ];
     }
 
     /**
      * @return list<IdentifierRuleError>
      */
-    private static function checkNaming(Node\Stmt\ClassMethod $method): array
+    private function checkNaming(Node\Stmt\ClassMethod $method): array
     {
         $name = $method->name->toString();
 
@@ -81,7 +81,7 @@ final class DataProviderConventionsRule implements Rule
     /**
      * @return list<IdentifierRuleError>
      */
-    private static function checkReturnShape(Node\Stmt\ClassMethod $method): array
+    private function checkReturnShape(Node\Stmt\ClassMethod $method): array
     {
         $name = $method->name->toString();
         $returnType = $method->getReturnType();

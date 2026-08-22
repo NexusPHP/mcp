@@ -38,7 +38,7 @@ final class GetTaskResultTest extends AbstractMcpTestCase
 {
     public function testWorkingVariantToArray(): void
     {
-        $result = self::createWorking();
+        $result = $this->createWorking();
 
         self::assertSame(
             [
@@ -113,7 +113,7 @@ final class GetTaskResultTest extends AbstractMcpTestCase
             createdAt: '2026-08-04T12:00:00+00:00',
             lastUpdatedAt: '2026-08-04T12:00:02+00:00',
             ttlMs: 300_000,
-            inputRequests: ['github_login' => self::createElicitRequest()],
+            inputRequests: ['github_login' => $this->createElicitRequest()],
         );
 
         $payload = $result->toArray();
@@ -125,7 +125,7 @@ final class GetTaskResultTest extends AbstractMcpTestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $result = self::createWorking();
+        $result = $this->createWorking();
 
         self::assertSame($result->toArray(), $result->jsonSerialize());
     }
@@ -133,7 +133,7 @@ final class GetTaskResultTest extends AbstractMcpTestCase
     public function testFromArrayRoundTripsEveryVariant(): void
     {
         $variants = [
-            self::createWorking(),
+            $this->createWorking(),
             new GetTaskResult(
                 taskId: 'task-1',
                 status: TaskStatus::Completed,
@@ -156,7 +156,7 @@ final class GetTaskResultTest extends AbstractMcpTestCase
                 createdAt: '2026-08-04T12:00:00+00:00',
                 lastUpdatedAt: '2026-08-04T12:00:02+00:00',
                 ttlMs: 300_000,
-                inputRequests: ['github_login' => self::createElicitRequest()],
+                inputRequests: ['github_login' => $this->createElicitRequest()],
             ),
             new GetTaskResult(
                 taskId: 'task-1',
@@ -220,7 +220,7 @@ final class GetTaskResultTest extends AbstractMcpTestCase
             ttlMs: null,
             result: $result,
             error: $error,
-            inputRequests: $withInputRequests ? ['github_login' => self::createElicitRequest()] : null,
+            inputRequests: $withInputRequests ? ['github_login' => $this->createElicitRequest()] : null,
         );
     }
 
@@ -316,7 +316,7 @@ final class GetTaskResultTest extends AbstractMcpTestCase
             createdAt: '2026-08-04T12:00:00+00:00',
             lastUpdatedAt: '2026-08-04T12:00:00+00:00',
             ttlMs: null,
-            inputRequests: ['0' => self::createElicitRequest()],
+            inputRequests: ['0' => $this->createElicitRequest()],
         );
 
         self::assertSame([0], array_keys($result->inputRequests ?? []));
@@ -512,7 +512,7 @@ final class GetTaskResultTest extends AbstractMcpTestCase
             lastUpdatedAt: '2026-08-04T12:00:00+00:00',
             ttlMs: null,
             // @phpstan-ignore argument.type
-            inputRequests: ['' => self::createElicitRequest()],
+            inputRequests: ['' => $this->createElicitRequest()],
         );
     }
 
@@ -561,7 +561,7 @@ final class GetTaskResultTest extends AbstractMcpTestCase
         self::assertStringContainsString('"result":{"2024":"v"}', (string) json_encode($result));
     }
 
-    private static function createWorking(): GetTaskResult
+    private function createWorking(): GetTaskResult
     {
         return new GetTaskResult(
             taskId: 'task-1',
@@ -572,7 +572,7 @@ final class GetTaskResultTest extends AbstractMcpTestCase
         );
     }
 
-    private static function createElicitRequest(): ElicitRequest
+    private function createElicitRequest(): ElicitRequest
     {
         return new ElicitRequest(params: new ElicitRequestFormParams(
             message: 'Please provide your GitHub username',

@@ -56,9 +56,9 @@ final class TaskBrokeringCallToolHandlerTest extends AbstractMcpTestCase
     public function testAToolWithoutAPolicyPassesThrough(): void
     {
         $marker = new CallToolResult(content: [new TextContent(text: 'sync')]);
-        [$broker] = self::buildBroker([], $marker);
+        [$broker] = $this->buildBroker([], $marker);
 
-        $result = $broker->handle(self::buildRequest('greet'), self::buildContext(declared: true));
+        $result = $broker->handle($this->buildRequest('greet'), $this->buildContext(declared: true));
 
         self::assertSame($marker, $result);
     }
@@ -66,31 +66,31 @@ final class TaskBrokeringCallToolHandlerTest extends AbstractMcpTestCase
     public function testAnOptionalToolRunsSynchronouslyForANonDeclaringClient(): void
     {
         $marker = new CallToolResult(content: [new TextContent(text: 'sync')]);
-        [$broker] = self::buildBroker(['slow_compute' => new ToolTaskPolicy(support: TaskSupport::Optional)], $marker);
+        [$broker] = $this->buildBroker(['slow_compute' => new ToolTaskPolicy(support: TaskSupport::Optional)], $marker);
 
-        $result = $broker->handle(self::buildRequest('slow_compute'), self::buildContext(declared: false));
+        $result = $broker->handle($this->buildRequest('slow_compute'), $this->buildContext(declared: false));
 
         self::assertSame($marker, $result);
     }
 
     public function testARequiredToolRefusesANonDeclaringClient(): void
     {
-        [$broker] = self::buildBroker(['failing_job' => new ToolTaskPolicy(support: TaskSupport::Required)], new CallToolResult(content: []));
+        [$broker] = $this->buildBroker(['failing_job' => new ToolTaskPolicy(support: TaskSupport::Required)], new CallToolResult(content: []));
 
         $this->expectException(MissingRequiredClientCapabilityException::class);
         $this->expectExceptionMessageIs('This request requires client capabilities the client did not declare: extensions.io.modelcontextprotocol/tasks.');
 
-        $broker->handle(self::buildRequest('failing_job'), self::buildContext(declared: false));
+        $broker->handle($this->buildRequest('failing_job'), $this->buildContext(declared: false));
     }
 
     public function testADeclaringClientReceivesATaskHandle(): void
     {
-        [$broker, $store] = self::buildBroker(
+        [$broker, $store] = $this->buildBroker(
             ['slow_compute' => new ToolTaskPolicy(support: TaskSupport::Optional)],
             new CallToolResult(content: [new TextContent(text: 'done')]),
         );
 
-        $result = $broker->handle(self::buildRequest('slow_compute'), self::buildContext(declared: true));
+        $result = $broker->handle($this->buildRequest('slow_compute'), $this->buildContext(declared: true));
 
         self::assertInstanceOf(CreateTaskResult::class, $result);
         self::assertSame(TaskStatus::Working, $result->status);
@@ -111,26 +111,26 @@ final class TaskBrokeringCallToolHandlerTest extends AbstractMcpTestCase
     public function testAResolvesInputFirstToolPassesThroughWithoutAContinuationToken(): void
     {
         $marker = new CallToolResult(content: [new TextContent(text: 'round-1')]);
-        [$broker] = self::buildBroker(
+        [$broker] = $this->buildBroker(
             ['confirm_delete' => new ToolTaskPolicy(support: TaskSupport::Optional, resolvesInputFirst: true)],
             $marker,
         );
 
-        $result = $broker->handle(self::buildRequest('confirm_delete'), self::buildContext(declared: true));
+        $result = $broker->handle($this->buildRequest('confirm_delete'), $this->buildContext(declared: true));
 
         self::assertSame($marker, $result);
     }
 
     public function testAResolvesInputFirstToolCreatesATaskOnceTheTokenArrives(): void
     {
-        [$broker, $store] = self::buildBroker(
+        [$broker, $store] = $this->buildBroker(
             ['confirm_delete' => new ToolTaskPolicy(support: TaskSupport::Optional, resolvesInputFirst: true)],
             new CallToolResult(content: [new TextContent(text: 'final')]),
         );
 
         $result = $broker->handle(
-            self::buildRequest('confirm_delete'),
-            self::buildContext(declared: true, requestState: 'state-1'),
+            $this->buildRequest('confirm_delete'),
+            $this->buildContext(declared: true, requestState: 'state-1'),
         );
 
         self::assertInstanceOf(CreateTaskResult::class, $result);
@@ -161,11 +161,11 @@ final class TaskBrokeringCallToolHandlerTest extends AbstractMcpTestCase
             defaultTtlMs: 300_000,
             defaultPollIntervalMs: 1_000,
         );
-        $first = $broker->handle(self::buildRequest('slow_compute'), self::buildContext(declared: true));
+        $first = $broker->handle($this->buildRequest('slow_compute'), $this->buildContext(declared: true));
         self::assertInstanceOf(CreateTaskResult::class, $first);
 
         try {
-            $broker->handle(self::buildRequest('slow_compute'), self::buildContext(declared: true));
+            $broker->handle($this->buildRequest('slow_compute'), $this->buildContext(declared: true));
             self::fail('The second call must be refused while the first task runs.');
         } catch (TaskLimitReachedException $e) {
             self::assertSame(['limit' => 1], $e->errorData);
@@ -185,7 +185,7 @@ final class TaskBrokeringCallToolHandlerTest extends AbstractMcpTestCase
      *
      * @return array{TaskBrokeringCallToolHandler, InMemoryTaskStore}
      */
-    private static function buildBroker(array $policies, Result $innerResult): array
+    private function buildBroker(array $policies, Result $innerResult): array
     {
         $store = new InMemoryTaskStore();
         $runner = new ToolTaskRunner($store, new TaskCancellationRegistry(), new ArrayLogger());
@@ -208,7 +208,7 @@ final class TaskBrokeringCallToolHandlerTest extends AbstractMcpTestCase
     /**
      * @param non-empty-string $name
      */
-    private static function buildRequest(string $name): CallToolRequest
+    private function buildRequest(string $name): CallToolRequest
     {
         return CallToolRequest::fromArray([
             'id' => 7,
@@ -216,7 +216,7 @@ final class TaskBrokeringCallToolHandlerTest extends AbstractMcpTestCase
         ]);
     }
 
-    private static function buildContext(bool $declared, ?string $requestState = null): ServerContext
+    private function buildContext(bool $declared, ?string $requestState = null): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 7),

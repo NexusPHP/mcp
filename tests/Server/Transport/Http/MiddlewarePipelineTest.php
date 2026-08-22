@@ -34,9 +34,9 @@ final class MiddlewarePipelineTest extends AbstractMcpTestCase
 {
     public function testEmptyPipelineDelegatesToTheInnerHandler(): void
     {
-        $handler = self::handler();
+        $handler = $this->handler();
 
-        $response = (new MiddlewarePipeline($handler))->handle(self::request());
+        $response = (new MiddlewarePipeline($handler))->handle($this->request());
 
         self::assertTrue($handler->called);
         self::assertSame(200, $response->getStatusCode());
@@ -45,10 +45,10 @@ final class MiddlewarePipelineTest extends AbstractMcpTestCase
     public function testRunsMiddlewareThenDelegatesToTheInnerHandler(): void
     {
         $log = new CallLog();
-        $handler = self::handler();
+        $handler = $this->handler();
 
         $response = (new MiddlewarePipeline($handler, new RecordingMiddleware('a', $log)))
-            ->handle(self::request())
+            ->handle($this->request())
         ;
 
         self::assertSame(['a'], $log->labels);
@@ -59,13 +59,13 @@ final class MiddlewarePipelineTest extends AbstractMcpTestCase
     public function testRunsMiddlewareOutermostFirst(): void
     {
         $log = new CallLog();
-        $handler = self::handler();
+        $handler = $this->handler();
 
         (new MiddlewarePipeline(
             $handler,
             new RecordingMiddleware('a', $log),
             new RecordingMiddleware('b', $log),
-        ))->handle(self::request());
+        ))->handle($this->request());
 
         self::assertSame(['a', 'b'], $log->labels);
         self::assertTrue($handler->called);
@@ -74,7 +74,7 @@ final class MiddlewarePipelineTest extends AbstractMcpTestCase
     public function testShortCircuitingMiddlewareHaltsTheChain(): void
     {
         $log = new CallLog();
-        $handler = self::handler();
+        $handler = $this->handler();
         $preset = (new Psr17Factory())->createResponse(418);
         $shortCircuit = self::createStub(MiddlewareInterface::class);
         $shortCircuit->method('process')->willReturn($preset);
@@ -83,7 +83,7 @@ final class MiddlewarePipelineTest extends AbstractMcpTestCase
             $handler,
             $shortCircuit,
             new RecordingMiddleware('never', $log),
-        ))->handle(self::request());
+        ))->handle($this->request());
 
         self::assertSame(418, $response->getStatusCode());
         self::assertFalse($handler->called);
@@ -93,13 +93,13 @@ final class MiddlewarePipelineTest extends AbstractMcpTestCase
     public function testAcceptsMiddlewareGivenAsNamedArguments(): void
     {
         $log = new CallLog();
-        $handler = self::handler();
+        $handler = $this->handler();
 
         (new MiddlewarePipeline(
             $handler,
             outer: new RecordingMiddleware('a', $log),
             inner: new RecordingMiddleware('b', $log),
-        ))->handle(self::request());
+        ))->handle($this->request());
 
         self::assertSame(['a', 'b'], $log->labels);
         self::assertTrue($handler->called);
@@ -108,21 +108,21 @@ final class MiddlewarePipelineTest extends AbstractMcpTestCase
     public function testIsReentrantAcrossCalls(): void
     {
         $log = new CallLog();
-        $handler = self::handler();
+        $handler = $this->handler();
         $pipeline = new MiddlewarePipeline($handler, new RecordingMiddleware('a', $log));
 
-        $pipeline->handle(self::request());
-        $pipeline->handle(self::request());
+        $pipeline->handle($this->request());
+        $pipeline->handle($this->request());
 
         self::assertSame(['a', 'a'], $log->labels);
     }
 
-    private static function handler(): RecordingRequestHandler
+    private function handler(): RecordingRequestHandler
     {
         return new RecordingRequestHandler((new Psr17Factory())->createResponse(200));
     }
 
-    private static function request(): ServerRequestInterface
+    private function request(): ServerRequestInterface
     {
         return (new Psr17Factory())->createServerRequest('POST', 'https://mcp.test/');
     }

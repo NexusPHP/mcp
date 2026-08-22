@@ -31,7 +31,7 @@ final class ClientAssertionSignerTest extends AbstractMcpTestCase
 {
     public function testSignsAnAssertionNamingTheClientAsIssuerAndSubject(): void
     {
-        [$privatePem, $publicPem] = self::generateKeyPair();
+        [$privatePem, $publicPem] = $this->generateKeyPair();
         $signer = new ClientAssertionSigner(new PrivateKeyJwtCredential('the-client', $privatePem, 'ES256', 'key-1'));
 
         $before = time();
@@ -53,34 +53,34 @@ final class ClientAssertionSignerTest extends AbstractMcpTestCase
         self::assertIsString($identifier);
         self::assertMatchesRegularExpression('/^[0-9a-f]{32}$/', $identifier);
 
-        $header = self::readHeader($assertion);
+        $header = $this->readHeader($assertion);
         self::assertSame('ES256', $header['alg'] ?? null);
         self::assertSame('key-1', $header['kid'] ?? null);
     }
 
     public function testEveryAssertionCarriesAFreshIdentifier(): void
     {
-        [$privatePem] = self::generateKeyPair();
+        [$privatePem] = $this->generateKeyPair();
         $signer = new ClientAssertionSigner(new PrivateKeyJwtCredential('the-client', $privatePem, 'ES256'));
 
         self::assertNotSame(
-            self::readClaims($signer->signAssertion('https://auth.example.com'))['jti'] ?? null,
-            self::readClaims($signer->signAssertion('https://auth.example.com'))['jti'] ?? null,
+            $this->readClaims($signer->signAssertion('https://auth.example.com'))['jti'] ?? null,
+            $this->readClaims($signer->signAssertion('https://auth.example.com'))['jti'] ?? null,
         );
     }
 
     public function testTheKeyIdHeaderIsLeftOffWhenTheCredentialCarriesNone(): void
     {
-        [$privatePem] = self::generateKeyPair();
+        [$privatePem] = $this->generateKeyPair();
         $signer = new ClientAssertionSigner(new PrivateKeyJwtCredential('the-client', $privatePem, 'ES256'));
 
-        self::assertArrayNotHasKey('kid', self::readHeader($signer->signAssertion('https://auth.example.com')));
+        self::assertArrayNotHasKey('kid', $this->readHeader($signer->signAssertion('https://auth.example.com')));
     }
 
     /**
      * @return array{non-empty-string, non-empty-string}
      */
-    private static function generateKeyPair(): array
+    private function generateKeyPair(): array
     {
         $key = openssl_pkey_new(['curve_name' => 'prime256v1', 'private_key_type' => \OPENSSL_KEYTYPE_EC]);
 
@@ -100,7 +100,7 @@ final class ClientAssertionSignerTest extends AbstractMcpTestCase
     /**
      * @return array<array-key, mixed>
      */
-    private static function readHeader(string $assertion): array
+    private function readHeader(string $assertion): array
     {
         [$header] = explode('.', $assertion, 2);
         $decoded = json_decode(JWT::urlsafeB64Decode($header), associative: true, flags: \JSON_THROW_ON_ERROR);
@@ -115,7 +115,7 @@ final class ClientAssertionSignerTest extends AbstractMcpTestCase
     /**
      * @return array<array-key, mixed>
      */
-    private static function readClaims(string $assertion): array
+    private function readClaims(string $assertion): array
     {
         $parts = explode('.', $assertion, 3);
 

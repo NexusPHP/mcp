@@ -34,7 +34,7 @@ final class ValidationErrorFormatterTest extends AbstractMcpTestCase
     {
         self::assertSame(
             ['must be an object, array given.'],
-            self::format([1, 2], ['type' => 'object']),
+            $this->format([1, 2], ['type' => 'object']),
         );
     }
 
@@ -42,7 +42,7 @@ final class ValidationErrorFormatterTest extends AbstractMcpTestCase
     {
         self::assertSame(
             ['"v" must be an object or a string, int given.'],
-            self::format(
+            $this->format(
                 ['v' => 5],
                 ['type' => 'object', 'properties' => ['v' => ['type' => ['object', 'string']]]],
             ),
@@ -53,7 +53,7 @@ final class ValidationErrorFormatterTest extends AbstractMcpTestCase
     {
         self::assertSame(
             ['missing the required "n" key.'],
-            self::format(
+            $this->format(
                 ['other' => 1],
                 ['type' => 'object', 'properties' => ['n' => ['type' => 'integer']], 'required' => ['n']],
             ),
@@ -64,7 +64,7 @@ final class ValidationErrorFormatterTest extends AbstractMcpTestCase
     {
         self::assertSame(
             ['missing the required "a" key.', 'missing the required "b" key.'],
-            self::format(['other' => 1], ['type' => 'object', 'required' => ['a', 'b']]),
+            $this->format(['other' => 1], ['type' => 'object', 'required' => ['a', 'b']]),
         );
     }
 
@@ -72,7 +72,7 @@ final class ValidationErrorFormatterTest extends AbstractMcpTestCase
     {
         self::assertSame(
             ['"point" is missing the required "longitude" key.'],
-            self::format(
+            $this->format(
                 ['point' => ['latitude' => 1.5]],
                 ['type' => 'object', 'properties' => ['point' => ['type' => 'object', 'required' => ['latitude', 'longitude']]]],
             ),
@@ -83,7 +83,7 @@ final class ValidationErrorFormatterTest extends AbstractMcpTestCase
     {
         self::assertSame(
             ['"mode" must be one of [\'a\', \'b\'], \'z\' given.'],
-            self::format(
+            $this->format(
                 ['mode' => 'z'],
                 ['type' => 'object', 'properties' => ['mode' => ['type' => 'string', 'enum' => ['a', 'b']]]],
             ),
@@ -94,7 +94,7 @@ final class ValidationErrorFormatterTest extends AbstractMcpTestCase
     {
         self::assertSame(
             ['"n" does not satisfy the schema\'s "minimum" constraint.'],
-            self::format(
+            $this->format(
                 ['n' => 0],
                 ['type' => 'object', 'properties' => ['n' => ['type' => 'integer', 'minimum' => 1]]],
             ),
@@ -105,7 +105,7 @@ final class ValidationErrorFormatterTest extends AbstractMcpTestCase
     {
         self::assertSame(
             ['the value does not satisfy the schema\'s "not" constraint.'],
-            self::format('x', ['not' => ['type' => 'string']]),
+            $this->format('x', ['not' => ['type' => 'string']]),
         );
     }
 
@@ -117,7 +117,7 @@ final class ValidationErrorFormatterTest extends AbstractMcpTestCase
     {
         self::assertSame(
             [$message],
-            self::format(
+            $this->format(
                 $data,
                 ['type' => 'object', 'properties' => ['v' => ['type' => $expectedType]]],
             ),
@@ -148,7 +148,7 @@ final class ValidationErrorFormatterTest extends AbstractMcpTestCase
     {
         self::assertSame(
             ['carries the undeclared "evil" key.', 'carries the undeclared "worse" key.'],
-            self::format(
+            $this->format(
                 ['n' => 1, 'evil' => 1, 'worse' => 2],
                 ['type' => 'object', 'properties' => ['n' => ['type' => 'integer']], 'additionalProperties' => false],
             ),
@@ -159,7 +159,7 @@ final class ValidationErrorFormatterTest extends AbstractMcpTestCase
     {
         self::assertSame(
             ['"point" carries the undeclared "x" key.'],
-            self::format(
+            $this->format(
                 ['point' => ['x' => 1]],
                 ['type' => 'object', 'properties' => ['point' => ['type' => 'object', 'additionalProperties' => false]]],
             ),
@@ -170,7 +170,7 @@ final class ValidationErrorFormatterTest extends AbstractMcpTestCase
     {
         self::assertSame(
             ['"point.latitude" must be a number, string given.'],
-            self::format(
+            $this->format(
                 ['point' => ['latitude' => 'x']],
                 ['type' => 'object', 'properties' => ['point' => ['type' => 'object', 'properties' => ['latitude' => ['type' => 'number']]]]],
             ),
@@ -181,7 +181,7 @@ final class ValidationErrorFormatterTest extends AbstractMcpTestCase
     {
         self::assertSame(
             [['pointer' => '', 'message' => 'must be an object, array given.']],
-            self::describe([1, 2], ['type' => 'object']),
+            $this->describe([1, 2], ['type' => 'object']),
         );
     }
 
@@ -189,7 +189,7 @@ final class ValidationErrorFormatterTest extends AbstractMcpTestCase
     {
         self::assertSame(
             [['pointer' => '/point/latitude', 'message' => '"point.latitude" must be a number, string given.']],
-            self::describe(
+            $this->describe(
                 ['point' => ['latitude' => 'north']],
                 ['type' => 'object', 'properties' => ['point' => ['type' => 'object', 'properties' => ['latitude' => ['type' => 'number']]]]],
             ),
@@ -200,7 +200,7 @@ final class ValidationErrorFormatterTest extends AbstractMcpTestCase
     {
         self::assertSame(
             [['pointer' => '/tags/1', 'message' => '"tags.1" must be a string, int given.']],
-            self::describe(
+            $this->describe(
                 ['tags' => ['ok', 7]],
                 ['type' => 'object', 'properties' => ['tags' => ['type' => 'array', 'items' => ['type' => 'string']]]],
             ),
@@ -211,7 +211,7 @@ final class ValidationErrorFormatterTest extends AbstractMcpTestCase
     {
         self::assertSame(
             [['pointer' => '/point', 'message' => '"point" is missing the required "longitude" key.']],
-            self::describe(
+            $this->describe(
                 ['point' => ['latitude' => 1.5]],
                 ['type' => 'object', 'properties' => ['point' => ['type' => 'object', 'required' => ['latitude', 'longitude']]]],
             ),
@@ -225,7 +225,7 @@ final class ValidationErrorFormatterTest extends AbstractMcpTestCase
                 ['pointer' => '/a~1b', 'message' => '"a/b" must be a string, int given.'],
                 ['pointer' => '/c~0d', 'message' => '"c~d" must be a string, int given.'],
             ],
-            self::describe(
+            $this->describe(
                 ['a/b' => 1, 'c~d' => 2],
                 ['type' => 'object', 'properties' => ['a/b' => ['type' => 'string'], 'c~d' => ['type' => 'string']]],
             ),
@@ -237,11 +237,11 @@ final class ValidationErrorFormatterTest extends AbstractMcpTestCase
      *
      * @return list<string>
      */
-    private static function format(mixed $data, array $schema): array
+    private function format(mixed $data, array $schema): array
     {
         return array_map(
             static fn(SchemaViolation $violation): string => $violation->message,
-            self::violations($data, $schema),
+            $this->violations($data, $schema),
         );
     }
 
@@ -250,7 +250,7 @@ final class ValidationErrorFormatterTest extends AbstractMcpTestCase
      *
      * @return list<SchemaViolation>
      */
-    private static function violations(mixed $data, array $schema): array
+    private function violations(mixed $data, array $schema): array
     {
         $validator = new Validator(max_errors: 8);
         $error = $validator->validate(Helper::toJSON($data), (object) Helper::toJSON($schema))->error();
@@ -267,11 +267,11 @@ final class ValidationErrorFormatterTest extends AbstractMcpTestCase
      *
      * @return list<array{pointer: string, message: string}>
      */
-    private static function describe(mixed $data, array $schema): array
+    private function describe(mixed $data, array $schema): array
     {
         return array_map(
             static fn(SchemaViolation $violation): array => $violation->toArray(),
-            self::violations($data, $schema),
+            $this->violations($data, $schema),
         );
     }
 }
