@@ -132,6 +132,38 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
         self::assertCount(3, $sender->notifications);
     }
 
+    /**
+     * @param \Closure(SubscriptionStore): void $emit
+     */
+    #[DataProvider('provideAListChangeEmittedOnItsOwnReachesTheStreamCases')]
+    public function testAListChangeEmittedOnItsOwnReachesTheStream(\Closure $emit, string $expectedMethod): void
+    {
+        $store = new SubscriptionStore(toolsListChanged: true, promptsListChanged: true, resourcesListChanged: true);
+        $sender = new RecordingSender();
+        $store->open(
+            new RequestId(id: 1),
+            new SubscriptionFilter(toolsListChanged: true, promptsListChanged: true, resourcesListChanged: true),
+            $sender,
+        );
+
+        $emit($store);
+        delay(0.0);
+
+        self::assertSame(['notifications/subscriptions/acknowledged', $expectedMethod], $this->readMethodsOf($sender));
+    }
+
+    /**
+     * @return iterable<string, array{\Closure(SubscriptionStore): void, string}>
+     */
+    public static function provideAListChangeEmittedOnItsOwnReachesTheStreamCases(): iterable
+    {
+        yield 'tools' => [static fn(SubscriptionStore $store) => $store->emitToolListChanged(), 'notifications/tools/list_changed'];
+
+        yield 'prompts' => [static fn(SubscriptionStore $store) => $store->emitPromptListChanged(), 'notifications/prompts/list_changed'];
+
+        yield 'resources' => [static fn(SubscriptionStore $store) => $store->emitResourceListChanged(), 'notifications/resources/list_changed'];
+    }
+
     public function testEachListChangeKindIsAnnouncedSeparately(): void
     {
         $store = new SubscriptionStore(toolsListChanged: true, promptsListChanged: true, resourcesListChanged: true);

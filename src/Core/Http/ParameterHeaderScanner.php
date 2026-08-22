@@ -22,8 +22,6 @@ namespace Nexus\Mcp\Core\Http;
  */
 final class ParameterHeaderScanner
 {
-    private const string X_MCP_HEADER_KEY = 'x-mcp-header';
-
     /**
      * RFC 9110 section 5.1 token syntax (`1*tchar`).
      */
@@ -74,7 +72,7 @@ final class ParameterHeaderScanner
             return null;
         }
 
-        if (\array_key_exists(self::X_MCP_HEADER_KEY, $node)) {
+        if (\array_key_exists('x-mcp-header', $node)) {
             $fault = self::inspectBinding($node, $path, $reachable, $bindings, $seen);
 
             if (null !== $fault) {
@@ -125,7 +123,7 @@ final class ParameterHeaderScanner
             return \sprintf('%s: x-mcp-header is only permitted on a property reachable through a chain of "properties" keys.', $location);
         }
 
-        $raw = $node[self::X_MCP_HEADER_KEY] ?? null;
+        $raw = $node['x-mcp-header'] ?? null;
 
         if (! \is_string($raw) || '' === $raw) {
             return \sprintf('%s: x-mcp-header must be a non-empty string.', $location);

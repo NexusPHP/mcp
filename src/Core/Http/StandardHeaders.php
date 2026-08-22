@@ -25,10 +25,6 @@ use Nexus\Mcp\Core\Schema\MetaObject\RequestMetaObject;
  */
 final readonly class StandardHeaders
 {
-    private const string PROTOCOL_VERSION_HEADER = 'MCP-Protocol-Version';
-    private const string METHOD_HEADER = 'Mcp-Method';
-    private const string NAME_HEADER = 'Mcp-Name';
-
     /**
      * Builds the standard headers mirroring an outbound request envelope, omitting one whose source value
      * the body does not carry.
@@ -43,19 +39,19 @@ final readonly class StandardHeaders
         $version = $this->readVersion($body);
 
         if (null !== $version) {
-            $headers[self::PROTOCOL_VERSION_HEADER] = $version;
+            $headers['MCP-Protocol-Version'] = $version;
         }
 
         $method = $this->readString($body, 'method');
 
         if (null !== $method) {
-            $headers[self::METHOD_HEADER] = $method;
+            $headers['Mcp-Method'] = $method;
         }
 
         $source = $this->readName($body);
 
         if (null !== $source) {
-            $headers[self::NAME_HEADER] = HeaderValueCodec::encode($source);
+            $headers['Mcp-Name'] = HeaderValueCodec::encode($source);
         }
 
         return $headers;
@@ -83,7 +79,7 @@ final readonly class StandardHeaders
      */
     private function checkVersion(array $headers, array $body): ?HeaderMismatchError
     {
-        $header = $this->readLine($headers, self::PROTOCOL_VERSION_HEADER);
+        $header = $this->readLine($headers, 'MCP-Protocol-Version');
 
         if (null === $header) {
             return new HeaderMismatchError('The MCP-Protocol-Version header is required but absent.');
@@ -104,7 +100,7 @@ final readonly class StandardHeaders
      */
     private function checkMethod(array $headers, array $body): ?HeaderMismatchError
     {
-        $header = $this->readLine($headers, self::METHOD_HEADER);
+        $header = $this->readLine($headers, 'Mcp-Method');
 
         if (null === $header) {
             return new HeaderMismatchError('The Mcp-Method header is required but absent.');
@@ -130,7 +126,7 @@ final readonly class StandardHeaders
         }
 
         $source = $this->readName($body);
-        $header = $this->readLine($headers, self::NAME_HEADER);
+        $header = $this->readLine($headers, 'Mcp-Name');
 
         if (null === $header) {
             return null === $source

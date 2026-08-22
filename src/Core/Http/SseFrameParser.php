@@ -25,7 +25,6 @@ use Nexus\Mcp\Core\Exception\ResponseTooLargeException;
 final class SseFrameParser
 {
     public const int DEFAULT_MAX_FRAME_BYTES = 10_485_760;
-    private const string DEFAULT_EVENT = 'message';
 
     /**
      * Bytes absorbed since the last frame boundary.
@@ -50,7 +49,7 @@ final class SseFrameParser
     /**
      * @var non-empty-string
      */
-    private string $event = self::DEFAULT_EVENT;
+    private string $event = 'message';
 
     public function __construct(private readonly int $maxFrameBytes = self::DEFAULT_MAX_FRAME_BYTES)
     {
@@ -128,7 +127,7 @@ final class SseFrameParser
         $event = $this->event;
 
         $this->data = [];
-        $this->event = self::DEFAULT_EVENT;
+        $this->event = 'message';
 
         return [] === $data ? null : new SseFrame($event, implode("\n", $data));
     }
