@@ -58,10 +58,6 @@
         "phpstan/phpstan-strict-rules": "^2.0",
         "phpunit/phpunit": "^12.5 || ^13.0"
     },
-    "conflict": {
-        "amphp/pipeline": "<1.2.1",
-        "league/uri-interfaces": "<7.6"
-    },
     "replace": {
         "nexusphp/mcp-client": "self.version",
         "nexusphp/mcp-core": "self.version",

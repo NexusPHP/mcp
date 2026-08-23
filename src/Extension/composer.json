@@ -31,10 +31,6 @@
         "psr/log": "^3.0",
         "revolt/event-loop": "^1.0.8"
     },
-    "conflict": {
-        "amphp/pipeline": "<1.2.1",
-        "league/uri-interfaces": "<7.6"
-    },
     "suggest": {
         "firebase/php-jwt": "Required to sign private_key_jwt client assertions with ClientCredentialsGrant (^7.0)."
     },
