@@ -9,6 +9,8 @@
         "nexusphp/cs-config": "^3.29",
         "shipmonk/composer-dependency-analyser": "^1.8"
     },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "autoload": {
         "psr-4": {
             "Nexus\\Mcp\\Tools\\": "src/"

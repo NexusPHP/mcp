@@ -32,8 +32,10 @@
         "revolt/event-loop": "^1.0.8"
     },
     "suggest": {
-        "firebase/php-jwt": "Required to sign private_key_jwt client assertions with ClientCredentialsGrant (^7.0)."
+        "firebase/php-jwt": "Required with ClientCredentialsGrant (^7.0)."
     },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "autoload": {
         "psr-4": {
             "Nexus\\Mcp\\Extension\\": ""

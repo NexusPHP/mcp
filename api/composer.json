@@ -5,6 +5,8 @@
         "php": "^8.4",
         "apigen/apigen": "dev-master#aa151a961053d20e46d2c7da65cbb03c130d12ff"
     },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "autoload": {
         "psr-4": {
             "Nexus\\Mcp\\Api\\": "src/"

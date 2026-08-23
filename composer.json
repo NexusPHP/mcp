@@ -15,9 +15,9 @@
         }
     ],
     "support": {
-        "docs": "https://nexusphp.github.io/mcp/",
         "issues": "https://github.com/NexusPHP/mcp/issues",
-        "source": "https://github.com/NexusPHP/mcp.git"
+        "source": "https://github.com/NexusPHP/mcp.git",
+        "docs": "https://nexusphp.github.io/mcp/"
     },
     "funding": [
         {
@@ -66,8 +66,10 @@
         "nexusphp/mcp-server": "self.version"
     },
     "suggest": {
-        "firebase/php-jwt": "Required to validate JWT bearer tokens with JwksAccessTokenValidator and to sign private_key_jwt client assertions with ClientCredentialsGrant (^7.0)."
+        "firebase/php-jwt": "Required with JwksAccessTokenValidator and with ClientCredentialsGrant (^7.0)."
     },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "autoload": {
         "psr-4": {
             "Nexus\\Mcp\\": "src/"
