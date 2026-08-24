@@ -1,5 +1,10 @@
 *.json                            text eol=lf
 
+/conformance/badges/*.json                         linguist-generated=true
+/phpstan-baseline.php                              linguist-generated=true
+/tests/AutoReview/data/public-parameter-names.json linguist-generated=true
+/tests/AutoReview/data/spec-anchors.json           linguist-generated=true
+
 /.*                               export-ignore
 /api/                             export-ignore
 /bc/                              export-ignore
