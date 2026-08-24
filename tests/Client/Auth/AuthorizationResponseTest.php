@@ -137,6 +137,16 @@ final class AuthorizationResponseTest extends AbstractMcpTestCase
             ['code' => 'abc123', 'state' => self::STATE, 'iss' => 'https://AUTH.example.com'],
             false,
         ];
+
+        yield 'scheme case is not folded' => [
+            ['code' => 'abc123', 'state' => self::STATE, 'iss' => 'HTTPS://auth.example.com'],
+            false,
+        ];
+
+        yield 'an explicit default port is not elided' => [
+            ['code' => 'abc123', 'state' => self::STATE, 'iss' => 'https://auth.example.com:443'],
+            false,
+        ];
     }
 
     public function testReadCodeRejectsAMismatchedIssuerBeforeSurfacingTheError(): void
