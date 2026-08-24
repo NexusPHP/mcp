@@ -8,6 +8,15 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+## [v0.16.0](https://github.com/NexusPHP/mcp/compare/v0.15.0...v0.16.0) - 2026-08-24
+
+The pre-v1 hardening release. Every default now bounds what a peer or a slow reader can cost (request
+body, SSE backlog, task fibers and records, subscription watch lists), the OAuth client seals discovery
+SSRF and binds the bearer token to the resource's path, and a schema failure surfaces its structured
+violations. Handler registration takes the envelope class, and a verified access token always carries
+its expiry (see [BREAKING_CHANGES.md](BREAKING_CHANGES.md)). New: an encrypted file token store and a
+worked PHP-FPM mount.
+
 ### Added
 
 - `EncryptedFileTokenStore` persists tokens to one XChaCha20-Poly1305 encrypted, owner-only file
