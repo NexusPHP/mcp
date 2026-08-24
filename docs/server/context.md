@@ -15,7 +15,19 @@ Every handler closure receives a `ServerContext` as its last argument.
 It is the client's requested minimum level for this request, as a `LoggingLevel` case, or `null` when the request
 carried none. The SDK parses and re-encodes the field, but attaches no behaviour to it. The
 [PSR-3 logger](configuration.md#logger) logs at whatever level it is configured with, so honouring the request is
-a handler's own choice.
+a handler's own choice:
+
+```php
+use Nexus\Mcp\Core\Schema\Enum\LoggingLevel;
+
+executor: static function (?array $args, ServerContext $context) use ($logger): CallToolResult {
+    if (LoggingLevel::Debug === $context->meta->logLevel) {
+        $logger->debug('Resolving {name} verbosely for this request.', ['name' => $args['name'] ?? '?']);
+    }
+
+    return lookUp($args);
+},
+```
 
 ## Reporting progress
 
