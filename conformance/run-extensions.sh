@@ -45,7 +45,10 @@ SERVER_SCENARIOS=(
 CLIENT_SCENARIOS=(
     auth/client-credentials-basic
     auth/client-credentials-jwt
+    auth/dpop
+    auth/dpop-nonce
     auth/enterprise-managed-authorization
+    auth/wif-jwt-bearer
 )
 
 if [[ "$MODE" != "client" ]]; then

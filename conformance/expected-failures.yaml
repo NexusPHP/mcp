@@ -59,4 +59,12 @@ server:
   - tasks-request-state-removal:wire-schema-valid
   - tasks-wire-fields:wire-schema-valid
 
-client: []
+client:
+  # DPoP (SEP-1932) and workload identity federation (SEP-1933) are unratified upstream
+  # proposals that ROADMAP.md keeps unmodelled until they land, so the extension serves
+  # neither. run-extensions.sh runs these scenarios so the stale-entry rule turns a
+  # referee upgrade that passes one into a loud failure. They go when the SEP ratifies
+  # and the extension ships, or when the referee retires the scenario.
+  - auth/dpop
+  - auth/dpop-nonce
+  - auth/wif-jwt-bearer
