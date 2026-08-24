@@ -53,6 +53,8 @@ in `0.x`, minor releases may include breaking changes.
   buffering without limit.
 - OAuth metadata discovery no longer follows redirects, so a hostile origin cannot point a well-known
   probe at an internal host.
+- A `WWW-Authenticate` challenge is emitted with the control octets stripped, so a resource metadata URL
+  or scope carrying CR LF cannot inject a header.
 - The `Mcp-Param-{Name}` check no longer skips a float or a large integer, and refuses a header whose body
   argument is absent. The client mirrors an integral float as its integer. See BREAKING_CHANGES.md.
 - The bearer token is bound to the resource's path, not its whole origin: another path on the same host

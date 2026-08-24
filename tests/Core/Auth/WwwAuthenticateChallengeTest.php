@@ -279,6 +279,46 @@ final class WwwAuthenticateChallengeTest extends AbstractMcpTestCase
         yield 'a quote in a value is escaped' => ['Bearer', ['realm' => 'say "hi"'], 'Bearer realm="say \"hi\""'];
 
         yield 'a backslash in a value is escaped' => ['Bearer', ['realm' => 'a\\b'], 'Bearer realm="a\\\\b"'];
+
+        yield 'a tab in a value survives' => ['Bearer', ['realm' => "a\tb"], "Bearer realm=\"a\tb\""];
+
+        yield 'a CR LF in a value cannot reach the header' => [
+            'Bearer',
+            ['resource_metadata' => "https://mcp.example.com/prm\r\nX-Injected: 1"],
+            'Bearer resource_metadata="https://mcp.example.com/prmX-Injected: 1"',
+        ];
+
+        yield 'the other control octets in a value are stripped' => [
+            'Bearer',
+            ['realm' => "a\x00b\x1bc\x7Fd"],
+            'Bearer realm="abcd"',
+        ];
+
+        yield 'a CR LF in a parameter name cannot reach the header' => [
+            'Bearer',
+            ["realm\r\nX-Injected: 1" => 'x'],
+            'Bearer realmx-injected: 1="x"',
+        ];
+
+        yield 'a CR LF in the scheme cannot reach the header' => ["Bearer\r\nX-Injected: 1", [], 'BearerX-Injected: 1'];
+    }
+
+    #[DataProvider('provideNoControlOctetSurvivesEmissionCases')]
+    public function testNoControlOctetSurvivesEmission(string $octet): void
+    {
+        $header = (new WwwAuthenticateChallenge("Bearer{$octet}", ["realm{$octet}" => "x{$octet}y"]))->toHeaderValue();
+
+        self::assertSame(0, preg_match('/[\x00-\x08\x0A-\x1F\x7F]/', $header));
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function provideNoControlOctetSurvivesEmissionCases(): iterable
+    {
+        foreach ([...range(0, 31), 127] as $codepoint) {
+            yield \sprintf('octet 0x%02X', $codepoint) => [\chr($codepoint)];
+        }
     }
 
     public function testToHeaderValueRoundTripsThroughParseAll(): void

@@ -45,8 +45,9 @@ final readonly class WwwAuthenticateChallenge
     private const string SEGMENT_PIECES_PATTERN = '/"(?:[^"\\\\]|\\\\.)*"?|[^,"]+|,/s';
 
     /**
-     * The control octets RFC 7230's `quoted-string` forbids, stripped so a header cannot smuggle
-     * terminal escapes into logs.
+     * The control octets RFC 9110 excludes from a field value, HTAB aside, stripped in both directions.
+     *
+     * @see https://datatracker.ietf.org/doc/html/rfc9110#section-5.5
      */
     private const string FORBIDDEN_OCTETS = '/[\x00-\x08\x0A-\x1F\x7F]/';
 
@@ -131,6 +132,10 @@ final readonly class WwwAuthenticateChallenge
         return $this->parameters[strtolower($name)] ?? null;
     }
 
+    /**
+     * Renders the challenge as a field value carrying no control octet, so no part of it can inject a
+     * header of its own.
+     */
     public function toHeaderValue(): string
     {
         $rendered = [];
@@ -139,7 +144,9 @@ final readonly class WwwAuthenticateChallenge
             $rendered[] = \sprintf('%s="%s"', $name, addcslashes($value, '"\\'));
         }
 
-        return [] === $rendered ? $this->scheme : \sprintf('%s %s', $this->scheme, implode(', ', $rendered));
+        $header = [] === $rendered ? $this->scheme : \sprintf('%s %s', $this->scheme, implode(', ', $rendered));
+
+        return (string) preg_replace(self::FORBIDDEN_OCTETS, '', $header);
     }
 
     /**
