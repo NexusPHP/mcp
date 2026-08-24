@@ -48,7 +48,8 @@ The SDK must not send a token to a server other than the one that issued it, and
 cannot tell. Later requests in the same process present the stored token directly.
 
 A registration the authorization server stops recognising is dropped from the store rather than presented again.
-An expired one heals on the next request instead of bricking the client.
+One whose `client_secret_expires_at` has passed is registered again before it is presented, so a store persisting
+`ClientRegistration` must keep that field alongside the secret.
 
 Store both confidentially. They are credentials.
 

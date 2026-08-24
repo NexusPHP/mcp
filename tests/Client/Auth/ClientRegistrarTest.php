@@ -321,6 +321,20 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
         $this->resolve($http, $this->buildMetadata(registrationEndpoint: 'https://auth.example.com/register'), $this->buildOptions());
     }
 
+    public function testARegistrationResponseWithANegativeSecretExpiryIsRefused(): void
+    {
+        $http = (new RecordingHttpClient())->willAnswerJson([
+            'client_id' => 'registered',
+            'client_secret' => 'the-secret',
+            'client_secret_expires_at' => -1,
+        ]);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('Client registration response "client_secret_expires_at" must be a non-negative integer, -1 given.');
+
+        $this->resolve($http, $this->buildMetadata(registrationEndpoint: 'https://auth.example.com/register'), $this->buildOptions());
+    }
+
     public function testARegistrationResponseWithNoClientIdIsRefused(): void
     {
         $http = (new RecordingHttpClient())->willAnswerJson([]);
@@ -377,6 +391,67 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
 
         self::assertSame(2.5, $http->readRequest()->getTransferTimeout());
         self::assertSame(2.5, $http->readRequest()->getInactivityTimeout());
+    }
+
+    public function testAnIssuedSecretRetainsItsExpiry(): void
+    {
+        $http = (new RecordingHttpClient())->willAnswerJson([
+            'client_id' => 'registered',
+            'client_secret' => 'the-secret',
+            'client_secret_expires_at' => 1_893_456_000,
+        ]);
+
+        $registration = $this->resolve($http, $this->buildMetadata(registrationEndpoint: 'https://auth.example.com/register'), $this->buildOptions());
+
+        self::assertSame(1_893_456_000, $registration->clientSecretExpiresAt);
+    }
+
+    public function testAStoredRegistrationWhoseSecretHasExpiredIsRegisteredAgain(): void
+    {
+        $store = new InMemoryClientRegistrationStore();
+        $store->write(self::ISSUER, new ClientRegistration(
+            'stale',
+            self::ISSUER,
+            'the-secret',
+            TokenEndpointAuthMethod::ClientSecretBasic,
+            time(),
+        ));
+        $http = (new RecordingHttpClient())->willAnswerJson(['client_id' => 'renewed']);
+
+        $registration = $this->resolve($http, $this->buildMetadata(registrationEndpoint: 'https://auth.example.com/register'), $this->buildOptions(), $store);
+
+        self::assertSame('renewed', $registration->clientId);
+        self::assertSame('renewed', $store->read(self::ISSUER)?->clientId);
+    }
+
+    /**
+     * @param null|int<0, max> $expiresAt
+     */
+    #[DataProvider('provideAStoredRegistrationSurvivesUnlessItsSecretHasExpiredCases')]
+    public function testAStoredRegistrationSurvivesUnlessItsSecretHasExpired(?string $secret, ?int $expiresAt): void
+    {
+        $store = new InMemoryClientRegistrationStore();
+        $store->write(self::ISSUER, new ClientRegistration('stored', self::ISSUER, $secret, TokenEndpointAuthMethod::ClientSecretBasic, $expiresAt));
+        $http = new RecordingHttpClient();
+
+        $registration = $this->resolve($http, $this->buildMetadata(registrationEndpoint: 'https://auth.example.com/register'), $this->buildOptions(), $store);
+
+        self::assertSame('stored', $registration->clientId);
+        self::assertSame([], $http->requests);
+    }
+
+    /**
+     * @return iterable<string, array{null|string, null|int<0, max>}>
+     */
+    public static function provideAStoredRegistrationSurvivesUnlessItsSecretHasExpiredCases(): iterable
+    {
+        yield 'a secret that never expires' => ['the-secret', 0];
+
+        yield 'a secret that has not expired yet' => ['the-secret', 1_893_456_000];
+
+        yield 'a secret carrying no expiry' => ['the-secret', null];
+
+        yield 'no secret at all' => [null, 1];
     }
 
     public function testForgettingARegistrationSendsTheNextResolutionBackToTheRegistrationEndpoint(): void

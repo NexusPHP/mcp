@@ -16,6 +16,8 @@ in `0.x`, minor releases may include breaking changes.
   across processes.
 - `ClientBuilder::setMetaExtrasFactory()` adds per-request `_meta` keys to every outbound request, such as
   the W3C `traceparent`.
+- `ClientRegistration` carries `clientSecretExpiresAt`, and a stored registration whose secret has expired is
+  registered again instead of presented.
 
 ### Changed
 

@@ -48,5 +48,19 @@ final class ClientRegistrationTest extends AbstractMcpTestCase
 
         self::assertNull($registration->clientSecret);
         self::assertSame(TokenEndpointAuthMethod::None, $registration->tokenEndpointAuthMethod);
+        self::assertNull($registration->clientSecretExpiresAt);
+    }
+
+    public function testASecretCarriesTheInstantItExpires(): void
+    {
+        $registration = new ClientRegistration(
+            'the-client',
+            'https://auth.example.com',
+            'the-secret',
+            TokenEndpointAuthMethod::ClientSecretBasic,
+            1_893_456_000,
+        );
+
+        self::assertSame(1_893_456_000, $registration->clientSecretExpiresAt);
     }
 }
