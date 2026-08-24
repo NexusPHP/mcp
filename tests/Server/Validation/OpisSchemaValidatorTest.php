@@ -16,6 +16,7 @@ namespace Nexus\Mcp\Tests\Server\Validation;
 use Nexus\Mcp\Server\Validation\OpisSchemaValidator;
 use Nexus\Mcp\Server\Validation\SchemaViolation;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
+use Opis\JsonSchema\Exceptions\UnresolvedReferenceException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -157,6 +158,35 @@ final class OpisSchemaValidatorTest extends AbstractMcpTestCase
     public function testAnEmptyConstStaysAnEmptyArrayValue(): void
     {
         self::assertSame([], (new OpisSchemaValidator())->validate([], ['const' => []]));
+    }
+
+    public function testARemoteRefIsRefusedWithoutAttemptingAFetch(): void
+    {
+        $schema = ['type' => 'object', 'properties' => ['n' => ['$ref' => 'https://example.invalid/schema.json']]];
+
+        stream_wrapper_unregister('http');
+        stream_wrapper_unregister('https');
+
+        $attempts = [];
+        set_error_handler(static function (int $severity, string $message) use (&$attempts): bool {
+            $attempts[] = $message;
+
+            return true;
+        });
+
+        try {
+            (new OpisSchemaValidator())->validate(['n' => 42], $schema);
+            $message = null;
+        } catch (UnresolvedReferenceException $e) {
+            $message = $e->getMessage();
+        } finally {
+            restore_error_handler();
+            stream_wrapper_restore('http');
+            stream_wrapper_restore('https');
+        }
+
+        self::assertSame('Unresolved reference: https://example.invalid/schema.json#', $message);
+        self::assertSame([], $attempts);
     }
 
     /**
