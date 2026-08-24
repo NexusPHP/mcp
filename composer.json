@@ -45,6 +45,7 @@
     "require-dev": {
         "ext-mbstring": "*",
         "ext-openssl": "*",
+        "ext-sodium": "*",
         "ext-tokenizer": "*",
         "amphp/http-server": "^3.4",
         "composer/xdebug-handler": "^3.0",
@@ -66,6 +67,7 @@
         "nexusphp/mcp-server": "self.version"
     },
     "suggest": {
+        "ext-sodium": "Required with EncryptedFileTokenStore.",
         "firebase/php-jwt": "Required with JwksAccessTokenValidator and with ClientCredentialsGrant (^7.0)."
     },
     "minimum-stability": "dev",

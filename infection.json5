@@ -40,7 +40,8 @@
                 "Nexus\\Mcp\\Client\\Auth\\AuthorizationCoordinator::runExclusively"
             ],
             "ignoreSourceCodeByRegex": [
-                "SuggestedDependencyGuard::verify\\(.*"
+                "SuggestedDependencyGuard::verify\\(.*",
+                "SuggestedDependencyGuard::verifyExtension\\(.*"
             ]
         }
     },

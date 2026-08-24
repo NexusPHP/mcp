@@ -32,4 +32,7 @@ return (new Configuration())
     // names the package to install, so production code may reference it without requiring it.
     ->ignoreErrorsOnPackageAndPath('firebase/php-jwt', __DIR__.'/src/Server/Auth/JwksAccessTokenValidator.php', [ErrorType::DEV_DEPENDENCY_IN_PROD])
     ->ignoreErrorsOnPackageAndPath('firebase/php-jwt', __DIR__.'/src/Extension/Auth/ClientAssertionSigner.php', [ErrorType::DEV_DEPENDENCY_IN_PROD])
+    // A suggested extension: EncryptedFileTokenStore guards its use behind `extension_loaded` and
+    // names the extension to enable, so production code may reference it without requiring it.
+    ->ignoreErrorsOnExtensionAndPath('ext-sodium', __DIR__.'/src/Client/Auth/EncryptedFileTokenStore.php', [ErrorType::DEV_DEPENDENCY_IN_PROD])
 ;

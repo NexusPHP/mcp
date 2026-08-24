@@ -10,6 +10,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Added
 
+- `EncryptedFileTokenStore` persists tokens to one XChaCha20-Poly1305 encrypted, owner-only file
+  (needs `ext-sodium`).
 - `AuthorizedHttpClient` takes a `lock` semaphore, so workers sharing a token store can serialise renewals
   across processes.
 - `ClientBuilder::setMetaExtrasFactory()` adds per-request `_meta` keys to every outbound request, such as

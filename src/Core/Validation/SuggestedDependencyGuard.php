@@ -44,4 +44,23 @@ final class SuggestedDependencyGuard
             $constraint,
         ));
     }
+
+    /**
+     * @param class-string     $consumer  The class that needs the extension
+     * @param non-empty-string $extension The PHP extension name, probed via `extension_loaded`
+     *
+     * @throws LogicException
+     */
+    public static function verifyExtension(string $consumer, string $extension): void
+    {
+        if (\extension_loaded($extension)) {
+            return;
+        }
+
+        throw new LogicException(\sprintf(
+            '%s requires the "%s" PHP extension. Enable it in php.ini or install a build that bundles it.',
+            $consumer,
+            $extension,
+        ));
+    }
 }

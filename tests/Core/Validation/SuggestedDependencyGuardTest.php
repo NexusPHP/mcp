@@ -44,4 +44,21 @@ final class SuggestedDependencyGuardTest extends AbstractMcpTestCase
 
         SuggestedDependencyGuard::verify(StubPackageBackedConsumer::class, 'Acme\Jwt\DoesNotExist', 'acme/jwt', '^1.0');
     }
+
+    public function testALoadedExtensionPassesSilently(): void
+    {
+        $this->expectNotToPerformAssertions();
+
+        SuggestedDependencyGuard::verifyExtension(StubPackageBackedConsumer::class, 'json');
+    }
+
+    public function testAMissingExtensionNamesTheConsumerAndTheExtension(): void
+    {
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessageIs(
+            'Nexus\Mcp\Tests\Fixtures\Core\Validation\StubPackageBackedConsumer requires the "acme_ext" PHP extension. Enable it in php.ini or install a build that bundles it.',
+        );
+
+        SuggestedDependencyGuard::verifyExtension(StubPackageBackedConsumer::class, 'acme_ext');
+    }
 }

@@ -1,7 +1,8 @@
 # Persisting tokens and registrations
 
 Both stores default to memory, through the shipped `InMemoryTokenStore` and `InMemoryClientRegistrationStore`,
-so a restart authorizes again. Implement the interfaces to outlive the process:
+so a restart authorizes again. For tokens, the shipped `EncryptedFileTokenStore` outlives the process.
+Implement the interfaces for anything else:
 
 ```php
 interface TokenStoreInterface
@@ -18,6 +19,23 @@ interface ClientRegistrationStoreInterface
     public function forget(string $issuer): void;
 }
 ```
+
+## `EncryptedFileTokenStore`
+
+The file-backed store keeps its whole token map in one file, encrypted with XChaCha20-Poly1305 (it needs
+`ext-sodium`, which most PHP builds bundle). The file is created owner-only (`0600`) and replaced atomically
+on every write.
+
+```php
+use Nexus\Mcp\Client\Auth\EncryptedFileTokenStore;
+
+$store = new EncryptedFileTokenStore('/var/lib/myapp/mcp-tokens.enc', $key);
+```
+
+The key is 32 raw bytes. Generate it once with `random_bytes(32)`, keep it outside the file's directory (an
+environment variable or a secret manager), and hand the same bytes to every process sharing the file. A file
+that does not decrypt with the configured key is refused rather than silently emptied, so a rotated or
+mistyped key surfaces as an error instead of a quiet re-authorization. Delete the file to start over.
 
 ## Keys and issuers
 
