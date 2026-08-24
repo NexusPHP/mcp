@@ -38,10 +38,16 @@ A `handle()` call on a transport that is not running answers `503` rather than s
 never arrive. Closing a running transport settles what is already in flight rather than abandon it. An open SSE
 stream reaches end-of-body, and a buffered request still awaiting its response gets that same `503`.
 
-[examples/http-server.php](../../examples/http-server.php) is a working mount, with
-[examples/PsrHttpAdapter.php](../../examples/PsrHttpAdapter.php) as the host binding for `amphp/http-server`. Any
-PSR-15 host works. What a host must get right is the SSE body. Pipe it frame by frame rather than buffer it, or
-the progress reports arrive only once the call they describe has finished.
+[examples/http-server.php](../../examples/http-server.php) is a working event-loop mount, with
+[examples/PsrHttpAdapter.php](../../examples/PsrHttpAdapter.php) as the host binding for `amphp/http-server`.
+
+[examples/http-server-sapi.php](../../examples/http-server-sapi.php) is the front-controller mount for PHP-FPM and
+other traditional SAPIs: each request builds the server, calls `handle()`, and streams the body out with `flush()`.
+Any PSR-15 host works. What a host must get right is the SSE body. Pipe it frame by frame rather than buffer it
+(under FPM that means output buffering and `zlib.output_compression` off), or the progress reports arrive only
+once the call they describe has finished. On a SAPI, a streaming response holds its worker for the stream's
+lifetime, and a `subscriptions/listen` stream only observes changes made during its own request, so
+subscription-driven servers belong on an event-loop host.
 
 ### Response modes
 

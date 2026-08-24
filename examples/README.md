@@ -19,6 +19,7 @@ autoloader, an uncaught-exception handler, and `PsrLogger`) lives in
 | `subscriptions` | `subscriptions/listen` in one process: the client opens a filtered stream, the server grows a tool at runtime and publishes a resource update, and both notifications arrive on the stream's callback. | [subscriptions.php](subscriptions.php) |
 | `input-required` | The elicitation round trip in one process: a tool answers with `InputRequiredResult`, the client re-calls with the collected answer and the echoed `requestState`, and the server verifies the state before finishing. | [input-required.php](input-required.php) |
 | `http-server` | Streamable HTTP MCP server bound to a socket by `amphp/http-server`, behind `SecuredHttpEndpoint`. One tool reports progress (answered as an SSE stream), one declares `x-mcp-header` (validated against the mirrored header). | [http-server.php](http-server.php) |
+| `http-server-sapi` | The same Streamable HTTP server as a front controller for PHP-FPM and other traditional SAPIs: each request builds the server from globals, calls `handle()`, and streams the response out with `flush()`. | [http-server-sapi.php](http-server-sapi.php) |
 | `http-client` | Streamable HTTP MCP client driving `http-server` over the network: one POST per message, progress parsed from the SSE stream mid-call, and an argument mirrored into `Mcp-Param-Tenant`. | [http-client.php](http-client.php) |
 | `authorization` | The full OAuth 2.1 client flow with no Docker and no browser: one process hosts a stub authorization server and a bearer-protected MCP server, and a headless user-agent walks discovery, registration, PKCE, and the token exchange before an authorized tool call. | [authorization.php](authorization.php) |
 | `keycloak-e2e` | The full OAuth 2.1 flow against a real Keycloak in Docker: a bearer-protected server, and a client that starts tokenless and walks discovery, anonymous Dynamic Client Registration, PKCE, and the token exchange before its first tool call. | [keycloak-e2e/](keycloak-e2e/) |
@@ -116,6 +117,24 @@ buffering it, which is what lets progress reports arrive mid-call.
 
 MCP Inspector can drive the endpoint too. Choose **Streamable HTTP** as the
 transport and enter `http://127.0.0.1:8931/mcp`.
+
+### Streamable HTTP on a traditional SAPI
+
+```bash
+php -S 127.0.0.1:8932 examples/http-server-sapi.php          # terminal 1
+php examples/http-client.php http://127.0.0.1:8932/mcp       # terminal 2
+```
+
+[http-server-sapi.php](http-server-sapi.php) is the front-controller shape:
+no event-loop host, each request builds the server, hands a PSR-7 request
+built from the superglobals to `handle()`, and streams the response body out
+with `flush()`. Mounted under PHP-FPM it works the same way, provided output
+buffering and `zlib.output_compression` are off so SSE frames leave as they
+are written. The front controller reads the whole body before
+`SecuredHttpEndpoint`'s cap can refuse it, so FPM's `post_max_size` is the
+first bound on this mount. A streaming response holds its worker for the stream's lifetime,
+and a `subscriptions/listen` stream only observes changes made during its own
+request, so subscription-driven servers belong on the event-loop mount.
 
 ## Logs go to STDERR
 
