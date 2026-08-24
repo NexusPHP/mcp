@@ -24,7 +24,16 @@ Clients are narrower still, but only in what they *serve*. With no `ServerReques
 
 ## Workflow gates
 
-Every change must survive the gate suite before it is done. That suite is **`composer test:with-untracked`**: it covers unstaged and untracked work, and its mutation step is the diff-based one. `composer test:all` is the same chain with full-tree mutation instead, which pushes it past 17 minutes. Reserve it for the maintainer, and do not reach for it or offer it as a pre-merge sweep. For fast iteration, the single-concern scripts are enough (`composer test:core` / `test:client` / `test:server` / `test:extension` / `test:auto-review` / `test:stan`). Reach for the script, not a bare `vendor/bin/phpunit`: each one carries `@putenv XDEBUG_MODE=off` plus the group and coverage flags.
+Every structural change to `src/` or `tests/` must survive the gate suite before it is done. That suite is **`composer test:with-untracked`**: it covers unstaged and untracked work, and its mutation step is the diff-based one. `composer test:all` is the same chain with full-tree mutation instead, which pushes it past 17 minutes. Reserve it for the maintainer, and do not reach for it or offer it as a pre-merge sweep. For fast iteration, the single-concern scripts are enough (`composer test:core` / `test:client` / `test:server` / `test:extension` / `test:auto-review` / `test:stan`). Reach for the script, not a bare `vendor/bin/phpunit`: each one carries `@putenv XDEBUG_MODE=off` plus the group and coverage flags.
+
+**Scope verification to what changed.** Every step of the gate is about PHP under `src/` and `tests/`, so pick the checks that cover the files actually touched, name the ones run, and take the union for a mixed set:
+
+- `composer lint:docs` runs regardless of what changed: `lint:typos` spellchecks the whole repository, source included.
+- `src/` or `tests/` changed only in a comment or non-type docblock prose → `cs:check` plus `phpstan:check`, and stop: no statement changed, so coverage and the mutant set are identical. Type-bearing annotations (`@param`, `@return`, `@var`, `@template`, `@phpstan-assert` and friends) are code, not comments, and earn the full gate. One exception: the class-level docblocks under `Core/Schema/` are asserted verbatim against `latest-schema.json` by `SchemaConformanceTest`, so add `composer test:auto-review` when one is touched, and their spec-verbatim punctuation must survive any prose cleanup.
+- PHP outside `src/` and `tests/` (`tools/src/`, `conformance/`, `examples/`) → `cs:check` plus `phpstan:check`, nothing else: no PHPUnit suite runs them, `coverage:check` reads only `src/` statements, and `infection.json5` lists `src` as its single source directory. The tree is the trigger, not the file extension.
+- Only `*.sh` → `bash -n <file>`. Only `.github/workflows/*.yml` → `python3 .github/scripts/validate_yaml.py`, plus `.github/scripts/actionlint` when installed. Only `*.md` → `lint:docs`, plus `lint:fences` when the markdown carries PHP fences. `composer.json` scripts → `composer validate --strict`.
+- Work a green gate already verified stays verified: a later, unrelated edit does not restart from zero.
+- The conformance runs (`conformance:server` / `:client`) sit deliberately outside the gate and are re-run only when the harness, the fixtures, or the `src/` behaviour they exercise changed.
 
 Mutation testing:
 
