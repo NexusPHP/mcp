@@ -67,7 +67,10 @@ $extensionPrefixes = ['tasks-'];
 $extensionScenarios = [
     'auth/client-credentials-basic',
     'auth/client-credentials-jwt',
+    'auth/dpop',
+    'auth/dpop-nonce',
     'auth/enterprise-managed-authorization',
+    'auth/wif-jwt-bearer',
 ];
 
 $bucketOf = static function (string $name, string $mode) use ($extensionPrefixes, $extensionScenarios): string {
@@ -182,7 +185,7 @@ if ($writeBadges) {
         $badge = [
             'schemaVersion' => 1,
             'label' => 'spec' === $tally['bucket']
-                ? sprintf('conformance (%s)', $tally['mode'])
+                ? sprintf('core (%s)', $tally['mode'])
                 : sprintf('%s (%s)', $tally['bucket'], $tally['mode']),
             'message' => sprintf('%d/%d (%d%%)', $tally['passed'], $tally['scored'], $percent),
             'color' => match (true) {
