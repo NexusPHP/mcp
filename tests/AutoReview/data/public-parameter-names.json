@@ -47,7 +47,8 @@
             "tokens",
             "registrations",
             "logger",
-            "grantStrategy"
+            "grantStrategy",
+            "lock"
         ],
         "request": [
             "request",
@@ -59,13 +60,30 @@
             "clientId",
             "issuer",
             "clientSecret",
-            "tokenEndpointAuthMethod"
+            "tokenEndpointAuthMethod",
+            "clientSecretExpiresAt"
         ]
     },
     "Nexus\\Mcp\\Client\\Auth\\DiscoveredResource": {
         "__construct": [
             "metadata",
             "server"
+        ]
+    },
+    "Nexus\\Mcp\\Client\\Auth\\EncryptedFileTokenStore": {
+        "__construct": [
+            "path",
+            "key"
+        ],
+        "forget": [
+            "resource"
+        ],
+        "read": [
+            "resource"
+        ],
+        "write": [
+            "resource",
+            "token"
         ]
     },
     "Nexus\\Mcp\\Client\\Auth\\GrantContext": {
@@ -119,7 +137,8 @@
             "maxRequestTimeout",
             "retryLostRequests",
             "extensionMethods",
-            "serverCapabilities"
+            "serverCapabilities",
+            "metaExtrasFactory"
         ],
         "callTool": [
             "name",
@@ -204,6 +223,9 @@
         ],
         "setMaxRequestTimeout": [
             "seconds"
+        ],
+        "setMetaExtrasFactory": [
+            "factory"
         ],
         "setProgressTokenFactory": [
             "factory"
@@ -409,6 +431,9 @@
     },
     "Nexus\\Mcp\\Core\\Auth\\ResourceIdentifier": {
         "__construct": [
+            "uri"
+        ],
+        "covers": [
             "uri"
         ],
         "matchesAudience": [
@@ -1826,7 +1851,8 @@
         "__construct": [
             "client",
             "stallCeiling",
-            "sleep"
+            "sleep",
+            "minPollIntervalMs"
         ],
         "awaitTask": [
             "task",
@@ -1968,6 +1994,13 @@
             "key"
         ]
     },
+    "Nexus\\Mcp\\Extension\\Tasks\\Server\\Exception\\TaskLimitReachedException": {
+        "__construct": [
+            "limit",
+            "requestId",
+            "previous"
+        ]
+    },
     "Nexus\\Mcp\\Extension\\Tasks\\Server\\Handler\\CancelTaskRequestHandler": {
         "__construct": [
             "store",
@@ -1999,7 +2032,8 @@
     },
     "Nexus\\Mcp\\Extension\\Tasks\\Server\\Store\\InMemoryTaskStore": {
         "__construct": [
-            "clock"
+            "clock",
+            "maxRecords"
         ],
         "createTask": [
             "toolName",
@@ -2060,7 +2094,8 @@
             "toolPolicies",
             "defaultTtlMs",
             "defaultPollIntervalMs",
-            "logger"
+            "logger",
+            "maxRunningTasks"
         ]
     },
     "Nexus\\Mcp\\Extension\\Tasks\\Server\\ToolTaskPolicy": {
@@ -2159,7 +2194,8 @@
     "Nexus\\Mcp\\Server\\Auth\\JwksAccessTokenValidator": {
         "__construct": [
             "keys",
-            "expectedIssuer"
+            "expectedIssuer",
+            "resource"
         ],
         "validate": [
             "token"
@@ -2253,7 +2289,8 @@
             "limit",
             "requestId",
             "previous",
-            "perPeer"
+            "perPeer",
+            "perStream"
         ]
     },
     "Nexus\\Mcp\\Server\\Exception\\ToolNotFoundException": {
@@ -2696,7 +2733,8 @@
             "resourceSubscriptions",
             "logger",
             "maxSubscriptions",
-            "maxSubscriptionsPerPeer"
+            "maxSubscriptionsPerPeer",
+            "maxResourceSubscriptionsPerStream"
         ],
         "close": [
             "entry"
@@ -2899,7 +2937,8 @@
             "streamFactory",
             "logger",
             "responseMode",
-            "keepAliveInterval"
+            "keepAliveInterval",
+            "maxBufferedBytes"
         ],
         "handle": [
             "request"
@@ -2928,6 +2967,12 @@
         "validate": [
             "data",
             "schema"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Validation\\SchemaViolation": {
+        "__construct": [
+            "pointer",
+            "message"
         ]
     }
 }
