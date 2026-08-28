@@ -18,6 +18,7 @@ use Amp\DeferredCancellation;
 use Amp\Future;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Client\ClientBuilder;
+use Nexus\Mcp\Client\Time\CancellableDelayInterface;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitResult;
 use Nexus\Mcp\Core\Schema\Enum\ElicitAction;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
@@ -31,6 +32,7 @@ use Nexus\Mcp\Extension\Tasks\Schema\RequestParams\UpdateTaskRequestParams;
 use Nexus\Mcp\Extension\Tasks\Schema\Result\CreateTaskResult;
 use Nexus\Mcp\Extension\Tasks\Schema\Result\GetTaskResult;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
+use Nexus\Mcp\Tests\Fixtures\Client\Time\RecordingDelay;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
@@ -249,10 +251,8 @@ final class TaskClientTest extends AbstractMcpTestCase
 
     public function testAwaitTaskSleepsTheFallbackThenTheServerSuggestedInterval(): void
     {
-        $slept = [];
-        [$tasks, $transport] = $this->buildTaskClient(sleep: static function (float $seconds) use (&$slept): void {
-            $slept[] = $seconds;
-        });
+        $delay = new RecordingDelay();
+        [$tasks, $transport] = $this->buildTaskClient(delay: $delay);
 
         $payload = $this->buildTaskPayload('working');
         unset($payload['pollIntervalMs']);
@@ -269,15 +269,13 @@ final class TaskClientTest extends AbstractMcpTestCase
 
         $await->await();
 
-        self::assertSame([1.0, 0.1], $slept, 'The 1 ms suggestion is raised to the default floor.');
+        self::assertSame([1.0, 0.1], $delay->sleeps, 'The 1 ms suggestion is raised to the default floor.');
     }
 
     public function testAwaitTaskFollowsAServerSuggestedIntervalAboveTheFloor(): void
     {
-        $slept = [];
-        [$tasks, $transport] = $this->buildTaskClient(sleep: static function (float $seconds) use (&$slept): void {
-            $slept[] = $seconds;
-        }, minPollIntervalMs: 50);
+        $delay = new RecordingDelay();
+        [$tasks, $transport] = $this->buildTaskClient(delay: $delay, minPollIntervalMs: 50);
 
         $handle = CreateTaskResult::fromArray([...$this->buildTaskPayload('working'), 'pollIntervalMs' => 250]);
 
@@ -290,7 +288,25 @@ final class TaskClientTest extends AbstractMcpTestCase
 
         $await->await();
 
-        self::assertSame([0.05, 0.05], $slept, 'An interval at the floor passes, one under it is raised to the floor.');
+        self::assertSame([0.05, 0.05], $delay->sleeps, 'An interval at the floor passes, one under it is raised to the floor.');
+    }
+
+    public function testAwaitTaskHoldsAnAbsurdSuggestedIntervalToTheCeiling(): void
+    {
+        $delay = new RecordingDelay();
+        [$tasks, $transport] = $this->buildTaskClient(delay: $delay);
+
+        $handle = CreateTaskResult::fromArray([...$this->buildTaskPayload('working'), 'pollIntervalMs' => \PHP_INT_MAX]);
+
+        $await = async(static fn(): GetTaskResult => $tasks->awaitTask($handle));
+        $await->ignore();
+
+        $this->respondToNextTasksGet($transport, $this->buildTaskPayload('working', ['pollIntervalMs' => \PHP_INT_MAX]), 0);
+        $this->respondToNextTasksGet($transport, $this->buildTaskPayload('completed', ['result' => ['resultType' => 'complete', 'content' => []]]), 1);
+
+        $await->await();
+
+        self::assertSame([3_600.0], $delay->sleeps);
     }
 
     public function testConstructorRejectsANonPositiveMinimumPollInterval(): void
@@ -318,7 +334,7 @@ final class TaskClientTest extends AbstractMcpTestCase
     public function testAwaitTaskStallsAtTheDefaultCeiling(): void
     {
         $stopped = new \ArrayObject([false]);
-        [$tasks, $transport] = $this->buildTaskClient(sleep: static function (): void {});
+        [$tasks, $transport] = $this->buildTaskClient(delay: new RecordingDelay());
         $handle = CreateTaskResult::fromArray($this->buildTaskPayload('working'));
         $responder = $this->startInputRequiredResponder($transport, $stopped);
 
@@ -337,7 +353,7 @@ final class TaskClientTest extends AbstractMcpTestCase
     public function testAwaitTaskStallsWhenTheResolverKeepsAnsweringNothing(): void
     {
         $stopped = new \ArrayObject([false]);
-        [$tasks, $transport] = $this->buildTaskClient(stallCeiling: 2, sleep: static function (): void {});
+        [$tasks, $transport] = $this->buildTaskClient(stallCeiling: 2, delay: new RecordingDelay());
         $handle = CreateTaskResult::fromArray($this->buildTaskPayload('working'));
         $responder = $this->startInputRequiredResponder($transport, $stopped);
 
@@ -356,7 +372,7 @@ final class TaskClientTest extends AbstractMcpTestCase
     public function testAwaitTaskResetsItsStallCounterAfterProgress(): void
     {
         $stopped = new \ArrayObject([false]);
-        [$tasks, $transport] = $this->buildTaskClient(stallCeiling: 1, sleep: static function (): void {});
+        [$tasks, $transport] = $this->buildTaskClient(stallCeiling: 1, delay: new RecordingDelay());
         $handle = CreateTaskResult::fromArray($this->buildTaskPayload('working'));
         $responder = $this->startInputRequiredResponder($transport, $stopped);
 
@@ -390,7 +406,7 @@ final class TaskClientTest extends AbstractMcpTestCase
             return $answers;
         };
 
-        [$tasks, $transport] = $this->buildTaskClient(sleep: static function (): void {});
+        [$tasks, $transport] = $this->buildTaskClient(delay: new RecordingDelay());
         $handle = CreateTaskResult::fromArray($this->buildTaskPayload('working'));
         $await = async(static fn(): GetTaskResult => $tasks->awaitTask($handle, $resolver));
         $await->ignore();
@@ -430,7 +446,7 @@ final class TaskClientTest extends AbstractMcpTestCase
     public function testAwaitTaskStallsWhenTheResolverAnswersOutsideTheOfferedSet(): void
     {
         $stopped = new \ArrayObject([false]);
-        [$tasks, $transport] = $this->buildTaskClient(stallCeiling: 2, sleep: static function (): void {});
+        [$tasks, $transport] = $this->buildTaskClient(stallCeiling: 2, delay: new RecordingDelay());
         $handle = CreateTaskResult::fromArray($this->buildTaskPayload('working'));
         $responder = $this->startInputRequiredResponder($transport, $stopped);
 
@@ -450,7 +466,7 @@ final class TaskClientTest extends AbstractMcpTestCase
 
     public function testAwaitTaskSendsOnlyTheOfferedKeys(): void
     {
-        [$tasks, $transport] = $this->buildTaskClient(sleep: static function (): void {});
+        [$tasks, $transport] = $this->buildTaskClient(delay: new RecordingDelay());
         $handle = CreateTaskResult::fromArray($this->buildTaskPayload('working'));
         $await = async(static fn(): GetTaskResult => $tasks->awaitTask($handle, static fn(array $requests): array => [
             'confirm' => new ElicitResult(action: ElicitAction::Accept),
@@ -493,7 +509,7 @@ final class TaskClientTest extends AbstractMcpTestCase
             return $answers;
         };
 
-        [$tasks, $transport] = $this->buildTaskClient(sleep: static function (): void {});
+        [$tasks, $transport] = $this->buildTaskClient(delay: new RecordingDelay());
         $handle = CreateTaskResult::fromArray($this->buildTaskPayload('working'));
         $await = async(static fn(): GetTaskResult => $tasks->awaitTask($handle, $resolver));
         $await->ignore();
@@ -524,7 +540,7 @@ final class TaskClientTest extends AbstractMcpTestCase
 
     public function testAwaitTaskStallStreakBreaksOnAWorkingPoll(): void
     {
-        [$tasks, $transport] = $this->buildTaskClient(stallCeiling: 2, sleep: static function (): void {});
+        [$tasks, $transport] = $this->buildTaskClient(stallCeiling: 2, delay: new RecordingDelay());
         $handle = CreateTaskResult::fromArray($this->buildTaskPayload('working'));
         $await = async(static fn(): GetTaskResult => $tasks->awaitTask($handle));
         $await->ignore();
@@ -594,13 +610,12 @@ final class TaskClientTest extends AbstractMcpTestCase
     }
 
     /**
-     * @param null|int<1, max>           $stallCeiling
-     * @param null|\Closure(float): void $sleep
-     * @param null|int<1, max>           $minPollIntervalMs
+     * @param null|int<1, max> $stallCeiling
+     * @param null|int<1, max> $minPollIntervalMs
      *
      * @return array{TaskClient, RecordingTransport}
      */
-    private function buildTaskClient(?int $stallCeiling = null, ?\Closure $sleep = null, ?int $minPollIntervalMs = null): array
+    private function buildTaskClient(?int $stallCeiling = null, ?CancellableDelayInterface $delay = null, ?int $minPollIntervalMs = null): array
     {
         $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
@@ -611,7 +626,11 @@ final class TaskClientTest extends AbstractMcpTestCase
         $transport = new RecordingTransport();
         $client->connect($transport);
 
-        $arguments = ['sleep' => $sleep];
+        $arguments = [];
+
+        if (null !== $delay) {
+            $arguments['delay'] = $delay;
+        }
 
         if (null !== $stallCeiling) {
             $arguments['stallCeiling'] = $stallCeiling;

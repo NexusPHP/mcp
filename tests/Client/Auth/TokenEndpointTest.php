@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Tests\Client\Auth;
 
 use Amp\Http\Client\Request;
 use Amp\NullCancellation;
+use Nexus\Clock\FrozenClock;
 use Nexus\Mcp\Client\Auth\AccessToken;
 use Nexus\Mcp\Client\Auth\ClientRegistration;
 use Nexus\Mcp\Client\Auth\TokenEndpoint;
@@ -44,6 +45,7 @@ use function Amp\ByteStream\buffer;
 final class TokenEndpointTest extends AbstractMcpTestCase
 {
     private const string ISSUER = 'https://auth.example.com';
+    private const int FROZEN_NOW = 1_577_836_800;
     private const string RESOURCE = 'https://mcp.example.com/mcp';
     private const string REDIRECT_URI = 'http://localhost:3000/callback';
     private const string VERIFIER = 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk';
@@ -87,24 +89,18 @@ final class TokenEndpointTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse(['expires_in' => 3_600]));
 
-        $before = time();
         $token = $this->exchange($http);
 
-        self::assertNotNull($token->expiresAt);
-        self::assertGreaterThanOrEqual($before + 3_600, $token->expiresAt);
-        self::assertLessThanOrEqual(time() + 3_600, $token->expiresAt);
+        self::assertSame(self::FROZEN_NOW + 3_600, $token->expiresAt);
     }
 
     public function testExchangeCodeHoldsAnAbsurdLifetimeToOneTheClockCanCarry(): void
     {
         $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse(['expires_in' => \PHP_INT_MAX]));
 
-        $before = time();
         $token = $this->exchange($http);
 
-        self::assertNotNull($token->expiresAt);
-        self::assertGreaterThanOrEqual($before + 315_360_000, $token->expiresAt);
-        self::assertLessThanOrEqual(time() + 315_360_000, $token->expiresAt);
+        self::assertSame(self::FROZEN_NOW + 315_360_000, $token->expiresAt);
     }
 
     public function testExchangeCodeLeavesTheExpiryUnknownWhenTheServerNamesNoLifetime(): void
@@ -530,7 +526,11 @@ final class TokenEndpointTest extends AbstractMcpTestCase
         ?AuthorizationServerMetadata $metadata = null,
         float $timeout = 10.0,
     ): AccessToken {
-        return (new TokenEndpoint($http, $timeout))->requestToken(
+        return (new TokenEndpoint(
+            $http,
+            $timeout,
+            clock: new FrozenClock(\sprintf('@%d', self::FROZEN_NOW)),
+        ))->requestToken(
             $metadata ?? $this->buildMetadata(),
             $registration ?? new ClientRegistration('the-client', self::ISSUER),
             [

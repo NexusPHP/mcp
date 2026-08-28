@@ -8,6 +8,23 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+### Added
+
+- Time is injectable everywhere via [`nexusphp/clock`](https://github.com/NexusPHP/clock), a new dependency:
+  `AuthorizedHttpClient`, `ClientCredentialsGrant`, `BearerAuthenticationMiddleware`, and `InMemoryTaskStore`
+  take a `Clock`, and `SupervisedTransport` takes a `Stopwatch`, monotonic by default.
+- `CancellableDelayInterface` and its `EventLoopDelay` implementation: a `Nexus\Clock\Delay` whose sleep an
+  Amp cancellation can abort.
+- `TaskClient` holds an absurd server-suggested `pollIntervalMs` to a one-hour ceiling
+  (`TaskClient::MAX_POLL_INTERVAL_MS`).
+
+### Changed
+
+- `SupervisedTransport`'s `clock` closure is now a `stopwatch` (`Nexus\Clock\Stopwatch`),
+  `BearerAuthenticationMiddleware`'s and `InMemoryTaskStore`'s `clock` closures a `Nexus\Clock\Clock`.
+  See BREAKING_CHANGES.md.
+- `TaskClient`'s `sleep` closure is now a `delay` (`CancellableDelayInterface`). See BREAKING_CHANGES.md.
+
 ## [v0.16.0](https://github.com/NexusPHP/mcp/compare/v0.15.0...v0.16.0) - 2026-08-24
 
 The pre-v1 hardening release. Every default now bounds what a peer or a slow reader can cost (request

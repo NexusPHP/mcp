@@ -6,6 +6,31 @@ for *when* breaking changes may land and how they are communicated lives in
 
 ## v0.16.0 to Unreleased
 
+### The time seams are `nexusphp/clock` capabilities, not closures
+
+Four constructors traded their closure seams for [`nexusphp/clock`](https://github.com/NexusPHP/clock)
+interfaces, and each defaults to the production implementation, so only callers that passed the closure
+migrate. Tests freeze the `Clock` and `Stopwatch` seams with `Nexus\Clock\FrozenClock`, which implements
+both. `TaskClient`'s seam is the SDK's own `CancellableDelayInterface` (a `Nexus\Clock\Delay` whose
+`sleep()` takes an optional `Amp\Cancellation`), which `FrozenClock` does not implement, so a test double
+implements the interface directly:
+
+```php
+// before
+new BearerAuthenticationMiddleware(..., clock: static fn(): int => $now);
+new SupervisedTransport(..., clock: static fn(): float => $now);
+new TaskClient($client, sleep: static function (float $s, ?Cancellation $c): void {});
+new InMemoryTaskStore(static fn(): \DateTimeImmutable => $now);
+// after
+new BearerAuthenticationMiddleware(..., clock: new FrozenClock('@1000'));
+new SupervisedTransport(..., stopwatch: new FrozenClock());
+new TaskClient($client, delay: new RecordingDelayOfYourOwn()); // any CancellableDelayInterface
+new InMemoryTaskStore(new FrozenClock());
+```
+
+`SupervisedTransport`'s window is now measured on a monotonic stopwatch by default, so a wall-clock step
+can no longer corrupt the restart budget.
+
 ## v0.15.0 to v0.16.0
 
 ### Handler registration takes the envelope class, not a method name beside it

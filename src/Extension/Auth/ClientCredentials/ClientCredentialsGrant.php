@@ -14,6 +14,8 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Extension\Auth\ClientCredentials;
 
 use Amp\Cancellation;
+use Nexus\Clock\Clock;
+use Nexus\Clock\SystemClock;
 use Nexus\Mcp\Client\Auth\AccessToken;
 use Nexus\Mcp\Client\Auth\ClientRegistration;
 use Nexus\Mcp\Client\Auth\GrantContext;
@@ -42,10 +44,12 @@ final readonly class ClientCredentialsGrant implements GrantStrategyInterface
      */
     private ?string $signingAlgorithm;
 
-    public function __construct(private ClientSecretCredential|PrivateKeyJwtCredential $credential)
-    {
+    public function __construct(
+        private ClientSecretCredential|PrivateKeyJwtCredential $credential,
+        Clock $clock = new SystemClock(),
+    ) {
         if ($credential instanceof PrivateKeyJwtCredential) {
-            $this->privateKeyJwtSigner = new ClientAssertionSigner($credential);
+            $this->privateKeyJwtSigner = new ClientAssertionSigner($credential, $clock);
             $this->authMethod = TokenEndpointAuthMethod::PrivateKeyJwt;
             $this->clientSecret = null;
             $this->signingAlgorithm = $credential->algorithm;

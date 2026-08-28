@@ -14,6 +14,8 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Extension\Auth;
 
 use Firebase\JWT\JWT;
+use Nexus\Clock\Clock;
+use Nexus\Clock\SystemClock;
 use Nexus\Mcp\Core\Validation\SuggestedDependencyGuard;
 use Nexus\Mcp\Extension\Auth\ClientCredentials\PrivateKeyJwtCredential;
 
@@ -28,8 +30,10 @@ final readonly class ClientAssertionSigner
 {
     private const int ASSERTION_LIFETIME_SECONDS = 300;
 
-    public function __construct(private PrivateKeyJwtCredential $credential)
-    {
+    public function __construct(
+        private PrivateKeyJwtCredential $credential,
+        private Clock $clock = new SystemClock(),
+    ) {
         SuggestedDependencyGuard::verify(self::class, JWT::class, 'firebase/php-jwt', '^7.0');
     }
 
@@ -40,7 +44,7 @@ final readonly class ClientAssertionSigner
      */
     public function signAssertion(string $audience): string
     {
-        $issuedAt = time();
+        $issuedAt = $this->clock->now()->getTimestamp();
 
         return JWT::encode([
             'iss' => $this->credential->clientId,

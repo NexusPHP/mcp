@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Server\Transport\Http\Middleware;
 
+use Nexus\Clock\FrozenClock;
+use Nexus\Clock\SystemClock;
 use Nexus\Mcp\Core\Auth\VerifiedAccessToken;
 use Nexus\Mcp\Core\Auth\WwwAuthenticateChallenge;
 use Nexus\Mcp\Server\Auth\AccessTokenValidatorInterface;
@@ -123,7 +125,7 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
             self::RESOURCE,
             self::METADATA_URL,
             new Psr17Factory(),
-            clock: static fn(): int => 1_000,
+            clock: new FrozenClock('@1000'),
         );
 
         $response = $middleware->process($this->buildRequest('the-token'), $handler);
@@ -424,7 +426,7 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
             new Psr17Factory(),
             $requiredScopes,
             $expiryLeewaySeconds,
-            null === $now ? null : static fn(): int => $now,
+            null === $now ? new SystemClock() : new FrozenClock(\sprintf('@%d', $now)),
         );
     }
 

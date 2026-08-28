@@ -14,6 +14,8 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Extension\Tasks\Server\Store;
 
 use Nexus\Assert\Assert;
+use Nexus\Clock\Clock;
+use Nexus\Clock\SystemClock;
 use Nexus\Mcp\Core\Exception\RuntimeException;
 use Nexus\Mcp\Core\JsonRpc\ErrorFactory;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
@@ -42,26 +44,19 @@ final class InMemoryTaskStore implements TaskStoreInterface
     private array $terminalAt = [];
 
     /**
-     * @var \Closure(): \DateTimeImmutable
-     */
-    private readonly \Closure $clock;
-
-    /**
-     * @param null|\Closure(): \DateTimeImmutable $clock
-     * @param int<1, max>                         $maxRecords Records held at once, settled ones included
+     * @param int<1, max> $maxRecords Records held at once, settled ones included
      */
     public function __construct(
-        ?\Closure $clock = null,
+        private readonly Clock $clock = new SystemClock(),
         private readonly int $maxRecords = self::DEFAULT_MAX_RECORDS,
     ) {
-        $this->clock = $clock ?? static fn(): \DateTimeImmutable => new \DateTimeImmutable();
         Assert::that($maxRecords)->isPositiveInt('maxRecords must be a positive integer, {value} given.');
     }
 
     #[\Override]
     public function createTask(string $toolName, ?array $arguments, ?int $ttlMs, int $pollIntervalMs): TaskRecord
     {
-        $instant = ($this->clock)();
+        $instant = $this->clock->now();
         $this->reclaim($this->convertToMilliseconds($instant));
 
         $now = $instant->format(\DateTimeInterface::ATOM);
@@ -301,7 +296,7 @@ final class InMemoryTaskStore implements TaskStoreInterface
      */
     private function replaceRecord(TaskRecord $record, TaskStatus $status, array $changes): TaskRecord
     {
-        $instant = ($this->clock)();
+        $instant = $this->clock->now();
 
         $updated = new TaskRecord(
             taskId: $record->taskId,
@@ -361,7 +356,7 @@ final class InMemoryTaskStore implements TaskStoreInterface
             return false;
         }
 
-        $nowMs ??= $this->convertToMilliseconds(($this->clock)());
+        $nowMs ??= $this->convertToMilliseconds($this->clock->now());
 
         return $record->ttlMs <= $nowMs - $this->convertToMilliseconds($terminalAt);
     }
@@ -375,7 +370,7 @@ final class InMemoryTaskStore implements TaskStoreInterface
             return false;
         }
 
-        $nowMs ??= $this->convertToMilliseconds(($this->clock)());
+        $nowMs ??= $this->convertToMilliseconds($this->clock->now());
 
         return $record->ttlMs <= $nowMs - $this->convertToMilliseconds(new \DateTimeImmutable($record->createdAt));
     }

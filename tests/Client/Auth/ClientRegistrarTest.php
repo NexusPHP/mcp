@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Client\Auth;
 
 use Amp\NullCancellation;
+use Nexus\Clock\FrozenClock;
 use Nexus\Mcp\Client\Auth\AuthorizationOptions;
 use Nexus\Mcp\Client\Auth\ClientRegistrar;
 use Nexus\Mcp\Client\Auth\ClientRegistration;
@@ -43,6 +44,7 @@ use function Amp\ByteStream\buffer;
 final class ClientRegistrarTest extends AbstractMcpTestCase
 {
     private const string ISSUER = 'https://auth.example.com';
+    private const int FROZEN_NOW = 1_577_836_800;
     private const string CIMD_URL = 'https://app.example.com/oauth/client.json';
 
     public function testPreRegisteredCredentialsWinOverEveryOtherMechanism(): void
@@ -414,7 +416,7 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
             self::ISSUER,
             'the-secret',
             TokenEndpointAuthMethod::ClientSecretBasic,
-            time(),
+            self::FROZEN_NOW,
         ));
         $http = (new RecordingHttpClient())->willAnswerJson(['client_id' => 'renewed']);
 
@@ -479,7 +481,11 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
         AuthorizationOptions $options,
         ?InMemoryClientRegistrationStore $store = null,
     ): ClientRegistration {
-        return (new ClientRegistrar($http, $store ?? new InMemoryClientRegistrationStore()))->resolve($metadata, $options, new NullCancellation());
+        return (new ClientRegistrar(
+            $http,
+            $store ?? new InMemoryClientRegistrationStore(),
+            clock: new FrozenClock(\sprintf('@%d', self::FROZEN_NOW)),
+        ))->resolve($metadata, $options, new NullCancellation());
     }
 
     /**

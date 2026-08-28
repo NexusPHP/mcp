@@ -77,7 +77,14 @@ unanswered stays pending on the server.
 Nothing but the `$cancellation` bounds a task that keeps `working`, so pass one carrying the deadline you can
 afford, such as `new Amp\TimeoutCancellation(600)`. A server-suggested `pollIntervalMs` under the client's
 `minPollIntervalMs` (`TaskClient::DEFAULT_MIN_POLL_INTERVAL_MS`, 100) is raised to it, so a server cannot
-drive the client into polling at request rate.
+drive the client into polling at request rate, and one past `TaskClient::MAX_POLL_INTERVAL_MS` (one hour)
+is held to that ceiling.
+
+The waiting between polls goes through the `delay` constructor argument, a
+`Nexus\Mcp\Client\Time\CancellableDelayInterface`: a [`nexusphp/clock`](https://github.com/NexusPHP/clock)
+`Delay` whose `sleep()` also takes the optional `Amp\Cancellation`. The default `EventLoopDelay` suspends the
+calling fiber on the event loop. A test passes a double that records the requested durations and returns
+immediately, which makes an `awaitTask()` scenario run in microseconds.
 
 ### Keys and stalls
 

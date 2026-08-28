@@ -16,6 +16,8 @@ namespace Nexus\Mcp\Extension\Tasks\Client;
 use Amp\Cancellation;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Client\Client;
+use Nexus\Mcp\Client\Time\CancellableDelayInterface;
+use Nexus\Mcp\Client\Time\EventLoopDelay;
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\RequestParams\CallToolRequestParams;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
@@ -34,8 +36,6 @@ use Nexus\Mcp\Extension\Tasks\Schema\Result\GetTaskResult;
 use Nexus\Mcp\Extension\Tasks\Schema\ResultResponse\GetTaskResultResponse;
 use Nexus\Mcp\Extension\Tasks\Schema\ResultResponse\TaskCallToolResultResponse;
 
-use function Amp\delay;
-
 /**
  * Task-aware client surface over `Client::sendRequest()`.
  */
@@ -44,28 +44,23 @@ final readonly class TaskClient implements TaskClientInterface
     public const int DEFAULT_MIN_POLL_INTERVAL_MS = 100;
 
     /**
-     * @var \Closure(float, null|Cancellation): void
+     * Ceiling an absurd server-suggested `pollIntervalMs` is held to, so it stays a duration the delay can carry.
      */
-    private \Closure $sleep;
+    public const int MAX_POLL_INTERVAL_MS = 3_600_000;
 
     /**
-     * @param int<1, max>                                   $stallCeiling      Consecutive `input_required` polls sending no
-     *                                                                         answers before `awaitTask()` gives up
-     * @param null|\Closure(float, null|Cancellation): void $sleep             Suspends between polls, seconds
-     * @param int<1, max>                                   $minPollIntervalMs Floor a shorter server-suggested `pollIntervalMs` is raised to
+     * @param int<1, max> $stallCeiling      Consecutive `input_required` polls sending no
+     *                                       answers before `awaitTask()` gives up
+     * @param int<1, max> $minPollIntervalMs Floor a shorter server-suggested `pollIntervalMs` is raised to
      */
     public function __construct(
         private Client $client,
         private int $stallCeiling = 60,
-        ?\Closure $sleep = null,
+        private CancellableDelayInterface $delay = new EventLoopDelay(),
         private int $minPollIntervalMs = self::DEFAULT_MIN_POLL_INTERVAL_MS,
     ) {
         Assert::that($stallCeiling)->isPositiveInt('Task stall ceiling must be a positive integer, {value} given.');
         Assert::that($minPollIntervalMs)->isPositiveInt('Task minimum poll interval must be a positive integer, {value} given.');
-
-        $this->sleep = $sleep ?? static function (float $seconds, ?Cancellation $cancellation): void {
-            delay($seconds, cancellation: $cancellation);
-        };
     }
 
     #[\Override]
@@ -157,7 +152,10 @@ final readonly class TaskClient implements TaskClientInterface
                 $stalledPolls = 0;
             }
 
-            ($this->sleep)(max($intervalMs, $this->minPollIntervalMs) / 1_000, $cancellation);
+            $this->delay->sleep(
+                min(max($intervalMs, $this->minPollIntervalMs), self::MAX_POLL_INTERVAL_MS) / 1_000.0,
+                $cancellation,
+            );
         }
     }
 }

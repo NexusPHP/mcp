@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Client\Transport;
 
+use Nexus\Clock\FrozenClock;
+use Nexus\Clock\Stopwatch;
 use Nexus\Mcp\Client\Transport\SupervisedTransport;
 use Nexus\Mcp\Core\Exception\SupervisionExhaustedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
@@ -26,6 +28,7 @@ use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use Psr\Log\LogLevel;
+use Psr\Log\NullLogger;
 use Revolt\EventLoop;
 
 use function Amp\async;
@@ -669,22 +672,20 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
     {
         $spawned = [];
         $logger = new ArrayLogger();
-        $now = 0.0;
+        $stopwatch = new FrozenClock();
         $transport = $this->buildTransport(
             $spawned,
             maxRestarts: 1,
             logger: $logger,
             restartWindow: 10.0,
-            clock: static function () use (&$now): float {
-                return $now;
-            },
+            stopwatch: $stopwatch,
         );
 
         $transport->start();
         $this->readConnectionAt($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
-        $now = 10.5;
+        $stopwatch->advance(10.5);
 
         $this->readConnectionAt($spawned, 1)->emitUnexpectedExit();
         EventLoop::run();
@@ -705,14 +706,12 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
     public function testADeathExactlyOnTheWindowEdgeStaysInsideIt(): void
     {
         $spawned = [];
-        $now = 0.0;
+        $stopwatch = new FrozenClock();
         $transport = $this->buildTransport(
             $spawned,
             maxRestarts: 1,
             restartWindow: 10.0,
-            clock: static function () use (&$now): float {
-                return $now;
-            },
+            stopwatch: $stopwatch,
         );
 
         $errors = [];
@@ -724,7 +723,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         $this->readConnectionAt($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
-        $now = 10.0;
+        $stopwatch->advance(10.0);
 
         $this->readConnectionAt($spawned, 1)->emitUnexpectedExit();
         EventLoop::run();
@@ -737,14 +736,13 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
     public function testTheWindowOpensAtTheFirstRestartNotAtTheClocksOrigin(): void
     {
         $spawned = [];
-        $now = 5.0;
+        $stopwatch = new FrozenClock();
+        $stopwatch->advance(5.0);
         $transport = $this->buildTransport(
             $spawned,
             maxRestarts: 1,
             restartWindow: 10.0,
-            clock: static function () use (&$now): float {
-                return $now;
-            },
+            stopwatch: $stopwatch,
         );
 
         $errors = [];
@@ -756,7 +754,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         $this->readConnectionAt($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
-        $now = 12.0;
+        $stopwatch->advance(7.0);
 
         $this->readConnectionAt($spawned, 1)->emitUnexpectedExit();
         EventLoop::run();
@@ -1348,7 +1346,6 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
 
     /**
      * @param list<SupervisableRecordingTransport> $spawned
-     * @param null|\Closure(): float               $clock
      */
     private function buildTransport(
         array &$spawned,
@@ -1356,7 +1353,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         float $restartDelay = 0.0,
         ?ArrayLogger $logger = null,
         float $restartWindow = SupervisedTransport::DEFAULT_RESTART_WINDOW,
-        ?\Closure $clock = null,
+        ?Stopwatch $stopwatch = null,
     ): SupervisedTransport {
         $factory = static function () use (&$spawned): SupervisableTransportInterface {
             $inner = new SupervisableRecordingTransport();
@@ -1365,9 +1362,14 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
             return $inner;
         };
 
-        $transport = null === $logger
-            ? new SupervisedTransport($factory, $maxRestarts, $restartDelay, restartWindow: $restartWindow, clock: $clock)
-            : new SupervisedTransport($factory, $maxRestarts, $restartDelay, $logger, $restartWindow, $clock);
+        $transport = new SupervisedTransport(
+            $factory,
+            $maxRestarts,
+            $restartDelay,
+            $logger ?? new NullLogger(),
+            $restartWindow,
+            ...(null === $stopwatch ? [] : ['stopwatch' => $stopwatch]),
+        );
 
         $this->built[] = $transport;
 

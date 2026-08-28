@@ -45,9 +45,9 @@ window-width span that straddles a boundary. When the budget is spent, the trans
 
 ### The clock
 
-Time comes from `microtime()` unless you pass a `clock` closure, which exists so a caller can make the window
-boundary exact under test. The closure must read **seconds**. A source in other units (`hrtime()` returns
-nanoseconds) makes every gap look larger than any window and silently leaves the budget unspendable.
+Time comes from a [`nexusphp/clock`](https://github.com/NexusPHP/clock) `Stopwatch`, monotonic by default
+(`HighResolutionStopwatch`), so a wall-clock step can never corrupt the window. Pass a `FrozenClock` as the
+`stopwatch` to make the window boundary exact under test.
 
 A served message deliberately does **not** clear the count. The protocol layer replays its own state on every
 reconnect (see below), so even a peer that dies immediately is guaranteed to answer something. Treating that

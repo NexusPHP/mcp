@@ -20,6 +20,7 @@ use Amp\Future;
 use Amp\NullCancellation;
 use Amp\Sync\Semaphore;
 use Amp\TimeoutCancellation;
+use Nexus\Clock\FrozenClock;
 use Nexus\Mcp\Client\Auth\AccessToken;
 use Nexus\Mcp\Client\Auth\AuthorizationCallback;
 use Nexus\Mcp\Client\Auth\AuthorizationCodeGrantStrategy;
@@ -64,6 +65,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     private const string RESOURCE = 'https://mcp.example.com/mcp';
     private const string ISSUER = 'https://auth.example.com';
     private const string FORMER_ISSUER = 'https://former-auth.example.com';
+    private const int FROZEN_NOW = 1_577_836_800;
 
     public function testAuthorizeWalksDiscoveryRegistrationAndTheTokenExchange(): void
     {
@@ -582,7 +584,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     public function testAUserAuthorizationThatReEntersTheCoordinatorDoesNotWaitOnItsOwnLock(): void
     {
         $store = new InMemoryTokenStore();
-        $store->write(self::RESOURCE, new AccessToken('the-spent-token', self::ISSUER, expiresAt: time() - 1));
+        $store->write(self::RESOURCE, new AccessToken('the-spent-token', self::ISSUER, expiresAt: self::FROZEN_NOW - 1));
         $user = new class implements UserAuthorizationInterface {
             public ?AuthorizationCoordinator $coordinator = null;
             public bool $reEntered = false;
@@ -786,7 +788,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     public function testRenewalFindingNoMetadataYieldsRatherThanThrowing(): void
     {
         $store = new InMemoryTokenStore();
-        $store->write(self::RESOURCE, new AccessToken('from-an-earlier-run', self::ISSUER, time() + 1, 'the-refresh-token'));
+        $store->write(self::RESOURCE, new AccessToken('from-an-earlier-run', self::ISSUER, self::FROZEN_NOW + 1, 'the-refresh-token'));
         $http = (new RecordingHttpClient())->willAnswerJson([], 404)->willAnswerJson([], 404);
         $logger = new ArrayLogger();
 
@@ -1043,7 +1045,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     public function testAnExpiredTokenWithoutARefreshTokenIsRenewedByAFreshUnattendedGrant(): void
     {
         $store = new InMemoryTokenStore();
-        $store->write(self::RESOURCE, new AccessToken('the-spent-token', self::ISSUER, time() + 1, null, ['files:read']));
+        $store->write(self::RESOURCE, new AccessToken('the-spent-token', self::ISSUER, self::FROZEN_NOW + 1, null, ['files:read']));
         $http = $this->scriptDiscoveryOnly();
         $strategy = new ScriptedGrantStrategy(true, new AccessToken('the-fresh-token', self::ISSUER, null, null, ['files:read']));
 
@@ -1055,10 +1057,33 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         self::assertSame(['files:read'], $strategy->readContext()->scopes->values);
     }
 
+    public function testATokenExpiringExactlyAtTheLeewayEdgeIsRenewed(): void
+    {
+        $store = new InMemoryTokenStore();
+        $store->write(self::RESOURCE, new AccessToken('the-spent-token', self::ISSUER, self::FROZEN_NOW + 30));
+        $http = $this->scriptDiscoveryOnly();
+        $strategy = new ScriptedGrantStrategy(true, new AccessToken('the-fresh-token', self::ISSUER));
+
+        $token = $this->buildCoordinator($http, $strategy, $store)->fetchToken(new NullCancellation());
+
+        self::assertSame('the-fresh-token', $token?->value);
+    }
+
+    public function testATokenOutlivingTheLeewayIsServedFromTheStore(): void
+    {
+        $store = new InMemoryTokenStore();
+        $store->write(self::RESOURCE, new AccessToken('from-an-earlier-run', self::ISSUER, self::FROZEN_NOW + 31));
+        $http = $this->scriptDiscoveryOnly();
+
+        $coordinator = $this->buildCoordinator($http, new ScriptedUserAuthorization(), $store);
+
+        self::assertSame('from-an-earlier-run', $coordinator->fetchToken(new NullCancellation())?->value);
+    }
+
     public function testTheRenewalGrantReusesTheDiscoveryThatCheckedTheSpentToken(): void
     {
         $store = new InMemoryTokenStore();
-        $store->write(self::RESOURCE, new AccessToken('the-spent-token', self::ISSUER, time() + 1));
+        $store->write(self::RESOURCE, new AccessToken('the-spent-token', self::ISSUER, self::FROZEN_NOW + 1));
         $http = $this->scriptDiscoveryOnly();
         $strategy = new ScriptedGrantStrategy(true, new AccessToken('the-fresh-token', self::ISSUER));
 
@@ -1073,7 +1098,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     public function testAnUnattendedStrategyRerunsItsGrantRatherThanRedeemingARefreshToken(): void
     {
         $store = new InMemoryTokenStore();
-        $store->write(self::RESOURCE, new AccessToken('the-spent-token', self::ISSUER, time() + 1, 'the-refresh-token'));
+        $store->write(self::RESOURCE, new AccessToken('the-spent-token', self::ISSUER, self::FROZEN_NOW + 1, 'the-refresh-token'));
         $http = $this->scriptDiscoveryOnly();
         $strategy = new ScriptedGrantStrategy(true, new AccessToken('the-fresh-token', self::ISSUER));
 
@@ -1087,7 +1112,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
     public function testAFailedUnattendedRenewalPropagatesRatherThanSendingTheRequestBare(): void
     {
         $store = new InMemoryTokenStore();
-        $store->write(self::RESOURCE, new AccessToken('the-spent-token', self::ISSUER, time() + 1));
+        $store->write(self::RESOURCE, new AccessToken('the-spent-token', self::ISSUER, self::FROZEN_NOW + 1));
         $http = $this->scriptDiscoveryOnly();
 
         try {
@@ -1105,7 +1130,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         $store->write(self::RESOURCE, new AccessToken(
             'from-the-server-it-left',
             self::FORMER_ISSUER,
-            time() + 1,
+            self::FROZEN_NOW + 1,
             'the-refresh-token',
         ));
 
@@ -1134,11 +1159,13 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         string $resource = self::RESOURCE,
         ?Semaphore $lock = null,
     ): AuthorizationCoordinator {
+        $clock = new FrozenClock(\sprintf('@%d', self::FROZEN_NOW));
+
         return new AuthorizationCoordinator(
             new ResourceIdentifier($resource),
             new MetadataDiscovery($http),
-            new ClientRegistrar($http, $registrations ?? new InMemoryClientRegistrationStore()),
-            new TokenEndpoint($http),
+            new ClientRegistrar($http, $registrations ?? new InMemoryClientRegistrationStore(), clock: $clock),
+            new TokenEndpoint($http, clock: $clock),
             $http,
             $user instanceof GrantStrategyInterface ? $user : new AuthorizationCodeGrantStrategy($user),
             $tokens ?? new InMemoryTokenStore(),
@@ -1150,6 +1177,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
             ),
             $logger ?? new ArrayLogger(),
             ...(null === $lock ? [] : ['lock' => $lock]),
+            clock: $clock,
         );
     }
 

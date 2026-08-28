@@ -48,7 +48,8 @@
             "registrations",
             "logger",
             "grantStrategy",
-            "lock"
+            "lock",
+            "clock"
         ],
         "request": [
             "request",
@@ -312,6 +313,12 @@
             "previous"
         ]
     },
+    "Nexus\\Mcp\\Client\\Time\\EventLoopDelay": {
+        "sleep": [
+            "seconds",
+            "cancellation"
+        ]
+    },
     "Nexus\\Mcp\\Client\\Transport\\StdioClientTransport": {
         "__construct": [
             "command",
@@ -376,7 +383,7 @@
             "restartDelay",
             "logger",
             "restartWindow",
-            "clock"
+            "stopwatch"
         ],
         "onClose": [
             "listener"
@@ -1802,7 +1809,8 @@
     },
     "Nexus\\Mcp\\Extension\\Auth\\ClientCredentials\\ClientCredentialsGrant": {
         "__construct": [
-            "credential"
+            "credential",
+            "clock"
         ],
         "grant": [
             "context",
@@ -1851,7 +1859,7 @@
         "__construct": [
             "client",
             "stallCeiling",
-            "sleep",
+            "delay",
             "minPollIntervalMs"
         ],
         "awaitTask": [

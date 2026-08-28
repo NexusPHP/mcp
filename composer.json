@@ -33,6 +33,7 @@
         "amphp/process": "^2.0",
         "amphp/sync": "^2.3",
         "nexusphp/assert": "^1.4",
+        "nexusphp/clock": "^1.0",
         "opis/json-schema": "^2.6",
         "phpstan/phpdoc-parser": "^2.3",
         "psr/http-factory": "^1.1",

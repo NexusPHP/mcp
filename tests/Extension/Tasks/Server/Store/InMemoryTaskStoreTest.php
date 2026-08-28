@@ -25,6 +25,7 @@ use Nexus\Mcp\Extension\Tasks\Server\Exception\InputRequestKeyReusedException;
 use Nexus\Mcp\Extension\Tasks\Server\Store\InMemoryTaskStore;
 use Nexus\Mcp\Extension\Tasks\Server\Store\TaskRecord;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
+use Nexus\Mcp\Tests\Fixtures\Core\Time\SettableClock;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 
@@ -36,13 +37,12 @@ use PHPUnit\Framework\Attributes\Group;
 #[Group('extension-tests')]
 final class InMemoryTaskStoreTest extends AbstractMcpTestCase
 {
-    private \DateTimeImmutable $now;
-    private int $clockReads = 0;
+    private SettableClock $clock;
 
     #[\Override]
     protected function setUp(): void
     {
-        $this->now = new \DateTimeImmutable('2026-08-04T12:00:00+00:00');
+        $this->clock = new SettableClock(new \DateTimeImmutable('2026-08-04T12:00:00+00:00'));
     }
 
     public function testCreateTaskSweepsExpiredTerminalRecords(): void
@@ -51,7 +51,7 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         $expired = $store->createTask('slow_compute', null, 1_000, 1_000)->taskId;
         $store->trySetCompleted($expired, ['resultType' => 'complete']);
 
-        $this->now = $this->now->modify('+2 seconds');
+        $this->clock->travel('+2 seconds');
         $store->createTask('slow_compute', null, 1_000, 1_000);
 
         $records = (new \ReflectionProperty(InMemoryTaskStore::class, 'records'))->getValue($store);
@@ -103,7 +103,7 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
     {
         $store = $this->buildStore();
         $taskId = $store->createTask('slow_compute', null, null, 1_000)->taskId;
-        $this->now = new \DateTimeImmutable('2026-08-04T12:00:05+00:00');
+        $this->clock->travelTo('2026-08-04T12:00:05+00:00');
 
         self::assertTrue($store->trySetCompleted($taskId, ['resultType' => 'complete', 'content' => []]));
 
@@ -322,14 +322,14 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         $store = $this->buildStore();
         $taskId = $store->createTask('slow_compute', null, 1_000, 1_000)->taskId;
 
-        $this->now = new \DateTimeImmutable('2026-08-04T12:00:00.999+00:00');
+        $this->clock->travelTo('2026-08-04T12:00:00.999+00:00');
         $record = $store->findTask($taskId);
 
         self::assertInstanceOf(TaskRecord::class, $record);
 
         self::assertSame(TaskStatus::Working, $record->status);
 
-        $this->now = new \DateTimeImmutable('2026-08-04T12:00:01+00:00');
+        $this->clock->travelTo('2026-08-04T12:00:01+00:00');
         $record = $store->findTask($taskId);
 
         self::assertInstanceOf(TaskRecord::class, $record);
@@ -344,7 +344,7 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         $taskId = $store->createTask('needs_input', null, 1_000, 1_000)->taskId;
         self::assertTrue($store->trySetInputRequired($taskId, ['city' => $this->buildElicitRequest()], 'state-token'));
 
-        $this->now = new \DateTimeImmutable('2026-08-04T12:00:02+00:00');
+        $this->clock->travelTo('2026-08-04T12:00:02+00:00');
         $record = $store->findTask($taskId);
 
         self::assertInstanceOf(TaskRecord::class, $record);
@@ -359,7 +359,7 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         $store = $this->buildStore();
         $taskId = $store->createTask('slow_compute', null, 1_000, 1_000)->taskId;
 
-        $this->now = new \DateTimeImmutable('2026-08-04T12:00:02+00:00');
+        $this->clock->travelTo('2026-08-04T12:00:02+00:00');
 
         self::assertFalse($store->trySetCompleted($taskId, ['resultType' => 'complete']));
     }
@@ -369,17 +369,17 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         $store = $this->buildStore();
         $taskId = $store->createTask('slow_compute', null, 1_000, 1_000)->taskId;
 
-        $this->now = new \DateTimeImmutable('2026-08-04T12:00:05+00:00');
+        $this->clock->travelTo('2026-08-04T12:00:05+00:00');
         $record = $store->findTask($taskId);
 
         self::assertInstanceOf(TaskRecord::class, $record);
 
         self::assertSame(TaskStatus::Failed, $record->status);
 
-        $this->now = new \DateTimeImmutable('2026-08-04T12:00:05.999+00:00');
+        $this->clock->travelTo('2026-08-04T12:00:05.999+00:00');
         self::assertInstanceOf(TaskRecord::class, $store->findTask($taskId));
 
-        $this->now = new \DateTimeImmutable('2026-08-04T12:00:06+00:00');
+        $this->clock->travelTo('2026-08-04T12:00:06+00:00');
         self::assertNull($store->findTask($taskId));
     }
 
@@ -387,7 +387,7 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
     {
         $store = $this->buildStore();
         $taskId = $store->createTask('slow_compute', null, null, 1_000)->taskId;
-        $this->now = new \DateTimeImmutable('2027-08-04T12:00:00+00:00');
+        $this->clock->travelTo('2027-08-04T12:00:00+00:00');
 
         $record = $store->findTask($taskId);
 
@@ -404,7 +404,7 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         $store->trySetCompleted($longLived, ['resultType' => 'complete']);
         $store->trySetCompleted($shortLived, ['resultType' => 'complete']);
 
-        $this->now = $this->now->modify('+2 seconds');
+        $this->clock->travel('+2 seconds');
         $created = $store->createTask('slow_compute', null, 1_000, 1_000)->taskId;
 
         self::assertSame([$longLived, $shortLived, $created], array_keys($this->readRecords($store)));
@@ -415,7 +415,7 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         $store = $this->buildStore();
         $overdue = $store->createTask('slow_compute', null, 1_000, 1_000)->taskId;
 
-        $this->now = $this->now->modify('+2 seconds');
+        $this->clock->travel('+2 seconds');
         $store->createTask('slow_compute', null, 1_000, 1_000);
 
         $records = $this->readRecords($store);
@@ -429,7 +429,7 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         $overdue = $store->createTask('slow_compute', null, 1_000, 1_000)->taskId;
         $live = $store->createTask('slow_compute', null, null, 1_000)->taskId;
 
-        $this->now = $this->now->modify('+2 seconds');
+        $this->clock->travel('+2 seconds');
         $created = $store->createTask('slow_compute', null, 1_000, 1_000)->taskId;
 
         self::assertSame([$live, $created], array_keys($this->readRecords($store)));
@@ -485,11 +485,7 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
 
     public function testCreateTaskReadsTheClockOnceForTheWholeSweep(): void
     {
-        $store = new InMemoryTaskStore(function (): \DateTimeImmutable {
-            ++$this->clockReads;
-
-            return $this->now;
-        }, maxRecords: 4);
+        $store = new InMemoryTaskStore($this->clock, maxRecords: 4);
 
         for ($i = 0; $i < 3; ++$i) {
             $taskId = $store->createTask('slow_compute', null, 300_000, 1_000)->taskId;
@@ -497,11 +493,11 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         }
 
         $store->createTask('slow_compute', null, 300_000, 1_000);
-        $this->clockReads = 0;
+        $this->clock->reads = 0;
 
         $store->createTask('slow_compute', null, 300_000, 1_000);
 
-        self::assertSame(1, $this->clockReads);
+        self::assertSame(1, $this->clock->reads);
         self::assertCount(4, $this->readRecords($store));
     }
 
@@ -513,7 +509,7 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         $store->trySetCompleted($longLived, ['resultType' => 'complete']);
         $store->trySetCompleted($shortLived, ['resultType' => 'complete']);
 
-        $this->now = $this->now->modify('+2 seconds');
+        $this->clock->travel('+2 seconds');
         $created = $store->createTask('slow_compute', null, 1_000, 1_000)->taskId;
 
         self::assertSame([$longLived, $created], array_keys($this->readRecords($store)));
@@ -526,10 +522,10 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         $taskId = $store->createTask('slow_compute', null, 1_000, 1_000)->taskId;
         $store->trySetCompleted($taskId, ['resultType' => 'complete']);
 
-        $this->now = new \DateTimeImmutable('2026-08-04T12:00:00.999+00:00');
+        $this->clock->travelTo('2026-08-04T12:00:00.999+00:00');
         self::assertInstanceOf(TaskRecord::class, $store->findTask($taskId));
 
-        $this->now = new \DateTimeImmutable('2026-08-04T12:00:01+00:00');
+        $this->clock->travelTo('2026-08-04T12:00:01+00:00');
         self::assertNull($store->findTask($taskId));
         self::assertNull($store->findTask($taskId));
     }
@@ -538,13 +534,13 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
     {
         $store = $this->buildStore();
         $taskId = $store->createTask('slow_compute', null, 1_000, 1_000)->taskId;
-        $this->now = new \DateTimeImmutable('2026-08-04T12:00:00.500500+00:00');
+        $this->clock->travelTo('2026-08-04T12:00:00.500500+00:00');
         $store->trySetCompleted($taskId, ['resultType' => 'complete']);
 
-        $this->now = new \DateTimeImmutable('2026-08-04T12:00:01.499000+00:00');
+        $this->clock->travelTo('2026-08-04T12:00:01.499000+00:00');
         self::assertInstanceOf(TaskRecord::class, $store->findTask($taskId));
 
-        $this->now = new \DateTimeImmutable('2026-08-04T12:00:01.500000+00:00');
+        $this->clock->travelTo('2026-08-04T12:00:01.500000+00:00');
         self::assertNull($store->findTask($taskId));
     }
 
@@ -553,7 +549,7 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         $store = $this->buildStore();
         $taskId = $store->createTask('slow_compute', null, null, 1_000)->taskId;
         $store->trySetCompleted($taskId, ['resultType' => 'complete']);
-        $this->now = new \DateTimeImmutable('2027-08-04T12:00:00+00:00');
+        $this->clock->travelTo('2027-08-04T12:00:00+00:00');
 
         self::assertInstanceOf(TaskRecord::class, $store->findTask($taskId));
     }
@@ -563,7 +559,7 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
      */
     private function buildStore(int $maxRecords = InMemoryTaskStore::DEFAULT_MAX_RECORDS): InMemoryTaskStore
     {
-        return new InMemoryTaskStore(fn(): \DateTimeImmutable => $this->now, $maxRecords);
+        return new InMemoryTaskStore($this->clock, $maxRecords);
     }
 
     /**

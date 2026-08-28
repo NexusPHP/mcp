@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Tests\Extension\Auth;
 
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
+use Nexus\Clock\FrozenClock;
 use Nexus\Mcp\Extension\Auth\ClientAssertionSigner;
 use Nexus\Mcp\Extension\Auth\ClientCredentials\PrivateKeyJwtCredential;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
@@ -32,22 +33,22 @@ final class ClientAssertionSignerTest extends AbstractMcpTestCase
     public function testSignsAnAssertionNamingTheClientAsIssuerAndSubject(): void
     {
         [$privatePem, $publicPem] = $this->generateKeyPair();
-        $signer = new ClientAssertionSigner(new PrivateKeyJwtCredential('the-client', $privatePem, 'ES256', 'key-1'));
+        // JWT::decode rejects an assertion it reads as expired, so the frozen instant must track real time.
+        $now = time();
+        $signer = new ClientAssertionSigner(
+            new PrivateKeyJwtCredential('the-client', $privatePem, 'ES256', 'key-1'),
+            new FrozenClock(\sprintf('@%d', $now)),
+        );
 
-        $before = time();
         $assertion = $signer->signAssertion('https://auth.example.com');
-        $after = time();
 
         $claims = (array) JWT::decode($assertion, new Key($publicPem, 'ES256'));
         self::assertSame('the-client', $claims['iss'] ?? null);
         self::assertSame('the-client', $claims['sub'] ?? null);
         self::assertSame('https://auth.example.com', $claims['aud'] ?? null);
 
-        $issuedAt = $claims['iat'] ?? null;
-        self::assertIsInt($issuedAt);
-        self::assertGreaterThanOrEqual($before, $issuedAt);
-        self::assertLessThanOrEqual($after, $issuedAt);
-        self::assertSame($issuedAt + 300, $claims['exp'] ?? null);
+        self::assertSame($now, $claims['iat'] ?? null);
+        self::assertSame($now + 300, $claims['exp'] ?? null);
 
         $identifier = $claims['jti'] ?? null;
         self::assertIsString($identifier);
