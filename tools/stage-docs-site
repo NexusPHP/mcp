@@ -1,0 +1,40 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/**
+ * This file is part of the Nexus MCP SDK package.
+ *
+ * (c) 2026 John Paul E. Balandan, CPA <paulbalandan@gmail.com>
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ */
+
+use Nexus\Mcp\Tools\DocsSiteStager;
+
+if (! is_file(__DIR__.'/../composer.json')) {
+    throw new RuntimeException('Could not determine repository root. Are you running from the repository directory?');
+}
+
+if (is_file(__DIR__.'/../vendor/autoload.php')) {
+    require __DIR__.'/../vendor/autoload.php';
+} elseif (is_file(__DIR__.'/vendor/autoload.php')) {
+    require __DIR__.'/vendor/autoload.php';
+}
+
+// The site build runs before any install, so fall back to the class file itself.
+if (! class_exists(DocsSiteStager::class)) {
+    require __DIR__.'/src/DocsSiteStager.php';
+}
+
+try {
+    echo "\033[36mStaging the guide docs for the site build...\033[0m\n\n";
+
+    exit(DocsSiteStager::run(\dirname(__DIR__)));
+} catch (Throwable $e) {
+    fwrite(STDERR, \sprintf("\033[31m%s\033[0m\n", $e->getMessage()));
+
+    exit(1);
+}

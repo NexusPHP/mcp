@@ -10,6 +10,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Added
 
+- The guide documentation is published at <https://nexusphp.github.io/mcp/>, with the API reference moved
+  under [/api/](https://nexusphp.github.io/mcp/api/).
 - Time is injectable everywhere via [`nexusphp/clock`](https://github.com/NexusPHP/clock), a new dependency:
   `AuthorizedHttpClient`, `ClientCredentialsGrant`, `BearerAuthenticationMiddleware`, and `InMemoryTaskStore`
   take a `Clock`, and `SupervisedTransport` takes a `Stopwatch`, monotonic by default.

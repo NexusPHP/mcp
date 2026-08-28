@@ -1,0 +1,132 @@
+site_name: Nexus MCP SDK
+site_url: https://nexusphp.github.io/mcp/
+repo_url: https://github.com/NexusPHP/mcp
+repo_name: nexusphp/mcp
+docs_dir: build/pages-src
+site_dir: build/pages
+strict: true
+
+extra_css:
+  - assets/extra.css
+
+extra_javascript:
+  - assets/extra.js
+
+theme:
+  name: material
+  palette:
+    - media: '(prefers-color-scheme: light)'
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: '(prefers-color-scheme: dark)'
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+# Zensical's built-in defaults, restated because declaring the key replaces them, plus the
+# `startinline` lexer option so PHP snippets without an opening `<?php` tag still highlight.
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_generator: zensical.extensions.emoji.to_svg
+      emoji_index: zensical.extensions.emoji.twemoji
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+      extend_pygments_lang:
+        - name: php
+          lang: php
+          options:
+            startinline: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+  - pymdownx.tabbed:
+      alternate_style: true
+      combine_header_slug: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+nav:
+  - Overview: index.md
+  - Start here:
+      - Getting started: getting-started.md
+  - How-to guides:
+      - Server:
+          - Server API overview: server.md
+          - Tools: server/tools.md
+          - Prompts: server/prompts.md
+          - Resources: server/resources.md
+          - Completions: server/completions.md
+          - Stores and pagination: server/stores.md
+          - Custom handlers: server/handlers.md
+          - Extensions: server/extensions.md
+          - Tasks: server/tasks.md
+          - Apps: server/apps.md
+          - Subscriptions: server/subscriptions.md
+          - Asking the client for input: server/input-required.md
+          - Attribute discovery: attribute-discovery.md
+      - Client:
+          - Client API overview: client.md
+          - Connecting and discovery: client/connecting.md
+          - Typed requests: client/requests.md
+          - When the server asks for input first: client/input-required.md
+          - Progress and timeouts: client/progress-and-timeouts.md
+          - Notification handlers: client/notifications.md
+          - Extensions: client/extensions.md
+          - Tasks: client/tasks.md
+          - Apps: client/apps.md
+          - Subscriptions: client/subscriptions.md
+      - Authorization:
+          - Authorization overview: authorization.md
+          - Client authorization: auth/client.md
+          - Resource server: auth/server.md
+          - Persisting tokens and registrations: auth/persistence.md
+          - Scopes and step-up: auth/scopes.md
+          - OAuth extension grants: auth/extension-grants.md
+          - Keycloak: auth/keycloak.md
+          - Microsoft Entra ID: auth/entra.md
+          - Auth0: auth/auth0.md
+          - Okta: auth/okta.md
+  - Reference:
+      - Transports: transports.md
+      - Stdio: transports/stdio.md
+      - Streamable HTTP: transports/streamable-http.md
+      - SupervisedTransport: transports/supervised.md
+      - InMemoryTransport: transports/in-memory.md
+      - Server configuration: server/configuration.md
+      - Client configuration: client/configuration.md
+      - Capability advertisement: server/capabilities.md
+      - ServerContext: server/context.md
+      - Error handling: error-handling.md
+      - API reference: https://nexusphp.github.io/mcp/api/
+  - Explanation:
+      - Architecture: architecture.md
+      - Spec compliance: spec-compliance.md
+      - Design rationale: design-rationale.md
+      - Best practices: best-practices.md
+  - Runnable code:
+      - Examples: https://github.com/NexusPHP/mcp/tree/1.x/examples

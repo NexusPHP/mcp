@@ -1,7 +1,7 @@
 # Typed requests
 
 Each method mints a request ID, sends the request, and awaits the typed result. The list methods accept an
-optional `Cursor` for pagination. The full signatures are in the [API reference](https://nexusphp.github.io/mcp/).
+optional `Cursor` for pagination. The full signatures are in the [API reference](https://nexusphp.github.io/mcp/api/).
 
 | Client method | JSON-RPC method | Returns |
 | --- | --- | --- |

@@ -1,0 +1,54 @@
+.md-sidebar--secondary {
+  width: 9.6rem;
+}
+
+/* Pygments marks most PHP identifiers Name.Other, which the theme leaves at body color. */
+.highlight .nx {
+  color: var(--md-code-hl-function-color);
+}
+
+/* Dark-scheme code colors matched to VS Code's Dark Modern token palette. */
+[data-md-color-scheme="slate"] {
+  --md-code-bg-color: #1f1f1f;
+  --md-code-fg-color: #cccccc;
+  --md-code-hl-keyword-color: #569cd6;
+  --md-code-hl-function-color: #dcdcaa;
+  --md-code-hl-string-color: #ce9178;
+  --md-code-hl-number-color: #b5cea8;
+  --md-code-hl-comment-color: #6a9955;
+  --md-code-hl-variable-color: #9cdcfe;
+  --md-code-hl-operator-color: #d4d4d4;
+  --md-code-hl-punctuation-color: #d4d4d4;
+  --md-code-hl-constant-color: #569cd6;
+  --md-code-hl-name-color: #cccccc;
+  --md-code-hl-special-color: #d16969;
+}
+
+[data-md-color-scheme="slate"] .highlight .nc,
+[data-md-color-scheme="slate"] .highlight .nn {
+  color: #4ec9b0;
+}
+
+[data-md-color-scheme="slate"] .highlight .si {
+  color: #9cdcfe;
+}
+
+[data-md-color-scheme="slate"] .highlight .k.k-control {
+  color: #c586c0;
+}
+
+[data-md-color-scheme="slate"] .highlight .nv.nv-this {
+  color: #569cd6;
+}
+
+[data-md-color-scheme="slate"] .highlight .nx.nx-class {
+  color: #4ec9b0;
+}
+
+[data-md-color-scheme="slate"] .highlight .nx.nx-constant {
+  color: #9cdcfe;
+}
+
+[data-md-color-scheme="slate"] .highlight .na.na-call {
+  color: #dcdcaa;
+}

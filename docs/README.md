@@ -1,6 +1,6 @@
 # Nexus MCP SDK documentation
 
-Every page in one map. The groups follow what you came to do: learn the SDK, get a task done, look something up, or
+The groups follow what you came to do: learn the SDK, get a task done, look something up, or
 understand why the SDK is built this way.
 
 ## Start here
@@ -62,7 +62,7 @@ understand why the SDK is built this way.
 - **[ServerContext](server/context.md)**: what every handler receives.
 - **[Error handling](error-handling.md)**: exception types, JSON-RPC error codes, and the diagnostic message
   grammar.
-- **[API reference](https://nexusphp.github.io/mcp/)**: the generated class-level reference for the public
+- **[API reference](https://nexusphp.github.io/mcp/api/)**: the generated class-level reference for the public
   `Nexus\Mcp\` API. It tracks the `1.x` development branch.
 
 ## Explanation

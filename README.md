@@ -128,7 +128,9 @@ See [Getting started](docs/getting-started.md) for the full walkthrough.
 
 ## Documentation
 
-The **[docs index](docs/README.md)** maps every page. The entry points:
+The guides are published at **<https://nexusphp.github.io/mcp/>**, with the API reference under
+[/api/](https://nexusphp.github.io/mcp/api/). The **[docs index](docs/README.md)** maps every page. The
+entry points:
 
 - [Getting started](docs/getting-started.md): install plus a minimal server and client.
 - [Server API](docs/server.md): `ServerBuilder` reference (tools, prompts, resources, completions,
@@ -145,8 +147,8 @@ The **[docs index](docs/README.md)** maps every page. The entry points:
 - [Architecture](docs/architecture.md): layering and the dispatch kernel.
 - [Spec compliance](docs/spec-compliance.md): coverage against the targeted revision, and the deliberate omissions.
 - [Design rationale](docs/design-rationale.md): why the SDK is shaped this way.
-- [API reference](https://nexusphp.github.io/mcp/): the generated class-level reference for the public
-  `Nexus\Mcp\` API, published to GitHub Pages and tracking the `1.x` development branch.
+- [API reference](https://nexusphp.github.io/mcp/api/): the generated class-level reference for the public
+  `Nexus\Mcp\` API, published under `/api/` of the docs site and tracking the `1.x` development branch.
 - [Examples](examples/): runnable demo server and client.
 
 ## Development

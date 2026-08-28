@@ -1,4 +1,4 @@
-name: Deploy API Documentation
+name: Deploy documentation
 
 on:
   workflow_dispatch:
@@ -6,19 +6,32 @@ on:
     branches:
       - 1.x
     paths:
-      - .github/workflows/deploy-api.yml
+      - .github/scripts/requirements-docs.txt
+      - .github/workflows/deploy-docs.yml
       - api/**
+      - docs/**
+      - mkdocs.yml
       - src/**
+      - tools/stage-docs-site
+      - tools/src/DocsSiteStager.php
+  pull_request:
+    paths:
+      - .github/scripts/requirements-docs.txt
+      - .github/workflows/deploy-docs.yml
+      - docs/**
+      - mkdocs.yml
+      - tools/stage-docs-site
+      - tools/src/DocsSiteStager.php
 
 permissions: {}
 
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: ${{ github.event_name == 'pull_request' && format('pages-pr-{0}', github.ref) || 'pages' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
-    name: Build API documentation
+    name: Build documentation
     runs-on: ubuntu-latest
     timeout-minutes: 30
     if: github.repository == 'NexusPHP/mcp'
@@ -34,35 +47,57 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
-          php-version: '8.4'
+          php-version: '8.5'
           coverage: none
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: .github/scripts/requirements-docs.txt
+
+      - name: Install Zensical
+        run: pip install -r .github/scripts/requirements-docs.txt
+
+      - name: Stage guide docs
+        run: composer docs:stage
+
+      - name: Build guides site
+        run: zensical build --strict
+
       - name: Install dependencies
+        if: github.event_name != 'pull_request'
         run: |
           composer update --ansi
           composer update --ansi --working-dir=api
 
       - name: Audit dependencies
+        if: github.event_name != 'pull_request'
         run: |
           composer audit --ansi --abandoned=report
           composer audit --ansi --working-dir=api --abandoned=report
 
       - name: Setup Pages
+        if: github.event_name != 'pull_request'
         id: pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
 
       - name: Generate API documentation
-        run: api/vendor/bin/apigen src --ansi --output api/docs --config api/apigen.neon
+        if: github.event_name != 'pull_request'
+        run: api/vendor/bin/apigen src --ansi --output build/pages/api --config api/apigen.neon
 
       - name: Upload Pages artifact
+        if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
-          path: api/docs
+          path: build/pages
 
   deploy:
-    name: Deploy API documentation
+    name: Deploy documentation
+    if: github.event_name != 'pull_request'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
