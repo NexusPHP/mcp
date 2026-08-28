@@ -1,7 +1,7 @@
 # Nexus MCP SDK
 
-[![PHP](https://img.shields.io/badge/php-%E2%89%A5%208.3-777bb4?logo=php&logoColor=white)](https://www.php.net)
-[![Latest Stable Version](https://img.shields.io/packagist/v/nexusphp/mcp)](https://packagist.org/packages/nexusphp/mcp)
+[![PHP](http://poser.pugx.org/nexusphp/mcp/require/php)](https://packagist.org/packages/nexusphp/mcp)
+[![Latest Stable Version](http://poser.pugx.org/nexusphp/mcp/v)](https://packagist.org/packages/nexusphp/mcp)
 [![Unit Tests](https://github.com/NexusPHP/mcp/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/NexusPHP/mcp/actions/workflows/unit-tests.yml)
 [![Static analysis](https://github.com/NexusPHP/mcp/actions/workflows/static-analysis.yml/badge.svg)](https://github.com/NexusPHP/mcp/actions/workflows/static-analysis.yml)
 [![Code style](https://github.com/NexusPHP/mcp/actions/workflows/code-style.yml/badge.svg)](https://github.com/NexusPHP/mcp/actions/workflows/code-style.yml)
