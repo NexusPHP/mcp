@@ -12,13 +12,10 @@
 [![MCP extensions (client)](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fraw.githubusercontent.com%2FNexusPHP%2Fmcp%2F1.x%2Fconformance%2Fbadges%2Fclient-extensions.json)](conformance/README.md)
 [![License](https://img.shields.io/github/license/NexusPHP/mcp)](LICENSE)
 
-> [!IMPORTANT]
-> Pre-v1.0.0. Minor releases may carry breaking changes until `1.0.0`. Both transports, stdio and
-> Streamable HTTP, are implemented on both sides.
-
 A PHP SDK for the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/docs/getting-started/intro),
 tracking spec revision **2026-07-28**. It provides both sides of an MCP session: a server for exposing
-tools, resources, and prompts, and a client for connecting to MCP servers over a transport.
+tools, resources, and prompts, and a client for connecting to MCP servers, each over stdio or Streamable
+HTTP.
 
 This SDK is architected independently of the official PHP MCP SDK. See [ROADMAP.md](ROADMAP.md) for
 direction and what is queued next.

@@ -20,8 +20,8 @@ The floor is the oldest PHP still receiving security fixes, so the SDK installs 
 itself still supported. It tracks the
 [PHP supported-versions calendar](https://www.php.net/supported-versions.php) at the maintainers'
 discretion, and expect at least one major SDK release per PHP minor that drops an end-of-life version.
-Raising the floor is a breaking change and ships in a major version (or, while in `0.x`, a minor, per the
-[pre-1.0 breaking-changes policy](VERSIONING.md)). Lowering it is not, so it may land in any release.
+Raising the floor is a breaking change and ships in a major version (see [VERSIONING.md](VERSIONING.md)).
+Lowering it is not, so it may land in any release.
 
 ## Runtime dependencies
 
@@ -44,19 +44,19 @@ uses, at the umbrella's constraints, and `ComponentManifestTest` refuses any div
 ## Update cadence
 
 - **Security patches.** Security fixes in a dependency are picked up as soon as they are released and
-  shipped in the next patch (or minor, while in `0.x`). Report vulnerabilities in the SDK itself through
+  shipped in the next patch. Report vulnerabilities in the SDK itself through
   [SECURITY.md](SECURITY.md). `composer audit --abandoned=report` runs in CI to surface advisories.
 - **Minor and patch updates.** Routine dependency updates are batched through Dependabot
   ([.github/dependabot.yml](.github/dependabot.yml)) and merged once the full gate suite passes.
 - **Major updates.** Major bumps of a runtime dependency are evaluated for breaking changes, land in an
-  SDK minor while in `0.x` (or a major from 1.0 onward), and are noted in [CHANGELOG.md](CHANGELOG.md).
+  SDK major, and are noted in [CHANGELOG.md](CHANGELOG.md).
 
 ## End-of-life
 
-While in `0.x`, only the latest minor receives fixes. There are no long-term-support branches before
-1.0. From 1.0 onward, fixes land on the latest minor of the current major, and when a new major ships,
-the previous major receives security fixes for six months after its successor's first stable release.
-An SDK release stops receiving updates once a newer release supersedes it under these rules.
+Fixes land on the latest minor of the current major, and when a new major ships, the previous major
+receives security fixes for six months after its successor's first stable release. An SDK release stops
+receiving updates once a newer release supersedes it under these rules. The `0.x` line, which had no
+long-term-support branches, receives none.
 
 ## See also
 

@@ -7,22 +7,8 @@ It carries no history. For what already ships, see [docs/architecture.md](docs/a
 [docs index](docs/README.md). For what changed in a given release, see
 [CHANGELOG.md](CHANGELOG.md), and for porting between revisions, [BREAKING_CHANGES.md](BREAKING_CHANGES.md).
 
-The SDK targets MCP spec **2026-07-28** and is published on Packagist as a pre-stable `0.x` line.
-
-## v1.0.0
-
-The protocol surface is complete on this revision: both transports, both authorization halves, and the
-three official extensions all ship. What stands between the current `0.x` line and a stable major is
-packaging, not protocol.
-
-- [x] **Split the umbrella package into components.** `src/Core`, `src/Server`, `src/Client`, and
-  `src/Extension` are each their own package (`nexusphp/mcp-core`, `mcp-server`, `mcp-client`,
-  `mcp-extensions`), served from a read-only subtree mirror that the `Split components` workflow
-  refreshes on every push to `1.x` and tags in lockstep on every release. `composer deps:check` proves
-  each manifest against its tree and `ComponentManifestTest` holds the five to one another.
-- [ ] **Tag the stable major.** `1.0.0` is reserved for the stable release on the 2026-07-28 revision, and
-  is the first tag the component mirrors carry. Versioning commitments from that point are in
-  [VERSIONING.md](VERSIONING.md).
+The SDK targets MCP spec **2026-07-28** and is published on Packagist as `nexusphp/mcp` plus four
+component packages, stable since `1.0.0`.
 
 ## Official extensions
 

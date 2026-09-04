@@ -2,19 +2,18 @@
 
 ## Supported versions
 
-The SDK is in `0.x`, released on Packagist as [`nexusphp/mcp`](https://packagist.org/packages/nexusphp/mcp).
-The same release also ships as the component packages `nexusphp/mcp-core`, `nexusphp/mcp-server`,
-`nexusphp/mcp-client`, and `nexusphp/mcp-extensions`, which carry the same version and the same support window,
-with `1.0.0` as their first tagged version.
-Security fixes target the latest released minor only, per the supported-release window in
-[DEPENDENCY_POLICY.md](DEPENDENCY_POLICY.md). From 1.0 onward, fixes land on the latest minor of the
-current major, and the previous major receives security fixes for six months after its successor's
-first stable release.
+The SDK is released on Packagist as [`nexusphp/mcp`](https://packagist.org/packages/nexusphp/mcp) and as
+the component packages `nexusphp/mcp-core`, `nexusphp/mcp-server`, `nexusphp/mcp-client`, and
+`nexusphp/mcp-extensions`, which carry the same version and the same support window. Fixes land on the
+latest minor of the current major, per the supported-release window in
+[DEPENDENCY_POLICY.md](DEPENDENCY_POLICY.md), and when a new major ships, the previous major receives
+security fixes for six months after its successor's first stable release.
 
 | Version | Supported |
 | --- | --- |
-| Latest `0.x` minor | Yes |
-| Older releases | No |
+| Latest `1.x` minor | Yes |
+| Older `1.x` releases | No |
+| `0.x` | No |
 
 ## Reporting a vulnerability
 

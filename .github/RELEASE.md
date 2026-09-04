@@ -20,11 +20,14 @@ CI must be green on `1.x` at the same commit.
 The released README advertises the badge scores, so they must describe the code being tagged:
 
 ```bash
-composer conformance:server
-composer conformance:client
+composer conformance:server -- --suite all
+composer conformance:client -- --suite all
 composer conformance:extensions
 composer conformance:badge
 ```
+
+Both modes take the suite selector CI uses, since the badges score the draft and pending scenarios too and
+the client referee refuses to run without one.
 
 Commit any badge change before the release-prep commit.
 

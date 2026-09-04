@@ -8,6 +8,14 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+## [v1.0.0](https://github.com/NexusPHP/mcp/compare/v0.16.0...v1.0.0) - 2026-09-04
+
+The stable major. The 2026-07-28 revision ships complete on both sides, over both transports, with both
+authorization halves and the three official extensions, and from here every release follows Semantic
+Versioning. The SDK is now five packages cut from one tree: the umbrella plus four component packages,
+tagged in lockstep. Time is injectable everywhere through `nexusphp/clock`, which retires the last closure
+seams (see [BREAKING_CHANGES.md](BREAKING_CHANGES.md)).
+
 ### Added
 
 - The SDK is also published as component packages: `nexusphp/mcp-core`, `nexusphp/mcp-server`,

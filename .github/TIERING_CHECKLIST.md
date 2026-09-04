@@ -2,11 +2,11 @@
 
 Based on [SEP-1730: SDKs Tiering System](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1730)
 
-**Target Tier**: Tier 2, self-assessed (only Tier 3 is claimable pre-1.0, and assignment currently runs for official SDKs only, per "How tiering works" below)
+**Target Tier**: Tier 2, self-assessed (assignment currently runs for official SDKs only, per "How tiering works" below)
 
 **Target spec**: `2026-07-28`, which the SDK implements exclusively.
 
-**Last Updated**: 2026-08-06
+**Last Updated**: 2026-09-04
 
 ---
 
@@ -16,7 +16,7 @@ The published governance page ([`docs/community/sdk-tiers.mdx`](https://github.c
 
 - **Conformance is the gate.** Scored against **applicable required tests only**: the spec version the SDK targets, excluding pending/skipped tests, experimental-feature tests, and legacy back-compat tests (unless legacy support is claimed). The `tier-check` tool diverges from this wording in several places: see [Drift](#drift-sep-mandates-vs-the-conformance-repo).
 - **Relegation.** An SDK drops a tier if conformance tests on its latest stable release fail continuously for 4 weeks. Not implemented by the tool, which is a point-in-time scorer.
-- **Pre-1.0, only Tier 3 is claimable** (no stable-release or conformance minimum). Tier 2 needs a stable 1.0-class release plus 80% conformance. The assignment waits on `v1.0.0` and on community applications opening.
+- **Pre-1.0, only Tier 3 is claimable** (no stable-release or conformance minimum). Tier 2 needs a stable 1.0-class release plus 80% conformance, both met since `v1.0.0`. The assignment waits on community applications opening.
 
 ---
 
@@ -31,11 +31,11 @@ Two measurements answer different questions, and conflating them is what makes t
 | | Suite | Server | Client | What it answers |
 | --- | --- | --- | --- | --- |
 | **Tier score** | referee default (`active`) | 20/20 scenarios | 15/15 scenarios | What `tier-check` counts toward the tier percentage |
-| **Full sweep** | `--suite all` | 38/50 scenarios, 180/192 checks | 36/36 scenarios, 358/358 checks | What this SDK's own CI gates on |
+| **Full sweep** | `--suite all` | 38/50 scenarios, 180/192 checks | 36/39 scenarios, 358/367 checks | What this SDK's own CI gates on |
 
-Full-sweep totals: **74/86 scenarios, 538/550 checks (97.8%)**, split 486/490 spec checks and 52/60 extension checks, with 0 unmet SHOULD checks and 14 skipped (excluded from the denominator).
+Full-sweep totals: **74/89 scenarios, 538/559 checks (96.2%)**, split 486/490 spec checks and 52/69 extension checks, with 0 unmet SHOULD checks and 14 skipped (excluded from the denominator).
 
-Both tier-scored legs pass outright at 100%. The 12 full-sweep failures are the twelve entries in [`conformance/expected-failures.yaml`](../conformance/expected-failures.yaml), none of which sit in the `active` suite, so they do not bear on the tier score. The client half of the baseline is empty.
+Both tier-scored legs pass outright at 100%. The 15 failing full-sweep scenarios are the fifteen entries in [`conformance/expected-failures.yaml`](../conformance/expected-failures.yaml), none of which sit in the `active` suite, so they do not bear on the tier score. The three client entries are the DPoP and WIF scenarios, whose SEPs are open proposals.
 
 Four need the server to emit an `InputRequest` for `sampling/createMessage` or `roots/list`, both of which `latest-schema.ts` marks `@deprecated` as of 2026-07-28 (SEP-2577). The upstream resolution is tracked at [conformance#439](https://github.com/modelcontextprotocol/conformance/issues/439).
 
@@ -43,7 +43,7 @@ The other eight are the `wire-schema-valid` check the referee validates each sen
 
 Reproduce with `composer conformance:server`, `composer conformance:client`, then `composer conformance:score`. The referee exits non-zero on an unlisted failure and on a stale baseline entry, so the list burns down rather than rotting.
 
-**Tier verdict**: `tier-check` reports **Tier 3**, with `Stable Release` as the single failing check. Conformance, labels (12 of 12), triage, and P0 resolution all pass. `Policy Signals` reports partial because this repository keeps `DEPENDENCY_POLICY.md`, `ROADMAP.md`, `BREAKING_CHANGES.md`, and `VERSIONING.md` at the root rather than under `docs/`, and uses `.github/dependabot.yml` in place of a Renovate config. The partial is accepted: every document the check wants exists and is current, root placement is where GitHub and consumers look for policy files, and dependency tooling is not chosen to satisfy a scorer's proxy. Do not add `docs/` pointer stubs or a Renovate config for this signal.
+**Tier verdict**: **Tier 2**. `Stable Release`, the single check `tier-check` failed before `v1.0.0`, is met by that tag, and conformance, labels (12 of 12), triage, and P0 resolution all pass. Re-run `tier-check` at the assessment to record the tool's verdict. `Policy Signals` reports partial because this repository keeps `DEPENDENCY_POLICY.md`, `ROADMAP.md`, `BREAKING_CHANGES.md`, and `VERSIONING.md` at the root rather than under `docs/`, and uses `.github/dependabot.yml` in place of a Renovate config. The partial is accepted: every document the check wants exists and is current, root placement is where GitHub and consumers look for policy files, and dependency tooling is not chosen to satisfy a scorer's proxy. Do not add `docs/` pointer stubs or a Renovate config for this signal.
 
 ---
 
@@ -85,10 +85,10 @@ Reproduce with `composer conformance:server`, `composer conformance:client`, the
   - Reference: SEP-1730 Tier 2 requirement
   - Evidence/Notes: no P0 issues filed. Passes vacuously, same as above
 
-- [ ] **At Least One Stable Release**
+- [x] **At Least One Stable Release**
   - Reference: Published release with stable API
-  - Evidence/Notes: **the sole hard blocker.** 0.x is pre-stable (breaking changes allowed in minors). A stable release means v1.0.0, the next item in [ROADMAP.md](../ROADMAP.md) now that the package split ships
-  - Release Tag: none stable. v0.1.0 through v0.9.0 are published on Packagist
+  - Evidence/Notes: v1.0.0 on the 2026-07-28 revision, SemVer from that tag onward per [VERSIONING.md](../VERSIONING.md)
+  - Release Tag: v1.0.0, preceded by v0.1.0 through v0.16.0 on Packagist
 
 ### Documentation
 
@@ -141,10 +141,10 @@ Reproduce with `composer conformance:server`, `composer conformance:client`, the
   - Security Policy File: SECURITY.md
   - Evidence/Notes: SECURITY.md commits to acknowledgement within 3 business days and an assessment with a fix plan within 7 days. The Tier 1 7-day *resolution* SLA is deliberately not committed
 
-- [ ] **Stable Release & Versioning Clearly Documented**
+- [x] **Stable Release & Versioning Clearly Documented**
   - Reference: Published versioning policy
-  - Location/File: VERSIONING.md (SemVer scheme, pre-1.0 caveat, breaking-change definition, deprecation path, spec-revision tracking), BREAKING_CHANGES.md (the port guide), ROADMAP.md (release sequencing)
-  - Evidence/Notes: policy published. The stable 1.0 release itself is pending
+  - Location/File: VERSIONING.md (SemVer scheme, breaking-change definition, deprecation path, spec-revision tracking), BREAKING_CHANGES.md (the port guide), ROADMAP.md (release sequencing)
+  - Evidence/Notes: policy published and the stable release v1.0.0 tagged under it
 
 - [x] **Published Roadmap**
   - Reference: SEP-1730 Tier 1 requirement
@@ -231,7 +231,7 @@ Reproduce with `composer conformance:server`, `composer conformance:client`, the
 
 - [x] **Version Number Consistency**
   - Location of version definition: git tag (composer.json has no version field)
-  - Current Version: v0.9.0
+  - Current Version: v1.0.0
   - Evidence/Notes: one git tag names the release across the umbrella and the four component mirrors, which the Split components workflow tags in lockstep, so the version cannot diverge
 
 ### Metadata & Discoverability
@@ -360,7 +360,7 @@ SEP-2484 meta-drift: the repo has no SEP-status field, so it cannot mechanically
 | Tier | Items complete | Total items | Status |
 | --- | ---: | ---: | --- |
 | Tier 3 | 1 | 1 | Met (claimable now) |
-| Tier 2 | 5 | 8 | Gated on v1.0.0 |
-| Tier 1 | 8 | 12 | Gated on v1.0.0, docs scoring, and triage history |
+| Tier 2 | 6 | 8 | Open: the two issue-management metrics |
+| Tier 1 | 9 | 12 | Open: docs scoring and triage history |
 
-The three open Tier 2 items are the stable release plus the two issue-management metrics, which cannot be demonstrated without issue traffic. Tier 1 adds the documentation scoring question. None is a conformance gap.
+The two open Tier 2 items are the issue-management metrics, which cannot be demonstrated without issue traffic. Tier 1 adds the documentation scoring question. None is a conformance gap.

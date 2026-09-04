@@ -7,21 +7,19 @@ and how deprecations and MCP spec revisions are handled. It complements
 
 ## Scheme
 
-The SDK follows [Semantic Versioning 2.0.0](https://semver.org): `MAJOR.MINOR.PATCH`. What each component
-is allowed to carry depends on whether the SDK has reached `1.0.0`.
+The SDK follows [Semantic Versioning 2.0.0](https://semver.org): `MAJOR.MINOR.PATCH`.
 
-## Pre-1.0 (the `0.x` line)
+| Bump | Contains |
+| --- | --- |
+| Major | Breaking changes to the public API |
+| Minor | Backward-compatible features and deprecations |
+| Patch | Backward-compatible bug fixes |
 
-Until `1.0.0` the public API is still settling, so the SemVer guarantees are relaxed by one level:
+Releases before `1.0.0` relaxed that by one level: a `0.x` minor could carry breaking changes, and a
+`0.x` patch only fixes. The `0.x` line receives no further updates, and
+[BREAKING_CHANGES.md](BREAKING_CHANGES.md) carries the port from each `0.x` boundary through to `1.0.0`.
 
-| Bump | Example | May contain |
-| --- | --- | --- |
-| Minor | `0.2.0` to `0.3.0` | Breaking changes, new features, deprecations, bug fixes |
-| Patch | `0.2.0` to `0.2.1` | Backward-compatible bug fixes only |
-
-A `0.x` minor is the breaking-change vehicle before 1.0. Composer's caret operator already reflects this:
-`^0.2` resolves to `>=0.2.0 <0.3.0`, so it will **not** silently upgrade you across a minor. Pin with `^0.2`
-(or tighter) and read [CHANGELOG.md](CHANGELOG.md) before moving to the next minor.
+## Packages
 
 The SDK is five packages cut from one tree: the umbrella `nexusphp/mcp` and the components
 `nexusphp/mcp-core`, `nexusphp/mcp-server`, `nexusphp/mcp-client`, and `nexusphp/mcp-extensions`, each a
@@ -30,16 +28,6 @@ receives every release tag, sibling requirements are pinned with `self.version`,
 the four components so the two forms never coexist in one install. `mcp-extensions` requires both
 `mcp-server` and `mcp-client`, since every extension ships both halves. `1.0.0` is the first tagged version the
 component packages carry on Packagist.
-
-## From 1.0 onward
-
-Standard SemVer applies:
-
-| Bump | Contains |
-| --- | --- |
-| Major | Breaking changes to the public API |
-| Minor | Backward-compatible features and deprecations |
-| Patch | Backward-compatible bug fixes |
 
 ## Public API surface
 
@@ -56,7 +44,7 @@ in any release.
 
 ## What counts as a breaking change
 
-Shipped in a major (or a `0.x` minor while pre-1.0):
+Shipped in a major:
 
 - Removing or renaming a public class, interface, enum case, method, or property.
 - Adding a required parameter, narrowing a parameter type, or incompatibly changing a return type.
@@ -74,10 +62,9 @@ Shipped in a minor (backward-compatible):
 
 `composer bc:check` compares the public surface of `HEAD` against the latest stable tag with
 [roave/backward-compatibility-check](https://github.com/Roave/BackwardCompatibilityCheck), installed as a
-sidecar project under `bc/`. Through the `0.x` line, where the table above already permits breaks, the
-result is read rather than enforced: [.github/RELEASE.md](.github/RELEASE.md) runs it before every tag to
-write [BREAKING_CHANGES.md](BREAKING_CHANGES.md), and the `Backward Compatibility` workflow runs it on
-pull requests and on demand. From 1.0 it becomes a blocking check on every change.
+sidecar project under `bc/`. The `Backward Compatibility` workflow runs it on every push to `1.x` and every
+pull request and fails on a break, and [.github/RELEASE.md](.github/RELEASE.md) runs it by hand before every
+tag to write [BREAKING_CHANGES.md](BREAKING_CHANGES.md).
 
 Two gaps in that tool are covered elsewhere:
 
@@ -99,8 +86,7 @@ the compatibility promise does (classes, interfaces, enum cases, methods, proper
 `phpstan/phpstan-deprecation-rules` reports usages statically. Once the PHP floor reaches 8.4, the
 native `#[\Deprecated]` attribute is added as a runtime signal where PHP supports it (methods and class
 constants), alongside the tag rather than replacing it. A deprecated symbol survives for at least one
-subsequent minor before it is removed in the next major. While in `0.x` a deprecation may be removed in the
-following minor, so treat every `0.x` deprecation as imminent. This short window covers SDK-originated
+subsequent minor before it is removed in the next major. This window covers SDK-originated
 deprecations only: a deprecation that mirrors a spec feature follows the spec's longer lifecycle instead
 (see the MCP spec revisions section below).
 
@@ -115,7 +101,7 @@ that lifecycle:
 
 - A revision that only adds features or marks deprecations is adopted as a backwards-compatible **minor**.
   The new surface is added, and the SDK symbols for any newly deprecated spec feature are marked `@deprecated`.
-- A **major** (or, while in `0.x`, a minor) is reserved for when the SDK drops a removed feature or makes an
+- A **major** is reserved for when the SDK drops a removed feature or makes an
   otherwise incompatible change. Per SEP-2596 a spec removal does not oblige the SDK to drop the feature at
   once. The removal timeline is set by this policy, not by the spec's release date.
 
