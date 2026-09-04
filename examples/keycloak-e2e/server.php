@@ -165,5 +165,6 @@ if (defined('SIGINT')) {
     (new DeferredFuture())->getFuture()->await();
 }
 
-$httpServer->stop();
+// Closing the transport first ends every open stream, since the HTTP server's stop() waits for them.
 $transport->close();
+$httpServer->stop();
