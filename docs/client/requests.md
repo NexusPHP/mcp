@@ -25,6 +25,24 @@ $about = $client->readResource('example://about');
 $prompt = $client->getPrompt('walkthrough', ['audience' => 'a junior developer']);
 ```
 
+## Walking pages
+
+A list result carries a `nextCursor` while more entries remain. Pass it back to the same method until it is
+`null`.
+
+```php
+$tools = [];
+$cursor = null;
+
+do {
+    $page = $client->listTools($cursor);
+    $tools = [...$tools, ...$page->tools];
+    $cursor = $page->nextCursor;
+} while (null !== $cursor);
+```
+
+The server decides the page size. See [Stores and pagination](../server/stores.md) for the server side.
+
 ## The capability gate
 
 Once `discover()` has run, every typed request requires the server to have advertised the matching capability.

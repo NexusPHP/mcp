@@ -36,8 +36,23 @@ A runtime exception thrown out of a tool executor becomes a `CallToolResult` wit
 `TextContent` that carries `"Tool execution failed."`. The SDK logs the underlying throwable at `error` level on
 the PSR-3 logger you configured with `ServerBuilder::setLogger()`.
 
-To surface error detail to the LLM, return `new CallToolResult(content: [...], isError: true)` from the executor
-instead of throwing. Protocol-level conditions, such as `ToolNotFoundException`, still surface as JSON-RPC errors.
+To surface error detail to the LLM, return the result with `isError: true` from the executor instead of
+throwing. Protocol-level conditions, such as `ToolNotFoundException`, still surface as JSON-RPC errors.
+
+```php
+executor: static function (?array $args, ServerContext $context): CallToolResult {
+    $query = is_string($args['query'] ?? null) ? $args['query'] : '';
+
+    if ('' === $query) {
+        return new CallToolResult(
+            content: [new TextContent(text: 'The "query" argument must be a non-empty string.')],
+            isError: true,
+        );
+    }
+
+    return new CallToolResult(content: [new TextContent(text: "Results for {$query}")]);
+},
+```
 
 > [!WARNING]
 > The generic-text wrap above only covers the `\Throwable` arm. Messages thrown through

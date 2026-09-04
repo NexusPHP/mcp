@@ -66,6 +66,16 @@ One consequence reaches the input-required flow. The spec's `InputRequest` union
 this SDK can therefore ask for elicitation and nothing else. The two deprecated members are not modelled, not even
 as payload types that never travel as dispatchable methods, since emitting one is adopting the feature.
 
+Three more features from earlier revisions are absent because the targeted revision itself dropped them, so there
+is nothing to omit:
+
+| Feature | Status in 2026-07-28 | What replaces it |
+| --- | --- | --- |
+| `ping` | Removed by SEP-2575 with the session it kept alive. | Nothing. The protocol is stateless. |
+| `logging/setLevel` | Removed by SEP-2575. | The per-request `io.modelcontextprotocol/logLevel` `_meta` field, exposed to handlers through [`ServerContext`](server/context.md). |
+| `notifications/elicitation/complete` | Removed before the revision was tagged and absent from its schema. | The [input-required flow](server/input-required.md) completes through the retry itself. |
+| HTTP+SSE transport | Deprecated in 2025-03-26 and absent from the targeted revision. | [Streamable HTTP](transports/streamable-http.md). |
+
 ## See also
 
 - **[Architecture](architecture.md)**: the namespace layout and the dispatch kernel.

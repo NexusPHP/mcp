@@ -35,7 +35,7 @@ Two measurements answer different questions, and conflating them is what makes t
 
 Full-sweep totals: **74/89 scenarios, 538/559 checks (96.2%)**, split 486/490 spec checks and 52/69 extension checks, with 0 unmet SHOULD checks and 14 skipped (excluded from the denominator).
 
-Both tier-scored legs pass outright at 100%. The 15 failing full-sweep scenarios are the fifteen entries in [`conformance/expected-failures.yaml`](../conformance/expected-failures.yaml), none of which sit in the `active` suite, so they do not bear on the tier score. The three client entries are the DPoP and WIF scenarios, whose SEPs are open proposals.
+Both tier-scored legs pass outright at 100%. Scored against the frozen 2026-07-28 requirement set instead of the `active` suite, as the tier audit does, the server leg is 33/37 (89.2%) and the client leg 32/32. The 15 failing full-sweep scenarios are the fifteen entries in [`conformance/expected-failures.yaml`](../conformance/expected-failures.yaml), none of which sit in the `active` suite, so they do not bear on the tier score. The three client entries are the DPoP and WIF scenarios, whose SEPs are open proposals.
 
 Four need the server to emit an `InputRequest` for `sampling/createMessage` or `roots/list`, both of which `latest-schema.ts` marks `@deprecated` as of 2026-07-28 (SEP-2577). The upstream resolution is tracked at [conformance#439](https://github.com/modelcontextprotocol/conformance/issues/439).
 
