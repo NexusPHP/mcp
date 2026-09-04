@@ -12,7 +12,7 @@ RED = '\033[31m'
 GREEN = '\033[32m'
 BLUE = '\033[34m'
 YELLOW = '\033[33m'
-ALLOWED_ROOTS = (Path('.github/workflows'),)
+ALLOWED_ROOTS = (Path('.github/workflows'), *sorted(Path('src').glob('*/.github/workflows')))
 ALLOWED_FILES = (Path('.github/dependabot.yml'),)
 
 
