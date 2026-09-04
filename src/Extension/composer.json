@@ -3,6 +3,11 @@
     "description": "PHP SDK for the MCP specification - official extensions component.",
     "license": "MIT",
     "type": "library",
+    "keywords": [
+        "mcp",
+        "model context protocol",
+        "mcp-sdk"
+    ],
     "authors": [
         {
             "name": "John Paul E. Balandan, CPA",
@@ -10,9 +15,9 @@
         }
     ],
     "support": {
-        "docs": "https://nexusphp.github.io/mcp/",
         "issues": "https://github.com/NexusPHP/mcp/issues",
-        "source": "https://github.com/NexusPHP/mcp.git"
+        "source": "https://github.com/NexusPHP/mcp.git",
+        "docs": "https://nexusphp.github.io/mcp/"
     },
     "funding": [
         {
@@ -29,8 +34,7 @@
         "nexusphp/mcp-client": "self.version",
         "nexusphp/mcp-core": "self.version",
         "nexusphp/mcp-server": "self.version",
-        "psr/log": "^3.0",
-        "revolt/event-loop": "^1.0.8"
+        "psr/log": "^3.0"
     },
     "suggest": {
         "firebase/php-jwt": "Required with ClientCredentialsGrant (^7.0)."
