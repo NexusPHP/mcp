@@ -57,6 +57,13 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
         new StdioClientTransport([]);
     }
 
+    public function testASingleElementCommandIsAccepted(): void
+    {
+        $this->expectNotToPerformAssertions();
+
+        new StdioClientTransport(['mcp-server'], launcher: new ScriptedSubprocessLauncher());
+    }
+
     public function testCommandThatIsNotAListThrows(): void
     {
         $this->expectException(\InvalidArgumentException::class);

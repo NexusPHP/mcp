@@ -26,6 +26,7 @@ in `0.x`, minor releases may include breaking changes.
   `BearerAuthenticationMiddleware`'s and `InMemoryTaskStore`'s `clock` closures a `Nexus\Clock\Clock`.
   See BREAKING_CHANGES.md.
 - `TaskClient`'s `sleep` closure is now a `delay` (`CancellableDelayInterface`). See BREAKING_CHANGES.md.
+- The `nexusphp/assert` floor is `^1.5`.
 
 ## [v0.16.0](https://github.com/NexusPHP/mcp/compare/v0.15.0...v0.16.0) - 2026-08-24
 
