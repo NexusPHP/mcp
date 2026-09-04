@@ -79,3 +79,53 @@ jobs:
 
       - name: Run dependency analysis
         run: composer deps:check
+
+  standalone-install:
+    name: Install ${{ matrix.package }} standalone
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - package: nexusphp/mcp-core
+            class: Nexus\Mcp\Core\Transport\LineDuplex
+          - package: nexusphp/mcp-server
+            class: Nexus\Mcp\Server\Server
+          - package: nexusphp/mcp-client
+            class: Nexus\Mcp\Client\Client
+          - package: nexusphp/mcp-extensions
+            class: Nexus\Mcp\Extension\Tasks\Tasks
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: ${{ env.DEFAULT_PHP_VERSION }}
+          coverage: none
+
+      - name: Require the component from the component manifests
+        env:
+          PACKAGE: ${{ matrix.package }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/standalone"
+          cd "$RUNNER_TEMP/standalone"
+          echo '{"minimum-stability": "dev", "prefer-stable": true}' > composer.json
+          for component in Core Server Client Extension; do
+            name="$(jq -r .name "$GITHUB_WORKSPACE/src/$component/composer.json")"
+            composer config "repositories.$component" --json "{\"type\": \"path\", \"url\": \"$GITHUB_WORKSPACE/src/$component\", \"options\": {\"versions\": {\"$name\": \"1.0.0\"}}}"
+          done
+          composer require "$PACKAGE:1.0.0" --no-interaction --ansi
+
+      - name: Autoload a class from the component
+        env:
+          CLASS: ${{ matrix.class }}
+        run: |
+          cd "$RUNNER_TEMP/standalone"
+          php -r 'require "vendor/autoload.php"; exit(class_exists(getenv("CLASS")) ? 0 : 1);'
