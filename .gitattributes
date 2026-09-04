@@ -1,30 +1,31 @@
-*.json                            text eol=lf
+*.json                                      text eol=lf
 
 /conformance/badges/*.json                         linguist-generated=true
 /phpstan-baseline.php                              linguist-generated=true
 /tests/AutoReview/data/public-parameter-names.json linguist-generated=true
 /tests/AutoReview/data/spec-anchors.json           linguist-generated=true
 
-/.*                               export-ignore
-/api/                             export-ignore
-/bc/                              export-ignore
-/conformance/                     export-ignore
-/docs/                            export-ignore
-/examples/                        export-ignore
-/stubs/                           export-ignore
-/tests/                           export-ignore
-/tools/                           export-ignore
-/_typos.toml                      export-ignore
-/CLAUDE.md                        export-ignore
-/CODE_OF_CONDUCT.md               export-ignore
-/composer-dependency-analyser.php export-ignore
-/CONTRIBUTING.md                  export-ignore
-/DEPENDENCY_POLICY.md             export-ignore
-/infection.json5                  export-ignore
-/phpstan-baseline.php             export-ignore
-/phpstan.dist.neon                export-ignore
-/phpunit.dist.xml                 export-ignore
-/ROADMAP.md                       export-ignore
-/SECURITY.md                      export-ignore
-/structarmed.php                  export-ignore
-/VERSIONING.md                    export-ignore
+/.*                                         export-ignore
+/api/                                       export-ignore
+/bc/                                        export-ignore
+/conformance/                               export-ignore
+/docs/                                      export-ignore
+/examples/                                  export-ignore
+/stubs/                                     export-ignore
+/tests/                                     export-ignore
+/tools/                                     export-ignore
+/_typos.toml                                export-ignore
+/CLAUDE.md                                  export-ignore
+/CODE_OF_CONDUCT.md                         export-ignore
+/composer-dependency-analyser.component.php export-ignore
+/composer-dependency-analyser.php           export-ignore
+/CONTRIBUTING.md                            export-ignore
+/DEPENDENCY_POLICY.md                       export-ignore
+/infection.json5                            export-ignore
+/phpstan-baseline.php                       export-ignore
+/phpstan.dist.neon                          export-ignore
+/phpunit.dist.xml                           export-ignore
+/ROADMAP.md                                 export-ignore
+/SECURITY.md                                export-ignore
+/structarmed.php                            export-ignore
+/VERSIONING.md                              export-ignore

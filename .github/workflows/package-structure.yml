@@ -11,6 +11,7 @@ on:
       - src/**
       - tests/**
       - structarmed.php
+      - composer-dependency-analyser.component.php
       - composer-dependency-analyser.php
       - composer.json
       - tools/composer.json
@@ -24,6 +25,7 @@ on:
       - src/**
       - tests/**
       - structarmed.php
+      - composer-dependency-analyser.component.php
       - composer-dependency-analyser.php
       - composer.json
       - tools/composer.json

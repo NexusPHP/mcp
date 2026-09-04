@@ -26,6 +26,9 @@ final class ComposerScripts
     private const string INFECTION_BIN = self::PROJECT_ROOT.'/tools/vendor/bin/infection';
     private const string INFECTION_TMP_DIR = self::PROJECT_ROOT.'/build/infection';
     private const array MUTATION_SOURCE_DIRECTORIES = ['src', 'tests'];
+    private const array COMPONENT_DIRECTORIES = ['Core', 'Server', 'Client', 'Extension'];
+    private const string DEPENDENCY_ANALYSER_BIN = self::PROJECT_ROOT.'/tools/vendor/bin/composer-dependency-analyser';
+    private const string COMPONENT_ANALYSER_CONFIG = self::PROJECT_ROOT.'/composer-dependency-analyser.component.php';
     private const string PHPUNIT_CLOVER = self::PROJECT_ROOT.'/build/phpunit/clover.xml';
     private const array DOC_LINTER_BINARIES = [
         'typos' => 'typos-cli',
@@ -232,6 +235,85 @@ final class ComposerScripts
         sort($report);
 
         self::fail(\sprintf("\nLine coverage is below 100%%. Uncovered statement lines:\n%s", implode("\n", $report)));
+    }
+
+    /**
+     * Runs the dependency analyser once per component against its own `composer.json`.
+     */
+    public static function checkComponentDependencies(): void
+    {
+        $root = realpath(self::PROJECT_ROOT);
+        $vendorDir = realpath(self::PROJECT_ROOT.'/vendor');
+
+        if (! \is_string($root) || ! \is_string($vendorDir)) {
+            self::fail('Vendor directory not found. Run "composer update" first.');
+        }
+
+        $failures = [];
+
+        foreach (self::COMPONENT_DIRECTORIES as $component) {
+            $manifest = self::relocateComponentManifest($root, $component, $vendorDir);
+
+            echo \sprintf("\nAnalysing src/%s against %s\n", $component, substr($manifest, \strlen($root) + 1));
+
+            $proc = proc_open(
+                [self::DEPENDENCY_ANALYSER_BIN, '--composer-json', $manifest, '--config', self::COMPONENT_ANALYSER_CONFIG],
+                [0 => \STDIN, 1 => \STDOUT, 2 => \STDERR],
+                $pipes,
+                $root,
+                ['MCP_COMPONENT_DIR' => \sprintf('%s/src/%s', $root, $component)] + getenv(),
+            );
+
+            if (false === $proc) {
+                self::fail('Failed to launch composer-dependency-analyser.');
+            }
+
+            if (proc_close($proc) !== 0) {
+                $failures[] = $component;
+            }
+        }
+
+        if ([] !== $failures) {
+            self::fail(\sprintf("\nComponent dependency analysis failed for: %s", implode(', ', $failures)));
+        }
+
+        echo "\nEvery component manifest matches its usage.\n";
+    }
+
+    /**
+     * Writes a copy of the component manifest whose vendor dir is the root one.
+     */
+    private static function relocateComponentManifest(string $root, string $component, string $vendorDir): string
+    {
+        $source = \sprintf('%s/src/%s/composer.json', $root, $component);
+        $contents = file_get_contents($source);
+
+        if (false === $contents) {
+            self::fail(\sprintf('Cannot read %s.', $source));
+        }
+
+        try {
+            /** @var array<string, mixed> $manifest */
+            $manifest = json_decode($contents, true, flags: \JSON_THROW_ON_ERROR);
+            $manifest['config'] = ['vendor-dir' => $vendorDir];
+            $relocated = json_encode($manifest, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            self::fail(\sprintf('Invalid JSON in %s: %s', $source, $e->getMessage()));
+        }
+
+        $directory = \sprintf('%s/build/deps/%s', $root, strtolower($component));
+
+        if (! is_dir($directory) && ! mkdir($directory, 0o755, true)) {
+            self::fail(\sprintf('Cannot create %s.', $directory));
+        }
+
+        $target = $directory.'/composer.json';
+
+        if (file_put_contents($target, $relocated."\n") === false) {
+            self::fail(\sprintf('Cannot write to %s.', $target));
+        }
+
+        return $target;
     }
 
     private static function pruneInfectionResultCaches(): void
