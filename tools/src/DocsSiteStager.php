@@ -83,14 +83,50 @@ final class DocsSiteStager
             return 1;
         }
 
+        $config = self::stageConfig($root, \dirname($stagingDir));
+
         printf(
-            "%d files staged into %s, %d repository-escaping links rewritten to GitHub URLs.\n",
+            "%d files staged into %s, %d repository-escaping links rewritten to GitHub URLs, site config written to %s.\n",
             $staged,
             $stagingDir,
             $rewritten,
+            $config,
         );
 
         return 0;
+    }
+
+    /**
+     * Writes a copy of `mkdocs.yml` into the build directory with its paths made relative to it.
+     */
+    private static function stageConfig(string $root, string $buildDir): string
+    {
+        $source = $root.'/mkdocs.yml';
+        $config = file_get_contents($source);
+
+        if (false === $config) {
+            throw new \RuntimeException('Could not read "mkdocs.yml".');
+        }
+
+        $relocated = preg_replace(
+            \sprintf('#^(docs_dir|site_dir): %s/#m', preg_quote($buildDir, '#')),
+            '$1: ',
+            $config,
+            -1,
+            $count,
+        );
+
+        if (! \is_string($relocated) || 2 !== $count) {
+            throw new \RuntimeException(\sprintf('Expected "mkdocs.yml" to declare docs_dir and site_dir under "%s/".', $buildDir));
+        }
+
+        $destination = \sprintf('%s/%s/mkdocs.yml', $root, $buildDir);
+
+        if (file_put_contents($destination, $relocated) === false) {
+            throw new \RuntimeException(\sprintf('Could not write "%s/mkdocs.yml".', $buildDir));
+        }
+
+        return $buildDir.'/mkdocs.yml';
     }
 
     /**

@@ -224,7 +224,7 @@
         "cs:check": "Checks for coding style violations",
         "cs:fix": "Fixes any coding style violations",
         "deps:check": "Analyses composer dependency declarations with shipmonk, root and per-component manifests",
-        "docs:stage": "Stages docs/ into build/pages-src for the site build, rewriting repository-escaping links to GitHub URLs",
+        "docs:stage": "Stages docs/ into build/pages-src and mkdocs.yml into build/ for the site build, rewriting repository-escaping links to GitHub URLs",
         "lint:docs": "Runs all documentation linters (typos, markdown)",
         "lint:fences": "Lints documentation PHP fences against the declared PHP floor (needs PHP_FLOOR_BIN)",
         "lint:fix": "Runs all auto-fixable doc linters (typos, markdown)",
