@@ -2,7 +2,6 @@ globs:
   - '**/*.md'
 
 ignores:
-  - '.claude/**'
   - 'api/vendor/**'
   - 'bc/vendor/**'
   - 'build/**'

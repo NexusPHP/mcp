@@ -2,6 +2,7 @@
 /.php-cs-fixer.php
 /.venv/
 /build/
+/CLAUDE.local.md
 /composer.lock
 /conformance/results/
 /latest-schema.json
@@ -12,7 +13,3 @@
 /tools/composer.lock
 /tools/vendor/
 /vendor/
-
-# Allow committing project-level Claude config, hooks, and skills.
-!/.claude/
-/.claude/settings.local.json

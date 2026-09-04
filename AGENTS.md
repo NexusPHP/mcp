@@ -1,6 +1,152 @@
-# Claude Code Instructions
+# Agent Instructions
 
-Read [.github/copilot-instructions.md](.github/copilot-instructions.md) first: it is the canonical repo overview, architecture, and command list, and nothing there is repeated here. This file holds the codebase's long-standing design decisions plus Claude-specific workflow guidance.
+## Project Overview
+
+This is a PHP monorepo implementing an SDK for the [Model Context Protocol (MCP)](https://modelcontextprotocol.io).
+It is intentionally architected differently from the official PHP MCP SDK.
+
+## Monorepo Structure
+
+The repository is a single Composer monorepo with four logical namespaces under `src/`:
+
+- `src/Core/`: shared foundation. JSON-RPC 2.0 types, MCP schema classes, and reusable utilities used by both server and client packages.
+- `src/Server/`: MCP server implementation. Handles tool/resource/prompt registration and responds to client requests.
+- `src/Client/`: MCP client implementation. Connects to MCP servers, calls tools, reads resources, and gets prompts.
+- `src/Extension/`: the official MCP extensions (tasks, MCP Apps, OAuth extension grants), each with server and client halves. Depends on the other three, and nothing depends on it.
+
+All code is managed under the unified namespace `Nexus\Mcp\` with the directory structure mirroring the namespace hierarchy. Tests mirror the source structure under `tests/` with namespace `Nexus\Mcp\Tests\`. Development tooling is isolated in a separate `tools/` directory with its own dependencies.
+
+Each tree is also a Composer package: `src/<Tree>/composer.json` is published as `nexusphp/mcp-core`, `nexusphp/mcp-server`, `nexusphp/mcp-client`, or `nexusphp/mcp-extensions` from a read-only subtree mirror that `.github/workflows/split-components.yml` refreshes on every push to `1.x` and tags in lockstep on every release. The umbrella `nexusphp/mcp` replaces all four. Every tree carries its `README.md`, `LICENSE`, a `.gitattributes` that keeps `.github/` out of the dist, and a `.github/workflows/redirect.yml` that closes issues and pull requests opened on the mirror with a pointer back here. `composer deps:check` analyses each manifest against its tree, and `tests/AutoReview/ComponentManifestTest.php` holds the five manifests and the mirror scaffolding in lockstep.
+
+## Tooling
+
+### Commands
+
+```bash
+# Install all dependencies (run from repo root)
+composer update  # composer.lock is not committed; update is the standard setup command
+
+# Run the gate suite (code style, static analysis, automatic review, coverage, diff-based mutation)
+composer test:with-untracked
+
+# Same suite with full-tree mutation instead. 7+ minutes, so run it deliberately, not by default
+composer test:all
+
+# Run automatic code review tests (conformance tests and architecture checks)
+composer test:auto-review
+
+# Run unit tests with code coverage
+composer test:unit   # runs all unit tests
+composer test:client # only client tests
+composer test:core   # only core tests
+composer test:server # only server tests
+
+# Enforce 100% line coverage (parses the Clover report emitted by test:unit)
+composer coverage:check
+
+# Run a single test file or test method
+./vendor/bin/phpunit tests/Core/SomeTest.php
+./vendor/bin/phpunit --filter testMethodName
+
+# Static analysis
+composer phpstan:check    # runs PHPStan across all packages
+composer phpstan:baseline # regenerates the PHPStan baseline; only use when a confirmed false positive/negative requires suppression; never add baseline entries to silence real errors
+composer test:stan        # PHPStan type-inference lock-in assertions (the static-analysis PHPUnit group, data under tests/AutoReview/data/)
+
+# Architecture boundaries (Server and Client must not depend on each other, both may depend on Core)
+composer arch:check
+
+# Dependency declarations (shadow/unused composer deps via shipmonk/composer-dependency-analyser), root and per-component manifests
+composer deps:check
+
+# Backward compatibility of the public surface against the latest stable tag (roave/backward-compatibility-check)
+# Compares committed revisions only, so it sees no uncommitted work. Needs `composer update --working-dir=bc` once.
+composer bc:check
+
+# Mutation testing (checks for code quality via mutation detection)
+composer mutation:check      # runs Infection on whole codebase
+composer mutation:filter     # runs Infection on diff vs origin/1.x; includes untracked files via intent-to-add
+
+# Code style (check only)
+composer cs:check
+
+# Code style (fix)
+composer cs:fix
+
+# Documentation linters (typos whole-repo + markdownlint scoped to .md)
+composer lint:docs
+composer lint:fix         # auto-fix typos + markdownlint
+
+# Lint the PHP code fences in markdown against the floor declared in composer.json
+PHP_FLOOR_BIN=/path/to/php8.3 composer lint:fences
+
+# Regenerate the schema snapshots (latest-schema.json + sorted-schema.json)
+composer schema:generate
+
+# Regenerate the spec @see anchor snapshot consumed by the auto-review test
+composer spec:snapshot-anchors
+```
+
+### Key Tools
+
+- **PHPUnit**: test framework
+- **PHPStan level 10**: static analysis (strict)
+- **PHP-CS-Fixer + Nexus CS Config**: code style enforcement
+- **Minimum PHP version: 8.3**, enforced in documentation as well as in source. Code samples in
+  markdown must parse on the floor, which `composer lint:fences` and the `doc-fences` workflow check.
+
+## Architecture Conventions
+
+### Core Package
+
+The `Core/` subdirectory owns all MCP protocol types. These are modelled as immutable readonly classes or enums under `Nexus\Mcp\Core\`.
+No server or client logic belongs here: only types, interfaces, and JSON-RPC primitives.
+It can also provide abstract classes or traits for shared logic, but it should not have any concrete implementations of protocol handling.
+All protocol envelope contracts (request/response/notification payload schemas) must be defined in `Core` even if one side typically originates them.
+
+MCP schema types map directly to the [MCP specification](https://modelcontextprotocol.io/specification). When the spec defines an object, it becomes a readonly PHP class. Enums in the spec map to PHP backed enums.
+
+### Server Package
+
+The `Server/` subdirectory under `Nexus\Mcp\Server\` depends on `Core`. It defines:
+
+- Handler interfaces that consumers implement (`ToolExecutorInterface`, `PromptRendererInterface`, `ResourceReaderInterface`, `TemplatedResourceReaderInterface`)
+- A `Server` class that connects transports to protocol handling
+- Transport implementations (stdio, Streamable HTTP)
+
+### Client Package
+
+The `Client/` subdirectory under `Nexus\Mcp\Client\` depends on `Core`. It provides a `Client` class that connects over a transport and exposes typed methods for each MCP capability.
+
+### Transport Layer
+
+Transports are abstracted behind an interface defined in `Core`. Both `Server` and `Client` depend on this interface. Concrete transport implementations live in the package that uses them.
+
+### JSON-RPC
+
+All MCP communication is JSON-RPC 2.0. Request/response/notification types live in `Core`. The `Server` and `Client` packages build on these primitives and should not define their own JSON-RPC envelope types.
+
+If a type is implementation-internal and never appears in a JSON-RPC envelope, it may live in `Server` or `Client`. Once it becomes a protocol contract, it belongs in `Core`.
+
+## Conformance Testing
+
+This SDK must pass the official [MCP conformance test suite](https://github.com/modelcontextprotocol/modelcontextprotocol) maintained by the MCP project. Conformance tests are the authoritative check that the implementation adheres to the protocol specification. All new server and client functionality must remain conformance-compliant. If a conformance test fails, the implementation is wrong, not the test.
+
+Conformance tests live in `tests/AutoReview/`, which is also the home for all other automatic review tests (e.g., architecture checks, coding standard enforcement at the test level).
+
+## Code Style
+
+- Strict types declared in every file: `declare(strict_types=1);`
+- Namespace root: `Nexus\Mcp\` with subnamespaces for `Core`, `Server`, and `Client` (e.g., `Nexus\Mcp\Core\`, `Nexus\Mcp\Server\`, `Nexus\Mcp\Client\`)
+- Readonly classes for value objects and protocol types
+- No public mutable properties. Use constructor promotion with `readonly`
+- PHPStan at max level. All code must pass without `@phpstan-ignore`. Test code can use `@phpstan-ignore` if necessary, but production code should not.
+- Code style should use the `Nexus84` preset from Nexus CS Config. Use that library to construct the config for PHP-CS-Fixer.
+- Classes should be final by default unless they are designed for extension (e.g., abstract classes or interfaces).
+- Properties, parameters, and return types should be fully typed. Use `mixed` only when absolutely necessary, and prefer union types or generics (via docblocks) to express complex types.
+- Use constructor injection for dependencies. Avoid service locators or static access to shared services.
+- All exceptions must extend a package-specific base exception class. This allows consumers to catch all SDK errors with a single catch block.
+- Mark implementation details with `@internal` so consumers know what is part of the public API vs internal to the SDK.
 
 ## Before making changes
 
@@ -115,7 +261,7 @@ Do **not** mint a new exception class unless at least one of these holds:
 Schema classes under `src/Core/Schema/` are stable value objects locked to the MCP spec shape. Internal micro-DRY (helper extraction, trait lifting, abstract base lifting, and the like) is not worth the added abstraction unless it fixes a real envelope-encoding bug. The duplication is byte-identical except for class-name prefixes, the schema tracks the spec exactly and rarely changes, and each extraction adds a layer the reader must follow.
 
 - Before proposing a schema-class refactor, ask whether it fixes an encoding bug or only adds abstraction. If abstraction-only, skip it and document why rather than landing it.
-- Dead-code removal in schema classes is allowed, but only after verifying that no test, no direct-encode path, and no PHPStan-narrowing role exercises the "dead" branch (see [Load-bearing patterns](#load-bearing-patterns)).
+- Dead-code removal in schema classes is allowed, but only after verifying that no test, no direct-encode path, and no PHPStan-narrowing role exercises the "dead" branch.
 - Trait extraction for shared schema fields also loses constructor property promotion and forces class-name plumbing into error messages, an ergonomic regression even where the rule would otherwise permit it.
 - The rule does not block non-schema cleanups under `Server/`, `Client/`, and core classes outside `Core/Schema/`. Those are normal-cadence refactors.
 
@@ -225,7 +371,7 @@ Narrowing a schema class pushes outward, and that is the point. A decoder that f
 - **Exception-message assertions**: default to strict `expectExceptionMessageIs('full message')`. Asserting the whole message kills concat-swap and operand-removal mutants. PHPUnit deprecated the loose `expectExceptionMessage()` (substring matching), so do not reintroduce it. When the message carries a dynamic tail you cannot assert in full, anchor the stable prefix with `expectExceptionMessageMatches('/^prefix …/')`. Reserve `expectExceptionMessageIsOrContains()` for the rare case where neither exact nor anchored-regex matching fits.
 - **Data providers for invalid-input tests**: to drive a value into a narrower chain (e.g. `Assert::that($x)->isMap()`) whose type-specifying extension fails at the type level for a bad input, accept the value via `mixed $value` from a data provider. PHPStan will not narrow `mixed` and won't flag the test.
 - **Type-inference tests (`tests/AutoReview/data/*.php`) target production classes only**: the real spec classes in `src/` and their generics. Do not pad data files with assertions against test fixtures (`tests/Fixtures/...`), which change for scaffolding reasons unrelated to the SDK's public contract. If a generic surface has no concrete production class yet, skip the data file rather than substituting a fixture.
-- **A deadline is not loop work, so an in-memory fixture cannot reach one.** `RecordingTransport` holds no I/O of its own, so with only an unreferenced deadline armed the loop runs dry and `Future::await()` throws `Error: Event loop terminated without resuming the current suspension`. A real transport always holds referenced I/O open while a request is in flight, so this is a fixture gap, not a production one. Anchor such a test with a self-terminating referenced timer (`Amp\delay()` past the deadline), which is what `ClientTest::awaitPastDeadline()` does. Never give a fixture a watcher for its own lifetime: that reintroduces the very leak the unreferencing exists to prevent (see [Load-bearing patterns](#load-bearing-patterns)).
+- **A deadline is not loop work, so an in-memory fixture cannot reach one.** `RecordingTransport` holds no I/O of its own, so with only an unreferenced deadline armed the loop runs dry and `Future::await()` throws `Error: Event loop terminated without resuming the current suspension`. A real transport always holds referenced I/O open while a request is in flight, so this is a fixture gap, not a production one. Anchor such a test with a self-terminating referenced timer (`Amp\delay()` past the deadline), which is what `ClientTest::awaitPastDeadline()` does. Never give a fixture a watcher for its own lifetime: that reintroduces the very leak the unreferencing exists to prevent.
 - **Tests run in random order** (`executionOrder="random"` in [phpunit.dist.xml](phpunit.dist.xml)), so an order-dependent bug is a per-run lottery. `--random-order-seed=N` only takes effect alongside `--order-by=random`, so pin both when reproducing one, and sweep several seeds before calling it fixed.
 - **`@phpstan-ignore` in tests is a narrow exception**, valid only when the test deliberately feeds malformed input to exercise a runtime guard that PHPStan would reject statically before the runtime code ever runs. Otherwise fix the code structurally. The `mixed $value` data-provider pattern above is usually the better alternative.
 
@@ -240,20 +386,8 @@ When `mutation:check` reports surviving mutants, categorise before writing tests
   - *Reachable but unexercised behaviour* → add a test. Common with defensive validation where the happy path is covered but the failure path isn't.
   - *Structurally unreachable code* → remove it. Common with defensive `Assert::isMap` calls inside helpers fed by schema-typed input. Widen the helper's input type (`array<string, mixed>` → `array<array-key, mixed>`) and do strict typing at the outermost call site.
 - **A timed-out mutant is a defect, not a result.** Infection scores a timeout as a kill, so MSI can read 100% while `T` marks are present. Never report such a run as green, and never raise `infection.json5`'s `timeout` to make one go away. Two causes produce a `T`, and they take opposite fixes. Tell them apart by re-running the file scoped (`mutation:check -- <file>`): cause 1 reproduces there, cause 2 does not.
-  - *The mutated path does not terminate*, because something outlives the work it bounds or a loop lost its bound. The worked precedents are [RequestDeadline](src/Client/Dispatch/RequestDeadline.php), where timeouts plus an intermittent whole-suite hang traced to a referenced `EventLoop::delay()` watcher (see [Load-bearing patterns](#load-bearing-patterns) item 5), and the pagination and pipeline walks, where inverting `while (null !== $cursor)` or widening an `array_slice` offset re-requests the same page or middleware forever. When no rewrite makes the mutated form terminate, the fix belongs in the test double: the paged store refuses to serve a page twice and the recording middleware refuses a re-entry, both real invariants.
+  - *The mutated path does not terminate*, because something outlives the work it bounds or a loop lost its bound. The worked precedents are [RequestDeadline](src/Client/Dispatch/RequestDeadline.php), where timeouts plus an intermittent whole-suite hang traced to a referenced `EventLoop::delay()` watcher, and the pagination and pipeline walks, where inverting `while (null !== $cursor)` or widening an `array_slice` offset re-requests the same page or middleware forever. When no rewrite makes the mutated form terminate, the fix belongs in the test double: the paged store refuses to serve a page twice and the recording middleware refuses a re-entry, both real invariants.
   - *The mutant escaped the tests and the PHPStan run that killed it was slow.* Infection runs static analysis only on a mutant the test framework already let through, and that process is bound by the same `timeout`. One run costs several seconds and cannot save its result cache, so a full-tree run can cross the limit. Every static-analysis kill is therefore a latent timeout, and which ones surface varies per run. Fix by closing the test gap so the mutant dies before static analysis is reached, or, when the call is a pure narrowing device, by deleting it (see [Runtime validation](#runtime-validation-use-nexusphpassert)).
-
-## Load-bearing patterns
-
-These look dead or redundant but are load-bearing. Do not propose them for removal, and for anything similar, verify by writing a failing test or checking PHPStan / auto-review behaviour rather than by local reading.
-
-1. **`Annotations::jsonSerialize` empty-object substitution.** `json_encode(new Annotations())` standalone emits `[]` instead of `{}` without it, even though all parent consumers filter the slot when empty.
-2. **`JsonRpcMessage` declares `toArray()` and `jsonSerialize()` itself.** Every implementor also implements `Arrayable`, so the marker restates `toArray(): array<string, mixed>` and narrows `jsonSerialize()` to `array<string, mixed>` (an envelope is never an empty object). Both declarations are load-bearing, and the two are not interchangeable at call sites: anything encoding a message for a peer reads `jsonSerialize()`, or the Pattern A substitution never reaches the other end, while `toArray()` serves the paths that keep the envelope a PHP array. Do not reintroduce the `\assert(method_exists($message, 'toArray'))` plus `Assert::isMap()` pair that stood in for the missing declaration: both were narrowing no-ops, which Infection reports as a `MethodCallRemoval` no test can kill.
-3. **`NullLogger` short-circuit pattern.** Do not add an `if ($logger instanceof NullLogger)` early-return guard at log call sites. `NullLogger::debug()` is the no-op, so call `$logger->debug(...)` unconditionally.
-4. **`JsonRpcMethodRegistry::requests()` and `notifications()` map ordering.** Sorted by the evaluated method literal, not class-name alphabetical, and enforced by a test.
-5. **`EventLoop::unreference()` on a bounding timer.** `RequestDeadline::arm()` unreferences every `EventLoop::delay()` watcher it creates. A timer that *bounds* work must never be work the loop waits on: a referenced one outliving its request holds Revolt open until it fires, and a leaked 600s ceiling hangs the whole run as an order-dependent lottery. Neither cleanup path substitutes. PHP does not unwind a suspended `Fiber` destroyed rather than resumed, so `Client::dispatch()`'s `finally { $deadline?->release(); }` is skipped outright under some orderings (traced: no `finally` entry at all in a full-class run, yet it fires for the same test in isolation), and with `zend.exception_ignore_args=Off` a retained exception's backtrace pins its frames' arguments, keeping the deadline alive indefinitely. `__destruct` is no fallback either: the `delay()` closure captures `$this` and the loop holds the closure, so the object cannot be collected while any timer is armed, which is why an earlier `WeakReference` + `__destruct` attempt fixed only half the failing orderings. `Amp\TimeoutCancellation` unreferences in its constructor for the same reason and treats its own `__destruct` as hygiene. To diagnose a suspected leak, diff `EventLoop::getIdentifiers()` between `setUp` and `tearDown` and resolve each leaked id through `ReflectionProperty(Revolt\EventLoop\Internal\AbstractDriver::class, 'callbacks')`: a long `interval` with `referenced` true is the hang. Do not instrument with `spl_object_id`, which is reused after free and produces false leads.
-6. **`$lock->release()` in `AuthorizationCoordinator::runExclusively`'s `finally`.** `Amp\Sync\Lock::__destruct` also releases, so the explicit call looks redundant, and Infection agrees: every composer script quiesces xdebug (`XDEBUG_MODE=off` for the plain suites, `=coverage` for the coverage and mutation runs, and neither mode pins), so the removal mutant survives honestly there, which is why the mutator ignore in [infection.json5](infection.json5) names this method. It is not redundant. Under the CLI default (`develop,debug,coverage`) the delivered `Lock` stays referenced until shutdown even though no PHP-visible object, static, or GC cycle holds it, so the destructor never runs and every later caller wedges in `LocalSemaphore::acquire()`. A lock release must not depend on collection timing. Wider lesson for verifying a mutant by hand: one that deadlocks under a bare `vendor/bin/phpunit` (which gets php.ini's full xdebug mode) can pass cleanly in the gate's environment, so re-check with `XDEBUG_MODE=off` before calling Infection wrong.
-7. **`SuggestedDependencyGuard::verify` in `JwksAccessTokenValidator`'s constructor.** Removing the call is unobservable while the suggested `firebase/php-jwt` package is installed, and the dev environment always installs it, so the removal mutant survives. [infection.json5](infection.json5) exempts it with a `MethodCallRemoval` `ignoreSourceCodeByRegex` matching the call itself, **not** a method-wide ignore, which would silently exempt the `Assert` chain the same constructor carries. The guard is not dead: without the package it is what turns a fatal autoload error into an actionable message, and its own test pins that message exactly. Every suggested-dependency consumer repeats the shape: `suggest` entry in composer.json, the package in `require-dev`, a `deps:check` path exclusion, the guard call first in the constructor, and the regex exemption covering that one call.
 
 ## Committing
 
