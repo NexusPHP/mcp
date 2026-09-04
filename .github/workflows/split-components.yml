@@ -1,0 +1,88 @@
+name: Split components
+
+on:
+  push:
+    branches:
+      - 1.x
+    tags:
+      - 'v*'
+
+permissions: {}
+
+concurrency:
+  group: split-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  split:
+    name: Split src/${{ matrix.dir }} into ${{ matrix.repo }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: mirrors
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - dir: Core
+            repo: mcp-core
+          - dir: Server
+            repo: mcp-server
+          - dir: Client
+            repo: mcp-client
+          - dir: Extension
+            repo: mcp-extensions
+
+    steps:
+      - name: Checkout code with full history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Split the component subtree
+        env:
+          DIR: ${{ matrix.dir }}
+        run: git subtree split --prefix="src/$DIR" -b split
+
+      - name: Push the 1.x branch to the mirror
+        if: github.ref_type == 'branch'
+        env:
+          REPO: ${{ matrix.repo }}
+          TOKEN: ${{ secrets.SPLIT_ACCESS_TOKEN }}
+        run: git push --force "https://x-access-token:${TOKEN}@github.com/NexusPHP/${REPO}.git" split:refs/heads/1.x
+
+      - name: Sign and push the release tag to the mirror
+        if: github.ref_type == 'tag' && !startsWith(github.ref_name, 'v0.')
+        env:
+          REPO: ${{ matrix.repo }}
+          TAG: ${{ github.ref_name }}
+          TOKEN: ${{ secrets.SPLIT_ACCESS_TOKEN }}
+          GPG_KEY: ${{ secrets.SPLIT_GPG_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.SPLIT_GPG_PASSPHRASE }}
+        run: |
+          export GNUPGHOME="$RUNNER_TEMP/gnupg"
+          mkdir -m 700 "$GNUPGHOME"
+          printf '%s' "$GPG_KEY" | gpg --batch --import
+          printf '%s' "$GPG_PASSPHRASE" > "$RUNNER_TEMP/gpg-passphrase"
+          chmod 600 "$RUNNER_TEMP/gpg-passphrase"
+          cat > "$RUNNER_TEMP/gpg-loopback" <<EOF
+          #!/bin/sh
+          exec gpg --batch --pinentry-mode loopback --passphrase-file "$RUNNER_TEMP/gpg-passphrase" "\$@"
+          EOF
+          chmod 700 "$RUNNER_TEMP/gpg-loopback"
+
+          key_id="$(gpg --batch --list-secret-keys --with-colons | awk -F: '$1 == "ssb" && $12 ~ /s/ { print $5; exit }')"
+          if [ -z "$key_id" ]; then
+            echo '::error::SPLIT_GPG_KEY carries no signing-capable subkey.'
+            exit 1
+          fi
+
+          git config user.name 'John Paul E. Balandan, CPA'
+          git config user.email 'paulbalandan@gmail.com'
+          git config user.signingkey "${key_id}!"
+          git config gpg.program "$RUNNER_TEMP/gpg-loopback"
+
+          git tag -s "$TAG" -m "$TAG" split
+          git tag -v "$TAG"
+          git push "https://x-access-token:${TOKEN}@github.com/NexusPHP/${REPO}.git" "refs/tags/$TAG"
