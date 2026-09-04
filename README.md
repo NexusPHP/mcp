@@ -35,7 +35,7 @@ composer require nexusphp/mcp
 ```
 
 The umbrella package carries everything. Each layer is also its own package, cut from this repository as a
-read-only subtree mirror and tagged in lockstep, with Packagist listings from `1.0.0`:
+read-only subtree mirror and tagged in lockstep, with `1.0.0` as the first tagged version on Packagist:
 
 | Package | Contents |
 | --- | --- |

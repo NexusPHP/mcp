@@ -20,9 +20,9 @@ packaging, not protocol.
   `mcp-extensions`), served from a read-only subtree mirror that the `Split components` workflow
   refreshes on every push to `1.x` and tags in lockstep on every release. `composer deps:check` proves
   each manifest against its tree and `ComponentManifestTest` holds the five to one another.
-- [ ] **Tag the stable major.** `1.0.0` is reserved for the stable release on the 2026-07-28 revision. It
-  is the first tag the component mirrors carry, so the four packages are submitted to Packagist before it
-  is cut. Versioning commitments from that point are in [VERSIONING.md](VERSIONING.md).
+- [ ] **Tag the stable major.** `1.0.0` is reserved for the stable release on the 2026-07-28 revision, and
+  is the first tag the component mirrors carry. Versioning commitments from that point are in
+  [VERSIONING.md](VERSIONING.md).
 
 ## Official extensions
 

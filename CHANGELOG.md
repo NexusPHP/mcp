@@ -12,7 +12,7 @@ in `0.x`, minor releases may include breaking changes.
 
 - The SDK is also published as component packages: `nexusphp/mcp-core`, `nexusphp/mcp-server`,
   `nexusphp/mcp-client`, and `nexusphp/mcp-extensions`, read-only subtree mirrors tagged in lockstep with
-  `nexusphp/mcp` and listed on Packagist from `1.0.0`.
+  `nexusphp/mcp`, with `1.0.0` as their first tagged version.
 - The guide documentation is published at <https://nexusphp.github.io/mcp/>, with the API reference moved
   under [/api/](https://nexusphp.github.io/mcp/api/).
 - Time is injectable everywhere via [`nexusphp/clock`](https://github.com/NexusPHP/clock), a new dependency:

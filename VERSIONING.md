@@ -28,8 +28,8 @@ The SDK is five packages cut from one tree: the umbrella `nexusphp/mcp` and the 
 read-only subtree split of `src/<Component>/`. One tag names one release across all five: every component
 receives every release tag, sibling requirements are pinned with `self.version`, and the umbrella `replace`s
 the four components so the two forms never coexist in one install. `mcp-extensions` requires both
-`mcp-server` and `mcp-client`, since every extension ships both halves. The component packages are listed on
-Packagist from `1.0.0`.
+`mcp-server` and `mcp-client`, since every extension ships both halves. `1.0.0` is the first tagged version the
+component packages carry on Packagist.
 
 ## From 1.0 onward
 
