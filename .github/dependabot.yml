@@ -4,7 +4,9 @@
 version: 2
 updates:
   - package-ecosystem: 'github-actions'
-    directory: '/'
+    directories:
+      - '/'
+      - '/src/*/.github/workflows'
     schedule:
       interval: 'daily'
     open-pull-requests-limit: 10

@@ -91,6 +91,6 @@ yet is submitted at <https://packagist.org/packages/submit> with the GitHub hook
 ## Rotating the split secrets
 
 The `mirrors` environment holds `SPLIT_ACCESS_TOKEN` (a fine-grained token with Contents and Workflows write
-access to the four mirrors, the latter because every split carries `.github/workflows/redirect.yml`), `SPLIT_GPG_KEY` (an ASCII-armoured signing-only subkey), and `SPLIT_GPG_PASSPHRASE`. The token and
+access to the four mirrors, the latter because every split carries `.github/workflows/carson.yml`), `SPLIT_GPG_KEY` (an ASCII-armoured signing-only subkey), and `SPLIT_GPG_PASSPHRASE`. The token and
 the subkey both expire: renew them there before they lapse, and re-upload the public key to the GitHub account
 whenever the subkey is replaced, or the mirror tags stop verifying.

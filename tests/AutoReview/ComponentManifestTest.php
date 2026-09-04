@@ -50,7 +50,7 @@ final class ComponentManifestTest extends AbstractMcpTestCase
         'Extension' => ['nexusphp/mcp-client', 'nexusphp/mcp-core', 'nexusphp/mcp-server'],
     ];
     private const array SHARED_KEYS = ['license', 'type', 'keywords', 'authors', 'support', 'funding'];
-    private const array MIRROR_FILES = ['.gitattributes', '.github/workflows/redirect.yml'];
+    private const array MIRROR_FILES = ['.gitattributes', '.github/carson.yml', '.github/workflows/carson.yml'];
 
     public function testEveryReplacedPackageIsAComponent(): void
     {
