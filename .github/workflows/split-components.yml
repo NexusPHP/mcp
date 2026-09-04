@@ -6,6 +6,12 @@ on:
       - 1.x
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: An existing release tag to split and sign again
+        required: true
+        type: string
 
 permissions: {}
 
@@ -37,6 +43,7 @@ jobs:
       - name: Checkout code with full history
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ inputs.tag || github.ref }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -46,17 +53,17 @@ jobs:
         run: git subtree split --prefix="src/$DIR" -b split
 
       - name: Push the 1.x branch to the mirror
-        if: github.ref_type == 'branch'
+        if: github.event_name == 'push' && github.ref_type == 'branch'
         env:
           REPO: ${{ matrix.repo }}
           TOKEN: ${{ secrets.SPLIT_ACCESS_TOKEN }}
         run: git push --force "https://x-access-token:${TOKEN}@github.com/NexusPHP/${REPO}.git" split:refs/heads/1.x
 
       - name: Sign and push the release tag to the mirror
-        if: github.ref_type == 'tag' && !startsWith(github.ref_name, 'v0.')
+        if: (github.ref_type == 'tag' || inputs.tag != '') && !startsWith(inputs.tag || github.ref_name, 'v0.')
         env:
           REPO: ${{ matrix.repo }}
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ inputs.tag || github.ref_name }}
           TOKEN: ${{ secrets.SPLIT_ACCESS_TOKEN }}
           GPG_KEY: ${{ secrets.SPLIT_GPG_KEY }}
           GPG_PASSPHRASE: ${{ secrets.SPLIT_GPG_PASSPHRASE }}
@@ -83,6 +90,7 @@ jobs:
           git config user.signingkey "${key_id}!"
           git config gpg.program "$RUNNER_TEMP/gpg-loopback"
 
+          git tag -d "$TAG"
           git tag -s "$TAG" -m "$TAG" split
           git tag -v "$TAG"
           git push "https://x-access-token:${TOKEN}@github.com/NexusPHP/${REPO}.git" "refs/tags/$TAG"
