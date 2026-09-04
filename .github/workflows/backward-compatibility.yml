@@ -2,6 +2,15 @@ name: Backward Compatibility
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - 1.x
+    paths:
+      - .github/workflows/backward-compatibility.yml
+      - src/**
+      - bc/composer.json
+      - composer.json
+      - .roave-backward-compatibility-check.xml
   pull_request:
     branches:
       - 1.x
@@ -58,9 +67,5 @@ jobs:
       - name: Install BC tooling
         run: composer update --working-dir=bc --ansi
 
-      # Advisory while the line is 0.x, where semver permits breaks, so the result is read rather than
-      # enforced and `.github/RELEASE.md` runs it by hand to write BREAKING_CHANGES.md. At v1.0.0 drop
-      # `continue-on-error` and add a `push` trigger on 1.x, since work lands there without a pull request.
       - name: Check for backward-compatibility breaks
-        continue-on-error: true
         run: composer bc:check -- --ansi --format=markdown

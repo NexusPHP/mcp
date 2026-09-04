@@ -8,7 +8,7 @@
         such member toward its non-zero exit. Named narrowly so an unrecognised skip still fails.
     -->
     <baseline>
-        <ignored-regex>#^\[BC\] SKIPPED: Unable to compile initializer in class Nexus\\Mcp\\#</ignored-regex>
+        <ignored-regex>#^\[BC\] SKIPPED: Unable to compile initializer in (class|method) Nexus\\Mcp\\#</ignored-regex>
         <ignored-regex>#^\[BC\] SKIPPED: An enum expression Nexus\\Mcp\\.+ is not supported in class Nexus\\Mcp\\#</ignored-regex>
     </baseline>
 </roave-bc-check>
