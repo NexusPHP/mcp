@@ -1,0 +1,75 @@
+version: 1
+
+subscribers:
+  - auto-labeler
+  - commands
+  - conflicts-notifier
+  - lock-old-issues
+  - no-response-closer
+  - stale
+  - triage-labeler
+
+settings:
+  auto-labeler:
+    rules:
+      - label: php
+        files:
+          - '**/*.php'
+      - label: github_actions
+        files:
+          - '.github/workflows/**'
+          - 'src/*/.github/workflows/**'
+      - label: dependencies
+        files:
+          - 'composer.json'
+          - 'src/*/composer.json'
+          - 'tools/composer.json'
+      - label: backward compatibility
+        files:
+          - 'BREAKING_CHANGES.md'
+          - '.roave-backward-compatibility-check.xml'
+      - label: deprecation
+        title:
+          - '[Dd]eprecat'
+    issue_rules:
+      - label: bug
+        title:
+          - '[Bb]ug'
+      - label: feature request
+        title:
+          - '^\[?[Ff]eature'
+
+  commands:
+    roles:
+      - admin
+      - maintain
+      - write
+
+  lock-old-issues:
+    days: 90
+    reason: resolved
+
+  no-response-closer:
+    label: awaiting feedback
+    days_until_close: 14
+    exempt_labels:
+      - P0
+      - P1
+
+  stale:
+    days_until_stale: 60
+    days_until_close: 7
+    stale_label: stale
+    exempt_labels:
+      - P0
+      - P1
+      - good first issue
+      - help wanted
+
+  triage-labeler:
+    needs_review_label: needs review
+    needs_rework_label: needs rework
+    approved_label: reviewed
+    qualifying_associations:
+      - OWNER
+      - MEMBER

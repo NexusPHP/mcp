@@ -13,7 +13,7 @@ GREEN = '\033[32m'
 BLUE = '\033[34m'
 YELLOW = '\033[33m'
 ALLOWED_ROOTS = (Path('.github/workflows'), *sorted(Path('src').glob('*/.github/workflows')))
-ALLOWED_FILES = (Path('.github/dependabot.yml'), *sorted(Path('src').glob('*/.github/carson.yml')))
+ALLOWED_FILES = (Path('.github/carson.yml'), Path('.github/dependabot.yml'), *sorted(Path('src').glob('*/.github/carson.yml')))
 
 
 def colorise(text: str, colour: str) -> str:

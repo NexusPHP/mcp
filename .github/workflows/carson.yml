@@ -1,0 +1,46 @@
+name: Carson
+
+on:
+  issues:
+    types:
+      - opened
+      - edited
+      - labeled
+  issue_comment:
+    types:
+      - created
+  pull_request_target:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - edited
+      - ready_for_review
+      - converted_to_draft
+  pull_request_review:
+    types:
+      - submitted
+  push:
+    branches:
+      - 1.x
+  schedule:
+    - cron: '0 4 * * *'
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.issue.number || github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  carson:
+    name: Run Carson
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Run Carson
+        uses: NexusPHP/carson@3dd49fd64448ae56fb93aabe8e8082e2e5149df5 # v1.1.0
+        with:
+          app_id: ${{ secrets.CARSON_APP_ID }}
+          private_key: ${{ secrets.CARSON_PRIVATE_KEY }}

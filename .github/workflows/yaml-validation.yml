@@ -8,6 +8,7 @@ on:
       - .github/workflows/**/*.yml
       - src/*/.github/workflows/*.yml
       - src/*/.github/carson.yml
+      - .github/carson.yml
       - .github/dependabot.yml
       - .github/scripts/validate_yaml.py
       - .github/scripts/requirements.txt
@@ -18,6 +19,7 @@ on:
       - .github/workflows/**/*.yml
       - src/*/.github/workflows/*.yml
       - src/*/.github/carson.yml
+      - .github/carson.yml
       - .github/dependabot.yml
       - .github/scripts/validate_yaml.py
       - .github/scripts/requirements.txt
