@@ -7,13 +7,16 @@ It is intentionally architected differently from the official PHP MCP SDK.
 
 ## Monorepo Structure
 
-The repository is a single Composer monorepo with three logical namespaces under `src/`:
+The repository is a single Composer monorepo with four logical namespaces under `src/`:
 
 - `src/Core/`: shared foundation. JSON-RPC 2.0 types, MCP schema classes, and reusable utilities used by both server and client packages.
 - `src/Server/`: MCP server implementation. Handles tool/resource/prompt registration and responds to client requests.
 - `src/Client/`: MCP client implementation. Connects to MCP servers, calls tools, reads resources, and gets prompts.
+- `src/Extension/`: the official MCP extensions (tasks, MCP Apps, OAuth extension grants), each with server and client halves. Depends on the other three, and nothing depends on it.
 
 All code is managed under the unified namespace `Nexus\Mcp\` with the directory structure mirroring the namespace hierarchy. Tests mirror the source structure under `tests/` with namespace `Nexus\Mcp\Tests\`. Development tooling is isolated in a separate `tools/` directory with its own dependencies.
+
+Each tree is also a Composer package: `src/<Tree>/composer.json` is published as `nexusphp/mcp-core`, `nexusphp/mcp-server`, `nexusphp/mcp-client`, or `nexusphp/mcp-extensions` from a read-only subtree mirror that `.github/workflows/split-components.yml` refreshes on every push to `1.x` and tags in lockstep on every release. The umbrella `nexusphp/mcp` replaces all four. Every tree carries its `README.md`, `LICENSE`, a `.gitattributes` that keeps `.github/` out of the dist, and a `.github/workflows/redirect.yml` that closes issues and pull requests opened on the mirror with a pointer back here. `composer deps:check` analyses each manifest against its tree, and `tests/AutoReview/ComponentManifestTest.php` holds the five manifests and the mirror scaffolding in lockstep.
 
 ## Tooling
 
@@ -53,7 +56,7 @@ composer test:stan        # PHPStan type-inference lock-in assertions (the stati
 # Architecture boundaries (Server and Client must not depend on each other, both may depend on Core)
 composer arch:check
 
-# Dependency declarations (shadow/unused composer deps via shipmonk/composer-dependency-analyser)
+# Dependency declarations (shadow/unused composer deps via shipmonk/composer-dependency-analyser), root and per-component manifests
 composer deps:check
 
 # Backward compatibility of the public surface against the latest stable tag (roave/backward-compatibility-check)

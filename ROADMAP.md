@@ -15,14 +15,14 @@ The protocol surface is complete on this revision: both transports, both authori
 three official extensions all ship. What stands between the current `0.x` line and a stable major is
 packaging, not protocol.
 
-- [ ] **Split the umbrella package into components.** The SDK ships today as a single
-  `nexusphp/mcp` package. At 1.0 it splits along the boundaries the architecture ruleset already
-  enforces, with the official extensions leaving as a single `nexusphp/mcp-extensions` package
-  (`src/Extension/{Name}/` may depend on `Core`, `Server`, and `Client`, and nothing depends on it).
-  StructArmed and composer-dependency-analyser guard those boundaries continuously, so the split is a
-  packaging exercise rather than a refactor.
-- [ ] **Tag the stable major.** `1.0.0` is reserved for the stable release on the 2026-07-28 revision,
-  cut once the split lands. Versioning commitments from that point are in [VERSIONING.md](VERSIONING.md).
+- [x] **Split the umbrella package into components.** `src/Core`, `src/Server`, `src/Client`, and
+  `src/Extension` are each their own package (`nexusphp/mcp-core`, `mcp-server`, `mcp-client`,
+  `mcp-extensions`), served from a read-only subtree mirror that the `Split components` workflow
+  refreshes on every push to `1.x` and tags in lockstep on every release. `composer deps:check` proves
+  each manifest against its tree and `ComponentManifestTest` holds the five to one another.
+- [ ] **Tag the stable major.** `1.0.0` is reserved for the stable release on the 2026-07-28 revision. It
+  is the first tag the component mirrors carry, so the four packages are submitted to Packagist before it
+  is cut. Versioning commitments from that point are in [VERSIONING.md](VERSIONING.md).
 
 ## Official extensions
 

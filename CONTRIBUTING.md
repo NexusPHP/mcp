@@ -40,7 +40,7 @@ For faster inner loops, the single-concern scripts are usually enough:
 composer cs:check        # code style
 composer phpstan:check   # static analysis (PHPStan level 10)
 composer arch:check      # layer boundaries (Server and Client stay independent, both build on Core)
-composer deps:check      # composer dependency declarations (shadow/unused deps)
+composer deps:check      # composer dependency declarations (shadow/unused deps), root and per-component manifests
 composer test:unit       # or test:client / test:core / test:server
 composer coverage:check  # enforce 100% line coverage (after test:unit)
 composer lint:docs       # typos, markdownlint
@@ -99,7 +99,11 @@ not merely on your local PHP. `composer lint:fences` checks this, and CI enforce
 
 - Write focused commits with clear messages.
 - Keep a linear history. The CI rejects merge commits, so rebase instead of merging.
-- Open a pull request against the `1.x` branch. Describe what changed and why.
+- Open a pull request against the `1.x` branch of this repository. The component repositories
+  (`mcp-core`, `mcp-server`, `mcp-client`, `mcp-extensions`) are read-only subtree mirrors, and anything
+  opened there is closed with a pointer back here.
+- Mirror a dependency constraint change in `composer.json` into every `src/*/composer.json` that declares
+  the package. Dependabot only touches the root, and `ComponentManifestTest` refuses the drift.
 - Make sure `composer test:all` passes before requesting review.
 
 ## Code of Conduct

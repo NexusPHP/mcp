@@ -86,10 +86,11 @@ plain `?string` typing. The SDK's own emitters degrade gracefully instead of sur
 
 ## Enforced package boundaries
 
-The codebase is organised into `Core`, `Server`, and `Client`. `Server` and `Client` depend only on `Core`, and
-never on each other. That boundary is not just convention. StructArmed enforces it in CI (`composer arch:check`),
-and composer-dependency-analyser checks the dependency declarations (`composer deps:check`). The layering is kept
-clean now so the package can split into per-component packages cleanly at 1.0.
+The codebase is organised into `Core`, `Server`, `Client`, and `Extension`. `Server` and `Client` depend only on
+`Core` and never on each other, and `Extension` depends on all three with nothing depending on it. That boundary
+is not just convention. StructArmed enforces it in CI (`composer arch:check`), composer-dependency-analyser checks
+the dependency declarations of the umbrella and of every component manifest (`composer deps:check`), and each
+namespace ships as its own package from a read-only subtree mirror (see [Architecture](architecture.md#layering-rules)).
 
 ## Deliberate non-features
 

@@ -14,6 +14,10 @@ tool, and a PHP client that spawns the server and calls that tool. You can copy 
 composer require nexusphp/mcp
 ```
 
+The umbrella package carries the server, the client, and the official extensions. To install one side only,
+require `nexusphp/mcp-server` or `nexusphp/mcp-client` instead. The [README](../README.md#installation) lists
+every component package.
+
 The SDK targets MCP spec **2026-07-28**. It runs on [AMPHP](https://amphp.org) and [Revolt](https://revolt.run),
 so its synchronous-looking API is fiber-driven. You need no further setup to build a server.
 

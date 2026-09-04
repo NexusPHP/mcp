@@ -13,8 +13,7 @@
 [![License](https://img.shields.io/github/license/NexusPHP/mcp)](LICENSE)
 
 > [!IMPORTANT]
-> Pre-v1.0.0. Through `0.x` the project ships the single umbrella package
-> `nexusphp/mcp`, and minor releases may carry breaking changes until `1.0.0`. Both transports, stdio and
+> Pre-v1.0.0. Minor releases may carry breaking changes until `1.0.0`. Both transports, stdio and
 > Streamable HTTP, are implemented on both sides.
 
 A PHP SDK for the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/docs/getting-started/intro),
@@ -34,6 +33,18 @@ direction and what is queued next.
 ```bash
 composer require nexusphp/mcp
 ```
+
+The umbrella package carries everything. Each layer is also its own package, cut from this repository as a
+read-only subtree mirror and tagged in lockstep, with Packagist listings from `1.0.0`:
+
+| Package | Contents |
+| --- | --- |
+| [`nexusphp/mcp-core`](https://github.com/NexusPHP/mcp-core) | Schema types, the JSON-RPC envelope, the transport contract, and the dispatch kernel |
+| [`nexusphp/mcp-server`](https://github.com/NexusPHP/mcp-server) | `ServerBuilder`, `Server`, both server transports, and the resource-server side of OAuth. Requires `mcp-core` |
+| [`nexusphp/mcp-client`](https://github.com/NexusPHP/mcp-client) | `ClientBuilder`, `Client`, both client transports, and the OAuth client. Requires `mcp-core` |
+| [`nexusphp/mcp-extensions`](https://github.com/NexusPHP/mcp-extensions) | Tasks, MCP Apps, and the OAuth extension grants, both halves of each. Requires `mcp-server` and `mcp-client` |
+
+Report issues and open pull requests here, never on a mirror.
 
 The SDK runs on [AMPHP](https://amphp.org) and [Revolt](https://revolt.run). Its synchronous-looking
 API is driven by fibers under the hood.

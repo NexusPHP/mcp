@@ -87,7 +87,7 @@ Reproduce with `composer conformance:server`, `composer conformance:client`, the
 
 - [ ] **At Least One Stable Release**
   - Reference: Published release with stable API
-  - Evidence/Notes: **the sole hard blocker.** 0.x is pre-stable (breaking changes allowed in minors). A stable release means v1.0.0, gated on the component split in [ROADMAP.md](../ROADMAP.md)
+  - Evidence/Notes: **the sole hard blocker.** 0.x is pre-stable (breaking changes allowed in minors). A stable release means v1.0.0, the next item in [ROADMAP.md](../ROADMAP.md) now that the package split ships
   - Release Tag: none stable. v0.1.0 through v0.9.0 are published on Packagist
 
 ### Documentation
@@ -232,7 +232,7 @@ Reproduce with `composer conformance:server`, `composer conformance:client`, the
 - [x] **Version Number Consistency**
   - Location of version definition: git tag (composer.json has no version field)
   - Current Version: v0.9.0
-  - Evidence/Notes: umbrella package only during 0.x, so the single version is trivially consistent. Component packages split at v1.0
+  - Evidence/Notes: one git tag names the release across the umbrella and the four component mirrors, which the Split components workflow tags in lockstep, so the version cannot diverge
 
 ### Metadata & Discoverability
 

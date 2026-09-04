@@ -23,8 +23,13 @@ A `0.x` minor is the breaking-change vehicle before 1.0. Composer's caret operat
 `^0.2` resolves to `>=0.2.0 <0.3.0`, so it will **not** silently upgrade you across a minor. Pin with `^0.2`
 (or tighter) and read [CHANGELOG.md](CHANGELOG.md) before moving to the next minor.
 
-Through `0.x` the project ships only the single umbrella package `nexusphp/mcp`. The split into
-per-component packages is a 1.0-era change. See [ROADMAP.md](ROADMAP.md).
+The SDK is five packages cut from one tree: the umbrella `nexusphp/mcp` and the components
+`nexusphp/mcp-core`, `nexusphp/mcp-server`, `nexusphp/mcp-client`, and `nexusphp/mcp-extensions`, each a
+read-only subtree split of `src/<Component>/`. One tag names one release across all five: every component
+receives every release tag, sibling requirements are pinned with `self.version`, and the umbrella `replace`s
+the four components so the two forms never coexist in one install. `mcp-extensions` requires both
+`mcp-server` and `mcp-client`, since every extension ships both halves. The component packages are listed on
+Packagist from `1.0.0`.
 
 ## From 1.0 onward
 

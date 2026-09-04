@@ -58,6 +58,12 @@ Nexus\Mcp\
   `Schema/Request/DiscoverRequest.php`.
 - **`Server` depends on `Core` only.** Nothing in `Core` references `Server`.
 - **`Client` depends on `Core` only.** `Server` and `Client` are symmetric peers. Neither depends on the other.
+- **`Extension` depends on all three, and nothing depends on it.** The official extensions live under
+  `Extension\<Name>\` with `Server` and `Client` subnamespaces for their two halves.
+- **Each top-level namespace is also a Composer package.** `src/<Namespace>/composer.json` declares that tree's
+  own dependencies and pins its siblings with `self.version`, and the `Split components` workflow publishes each
+  tree as a read-only subtree mirror on every push to `1.x` and every release tag. `composer deps:check` proves
+  each manifest against its tree, and `ComponentManifestTest` holds the constraints to the umbrella's.
 
 ## The `Arrayable` contract
 
