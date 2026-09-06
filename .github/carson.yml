@@ -70,6 +70,3 @@ settings:
     needs_review_label: needs review
     needs_rework_label: needs rework
     approved_label: reviewed
-    qualifying_associations:
-      - OWNER
-      - MEMBER
