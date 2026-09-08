@@ -17,6 +17,7 @@ use Amp\Cancellation;
 use Amp\CancelledException;
 use Amp\DeferredFuture;
 use Amp\Future;
+use Amp\Http\Client\Request;
 use Amp\NullCancellation;
 use Amp\Sync\Semaphore;
 use Amp\TimeoutCancellation;
@@ -52,6 +53,7 @@ use Psr\Log\LogLevel;
 use Revolt\EventLoop;
 
 use function Amp\async;
+use function Amp\ByteStream\buffer;
 use function Amp\delay;
 
 /**
@@ -82,6 +84,24 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
             'https://auth.example.com/token',
         ], array_map(static fn($request): string => (string) $request->getUri(), $http->requests));
         self::assertCount(1, $user->redirects);
+    }
+
+    public function testTheResourceParameterIsTheIdentifierTheMetadataPublishes(): void
+    {
+        $http = $this->scriptFullFlow(['resource' => 'https://mcp.example.com'], tokenOverrides: ['expires_in' => 1, 'refresh_token' => 'the-refresh-token'])
+            ->willAnswerJson(['access_token' => 'the-renewed-token', 'token_type' => 'Bearer'])
+        ;
+        $user = new ScriptedUserAuthorization();
+        $store = new InMemoryTokenStore();
+        $coordinator = $this->buildCoordinator($http, $user, $store);
+        $coordinator->reauthorize(null, null, new NullCancellation());
+        $coordinator->fetchToken(new NullCancellation());
+
+        parse_str((string) parse_url($user->readRedirect()->url, \PHP_URL_QUERY), $query);
+        self::assertSame('https://mcp.example.com', $query['resource'] ?? null);
+        self::assertSame('https://mcp.example.com', $this->readForm($http->readRequest(3))['resource'] ?? null);
+        self::assertSame('https://mcp.example.com', $this->readForm($http->readRequest(4))['resource'] ?? null);
+        self::assertSame('the-renewed-token', $store->read(self::RESOURCE)?->value);
     }
 
     public function testTheFirstAuthorizationServerTheResourcePublishesIsTheOneProbed(): void
@@ -1224,5 +1244,23 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
             'code_challenge_methods_supported' => ['S256'],
             ...$overrides,
         ];
+    }
+
+    /**
+     * @return array<array-key, string>
+     */
+    private function readForm(Request $request): array
+    {
+        parse_str(buffer($request->getBody()->getContent()), $parsed);
+
+        $parameters = [];
+
+        foreach ($parsed as $name => $value) {
+            if (\is_string($value)) {
+                $parameters[$name] = $value;
+            }
+        }
+
+        return $parameters;
     }
 }

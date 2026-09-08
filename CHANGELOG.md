@@ -8,6 +8,12 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+### Fixed
+
+- The client sends the `resource` parameter exactly as the protected resource metadata publishes it, so an
+  authorization server that matches the identifier byte-for-byte accepts a pathless resource such as
+  `https://mcp.example.com`.
+
 ## [v1.0.0](https://github.com/NexusPHP/mcp/compare/v0.16.0...v1.0.0) - 2026-09-04
 
 The stable major. The 2026-07-28 revision ships complete on both sides, over both transports, with both
