@@ -105,8 +105,8 @@ echo '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{"_meta":{"io.model
 
 Every request carries a `_meta` block with the client's identity. The keys `io.modelcontextprotocol/protocolVersion`
 and `io.modelcontextprotocol/clientCapabilities` are required. The key `io.modelcontextprotocol/clientInfo` is
-optional. The server reads one JSON-RPC envelope per line on STDIN and writes responses to STDOUT. This is useful
-for scripted smoke tests, and less useful for interactive exploration.
+optional. The server reads one JSON-RPC envelope per line on STDIN and writes responses to STDOUT. It suits
+scripted smoke tests better than interactive exploration.
 
 ## Your first MCP client
 

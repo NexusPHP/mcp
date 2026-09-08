@@ -145,8 +145,8 @@ indistinguishable from none, so every call fails as missing structured content.
 ### The text mirror
 
 For backwards compatibility, the spec recommends that a tool returning `structuredContent` also returns the
-serialised JSON in a `TextContent` block. When the executor leaves `content` empty, the handler adds that block
-for you. Provide your own `content` to keep control of the text representation. A non-empty `content` list passes
+serialised JSON in a `TextContent` block. When the executor leaves `content` empty, the handler adds that
+block. Provide your own `content` to keep control of the text representation. A non-empty `content` list passes
 through untouched.
 
 ## Schema validation
@@ -163,8 +163,7 @@ generic error result, so malformed structured data is never sent.
 ### The default validator
 
 The shipped `OpisSchemaValidator` backs validation by default. It is built on
-[opis/json-schema](https://github.com/opis/json-schema) (JSON Schema draft 2020-12), so you register nothing to
-get it.
+[opis/json-schema](https://github.com/opis/json-schema) (JSON Schema draft 2020-12) and needs no registration.
 
 The `[]`-versus-`{}` ambiguity exists inside a schema too. `json_decode(..., true)` renders the always-valid `{}`
 as PHP `[]`, so the default validator restores it in every sub-schema position before it validates. That covers a

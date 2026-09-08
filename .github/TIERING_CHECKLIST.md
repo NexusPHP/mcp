@@ -318,7 +318,7 @@ The `mcp-sdk-tier-audit` skill docs are byte-unchanged since v0.1.16 and contrad
 - **Relegation / advancement unimplemented.** The 4-week-continuous-failure relegation and request-based advancement in SEP-1730 are absent. The tool is a point-in-time scorer.
 - **Labels and spec-tracking gate Tier 1 only.** `computeTier` never checks labels, triage, or spec-tracking for Tier 2, though the report template lists them for both.
 
-Net: treat the tool's tier verdict as advisory. The conformance percentage is the meaningful gate. The SLA and label checks are proxies that diverge from the SEP wording, so those are self-attested against the SEP text in the tier sections above.
+Treat the tool's tier verdict as advisory. The conformance percentage is the meaningful gate. The SLA and label checks are proxies that diverge from the SEP wording, so those are self-attested against the SEP text in the tier sections above.
 
 ### Feature SEPs vs scenario coverage
 

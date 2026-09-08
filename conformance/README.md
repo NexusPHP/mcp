@@ -65,14 +65,13 @@ scenario with `URL_HOST=localhost`:
 URL_HOST=localhost ./conformance/run-server.sh --scenario dns-rebinding-protection
 ```
 
-Running [`server.php`](server.php) by hand rather than through the script is fine, and Ctrl-C stops
-it. That takes an explicit `trapSignal()`: with ext-pcntl loaded, Revolt's loop consumes a signal
+[`server.php`](server.php) also runs by hand, without the script, and Ctrl-C stops it. That takes an explicit `trapSignal()`: with ext-pcntl loaded, Revolt's loop consumes a signal
 that no callback is registered for, so an untrapped fixture ignores Ctrl-C and goes on squatting the
 port. `run-server.sh` refuses to start on a taken port rather than silently scoring a stale
 listener, so a leaked one announces itself on the next run.
 
 None of this runs inside `composer test:with-untracked`. The gate suite is hermetic and offline, and
-conformance is neither. The harness sources are still held to the repo's standards though: `conformance/`
+conformance is neither. The harness sources are still held to the repo's standards: `conformance/`
 is in the PHPStan paths (as is `examples/`), the PHP-CS-Fixer finder, and the dependency analyser, so a
 fixture that stops type-checking fails the normal gates rather than waiting for a conformance run.
 
@@ -93,8 +92,8 @@ as a missing `tools/call` result, so timing-sensitive scenarios such as `tools-c
 fail intermittently under xdebug while the production posture passes them reliably. Score only
 against the posture the fixture forces.
 
-Two operational notes. To step-debug the fixture itself, set `MCP_CONFORMANCE_ALLOW_XDEBUG=1`, which
-skips the restart. And the restart leaves the original process waiting as a parent, which is why
+To step-debug the fixture itself, set `MCP_CONFORMANCE_ALLOW_XDEBUG=1`, which
+skips the restart. The restart leaves the original process waiting as a parent, which is why
 `run-server.sh` tears the fixture down by process group rather than by single PID.
 
 The fixture also closes the connection after every response. On macOS loopback, a kept-alive
@@ -118,7 +117,7 @@ also counts scenarios rather than checks and tolerates an unmet SHOULD, so it re
 `composer conformance:score` does, and it runs server conformance at the referee's default
 `--suite active`, which leaves the draft and pending scenarios out of the denominator entirely.
 
-As it stands: server 20 of 20 (100%), client 15 of 15 (100%). The stable-release check, the one item
+Server 20 of 20 (100%), client 15 of 15 (100%). The stable-release check, the one item
 `tier-check` failed before `v1.0.0`, is met by that tag. The verdict is a self-assessment: the SDK Working
 Group currently assigns tiers to official SDKs only. See [.github/TIERING_CHECKLIST.md](../.github/TIERING_CHECKLIST.md) for the gate,
 the command to reproduce it, and the assignment-practice caveat.
@@ -146,8 +145,7 @@ percentage, which is computed over a narrower denominator and a more forgiving r
 
 [`expected-failures.yaml`](expected-failures.yaml) lists what does not pass yet. The referee exits 0
 when the only failures are listed, 1 on an unlisted failure, and **1 on a stale entry**: a listed
-scenario that has started passing. That last rule is the point. It forces the list to burn down
-rather than rot, so every entry names the work that will retire it.
+scenario that has started passing. That last rule forces the list to burn down rather than rot, so every entry names the work that will retire it.
 
 An unmet SHOULD arrives as a `WARNING`, and the referee's exit code treats it exactly like a failure.
 [`score.php`](score.php) does the same, so the reported number cannot flatter the SDK by quietly
@@ -171,7 +169,7 @@ predates every 2026-07-28 scenario, so tracking it would be a downgrade:
 npm view @modelcontextprotocol/conformance@alpha version
 ```
 
-You do not have to watch for releases yourself. `.github/workflows/conformance-weekly.yml` runs both
+`.github/workflows/conformance-weekly.yml` runs both
 legs every Monday against whatever `alpha` currently resolves to, overriding the pin through the
 `CONFORMANCE_VERSION` environment variable. It fails on either of two things, and says which:
 
@@ -209,7 +207,7 @@ prints every registered scenario before exiting, which is what makes a name mism
 instead of a silent failure. There is no attribute-discovery equivalent by design: a client has no
 collection to co-locate and its handlers are singletons.
 
-[`HeadlessUserAuthorization.php`](HeadlessUserAuthorization.php) is the piece worth knowing about.
+[`HeadlessUserAuthorization.php`](HeadlessUserAuthorization.php) supplies the consent step.
 The OAuth scenarios need consent granted without a browser, and the referee's mock authorization
 server grants it on the first request, so following the authorization URL once with redirects
 disabled and reading `Location` yields the callback the SDK expects.

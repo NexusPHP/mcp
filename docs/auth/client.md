@@ -82,7 +82,7 @@ $builder = (new HttpClientBuilder())->intercept(new MyTransport($mine));
 ```
 
 Do not pass a builder that carries your own redirect follower for credentialed traffic. The decorator resolves
-redirects itself, precisely so it can refuse one before sending.
+redirects itself so it can refuse one before sending.
 
 ### What the decorator does
 

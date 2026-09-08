@@ -126,7 +126,7 @@ client, `callTool()` now mirrors an integral float such as `5.0` as `5`.
 ### `SafeDisplay`'s length caps are private
 
 `SafeDisplay::MAX_LENGTH` and `SafeDisplay::MAX_CAUSE_LENGTH` are now private. The methods still
-escape and bound their input the same way, and the numbers are simply no longer API, so they can be
+escape and bound their input the same way, and the numbers are no longer API, so they can be
 tuned without a major release. Code that read the constants inlines the current values (80 and 256).
 
 ## v0.13.0 to v0.14.0
@@ -263,8 +263,7 @@ one. The native types are still `?string`, so what changes for a *consumer* is s
 `AccessTokenValidatorInterface` passing a plain `string` or `?string` is flagged, and the fix is the guard the
 shipped validator uses.
 
-One observable behaviour did change, and it is called out here rather than buried, since the taxonomy lists
-observable behaviour as breaking. `JwksAccessTokenValidator` now reads an empty or non-string `sub`, `azp`,
+One observable behaviour changed, which the taxonomy lists as breaking. `JwksAccessTokenValidator` now reads an empty or non-string `sub`, `azp`,
 `client_id` or `cid` as absent, where an empty one previously reached the handler as `''` and a non-string one
 masked every later claim in the fallback chain. A handler branching on `null === $token->subject` sees the
 first case join the second rather than arriving as an empty string.
@@ -376,8 +375,7 @@ The PHP floor moved from 8.4 down to 8.3. [VERSIONING.md](VERSIONING.md) lists *
 breaking, because it strands installs. Lowering it only widens the constraint, so every environment
 that could install v0.9.0 can install this release.
 
-One observable behaviour did change, and it is called out here rather than buried because the taxonomy
-lists observable behaviour as breaking. A client now answers a misrouted request-shaped envelope with
+One observable behaviour changed, which the taxonomy lists as breaking. A client now answers a misrouted request-shaped envelope with
 `-32600` instead of dropping it silently. This is not a covered-surface break: `ClientMessageDispatcher`
 is `@internal`, and the behaviour it replaces was a JSON-RPC violation, so the only way to depend on the
 old shape was to rely on the SDK failing to reply where the spec obliges one. Peers that already handled

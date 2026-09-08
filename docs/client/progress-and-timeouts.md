@@ -65,8 +65,8 @@ since only then does the SDK mint a token to match the notifications against:
 $client->callTool('reindex', $args, onProgress: static function (float $done): void {});
 ```
 
-A long call that reports nothing needs a wider deadline of its own. `sendRequest()` takes a per-request override
-for exactly that:
+A long call that reports nothing needs a wider deadline of its own. `sendRequest()` takes a per-request
+override:
 
 ```php
 $response = $client->sendRequest($request, CallToolResultResponse::class, timeout: 900.0);

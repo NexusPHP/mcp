@@ -1,7 +1,6 @@
 # Contributing
 
-Thanks for your interest in improving Nexus MCP SDK. This guide covers local setup, the quality
-gates, and the conventions the project follows.
+This guide covers local setup, the quality gates, and the conventions the project follows.
 
 ## Requirements
 

@@ -49,7 +49,7 @@ Time comes from a [`nexusphp/clock`](https://github.com/NexusPHP/clock) `Stopwat
 (`HighResolutionStopwatch`), so a wall-clock step can never corrupt the window. Pass a `FrozenClock` as the
 `stopwatch` to make the window boundary exact under test.
 
-A served message deliberately does **not** clear the count. The protocol layer replays its own state on every
+A served message does **not** clear the count. The protocol layer replays its own state on every
 reconnect (see below), so even a peer that dies immediately is guaranteed to answer something. Treating that
 answer as proof of health would make the budget unspendable.
 
@@ -77,7 +77,7 @@ A `subscriptions/listen` stream is the one piece of client state a fresh peer ca
 holds the filter and the client holds the handle. `Client` re-sends the listen request for every stream still
 open, **under the same subscription ID**, as soon as the replacement is serving.
 
-Reusing the ID matters. The subscription ID *is* the JSON-RPC ID of the listen request, and the caller holds it on
+The subscription ID *is* the JSON-RPC ID of the listen request, and the caller holds it on
 `SubscriptionStream::$subscriptionId`. A fresh ID would leave the caller naming a stream the server has never
 heard of.
 
@@ -147,7 +147,7 @@ left retained, so the peer after it tries again.
 
 ### Two limits
 
-Know these two limits before you reach for the flag.
+Two limits apply when the flag is on.
 
 **Client-side caches are not invalidated.** A respawn reaches `Client` as a close, not as a `disconnect()`, so the
 `serverInfo`, `serverCapabilities`, and parameter-header bindings recorded from the previous peer survive into the

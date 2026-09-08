@@ -123,6 +123,6 @@ because it opens a subscription rather than being processed. `maxSubscriptions` 
 listens that arrive faster than the loop can start them are shed with `-32000`. Being separate, that budget can
 refuse a listen while every slot is free.
 
-The exemption is that narrow. A tool handler that awaits slow I/O still holds a slot, since shedding a pile-up of
+The exemption covers listens only. A tool handler that awaits slow I/O still holds a slot, since shedding a pile-up of
 those is what the cap is for. A server that registers no `subscriptions/listen` handler sheds one like any other
 request.

@@ -70,7 +70,7 @@ The stdio transports have a single peer, so IDs pass through.
 
 ### Send context
 
-`SendContext` carries three slots. A transport is free to ignore all of them.
+`SendContext` carries three slots. A transport may ignore all of them.
 
 - `relatedRequestId` ties an out-of-band message, such as a progress notification, to the in-flight request that
   triggered it. A request-scoped transport uses it to route the message onto the right response stream.

@@ -1,8 +1,7 @@
 # Design rationale
 
-This page explains why the SDK is shaped the way it is. The short version: it differentiates on **substance**
-(strictness, verified correctness, explicit composition) rather than on surface novelty. If you are evaluating it
-against other MCP SDKs, these are the deliberate choices behind it.
+The SDK differentiates on **substance** (strictness, verified correctness, explicit composition) rather than
+on surface novelty. These are the deliberate choices behind it, for comparison with other MCP SDKs.
 
 ## Strict typing and static analysis
 

@@ -97,7 +97,7 @@ The spec's guidance that servers check client capabilities before they expose UI
 under this revision. Read `$context->meta->clientCapabilities->extensions['io.modelcontextprotocol/ui']` inside a
 handler when you want to branch.
 
-The SDK deliberately does not filter `tools/list` by that declaration. The tool metadata is inert for hosts that
+The SDK does not filter `tools/list` by that declaration. The tool metadata is inert for hosts that
 ignore it, the spec asks tools to keep a text-only fallback anyway, and varying a cacheable listing per client
 would fight the SEP-2549 cache semantics.
 

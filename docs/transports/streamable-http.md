@@ -57,9 +57,9 @@ subscription-driven servers belong on an event-loop host.
 | `ResponseMode::Json` | Always buffered. A notification that would need streaming is dropped with a debug log. |
 | `ResponseMode::Sse` | Always a stream, opened immediately. |
 
-An SSE response carries `Cache-Control: no-cache`, `Connection: keep-alive`, and `X-Accel-Buffering: no`, which
-stops nginx and friends buffering events. It also emits a `: keep-alive` comment frame whenever a read stays idle
-past `keepAliveInterval` (default 15s). Closing the response body is the spec's cancellation signal, and it
+An SSE response carries `Cache-Control: no-cache`, `Connection: keep-alive`, and `X-Accel-Buffering: no`,
+which stops nginx and similar proxies buffering events. It also emits a `: keep-alive` comment frame whenever a read
+stays idle past `keepAliveInterval` (default 15s). Closing the response body is the spec's cancellation signal, and it
 retires the stream.
 
 A frame that arrives while `maxBufferedBytes` (default 1 MiB) or more sit unread abandons the stream as a
@@ -206,5 +206,5 @@ already answered, or already aborted does nothing, and an abort is never reporte
 
 `Client` calls it wherever it stops waiting for a response: when a request deadline expires, and when a
 `SubscriptionStream` is closed. Telling the server is separate and still happens, through
-`notifications/cancelled`. Both matter. The notification asks the server to stop working, and the abort stops the
+`notifications/cancelled`. The notification asks the server to stop working, and the abort stops the
 client reading a stream that a `subscriptions/listen` would otherwise keep open forever.

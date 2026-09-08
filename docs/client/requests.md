@@ -57,7 +57,7 @@ requests pass through. Check `getServerCapabilities()` when you need to branch o
 
 A server may annotate a tool parameter with `x-mcp-header` in its `inputSchema`. That asks clients to mirror the
 argument into an `Mcp-Param-{Name}` HTTP header, so gateways can route or rate-limit on it without parsing the
-body. Supporting this is mandatory for a client on the Streamable HTTP transport, and the SDK does it for you:
+body. Supporting this is mandatory for a client on the Streamable HTTP transport, and the SDK implements it:
 
 - `listTools()` scans each tool's `inputSchema` and caches its declarations.
 - `callTool()` extracts the annotated arguments, encodes them, and sends them as `Mcp-Param-{Name}` headers. An

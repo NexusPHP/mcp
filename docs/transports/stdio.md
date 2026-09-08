@@ -71,7 +71,7 @@ through the PSR-3 logger you pass in.
 
 ### Stdin / stdout substitution
 
-Useful in tests, when you want to drive the transport from synthetic streams:
+In tests, drive the transport from synthetic streams:
 
 ```php
 use Amp\ByteStream\BufferedReader;
@@ -124,7 +124,7 @@ sequences into the logs. An error during the pump logs a warning and does not ch
 ### Close
 
 `close()` closes the subprocess's stdin, which signals EOF. If the subprocess still runs, the transport sends
-`SIGKILL`. `SIGTERM` would be preferable, but `amphp/process` runs subprocesses behind a shell wrapper that
+`SIGKILL`. `amphp/process` runs subprocesses behind a shell wrapper that
 ignores `SIGTERM`, so `SIGKILL` is the only signal guaranteed to terminate the child.
 
 ### Unexpected exit

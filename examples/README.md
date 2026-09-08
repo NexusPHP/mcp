@@ -27,7 +27,7 @@ autoloader, an uncaught-exception handler, and `PsrLogger`) lives in
 
 ## Running an example
 
-### MCP Inspector (recommended for poking around)
+### MCP Inspector (recommended for exploration)
 
 ```bash
 npx @modelcontextprotocol/inspector php examples/stdio-server.php
@@ -91,9 +91,8 @@ pattern. `completions-and-templates` adds RFC 6570 templated resources and
 php examples/capability-aware-client.php
 ```
 
-Spawns `stdio-server`, prints the negotiated `ServerCapabilities`, then attempts an
-unadvertised capability so you can see the client gate it with
-`ServerCapabilityNotSupportedException` before anything reaches the transport.
+Spawns `stdio-server`, prints the negotiated `ServerCapabilities`, then attempts an unadvertised capability,
+which the client gates with `ServerCapabilityNotSupportedException` before anything reaches the transport.
 
 ### Streamable HTTP (two terminals)
 

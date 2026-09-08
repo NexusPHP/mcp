@@ -34,7 +34,7 @@ seams (see [BREAKING_CHANGES.md](BREAKING_CHANGES.md)).
   take a `Clock`, and `SupervisedTransport` takes a `Stopwatch`, monotonic by default.
 - `CancellableDelayInterface` and its `EventLoopDelay` implementation: a `Nexus\Clock\Delay` whose sleep an
   Amp cancellation can abort.
-- `TaskClient` holds an absurd server-suggested `pollIntervalMs` to a one-hour ceiling
+- `TaskClient` holds a server-suggested `pollIntervalMs` to a one-hour ceiling
   (`TaskClient::MAX_POLL_INTERVAL_MS`).
 
 ### Changed
@@ -164,7 +164,7 @@ contracts move under `Server\Extension` and `Client\Extension` (see
 
 Peer-visible diagnostics now speak one documented grammar, from schema validation through argument
 binding, and datetime fields are held to RFC 3339. The exception surface shrinks with it: twenty-eight
-message-only classes collapse into two shared ones, the one breaking change riding along (see
+message-only classes collapse into two shared ones, the one breaking change (see
 [BREAKING_CHANGES.md](BREAKING_CHANGES.md)). Registration refuses magic-method handlers and duplicate
 discovered entries, and extension notifications gain the client-side capability gate.
 
@@ -241,8 +241,8 @@ discovered entries, and extension notifications gain the client-side capability 
 
 Lifecycle correctness on both peers: close/drain ordering, in-flight caps that hold under pressure,
 subscription accounting, and task expiry and stall guarantees. The schema side now honours the spec's
-open capability set and the empty `{}` sub-schemas the decoder collapses to `[]`. Seven breaking
-changes ride along (see [BREAKING_CHANGES.md](BREAKING_CHANGES.md)).
+open capability set and the empty `{}` sub-schemas the decoder collapses to `[]`. Seven breaking changes are
+listed in [BREAKING_CHANGES.md](BREAKING_CHANGES.md).
 
 ### Added
 
@@ -314,8 +314,8 @@ changes ride along (see [BREAKING_CHANGES.md](BREAKING_CHANGES.md)).
 
 Closes a family of security defects where peer-supplied bytes reached a renderer unbounded and
 unescaped, in a JSON-RPC error, a log record, or an exception message. The rest is decode correctness
-for names and keys the 2026-07-28 schema permits and this SDK refused. Three breaking changes ride
-along (see [BREAKING_CHANGES.md](BREAKING_CHANGES.md)).
+for names and keys the 2026-07-28 schema permits and this SDK refused. Three breaking changes are listed in
+[BREAKING_CHANGES.md](BREAKING_CHANGES.md).
 
 ### Added
 
@@ -405,8 +405,8 @@ Ships the PHP 8.3 floor ahead of the stable tag, so it has real exposure before 
 
 ### Changed
 
-- The PHP floor is **8.3**, down from 8.4. Lowering a floor breaks nobody, so there is nothing to
-  migrate. CI runs the suite on 8.3, 8.4 and 8.5.
+- The PHP floor is **8.3**, down from 8.4. Lowering a floor needs no migration. CI runs the suite on 8.3,
+  8.4 and 8.5.
 - `Icons` is a pure marker interface and `RequestDeadline::$elapsed` became `readElapsed()`, replacing
   the 8.4-only property hook and asymmetric visibility they relied on.
 - A client answers a misrouted request-shaped envelope with `-32600` echoing the id, matching the server.
@@ -416,7 +416,7 @@ Ships the PHP 8.3 floor ahead of the stable tag, so it has real exposure before 
 ## [v0.9.0](https://github.com/NexusPHP/mcp/compare/v0.8.0...v0.9.0) - 2026-08-06
 
 Closes the extensions backlog with the two ratified OAuth extensions, completing the 2026-07-28
-migration. Three breaking changes ride along (see [BREAKING_CHANGES.md](BREAKING_CHANGES.md)).
+migration. Three breaking changes are listed in [BREAKING_CHANGES.md](BREAKING_CHANGES.md).
 
 ### Added
 
@@ -453,8 +453,8 @@ migration. Three breaking changes ride along (see [BREAKING_CHANGES.md](BREAKING
 
 ## [v0.8.0](https://github.com/NexusPHP/mcp/compare/v0.7.0...v0.8.0) - 2026-08-05
 
-Ships the second official extension, MCP Apps (SEP-1865). One breaking change rides along (see
-[BREAKING_CHANGES.md](BREAKING_CHANGES.md)).
+Ships the second official extension, MCP Apps (SEP-1865). One breaking change is listed in
+[BREAKING_CHANGES.md](BREAKING_CHANGES.md).
 
 ### Added
 
@@ -463,7 +463,7 @@ Ships the second official extension, MCP Apps (SEP-1865). One breaking change ri
   value objects model the tool-to-view link and sandbox configuration.
 - The client half: `AppsClientExtension` advertises renderable `mimeTypes`, and the `AppClient` facade
   resolves `_meta.ui` metadata, filters listings to UI-enabled tools, and reads `ui://` resources. The
-  `ui/*` postMessage family is host-side and deliberately unmodelled.
+  `ui/*` postMessage family is host-side and not modelled.
 
 ### Changed
 

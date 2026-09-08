@@ -240,7 +240,7 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
 
     public function testDetectsAnUppercaseContentType(): void
     {
-        // RFC 9110 makes the media type case-insensitive, so a shouting server still gets parsed as a stream.
+        // RFC 9110 makes the media type case-insensitive, so an upper-case value still parses as a stream.
         $http = (new RecordingHttpClient())->willAnswerWithContentType('TEXT/EVENT-STREAM', [$this->frame($this->buildResultEnvelope())]);
         $transport = $this->makeTransport($http);
         $received = $this->captureMessages($transport);

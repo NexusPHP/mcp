@@ -64,6 +64,6 @@ The [apps extension](apps.md) (`io.modelcontextprotocol/ui`, SEP-1865) is the se
 `AppsClientExtension` declares the renderable `mimeTypes` and no methods at all, and the `AppClient` facade only
 reads metadata and verifies `ui://` resource reads.
 
-The [OAuth extensions](../auth/extension-grants.md) go further still. Those are client credentials (SEP-1046) and
-enterprise-managed authorization (SEP-990). They are settings-free declarations whose behaviour lives entirely at
+The [OAuth extensions](../auth/extension-grants.md) are client credentials (SEP-1046) and enterprise-managed
+authorization (SEP-990). They are settings-free declarations whose behaviour lives entirely at
 the HTTP layer, as unattended grant strategies plugged into `AuthorizedHttpClient`.

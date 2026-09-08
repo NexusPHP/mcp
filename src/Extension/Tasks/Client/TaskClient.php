@@ -44,7 +44,7 @@ final readonly class TaskClient implements TaskClientInterface
     public const int DEFAULT_MIN_POLL_INTERVAL_MS = 100;
 
     /**
-     * Ceiling an absurd server-suggested `pollIntervalMs` is held to, so it stays a duration the delay can carry.
+     * Ceiling a server-suggested `pollIntervalMs` is held to, so it stays a duration the delay can carry.
      */
     public const int MAX_POLL_INTERVAL_MS = 3_600_000;
 

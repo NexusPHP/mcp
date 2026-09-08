@@ -24,7 +24,7 @@ use PHPUnit\Framework\Attributes\Group;
  * `composer bc:check` routes a class that was final in the released version through a reduced check
  * set omitting `ParameterNameChanged`, so this is the only gate over that surface. It reads the
  * snapshot `composer bc:snapshot` writes at release time, which is why a symbol added since the last
- * release is absent here and renaming it is correctly not a break.
+ * release is absent here and renaming it is not a break.
  *
  * @internal
  */

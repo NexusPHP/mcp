@@ -52,13 +52,13 @@ Tracked, but not engineering work in this repository.
   the `InputRequest` union the 2026-07-28 revision deprecates (SEP-2577), which a new implementation must
   not adopt. Baselined with rationale in `conformance/expected-failures.yaml` and raised upstream as
   [conformance#439](https://github.com/modelcontextprotocol/conformance/issues/439). Until it lands, the
-  server score caps at 33/37 with nothing actually missing.
+  server score caps at 33/37 with nothing missing.
 - **Documentation scoring.** The SEP-1730 canonical feature list is evaluated against the union of all
   spec revisions rather than the revision an SDK targets, so features this SDK correctly omits (removed
   or deprecated by 2026-07-28) score as undocumented. No feature the SDK ships is undocumented, and no
   documented feature lacks an example. Raised upstream as
   [conformance#441](https://github.com/modelcontextprotocol/conformance/issues/441). Until it lands,
-  the docs score caps below full marks with nothing actually missing.
+  the docs score caps below full marks with nothing missing.
 - **Issue triage track record.** The label taxonomy and process scaffolding are in place. Demonstrating
   a triage rate requires real issue traffic, so this accrues with adoption rather than with a change.
 

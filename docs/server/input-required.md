@@ -45,7 +45,7 @@ $builder->addTool(
 )
 ```
 
-Four things are worth knowing before you write one.
+Four constraints apply to a handler.
 
 ## The client resends only the newest round's answers
 

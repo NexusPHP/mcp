@@ -33,8 +33,8 @@ behavioural signal.
 | `None` | Nothing | Nothing |
 
 `NameAndVersion` suits a server with icons and descriptions. The client collects those once at discovery rather
-than on every response. `build()` requires `setServerInfo()` under all three cases. `None` simply never sends what
-it validated.
+than on every response. `build()` requires `setServerInfo()` under all three cases. `None` never sends what it
+validated.
 
 ```php
 ->setServerInfo(name: 'my-server', version: '1.0.0')

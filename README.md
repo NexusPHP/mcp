@@ -43,8 +43,8 @@ read-only subtree mirror and tagged in lockstep, with `1.0.0` as the first tagge
 
 Report issues and open pull requests here, never on a mirror.
 
-The SDK runs on [AMPHP](https://amphp.org) and [Revolt](https://revolt.run). Its synchronous-looking
-API is driven by fibers under the hood.
+The SDK runs on [AMPHP](https://amphp.org) and [Revolt](https://revolt.run). Its synchronous-looking API is
+driven by fibers.
 
 ## Quickstart
 
@@ -173,7 +173,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow.
 
 ## Contributing
 
-Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) and the
+Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) and the
 [Code of Conduct](CODE_OF_CONDUCT.md). To report a security issue, see [SECURITY.md](SECURITY.md).
 
 ## License

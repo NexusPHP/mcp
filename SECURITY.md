@@ -17,7 +17,7 @@ security fixes for six months after its successor's first stable release.
 
 ## Reporting a vulnerability
 
-Please do not open a public issue for security vulnerabilities.
+Do not open a public issue for a security vulnerability.
 
 Instead, email **paulbalandan@gmail.com**, or use GitHub's private vulnerability reporting from the
 **Security** tab of the repository. Include:
@@ -26,6 +26,5 @@ Instead, email **paulbalandan@gmail.com**, or use GitHub's private vulnerability
 - steps to reproduce or a proof of concept,
 - any relevant version, configuration, or environment details.
 
-You can expect an acknowledgement within 3 business days, and an assessment with a proposed fix plan
-within 7 days. Once the report is confirmed, the fix and a coordinated disclosure timeline are agreed
+Acknowledgement follows within 3 business days, and an assessment with a proposed fix plan within 7 days. Once the report is confirmed, the fix and a coordinated disclosure timeline are agreed
 with you.

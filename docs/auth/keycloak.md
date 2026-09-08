@@ -1,6 +1,6 @@
 # Keycloak
 
-Keycloak fronts an MCP server well, because it supports everything the SDK's client discovers on its own:
+Keycloak supports everything the SDK's client discovers on its own:
 authorization-server metadata, anonymous dynamic client registration, and standard `scope` claims.
 
 ## Configure the realm
@@ -43,7 +43,7 @@ without Keycloak-specific configuration.
 
 - Keycloak identifies the authorizing client in `azp`, not `client_id`. The shipped validator reads both.
 - A token's `aud` defaults to `account` unless a mapper adds your resource URI. Without the mapper,
-  `BearerAuthenticationMiddleware` refuses every token, which is the audience binding doing its job.
+  `BearerAuthenticationMiddleware` refuses every token on the audience check.
 
 All of this exists as a runnable whole in the
 [Keycloak end-to-end example](../../examples/keycloak-e2e/README.md): a realm export with the scope, mapper, and

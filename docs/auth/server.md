@@ -154,7 +154,7 @@ The handler serves the document only at those two paths, which RFC 9728 derives 
 Mounting it anywhere else answers `404` rather than publish the same document under a name no client will look it
 up by.
 
-Serving both well-known paths is worth the two lines. A client that never saw a `WWW-Authenticate` header falls
+Serve both well-known paths. A client that never saw a `WWW-Authenticate` header falls
 back to probing them, path-scoped first.
 
 ## Reading the token in a handler
