@@ -18,8 +18,8 @@ use Psr\Http\Message\StreamInterface;
 /**
  * Read-only stream double counting its reads, serving them chunked, and optionally stalling or reporting a size.
  *
- * A stalled stream answers one empty read and refuses the next, so a caller that ignores the empty
- * chunk fails fast instead of spinning.
+ * A stream at its stall point or its end answers one empty read and refuses the next, so a caller that
+ * ignores the empty chunk fails fast instead of spinning.
  *
  * @internal
  */
@@ -27,7 +27,7 @@ final class CountingStream implements StreamInterface
 {
     public int $bytesRead = 0;
     private int $cursor = 0;
-    private bool $stalled = false;
+    private bool $drained = false;
 
     public function __construct(
         private readonly string $content,
@@ -50,23 +50,19 @@ final class CountingStream implements StreamInterface
             throw new \RuntimeException('Read length must be positive.');
         }
 
-        if ($this->stalled) {
-            throw new \RuntimeException('Read past the stall.');
+        if ($this->drained) {
+            throw new \RuntimeException('Read past the empty chunk that ended the stream.');
         }
 
-        if (null !== $this->stallAfterBytes && $this->cursor >= $this->stallAfterBytes) {
-            $this->stalled = true;
+        $end = $this->stallAfterBytes ?? \strlen($this->content);
+
+        if ($this->cursor >= $end) {
+            $this->drained = true;
 
             return '';
         }
 
-        $take = min($length, $this->chunkSize);
-
-        if (null !== $this->stallAfterBytes) {
-            $take = min($take, $this->stallAfterBytes - $this->cursor);
-        }
-
-        $chunk = substr($this->content, $this->cursor, $take);
+        $chunk = substr($this->content, $this->cursor, min($length, $this->chunkSize, $end - $this->cursor));
         $this->cursor += \strlen($chunk);
         $this->bytesRead += \strlen($chunk);
 

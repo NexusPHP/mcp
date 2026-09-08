@@ -271,6 +271,11 @@ final class ElicitRequestedSchemaTest extends AbstractMcpTestCase
             '"requestedSchema.properties" must be an object, string given.',
         ];
 
+        yield 'empty property name' => [
+            ['type' => 'object', 'properties' => ['' => ['type' => 'string']]],
+            'each "requestedSchema.properties" key must be an int or non-empty string, \'\' given.',
+        ];
+
         yield 'property entry not an object' => [
             ['type' => 'object', 'properties' => ['x' => 'oops']],
             '"requestedSchema.properties" must be an object, string given.',

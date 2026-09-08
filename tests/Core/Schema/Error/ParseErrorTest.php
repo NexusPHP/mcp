@@ -18,6 +18,7 @@ use Nexus\Mcp\Core\Schema\Error;
 use Nexus\Mcp\Core\Schema\Error\ParseError;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
@@ -112,5 +113,24 @@ final class ParseErrorTest extends AbstractMcpTestCase
             'message' => 'Test parse error',
             'data' => $data,
         ], $result);
+    }
+
+    #[DataProvider('provideFromArrayRejectsAnEmptyOrNonStringMessageCases')]
+    public function testFromArrayRejectsAnEmptyOrNonStringMessage(mixed $message, string $expectedMessage): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs($expectedMessage);
+
+        ParseError::fromArray(['message' => $message]);
+    }
+
+    /**
+     * @return iterable<string, array{mixed, string}>
+     */
+    public static function provideFromArrayRejectsAnEmptyOrNonStringMessageCases(): iterable
+    {
+        yield 'empty string' => ['', 'error "message" must be a non-empty string, string given.'];
+
+        yield 'integer' => [123, 'error "message" must be a non-empty string, int given.'];
     }
 }

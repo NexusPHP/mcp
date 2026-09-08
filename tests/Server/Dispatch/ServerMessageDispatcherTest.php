@@ -1175,6 +1175,39 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         self::assertSame(1, $transport->sent[1]['message']->id->id);
     }
 
+    public function testARefusedDuplicateIdLeavesTheOriginalClaimInPlace(): void
+    {
+        /** @var DeferredFuture<null> $parked */
+        $parked = new DeferredFuture();
+        $transport = new RecordingTransport();
+        $dispatcher = $this->buildDispatcher(
+            requestHandlers: ['tools/list' => new ClosureRequestHandler(
+                static function () use ($parked): Result {
+                    $parked->getFuture()->await();
+
+                    return new EmptyResult();
+                },
+            )],
+        );
+
+        $dispatcher->dispatch($this->buildToolsListEnvelope(1), $transport, new ReceiveContext());
+        delay(0.0);
+        $dispatcher->dispatch($this->buildToolsListEnvelope(1), $transport, new ReceiveContext());
+        delay(0.0);
+        $dispatcher->dispatch($this->buildToolsListEnvelope(1), $transport, new ReceiveContext());
+        delay(0.0);
+
+        $refused = array_column($transport->sent, 'message');
+        self::assertCount(2, $refused, 'Both later arrivals are refused while the first is still in flight.');
+        self::assertContainsOnlyInstancesOf(JsonRpcErrorResponse::class, $refused);
+
+        $parked->complete(null);
+        $dispatcher->flushPending();
+
+        self::assertCount(3, $transport->sent);
+        self::assertInstanceOf(JsonRpcResultResponse::class, $transport->sent[2]['message']);
+    }
+
     public function testIdsAreReleasedAfterTheHandlerCompletesSoSequentialReuseSucceeds(): void
     {
         $transport = new RecordingTransport();

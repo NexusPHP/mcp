@@ -166,6 +166,22 @@ final class AnnotationsTest extends AbstractMcpTestCase
         Annotations::fromArray(['audience' => [42]]);
     }
 
+    public function testAnnotationsFromArrayRejectsANonListAudience(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('"annotations.audience" must be a list, string given.');
+
+        Annotations::fromArray(['audience' => 'user']);
+    }
+
+    public function testAnnotationsFromArrayRejectsANonStringLastModified(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('"annotations.lastModified" must be a string or null, int given.');
+
+        Annotations::fromArray(['lastModified' => 20_260_309]);
+    }
+
     public function testAnnotationsFromArrayCoercesIntPriority(): void
     {
         $annotations = Annotations::fromArray(['priority' => 1]);

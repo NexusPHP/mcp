@@ -68,7 +68,7 @@ final readonly class ElicitRequestedSchema implements Arrayable
         $properties = [];
 
         foreach ($data['properties'] as $name => $shape) {
-            Assert::that($name)->isIntOrNonEmptyString('each "requestedSchema.properties" key must be an int or non-empty string.');
+            Assert::that($name)->isIntOrNonEmptyString('each "requestedSchema.properties" key must be an int or non-empty string, {value} given.');
             Assert::that($shape)
                 ->isArray('"requestedSchema.properties" must be an object, {type} given.')
                 ->isMap('"requestedSchema.properties" must be a string-keyed object.')
