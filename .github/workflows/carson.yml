@@ -18,6 +18,8 @@ on:
       - edited
       - ready_for_review
       - converted_to_draft
+      - labeled
+      - unlabeled
   pull_request_review:
     types:
       - submitted

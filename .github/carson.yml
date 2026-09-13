@@ -5,6 +5,7 @@ subscribers:
   - commands
   - conflicts-notifier
   - lock-old-issues
+  - no-merge-commits
   - no-response-closer
   - stale
   - triage-labeler
@@ -49,6 +50,9 @@ settings:
     days: 90
     reason: resolved
 
+  no-merge-commits:
+    name: Linear history
+
   no-response-closer:
     label: awaiting feedback
     days_until_close: 14
@@ -70,3 +74,4 @@ settings:
     needs_review_label: needs review
     needs_rework_label: needs rework
     approved_label: reviewed
+    reset_on_push: true
