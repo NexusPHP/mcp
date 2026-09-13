@@ -6,23 +6,33 @@ on:
       - 1.x
     paths:
       - .github/workflows/mutation.yml
-      - src/**
+      - src/**/*.php
+      - stubs/**
       - tests/**
+      - tools/ini/**
+      - tools/src/ComposerScripts.php
+      - tools/composer.json
       - composer.json
       - infection.json5
       - phpstan.dist.neon
       - phpstan-baseline.php
+      - phpunit.dist.xml
   pull_request:
     branches:
       - 1.x
     paths:
       - .github/workflows/mutation.yml
-      - src/**
+      - src/**/*.php
+      - stubs/**
       - tests/**
+      - tools/ini/**
+      - tools/src/ComposerScripts.php
+      - tools/composer.json
       - composer.json
       - infection.json5
       - phpstan.dist.neon
       - phpstan-baseline.php
+      - phpunit.dist.xml
 
 env:
   DEFAULT_PHP_VERSION: '8.4'

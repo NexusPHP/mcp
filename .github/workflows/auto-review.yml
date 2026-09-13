@@ -8,7 +8,10 @@ on:
       - .github/workflows/auto-review.yml
       - src/**
       - tests/AutoReview/**
+      - tools/src/McpAnchorSnapshot.php
+      - tools/src/McpSchemaProcessor.php
       - composer.json
+      - LICENSE
       - phpunit.dist.xml
   pull_request:
     branches:
@@ -17,7 +20,10 @@ on:
       - .github/workflows/auto-review.yml
       - src/**
       - tests/AutoReview/**
+      - tools/src/McpAnchorSnapshot.php
+      - tools/src/McpSchemaProcessor.php
       - composer.json
+      - LICENSE
       - phpunit.dist.xml
 
 permissions:

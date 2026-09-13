@@ -6,6 +6,9 @@ on:
       - 1.x
     tags:
       - 'v*'
+    paths:
+      - .github/workflows/split-components.yml
+      - src/**
   workflow_dispatch:
     inputs:
       tag:

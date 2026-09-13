@@ -11,7 +11,7 @@ on:
       - api/**
       - docs/**
       - mkdocs.yml
-      - src/**
+      - src/**/*.php
       - tools/stage-docs-site
       - tools/src/DocsSiteStager.php
   pull_request:

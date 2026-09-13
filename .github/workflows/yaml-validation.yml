@@ -10,6 +10,7 @@ on:
       - src/*/.github/carson.yml
       - .github/carson.yml
       - .github/dependabot.yml
+      - .github/scripts/install-actionlint.sh
       - .github/scripts/validate_yaml.py
       - .github/scripts/requirements.txt
   pull_request:
@@ -21,6 +22,7 @@ on:
       - src/*/.github/carson.yml
       - .github/carson.yml
       - .github/dependabot.yml
+      - .github/scripts/install-actionlint.sh
       - .github/scripts/validate_yaml.py
       - .github/scripts/requirements.txt
 

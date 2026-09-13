@@ -7,7 +7,7 @@ on:
     paths:
       - .github/workflows/keycloak-e2e.yml
       - examples/keycloak-e2e/**
-      - src/**
+      - src/**/*.php
       - composer.json
   pull_request:
     branches:
@@ -15,7 +15,7 @@ on:
     paths:
       - .github/workflows/keycloak-e2e.yml
       - examples/keycloak-e2e/**
-      - src/**
+      - src/**/*.php
       - composer.json
 
 permissions:

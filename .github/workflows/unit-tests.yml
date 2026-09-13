@@ -6,8 +6,9 @@ on:
       - 1.x
     paths:
       - .github/workflows/unit-tests.yml
-      - src/**
+      - src/**/*.php
       - tests/**
+      - tools/src/ComposerScripts.php
       - composer.json
       - phpunit.dist.xml
   pull_request:
@@ -15,8 +16,9 @@ on:
       - 1.x
     paths:
       - .github/workflows/unit-tests.yml
-      - src/**
+      - src/**/*.php
       - tests/**
+      - tools/src/ComposerScripts.php
       - composer.json
       - phpunit.dist.xml
 

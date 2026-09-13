@@ -8,13 +8,15 @@ on:
       - .github/workflows/package-structure.yml
       - conformance/**
       - examples/**
-      - src/**
+      - src/**/*.php
+      - src/*/composer.json
       - tests/**
       - structarmed.php
       - composer-dependency-analyser.component.php
       - composer-dependency-analyser.php
       - composer.json
       - tools/composer.json
+      - tools/src/ComposerScripts.php
   pull_request:
     branches:
       - 1.x
@@ -22,13 +24,15 @@ on:
       - .github/workflows/package-structure.yml
       - conformance/**
       - examples/**
-      - src/**
+      - src/**/*.php
+      - src/*/composer.json
       - tests/**
       - structarmed.php
       - composer-dependency-analyser.component.php
       - composer-dependency-analyser.php
       - composer.json
       - tools/composer.json
+      - tools/src/ComposerScripts.php
 
 env:
   DEFAULT_PHP_VERSION: '8.4'

@@ -7,7 +7,7 @@ on:
       - 1.x
     paths:
       - .github/workflows/backward-compatibility.yml
-      - src/**
+      - src/**/*.php
       - bc/composer.json
       - composer.json
       - .roave-backward-compatibility-check.xml
@@ -16,7 +16,7 @@ on:
       - 1.x
     paths:
       - .github/workflows/backward-compatibility.yml
-      - src/**
+      - src/**/*.php
       - bc/composer.json
       - composer.json
       - .roave-backward-compatibility-check.xml

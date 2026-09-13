@@ -6,24 +6,30 @@ on:
       - 1.x
     paths:
       - .github/workflows/code-style.yml
+      - api/src/**
       - conformance/**
       - examples/**
-      - src/**
+      - src/**/*.php
       - tests/**
       - tools/**
+      - composer-dependency-analyser.php
       - composer.json
+      - structarmed.php
       - .php-cs-fixer.dist.php
   pull_request:
     branches:
       - 1.x
     paths:
       - .github/workflows/code-style.yml
+      - api/src/**
       - conformance/**
       - examples/**
-      - src/**
+      - src/**/*.php
       - tests/**
       - tools/**
+      - composer-dependency-analyser.php
       - composer.json
+      - structarmed.php
       - .php-cs-fixer.dist.php
 
 env:

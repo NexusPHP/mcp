@@ -8,12 +8,14 @@ on:
       - .github/workflows/static-analysis.yml
       - conformance/**
       - examples/**
-      - src/**
+      - src/**/*.php
+      - stubs/**
       - tests/**
       - tools/**
       - composer.json
       - phpstan.dist.neon
       - phpstan-baseline.php
+      - phpunit.dist.xml
   pull_request:
     branches:
       - 1.x
@@ -21,12 +23,14 @@ on:
       - .github/workflows/static-analysis.yml
       - conformance/**
       - examples/**
-      - src/**
+      - src/**/*.php
+      - stubs/**
       - tests/**
       - tools/**
       - composer.json
       - phpstan.dist.neon
       - phpstan-baseline.php
+      - phpunit.dist.xml
 
 env:
   DEFAULT_PHP_VERSION: '8.4'
