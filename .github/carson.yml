@@ -2,6 +2,7 @@ version: 1
 
 subscribers:
   - auto-labeler
+  - cache-pruner
   - commands
   - conflicts-notifier
   - lock-old-issues
@@ -56,6 +57,7 @@ settings:
   no-response-closer:
     label: awaiting feedback
     days_until_close: 14
+    unlabel_on_response: true
     exempt_labels:
       - P0
       - P1
@@ -75,3 +77,4 @@ settings:
     needs_rework_label: needs rework
     approved_label: reviewed
     reset_on_push: true
+    sweep: true
