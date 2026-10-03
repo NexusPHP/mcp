@@ -24,6 +24,8 @@ in `0.x`, minor releases may include breaking changes.
   acknowledgement, where it used to hold the stream open with nothing to deliver.
 - A name under `.localhost` counts as loopback for the redirect URI and for `allowInsecureLoopback`, so a
   local setup that separates tenants by host works.
+- `StdioClientTransport`'s default environment also passes `COMSPEC`, `PATHEXT`, `PROGRAMDATA`, `PROGRAMFILES`,
+  `PROGRAMFILES(X86)`, `PROGRAMW6432` and `WINDIR`, which programs a server launches on Windows depend on.
 
 ## [v1.0.0](https://github.com/NexusPHP/mcp/compare/v0.16.0...v1.0.0) - 2026-09-04
 

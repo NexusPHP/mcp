@@ -557,13 +557,19 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
     {
         $names = [
             'APPDATA',
+            'COMSPEC',
             'HOME',
             'HOMEDRIVE',
             'HOMEPATH',
             'LOCALAPPDATA',
             'LOGNAME',
             'PATH',
+            'PATHEXT',
             'PROCESSOR_ARCHITECTURE',
+            'PROGRAMDATA',
+            'PROGRAMFILES',
+            'PROGRAMFILES(X86)',
+            'PROGRAMW6432',
             'SHELL',
             'SYSTEMDRIVE',
             'SYSTEMROOT',
@@ -572,6 +578,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
             'USER',
             'USERNAME',
             'USERPROFILE',
+            'WINDIR',
         ];
 
         foreach ($names as $name) {
@@ -583,11 +590,16 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
     {
         $environment = StdioClientTransport::buildDefaultEnvironment([
             'Path' => 'C:\\Windows\\system32',
+            'ProgramFiles(x86)' => 'C:\\Program Files (x86)',
             'windir' => 'C:\\Windows',
             'MCP_SECRET' => 'topsecret',
         ]);
 
-        self::assertSame(['PATH' => 'C:\\Windows\\system32'], $environment);
+        self::assertSame([
+            'PATH' => 'C:\\Windows\\system32',
+            'PROGRAMFILES(X86)' => 'C:\\Program Files (x86)',
+            'WINDIR' => 'C:\\Windows',
+        ], $environment);
     }
 
     public function testDefaultEnvironmentPrefersAnExactNameOverACaseVariant(): void
