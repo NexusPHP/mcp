@@ -30,6 +30,7 @@ use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 
 use function Amp\async;
@@ -61,6 +62,84 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
         $running->await();
 
         self::assertTrue($running->isComplete());
+    }
+
+    #[DataProvider('provideAStreamThatCanDeliverStaysOpenCases')]
+    public function testAStreamThatCanDeliverStaysOpen(SubscriptionStore $store, SubscriptionFilter $requested): void
+    {
+        $handler = new SubscriptionsListenRequestHandler($store);
+
+        $running = async(fn(): SubscriptionsListenResult => $handler->handle(
+            $this->listenRequest(1, $requested),
+            $this->buildContextFor(1, new RecordingSender()),
+        ));
+        delay(0.0);
+
+        try {
+            self::assertFalse($running->isComplete());
+        } finally {
+            $store->closeAll();
+            $running->await();
+        }
+    }
+
+    /**
+     * @return iterable<string, array{SubscriptionStore, SubscriptionFilter}>
+     */
+    public static function provideAStreamThatCanDeliverStaysOpenCases(): iterable
+    {
+        yield 'tool list changes' => [new SubscriptionStore(toolsListChanged: true), new SubscriptionFilter(toolsListChanged: true)];
+
+        yield 'prompt list changes' => [new SubscriptionStore(promptsListChanged: true), new SubscriptionFilter(promptsListChanged: true)];
+
+        yield 'resource list changes' => [new SubscriptionStore(resourcesListChanged: true), new SubscriptionFilter(resourcesListChanged: true)];
+
+        yield 'one resource' => [new SubscriptionStore(resourceSubscriptions: true), new SubscriptionFilter(resourceSubscriptions: ['file:///a'])];
+    }
+
+    #[DataProvider('provideAStreamThatHonoursNothingEndsAfterItsAcknowledgementCases')]
+    public function testAStreamThatHonoursNothingEndsAfterItsAcknowledgement(SubscriptionStore $store, SubscriptionFilter $requested): void
+    {
+        $sender = new RecordingSender();
+        $handler = new SubscriptionsListenRequestHandler($store);
+
+        $running = async(fn(): SubscriptionsListenResult => $handler->handle(
+            $this->listenRequest(1, $requested),
+            $this->buildContextFor(1, $sender),
+        ));
+        delay(0.0);
+
+        try {
+            self::assertTrue($running->isComplete());
+            self::assertCount(1, $sender->notifications);
+            self::assertSame('notifications/subscriptions/acknowledged', $sender->notifications[0]::getMethod());
+        } finally {
+            $store->closeAll();
+            $running->await();
+        }
+    }
+
+    /**
+     * @return iterable<string, array{SubscriptionStore, SubscriptionFilter}>
+     */
+    public static function provideAStreamThatHonoursNothingEndsAfterItsAcknowledgementCases(): iterable
+    {
+        yield 'a type the server does not back' => [new SubscriptionStore(), new SubscriptionFilter(toolsListChanged: true)];
+
+        yield 'nothing requested' => [new SubscriptionStore(toolsListChanged: true), new SubscriptionFilter()];
+
+        yield 'an empty resource list' => [new SubscriptionStore(resourceSubscriptions: true), new SubscriptionFilter(resourceSubscriptions: [])];
+    }
+
+    public function testAStreamThatHonoursNothingHoldsNoSlot(): void
+    {
+        $store = new SubscriptionStore(maxSubscriptionsPerPeer: 1);
+        $handler = new SubscriptionsListenRequestHandler($store);
+
+        $handler->handle($this->listenRequest(1), $this->buildAuthorizedContextFor(1, new RecordingSender(), clientId: 'cli-1', subject: null));
+        $result = $handler->handle($this->listenRequest(2), $this->buildAuthorizedContextFor(2, new RecordingSender(), clientId: 'cli-1', subject: null));
+
+        self::assertSame(2, $result->meta->subscriptionId->id);
     }
 
     public function testTheGracefulResultNamesTheStreamItCloses(): void
@@ -251,12 +330,12 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
     /**
      * @param int|non-empty-string $id
      */
-    private function listenRequest(int|string $id): SubscriptionsListenRequest
+    private function listenRequest(int|string $id, SubscriptionFilter $requested = new SubscriptionFilter(toolsListChanged: true)): SubscriptionsListenRequest
     {
         return new SubscriptionsListenRequest(
             id: new RequestId(id: $id),
             params: new SubscriptionsListenRequestParams(
-                notifications: new SubscriptionFilter(toolsListChanged: true),
+                notifications: $requested,
                 meta: RequestMetaObjectFactory::create(),
             ),
         );

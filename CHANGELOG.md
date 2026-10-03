@@ -20,6 +20,8 @@ in `0.x`, minor releases may include breaking changes.
   `https://mcp.example.com`.
 - The client parses a large Server-Sent Event in time proportional to its size, where one delivered in
   small chunks used to cost quadratic time and stall the event loop.
+- The server answers a `subscriptions/listen` that honours no notification type right after its
+  acknowledgement, where it used to hold the stream open with nothing to deliver.
 
 ## [v1.0.0](https://github.com/NexusPHP/mcp/compare/v0.16.0...v1.0.0) - 2026-09-04
 

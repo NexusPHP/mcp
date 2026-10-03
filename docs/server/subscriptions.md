@@ -43,6 +43,10 @@ allow, and the `listChanged` types a change-reporting store backs. That is the s
 advertise. The acknowledgement is always the first message on the stream. Types the server cannot deliver are
 omitted from it rather than denied. A store left at its defaults honours nothing, so nothing is advertised.
 
+A listen that honours nothing is not held open. The server sends the acknowledgement, with its empty set, and
+answers the request at once with the graceful-closure result, so the client knows the stream ended cleanly and
+has no reason to reconnect.
+
 Every message on a stream carries `io.modelcontextprotocol/subscriptionId` in `_meta`. It names the ID the client
 sent on its `subscriptions/listen` request.
 
