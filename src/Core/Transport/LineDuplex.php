@@ -134,9 +134,11 @@ final class LineDuplex
         $this->writable = $writable;
         $this->logger->info('{label} transport started.', ['label' => $this->label]);
 
-        $this->readLoopCompletion = new DeferredFuture();
+        /** @var DeferredFuture<null> $completion */
+        $completion = new DeferredFuture();
+        $this->readLoopCompletion = $completion;
 
-        EventLoop::queue($this->readLoop(...));
+        EventLoop::queue($this->readLoop(...), $completion);
     }
 
     /**
@@ -347,10 +349,14 @@ final class LineDuplex
         }
     }
 
-    private function readLoop(): void
+    /**
+     * @param DeferredFuture<null> $completion
+     */
+    private function readLoop(DeferredFuture $completion): void
     {
         $this->readLoopFiber = \Fiber::getCurrent();
         $reader = new LineReader($this->readable, $this->maxLineBytes);
+        $reportingFailure = null;
 
         try {
             foreach ($reader->getLines() as $line) {
@@ -358,15 +364,24 @@ final class LineDuplex
             }
         } catch (\Throwable $e) {
             if (! $this->closing) {
-                $this->logger->error(
-                    '{label} transport read loop failed. Closing.',
-                    ['label' => $this->label, 'exception' => $e],
-                );
-                $this->events->emitError($e);
+                try {
+                    $this->logger->error(
+                        '{label} transport read loop failed. Closing.',
+                        ['label' => $this->label, 'exception' => $e],
+                    );
+                    $this->events->emitError($e);
+                } catch (\Throwable $listenerFailure) {
+                    $reportingFailure = $listenerFailure;
+                }
             }
-        } finally {
-            $this->readLoopCompletion?->complete();
-            $this->close();
+        }
+
+        // Teardown suspends, so it must not run while PHP destroys the fiber, as a `finally` would.
+        $completion->complete();
+        $this->close();
+
+        if (null !== $reportingFailure) {
+            throw $reportingFailure;
         }
     }
 

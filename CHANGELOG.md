@@ -26,6 +26,8 @@ in `0.x`, minor releases may include breaking changes.
   local setup that separates tenants by host works.
 - `StdioClientTransport`'s default environment also passes `COMSPEC`, `PATHEXT`, `PROGRAMDATA`, `PROGRAMFILES`,
   `PROGRAMFILES(X86)`, `PROGRAMW6432` and `WINDIR`, which programs a server launches on Windows depend on.
+- A script that ends without closing a started `StdioClientTransport` exits cleanly, where it used to die at
+  shutdown with a fatal `FiberError`.
 
 ## [v1.0.0](https://github.com/NexusPHP/mcp/compare/v0.16.0...v1.0.0) - 2026-09-04
 

@@ -33,6 +33,7 @@ use PHPUnit\Framework\Attributes\Group;
 final class AmpSubprocessLauncherTest extends AbstractMcpTestCase
 {
     private const string ECHO_SERVER = __DIR__.'/../../Fixtures/Client/Transport/echo-server.php';
+    private const string ABANDONING_CLIENT = __DIR__.'/../../Fixtures/Client/Transport/abandoning-client.php';
 
     #[\Override]
     protected function setUp(): void
@@ -112,5 +113,12 @@ final class AmpSubprocessLauncherTest extends AbstractMcpTestCase
         $transport->close();
 
         self::assertSame('notifications/tools/list_changed', $envelope['method'] ?? null);
+    }
+
+    public function testAScriptThatEndsWithoutClosingItsStdioClientTransportExitsCleanly(): void
+    {
+        $script = (new AmpSubprocessLauncher())->launch([\PHP_BINARY, self::ABANDONING_CLIENT], null, []);
+
+        self::assertSame(0, $script->join());
     }
 }

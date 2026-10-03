@@ -1005,6 +1005,32 @@ final class LineDuplexTest extends AbstractMcpTestCase
         }
     }
 
+    public function testAThrowingErrorListenerSurfacesOnceTheTransportHasClosed(): void
+    {
+        $events = [];
+        $previousHandler = EventLoop::getErrorHandler();
+        EventLoop::setErrorHandler(static function (\Throwable $e) use (&$events): void {
+            $events[] = 'surfaced: '.$e->getMessage();
+        });
+
+        try {
+            $duplex = $this->buildDuplex();
+            $duplex->onError(static function (): void {
+                throw new \RuntimeException('error listener boom');
+            });
+            $duplex->onClose(static function () use (&$events): void {
+                $events[] = 'closed';
+            });
+
+            $duplex->start($this->buildThrowingSource(new \RuntimeException('stdin boom')), new WritableBuffer());
+            EventLoop::run();
+
+            self::assertSame(['closed', 'surfaced: error listener boom'], $events);
+        } finally {
+            EventLoop::setErrorHandler($previousHandler);
+        }
+    }
+
     public function testReportsParseFailureWithParseErrorEnvelopeForMalformedJson(): void
     {
         $reported = [];
