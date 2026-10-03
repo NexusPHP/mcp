@@ -22,6 +22,8 @@ in `0.x`, minor releases may include breaking changes.
   small chunks used to cost quadratic time and stall the event loop.
 - The server answers a `subscriptions/listen` that honours no notification type right after its
   acknowledgement, where it used to hold the stream open with nothing to deliver.
+- A name under `.localhost` counts as loopback for the redirect URI and for `allowInsecureLoopback`, so a
+  local setup that separates tenants by host works.
 
 ## [v1.0.0](https://github.com/NexusPHP/mcp/compare/v0.16.0...v1.0.0) - 2026-09-04
 

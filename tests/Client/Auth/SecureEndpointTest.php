@@ -50,6 +50,8 @@ final class SecureEndpointTest extends AbstractMcpTestCase
 
         yield 'loopback by name is matched case-insensitively' => ['http://LocalHost:9000/token'];
 
+        yield 'a name under the loopback domain is accepted' => ['http://app.localhost:9000/token'];
+
         yield 'the loopback address is accepted' => ['http://127.0.0.1:9000/token'];
 
         yield 'any address in the loopback block is accepted' => ['http://127.13.5.9/token'];
@@ -77,6 +79,8 @@ final class SecureEndpointTest extends AbstractMcpTestCase
         yield 'plain HTTP to a remote host is rejected' => ['http://auth.example.com/token'];
 
         yield 'a host merely starting with the loopback name is rejected' => ['http://localhost.attacker.example/token'];
+
+        yield 'a host merely ending with the loopback name is rejected' => ['http://attackerlocalhost/token'];
 
         yield 'a host merely starting with the loopback address is rejected' => ['http://127.0.0.1.attacker.example/token'];
 
@@ -155,6 +159,8 @@ final class SecureEndpointTest extends AbstractMcpTestCase
 
         yield 'nor does loopback by name' => ['http://localhost:9000/token'];
 
+        yield 'nor does a name under the loopback domain' => ['http://tenant-a.localhost:9000/token'];
+
         yield 'a non-HTTP scheme is refused' => ['ftp://auth.example.com/token'];
 
         yield 'a URL that is not absolute is refused' => ['/token'];
@@ -180,6 +186,8 @@ final class SecureEndpointTest extends AbstractMcpTestCase
         yield 'loopback by address' => ['http://127.0.0.1:9000/token'];
 
         yield 'loopback by name' => ['http://localhost:9000/token'];
+
+        yield 'a name under the loopback domain' => ['http://tenant-a.localhost:9000/token'];
 
         yield 'loopback over IPv6' => ['http://[::1]:9000/token'];
 
@@ -210,6 +218,8 @@ final class SecureEndpointTest extends AbstractMcpTestCase
         yield 'a private-network address is still refused' => ['http://10.0.0.5:8443/token'];
 
         yield 'a host merely starting with the loopback name is still refused' => ['http://localhost.evil.example.com/token'];
+
+        yield 'a host merely ending with the loopback name is still refused' => ['http://evillocalhost/token'];
 
         yield 'a non-HTTP scheme is still refused' => ['ftp://127.0.0.1:9000/token'];
 

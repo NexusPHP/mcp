@@ -183,7 +183,10 @@ new AuthorizationOptions(
 );
 ```
 
-The opt-out admits cleartext on `localhost`, `127.0.0.0/8`, and `[::1]`, and nothing else. A remote cleartext
-host is still refused. So is a private-network address, and so is a URL that carries a fragment. Never set it in
-production. It is the difference between a token that cannot leave the machine and one an observer on the network
-can read.
+The opt-out admits cleartext on `localhost`, any name under `.localhost`, `127.0.0.0/8`, and `[::1]`, and nothing
+else. A remote cleartext host is still refused. So is a private-network address, and so is a URL that carries a
+fragment. Never set it in production. It is the difference between a token that cannot leave the machine and one
+an observer on the network can read.
+
+A name such as `tenant-a.localhost` suits a local setup that separates tenants by host. The client does not
+resolve it itself, so it reaches the local machine only where the system resolver follows RFC 6761.
