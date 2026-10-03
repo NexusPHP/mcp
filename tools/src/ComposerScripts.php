@@ -148,6 +148,7 @@ final class ComposerScripts
             '--static-analysis-tool=phpstan',
             '--git-diff-filter=AM',
             '--git-diff-base=origin/1.x',
+            '--ignore-msi-with-no-mutations',
         ];
 
         $proc = proc_open($command, [0 => \STDIN, 1 => \STDOUT, 2 => \STDERR], $pipes);
