@@ -386,7 +386,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
 
         preg_match_all('/^\s*\*\s*(@\S+)/m', $docComment, $tagMatches);
         $tags = $tagMatches[1];
-        self::assertNotEmpty($tags, \sprintf('Schema class "%s" docblock has no recognisable tags.', $schemaClass));
+        self::assertNotSame([], $tags, \sprintf('Schema class "%s" docblock has no recognisable tags.', $schemaClass));
         self::assertSame('@see', end($tags), \sprintf(
             'Schema class "%s": "@see" must be the last tag in the docblock, but the last tag is "%s".',
             $schemaClass,

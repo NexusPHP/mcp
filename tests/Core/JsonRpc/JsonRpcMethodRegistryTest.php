@@ -31,7 +31,7 @@ final class JsonRpcMethodRegistryTest extends AbstractMcpTestCase
     public function testRequestsBindEachMethodLiteralToItsClass(): void
     {
         $registry = JsonRpcMethodRegistry::requests();
-        self::assertNotEmpty($registry);
+        self::assertNotSame([], $registry);
 
         foreach ($registry as $method => $class) {
             self::assertSame($method, $class::getMethod(), \sprintf(
@@ -45,7 +45,7 @@ final class JsonRpcMethodRegistryTest extends AbstractMcpTestCase
     public function testNotificationsBindEachMethodLiteralToItsClass(): void
     {
         $registry = JsonRpcMethodRegistry::notifications();
-        self::assertNotEmpty($registry);
+        self::assertNotSame([], $registry);
 
         foreach ($registry as $method => $class) {
             self::assertSame($method, $class::getMethod(), \sprintf(

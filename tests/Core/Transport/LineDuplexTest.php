@@ -1413,7 +1413,7 @@ final class LineDuplexTest extends AbstractMcpTestCase
         EventLoop::run();
 
         $matches = $logger->recordsMatching(LogLevel::DEBUG, '{label} transport received a JSON-RPC envelope.');
-        self::assertNotEmpty($matches);
+        self::assertNotSame([], $matches);
         self::assertSame(['label' => 'demo'], $matches[0]['context']);
     }
 

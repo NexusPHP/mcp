@@ -286,7 +286,7 @@ final class StdioServerTransportTest extends AbstractMcpTestCase
         EventLoop::run();
 
         $matches = $logger->recordsMatching($level, $template);
-        self::assertNotEmpty($matches);
+        self::assertNotSame([], $matches);
         self::assertSame('Stdio server', $matches[0]['context']['label'] ?? null);
     }
 

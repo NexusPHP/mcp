@@ -351,7 +351,7 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
 
         self::assertSame('{"jsonrpc":"2.0","method":"notifications/tools/list_changed"}'."\n", $written);
         $matches = $logger->recordsMatching(LogLevel::DEBUG, '{label} transport sent {kind}.');
-        self::assertNotEmpty($matches);
+        self::assertNotSame([], $matches);
         self::assertSame('Stdio client', $matches[0]['context']['label'] ?? null);
         self::assertSame('"notifications/tools/list_changed" notification', $matches[0]['context']['kind'] ?? null);
     }

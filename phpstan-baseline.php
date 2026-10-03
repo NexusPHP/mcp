@@ -44,22 +44,10 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/src/Extension/Tasks/Server/ToolTaskRunner.php',
 ];
 $ignoreErrors[] = [
-	'rawMessage' => 'Casting class ReflectionType to string is deprecated.',
-	'identifier' => 'class.toStringDeprecated',
-	'count' => 1,
-	'path' => __DIR__ . '/src/Server/Discovery/InputSchemaGenerator.php',
-];
-$ignoreErrors[] = [
 	'rawMessage' => 'Offset non-empty-string might not exist on array<non-empty-string, int>.',
 	'identifier' => 'offsetAccess.notFound',
 	'count' => 1,
 	'path' => __DIR__ . '/src/Server/Subscription/SubscriptionStore.php',
-];
-$ignoreErrors[] = [
-	'rawMessage' => 'Casting class ReflectionType to string is deprecated.',
-	'identifier' => 'class.toStringDeprecated',
-	'count' => 1,
-	'path' => __DIR__ . '/tests/AutoReview/SchemaConformanceTest.php',
 ];
 
 return ['parameters' => ['ignoreErrors' => $ignoreErrors]];
