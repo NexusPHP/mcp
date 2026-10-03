@@ -35,7 +35,7 @@ Nexus\Mcp\
 │   ├── Tool\           Tool store plus executor adapters
 │   ├── Transport\      Server-side transport implementations
 │   │   └── Http\       Streamable HTTP endpoint composition
-│   │       └── Middleware\  PSR-15 middleware: CORS, DNS rebinding, bearer auth, body size, parameter headers
+│   │       └── Middleware\  PSR-15 middleware: CORS, DNS rebinding, bearer auth, body size, operation scopes, parameter headers
 │   └── Validation\     Pluggable JSON Schema validator contract plus the opis-backed default
 └── Client\             Client-side composition. Depends on Core only
     ├── Auth\           OAuth 2.1 client: metadata discovery, registration, token endpoint, the authorizing HTTP decorator

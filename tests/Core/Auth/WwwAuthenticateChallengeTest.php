@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Auth;
 
+use Nexus\Mcp\Core\Auth\ScopeSet;
 use Nexus\Mcp\Core\Auth\WwwAuthenticateChallenge;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -249,6 +250,39 @@ final class WwwAuthenticateChallengeTest extends AbstractMcpTestCase
     public function testConstructorLowercasesParameterNames(): void
     {
         self::assertSame(['realm' => 'x'], (new WwwAuthenticateChallenge('Bearer', ['REALM' => 'x']))->parameters);
+    }
+
+    /**
+     * @param list<non-empty-string>          $scopes
+     * @param array<non-empty-string, string> $expected
+     */
+    #[DataProvider('provideBuildForResourceCases')]
+    public function testBuildForResource(?string $error, array $scopes, array $expected): void
+    {
+        $challenge = WwwAuthenticateChallenge::buildForResource('https://mcp.test/.well-known/oauth-protected-resource', $error, new ScopeSet($scopes));
+
+        self::assertSame('Bearer', $challenge->scheme);
+        self::assertSame($expected, $challenge->parameters);
+    }
+
+    /**
+     * @return iterable<string, array{null|string, list<non-empty-string>, array<non-empty-string, string>}>
+     */
+    public static function provideBuildForResourceCases(): iterable
+    {
+        $metadata = 'https://mcp.test/.well-known/oauth-protected-resource';
+
+        yield 'neither an error nor a scope' => [null, [], ['resource_metadata' => $metadata]];
+
+        yield 'an error alone' => ['invalid_token', [], ['resource_metadata' => $metadata, 'error' => 'invalid_token']];
+
+        yield 'a scope alone' => [null, ['files:read', 'files:write'], ['resource_metadata' => $metadata, 'scope' => 'files:read files:write']];
+
+        yield 'an error and a scope' => [
+            'insufficient_scope',
+            ['files:write'],
+            ['resource_metadata' => $metadata, 'error' => 'insufficient_scope', 'scope' => 'files:write'],
+        ];
     }
 
     /**

@@ -38,6 +38,9 @@ those already granted, so a fresh grant never costs permissions other operations
 `maxScopeUpgrades` caps how many rounds that may take. The default is `2`. Past it, the client raises
 `InsufficientScopeException` naming the scopes the server wants.
 
+A server built with this SDK issues that challenge per operation through
+[`OperationScopeMiddleware`](server.md#scopes-for-one-operation).
+
 A challenge that names no scope the token is missing, including one that names no scope at all, raises the same
 exception rather than retry. Asking again would produce the same token and the same `403`. The only thing the
 round trip would buy the user is a second consent screen.

@@ -24,6 +24,15 @@ follow-up remains.
 DPoP (SEP-1932) and workload identity federation (SEP-1933) are open proposals upstream and stay
 unmodelled until ratified.
 
+## Authorization
+
+- [ ] **Declare operation scopes at registration.** `OperationScopeMiddleware` takes its scopes as maps
+  keyed by tool name, prompt name, and resource URI, held apart from the registrations they describe. A
+  key that names nothing the server serves is ignored, so a renamed tool keeps its scopes only if its
+  key is renamed with it. `ServerBuilder`'s `add*()` methods and the `#[As*]` attributes take the scopes
+  alongside the tool, prompt, or resource, and the builder hands the assembled map to the middleware, so
+  a scope can neither outlive the thing it guards nor miss it.
+
 ## Language compatibility
 
 The SDK targets **PHP 8.3** minimum, the oldest release still receiving security fixes, and uses the

@@ -12,6 +12,8 @@ in `0.x`, minor releases may include breaking changes.
 
 - `ClientSecretCredential` and `PrivateKeyJwtCredential` take an optional `issuer`. `ClientCredentialsGrant`
   refuses a credential bound to an authorization server other than the one the protected resource names.
+- `OperationScopeMiddleware` and `SecuredHttpEndpoint`'s `operationScopes` argument: scopes a single tool,
+  prompt, or resource needs, answered with the `403` `insufficient_scope` challenge a client steps up on.
 
 ### Fixed
 

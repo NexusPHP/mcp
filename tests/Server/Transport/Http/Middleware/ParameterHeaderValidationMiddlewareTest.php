@@ -209,6 +209,20 @@ final class ParameterHeaderValidationMiddlewareTest extends AbstractMcpTestCase
         self::assertSame($envelope, $handler->received->getAttribute(StreamableHttpServerTransport::ENVELOPE_ATTRIBUTE));
     }
 
+    public function testAnEnvelopeAlreadyOnTheRequestIsValidatedInPlaceOfTheBody(): void
+    {
+        $handler = $this->buildHandler();
+        $request = $this->post('', ['Mcp-Param-Region' => 'us-east1'])->withAttribute(
+            StreamableHttpServerTransport::ENVELOPE_ATTRIBUTE,
+            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/call', 'params' => ['name' => 'echo', 'arguments' => ['region' => 'eu-west1']]],
+        );
+
+        $response = $this->buildMiddleware()->process($request, $handler);
+
+        self::assertFalse($handler->called);
+        self::assertSame(400, $response->getStatusCode());
+    }
+
     #[DataProvider('provideHandsNoEnvelopeToTheTransportForABodyThatIsNotAJsonArrayCases')]
     public function testHandsNoEnvelopeToTheTransportForABodyThatIsNotAJsonArray(string $body): void
     {

@@ -14,10 +14,12 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Transport\Http;
 
 use Nexus\Mcp\Core\Auth\VerifiedAccessToken;
+use Nexus\Mcp\Core\Exception\LogicException;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
 use Nexus\Mcp\Server\Auth\AccessTokenValidatorInterface;
 use Nexus\Mcp\Server\Tool\ToolStoreInterface;
 use Nexus\Mcp\Server\Transport\Http\Middleware\BearerAuthenticationMiddleware;
+use Nexus\Mcp\Server\Transport\Http\Middleware\OperationScopeMiddleware;
 use Nexus\Mcp\Server\Transport\Http\SecuredHttpEndpoint;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Server\Http\NonSeekableStream;
@@ -232,6 +234,67 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
         self::assertFalse($handler->called);
     }
 
+    public function testAnOperationTheTokenLacksTheScopesForIsChallengedBeforeTheHandler(): void
+    {
+        $handler = $this->buildHandler();
+        $endpoint = $this->buildEndpoint(
+            $handler,
+            ['*'],
+            authentication: $this->buildAuthentication(),
+            operationScopes: $this->buildOperationScopes(),
+        );
+
+        $response = $endpoint->handle($this->buildMismatchedToolCall('eu-west1')->withHeader('Authorization', 'Bearer the-token'));
+
+        self::assertSame(403, $response->getStatusCode());
+        self::assertStringContainsString('error="insufficient_scope"', $response->getHeaderLine('WWW-Authenticate'));
+        self::assertFalse($handler->called);
+    }
+
+    public function testOperationScopesWithNoAuthenticationAreRefused(): void
+    {
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessageIs('SecuredHttpEndpoint was given "operationScopes" with no "authentication" to validate the token they are checked against.');
+
+        $this->buildEndpoint($this->buildHandler(), ['*'], operationScopes: $this->buildOperationScopes());
+    }
+
+    public function testAnOversizedBodyIsRefusedAheadOfTheOperationScopes(): void
+    {
+        $handler = $this->buildHandler();
+        $endpoint = $this->buildEndpoint(
+            $handler,
+            ['*'],
+            maxBodyBytes: 16,
+            authentication: $this->buildAuthentication(),
+            operationScopes: $this->buildOperationScopes(),
+        );
+
+        $response = $endpoint->handle($this->buildMismatchedToolCall('eu-west1')->withHeader('Authorization', 'Bearer the-token'));
+
+        self::assertSame(413, $response->getStatusCode());
+        self::assertFalse($handler->called);
+    }
+
+    public function testAnswersTheOperationScopesAheadOfParameterHeaderValidation(): void
+    {
+        $handler = $this->buildHandler();
+        $store = $this->buildToolStore();
+        $endpoint = $this->buildEndpoint(
+            $handler,
+            ['*'],
+            toolStore: $store,
+            authentication: $this->buildAuthentication(),
+            operationScopes: $this->buildOperationScopes(),
+        );
+
+        $response = $endpoint->handle($this->buildMismatchedToolCall('us-east1')->withHeader('Authorization', 'Bearer the-token'));
+
+        self::assertSame(403, $response->getStatusCode());
+        self::assertFalse($handler->called);
+        self::assertSame(0, $store->listCalls, 'A token short of the scopes is challenged before the headers are compared.');
+    }
+
     /**
      * @param list<non-empty-string> $allowedOrigins
      * @param list<non-empty-string> $allowedHosts
@@ -244,6 +307,7 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
         ?int $maxBodyBytes = SecuredHttpEndpoint::DEFAULT_MAX_BODY_BYTES,
         ?ToolStoreInterface $toolStore = null,
         ?BearerAuthenticationMiddleware $authentication = null,
+        ?OperationScopeMiddleware $operationScopes = null,
     ): SecuredHttpEndpoint {
         $factory = new Psr17Factory();
 
@@ -257,6 +321,19 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
             $toolStore,
             new NullLogger(),
             $authentication,
+            $operationScopes,
+        );
+    }
+
+    private function buildOperationScopes(): OperationScopeMiddleware
+    {
+        $factory = new Psr17Factory();
+
+        return new OperationScopeMiddleware(
+            'https://mcp.test/.well-known/oauth-protected-resource',
+            $factory,
+            $factory,
+            tools: ['echo' => ['files:write']],
         );
     }
 

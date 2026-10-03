@@ -126,6 +126,67 @@ $endpoint = new SecuredHttpEndpoint(
 Authentication runs after CORS and DNS-rebinding protection, and before anything reads the body. An unauthorized
 request is turned away without being parsed.
 
+### Scopes for one operation
+
+`requiredScopes` applies to every request. To ask more of a single tool, prompt, or resource, add
+`OperationScopeMiddleware`. A client then starts with the endpoint's scopes and steps up only when it reaches an
+operation that needs more, which is the least-privilege model the spec recommends.
+
+```php
+use Nexus\Mcp\Server\Transport\Http\Middleware\OperationScopeMiddleware;
+
+$endpoint = new SecuredHttpEndpoint(
+    $transport,
+    ['https://app.example.com'],
+    $responseFactory,
+    $streamFactory,
+    authentication: $bearerMiddleware,
+    operationScopes: new OperationScopeMiddleware(
+        'https://mcp.example.com/.well-known/oauth-protected-resource/mcp',
+        $responseFactory,
+        $streamFactory,
+        tools: ['delete_file' => ['files:write']],
+        prompts: ['release_notes' => ['repo:read']],
+        resources: [
+            'config://deploy' => ['deploy:read'],
+            'file:///reports/{name}' => ['files:read'],
+        ],
+        endpointScopes: ['mcp:use'],
+    ),
+);
+```
+
+A request whose token lacks a listed scope is answered `403` with `error="insufficient_scope"`, before the handler
+runs. An operation with no entry needs nothing beyond `requiredScopes`.
+
+| Entry | Requests it covers |
+| --- | --- |
+| `tools` | `tools/call` |
+| `prompts` | `prompts/get`, and `completion/complete` for that prompt |
+| `resources` | `resources/read`, `completion/complete` for a matching template, and `subscriptions/listen` naming a matching resource |
+
+Pass the bearer middleware's `requiredScopes` as `endpointScopes`. The challenge then names them ahead of the
+operation's own, every scope and not only the missing ones, so a client that asks for exactly what a challenge
+names still ends up with a token the endpoint accepts.
+
+A resource key is a URI or a URI template in the form `addResourceTemplate()` takes. A URI that matches several
+keys needs the scopes of all of them. A URI is matched as sent and again percent-decoded, since a template binds
+either form to the same value.
+
+Each scope must be an RFC 6749 `scope-token`, so two scopes joined by a space are refused when the middleware is
+built rather than becoming a requirement no token can meet.
+
+The keys are not checked against what the server serves. A key that names nothing is ignored, so a renamed tool
+keeps its scopes only if its key is renamed with it.
+
+The middleware reads the body, so it runs after the body-size cap. It checks the token an authentication
+middleware validated, and `SecuredHttpEndpoint` refuses `operationScopes` without `authentication`. An
+authenticator of your own must store the `VerifiedAccessToken` on the request attribute
+`VerifiedAccessToken::REQUEST_ATTRIBUTE`, as `BearerAuthenticationMiddleware` does. A scoped operation that
+arrives without one throws `LogicException` rather than challenge a client that did nothing wrong.
+
+Over stdio there is no token and no HTTP status to answer with, so the declarations do not apply there.
+
 ## Publishing the metadata document
 
 Clients find your authorization server by reading a metadata document. Route `ProtectedResourceMetadataHandler`

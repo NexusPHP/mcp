@@ -88,6 +88,7 @@ $endpoint = new SecuredHttpEndpoint(
     maxBodyBytes: 1_048_576,                       // optional, the default, null for no cap
     toolStore: $tools,                             // required if any tool declares x-mcp-header
     authentication: $bearerMiddleware,             // optional, makes this an OAuth resource server
+    operationScopes: $operationScopes,             // optional, scopes for single tools, prompts, and resources
 );
 ```
 

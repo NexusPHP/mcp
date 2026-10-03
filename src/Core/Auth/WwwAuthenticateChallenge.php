@@ -74,6 +74,29 @@ final readonly class WwwAuthenticateChallenge
     }
 
     /**
+     * Builds the bearer challenge a protected resource answers with, omitting `error` when it is null and
+     * `scope` when the set is empty.
+     *
+     * @see https://datatracker.ietf.org/doc/html/rfc6750#section-3
+     */
+    public static function buildForResource(string $resourceMetadataUrl, ?string $error, ScopeSet $scopes): self
+    {
+        $parameters = ['resource_metadata' => $resourceMetadataUrl];
+
+        if (null !== $error) {
+            $parameters['error'] = $error;
+        }
+
+        $scope = $scopes->toParameter();
+
+        if (null !== $scope) {
+            $parameters['scope'] = $scope;
+        }
+
+        return new self(self::BEARER_SCHEME, $parameters);
+    }
+
+    /**
      * @return list<self>
      */
     public static function parseAll(string $header): array

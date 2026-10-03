@@ -32,7 +32,7 @@ final readonly class ScopeSet
     /**
      * RFC 6749 section 3.3 `scope-token` syntax (`1*( %x21 / %x23-5B / %x5D-7E )`).
      */
-    private const string SCOPE_TOKEN_PATTERN = '/\A[\x21\x23-\x5B\x5D-\x7E]+\z/';
+    public const string SCOPE_TOKEN_PATTERN = '/\A[\x21\x23-\x5B\x5D-\x7E]+\z/';
 
     /**
      * @var list<non-empty-string>
