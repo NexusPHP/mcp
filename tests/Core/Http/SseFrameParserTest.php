@@ -231,10 +231,10 @@ final class SseFrameParserTest extends AbstractMcpTestCase
     {
         $parser = new SseFrameParser();
 
-        self::assertSame([], $this->flatten($parser->feed('event: mess')));
-        self::assertSame([], $this->flatten($parser->feed("age\ndata: {\"a\":")));
+        self::assertSame([], $this->flatten($parser->feed('event: upd')));
+        self::assertSame([], $this->flatten($parser->feed("ate\ndata: {\"a\":")));
         self::assertSame([], $this->flatten($parser->feed('1}')));
-        self::assertSame([['message', '{"a":1}']], $this->flatten($parser->feed("\n\n")));
+        self::assertSame([['update', '{"a":1}']], $this->flatten($parser->feed("\n\n")));
     }
 
     public function testAssemblesAFrameFedOneByteAtATime(): void

@@ -13,6 +13,8 @@ in `0.x`, minor releases may include breaking changes.
 - The client sends the `resource` parameter exactly as the protected resource metadata publishes it, so an
   authorization server that matches the identifier byte-for-byte accepts a pathless resource such as
   `https://mcp.example.com`.
+- The client parses a large Server-Sent Event in time proportional to its size, where one delivered in
+  small chunks used to cost quadratic time and stall the event loop.
 
 ## [v1.0.0](https://github.com/NexusPHP/mcp/compare/v0.16.0...v1.0.0) - 2026-09-04
 

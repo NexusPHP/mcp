@@ -32,7 +32,7 @@ final class SseFrameParser
     private int $frameBytes = 0;
 
     /**
-     * Chunk remainder up to the last complete line.
+     * The line still awaiting its terminator.
      */
     private string $pending = '';
 
@@ -73,30 +73,32 @@ final class SseFrameParser
             $this->afterCarriageReturn = false;
         }
 
-        $this->pending .= $chunk;
-
         if ('' !== $chunk) {
             $this->afterCarriageReturn = str_ends_with($chunk, "\r");
         }
 
+        $pieces = preg_split('/\r\n|\n|\r/', $chunk);
+        \assert(\is_array($pieces));
+
+        $remainder = array_pop($pieces) ?? '';
         $frames = [];
 
-        $lines = preg_split('/\r\n|\n|\r/', $this->pending);
-        \assert(\is_array($lines));
-        $this->pending = (string) array_pop($lines);
-
-        foreach ($lines as $line) {
+        foreach ($pieces as $piece) {
+            $line = $this->pending.$piece;
+            $this->pending = '';
             $frame = $this->consumeLine($line);
 
             // A blank line is a frame boundary whether or not it dispatched, so the budget restarts.
             if ('' === $line) {
-                $this->frameBytes = \strlen($this->pending);
+                $this->frameBytes = \strlen($remainder);
             }
 
             if (null !== $frame) {
                 $frames[] = $frame;
             }
         }
+
+        $this->pending .= $remainder;
 
         return $frames;
     }
