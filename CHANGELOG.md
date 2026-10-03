@@ -8,6 +8,11 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+### Added
+
+- `ClientSecretCredential` and `PrivateKeyJwtCredential` take an optional `issuer`. `ClientCredentialsGrant`
+  refuses a credential bound to an authorization server other than the one the protected resource names.
+
 ### Fixed
 
 - The client sends the `resource` parameter exactly as the protected resource metadata publishes it, so an

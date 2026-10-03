@@ -32,6 +32,14 @@ final class ClientSecretCredentialTest extends AbstractMcpTestCase
 
         self::assertSame('the-client', $credential->clientId);
         self::assertSame('the-secret', $credential->clientSecret);
+        self::assertNull($credential->issuer);
+    }
+
+    public function testItCarriesTheAuthorizationServerItWasRegisteredWith(): void
+    {
+        $credential = new ClientSecretCredential('the-client', 'the-secret', 'https://auth.example.com');
+
+        self::assertSame('https://auth.example.com', $credential->issuer);
     }
 
     public function testAnEmptyClientIdIsRefused(): void
@@ -50,5 +58,14 @@ final class ClientSecretCredentialTest extends AbstractMcpTestCase
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new ClientSecretCredential('the-client', '');
+    }
+
+    public function testAnEmptyIssuerIsRefused(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('"issuer" must be a non-empty string or null.');
+
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
+        new ClientSecretCredential('the-client', 'the-secret', '');
     }
 }

@@ -23,14 +23,17 @@ use Nexus\Assert\Assert;
 final readonly class ClientSecretCredential
 {
     /**
-     * @param non-empty-string $clientId
-     * @param non-empty-string $clientSecret
+     * @param non-empty-string      $clientId
+     * @param non-empty-string      $clientSecret
+     * @param null|non-empty-string $issuer       The authorization server the credential was registered with, or null to leave it unbound
      */
     public function __construct(
         public string $clientId,
         public string $clientSecret,
+        public ?string $issuer = null,
     ) {
         Assert::that($clientId)->isNonEmptyString('"clientId" must be a non-empty string.');
         Assert::that($clientSecret)->isNonEmptyString('"clientSecret" must be a non-empty string.');
+        Assert::that($issuer)->nullOr()->isNonEmptyString('"issuer" must be a non-empty string or null.');
     }
 }

@@ -20,6 +20,7 @@ use Nexus\Mcp\Client\Auth\AccessToken;
 use Nexus\Mcp\Client\Auth\ClientRegistration;
 use Nexus\Mcp\Client\Auth\GrantContext;
 use Nexus\Mcp\Client\Auth\GrantStrategyInterface;
+use Nexus\Mcp\Client\Exception\AuthorizationServerMismatchException;
 use Nexus\Mcp\Core\Auth\AuthorizationServerMetadata;
 use Nexus\Mcp\Core\Auth\TokenEndpointAuthMethod;
 use Nexus\Mcp\Core\Exception\RuntimeException;
@@ -71,6 +72,12 @@ final readonly class ClientCredentialsGrant implements GrantStrategyInterface
         }
 
         $server = $context->discovered->server;
+        $registeredIssuer = $this->credential->issuer;
+
+        if (null !== $registeredIssuer && $registeredIssuer !== $server->issuer) {
+            throw new AuthorizationServerMismatchException($registeredIssuer, $server->issuer);
+        }
+
         $this->verifyAdvertisedSupport($server);
 
         $parameters = [

@@ -45,13 +45,19 @@ $http = new AuthorizedHttpClient(
         privateKeyPem: $privateKeyPem,
         algorithm: 'ES256',
         keyId: 'key-1',
+        issuer: 'https://auth.example.com',
     )),
 );
 ```
 
-`ClientSecretCredential('the-worker', $secret)` is the Basic-auth counterpart. Signing needs the suggested
-`firebase/php-jwt` package, the same one `JwksAccessTokenValidator` uses on the server side. A missing install
-surfaces as an actionable message on the first grant.
+`ClientSecretCredential('the-worker', $secret, 'https://auth.example.com')` is the Basic-auth counterpart.
+Signing needs the suggested `firebase/php-jwt` package, the same one `JwksAccessTokenValidator` uses on the
+server side. A missing install surfaces as an actionable message on the first grant.
+
+`issuer` binds the credential to the authorization server it was registered with. When the protected resource
+names a different one, the grant throws `AuthorizationServerMismatchException` before it sends anything. Left
+unset, the credential is presented to whichever authorization server the MCP server names, so set it whenever
+the credential is a secret.
 
 ### The assertion
 

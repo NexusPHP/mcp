@@ -23,6 +23,7 @@ use Nexus\Mcp\Client\Auth\DiscoveredResource;
 use Nexus\Mcp\Client\Auth\GrantContext;
 use Nexus\Mcp\Client\Auth\InMemoryClientRegistrationStore;
 use Nexus\Mcp\Client\Auth\TokenEndpoint;
+use Nexus\Mcp\Client\Exception\AuthorizationServerMismatchException;
 use Nexus\Mcp\Core\Auth\AuthorizationServerMetadata;
 use Nexus\Mcp\Core\Auth\ProtectedResourceMetadata;
 use Nexus\Mcp\Core\Auth\ResourceIdentifier;
@@ -201,6 +202,33 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
             );
             self::assertSame([], $http->requests);
         }
+    }
+
+    public function testACredentialRegisteredWithAnotherAuthorizationServerIsRefused(): void
+    {
+        $http = new RecordingHttpClient();
+        $grant = new ClientCredentialsGrant(new ClientSecretCredential('the-client', 'the-secret', 'https://login.example.com'));
+
+        try {
+            $grant->grant($this->buildContext($http, $this->buildMetadata()), new NullCancellation());
+            self::fail('The grant should have been refused.');
+        } catch (AuthorizationServerMismatchException $e) {
+            self::assertSame(
+                'The supplied client credentials were registered with "https://login.example.com" but the protected resource now names "https://auth.example.com", and credentials are not portable between authorization servers.',
+                $e->getMessage(),
+            );
+            self::assertSame([], $http->requests);
+        }
+    }
+
+    public function testACredentialRegisteredWithTheNamedAuthorizationServerProceeds(): void
+    {
+        $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse());
+        $grant = new ClientCredentialsGrant(new ClientSecretCredential('the-client', 'the-secret', self::ISSUER));
+
+        $token = $grant->grant($this->buildContext($http, $this->buildMetadata()), new NullCancellation());
+
+        self::assertSame('the-access-token', $token->value);
     }
 
     public function testItRenewsByAFreshGrant(): void

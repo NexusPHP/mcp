@@ -28,16 +28,19 @@ final readonly class PrivateKeyJwtCredential
      * @param non-empty-string      $privateKeyPem The signing key in PEM form
      * @param non-empty-string      $algorithm     The JWS algorithm registered for the client, e.g. `ES256`
      * @param null|non-empty-string $keyId         The `kid` stamped on the assertion header, when the server keys by one
+     * @param null|non-empty-string $issuer        The authorization server the credential was registered with, or null to leave it unbound
      */
     public function __construct(
         public string $clientId,
         public string $privateKeyPem,
         public string $algorithm,
         public ?string $keyId = null,
+        public ?string $issuer = null,
     ) {
         Assert::that($clientId)->isNonEmptyString('"clientId" must be a non-empty string.');
         Assert::that($privateKeyPem)->isNonEmptyString('"privateKeyPem" must be a non-empty string.');
         Assert::that($algorithm)->isNonEmptyString('"algorithm" must be a non-empty string.');
         Assert::that($keyId)->nullOr()->isNonEmptyString('"keyId" must be a non-empty string or null.');
+        Assert::that($issuer)->nullOr()->isNonEmptyString('"issuer" must be a non-empty string or null.');
     }
 }

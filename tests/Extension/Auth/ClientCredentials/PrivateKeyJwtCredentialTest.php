@@ -41,6 +41,18 @@ final class PrivateKeyJwtCredentialTest extends AbstractMcpTestCase
         self::assertNull((new PrivateKeyJwtCredential('the-client', '-----BEGIN PRIVATE KEY-----', 'ES256'))->keyId);
     }
 
+    public function testTheIssuerIsOptional(): void
+    {
+        self::assertNull((new PrivateKeyJwtCredential('the-client', '-----BEGIN PRIVATE KEY-----', 'ES256'))->issuer);
+    }
+
+    public function testItCarriesTheAuthorizationServerItWasRegisteredWith(): void
+    {
+        $credential = new PrivateKeyJwtCredential('the-client', '-----BEGIN PRIVATE KEY-----', 'ES256', issuer: 'https://auth.example.com');
+
+        self::assertSame('https://auth.example.com', $credential->issuer);
+    }
+
     public function testAnEmptyClientIdIsRefused(): void
     {
         $this->expectException(\InvalidArgumentException::class);
@@ -75,5 +87,14 @@ final class PrivateKeyJwtCredentialTest extends AbstractMcpTestCase
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new PrivateKeyJwtCredential('the-client', '-----BEGIN PRIVATE KEY-----', 'ES256', '');
+    }
+
+    public function testAnEmptyIssuerIsRefused(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('"issuer" must be a non-empty string or null.');
+
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
+        new PrivateKeyJwtCredential('the-client', '-----BEGIN PRIVATE KEY-----', 'ES256', issuer: '');
     }
 }
