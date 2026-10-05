@@ -23,25 +23,24 @@ use Nexus\Mcp\Core\Exception\LogicException;
 final class SuggestedDependencyGuard
 {
     /**
-     * @param class-string     $consumer   The class that needs the package
-     * @param string           $class      A class the package autoloads, probed via `class_exists`
-     * @param non-empty-string $package    The composer package name
-     * @param non-empty-string $constraint The version constraint to install with
+     * @param class-string          $consumer   The class that needs the package
+     * @param string                $class      A class the package autoloads, probed via `class_exists`
+     * @param non-empty-string      $package    The composer package name
+     * @param null|non-empty-string $constraint The version constraint to install with, null leaving the choice to Composer
      *
      * @throws LogicException
      */
-    public static function verify(string $consumer, string $class, string $package, string $constraint): void
+    public static function verify(string $consumer, string $class, string $package, ?string $constraint = null): void
     {
         if (class_exists($class)) {
             return;
         }
 
         throw new LogicException(\sprintf(
-            '%s requires the suggested "%s" package. Install it with "composer require %s:%s".',
+            '%s requires the suggested "%s" package. Install it with "composer require %s".',
             $consumer,
             $package,
-            $package,
-            $constraint,
+            null === $constraint ? $package : $package.':'.$constraint,
         ));
     }
 

@@ -45,6 +45,16 @@ final class SuggestedDependencyGuardTest extends AbstractMcpTestCase
         SuggestedDependencyGuard::verify(StubPackageBackedConsumer::class, 'Acme\Jwt\DoesNotExist', 'acme/jwt', '^1.0');
     }
 
+    public function testAMissingPackageWithoutAConstraintIsInstalledByNameAlone(): void
+    {
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessageIs(
+            'Nexus\Mcp\Tests\Fixtures\Core\Validation\StubPackageBackedConsumer requires the suggested "acme/jwt" package. Install it with "composer require acme/jwt".',
+        );
+
+        SuggestedDependencyGuard::verify(StubPackageBackedConsumer::class, 'Acme\Jwt\DoesNotExist', 'acme/jwt');
+    }
+
     public function testALoadedExtensionPassesSilently(): void
     {
         $this->expectNotToPerformAssertions();
