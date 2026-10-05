@@ -10,6 +10,7 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Added
 
+- `OptionalClientDeclarationInterface`, for a server extension whose methods a client may call without declaring it.
 - `ClientSecretCredential` and `PrivateKeyJwtCredential` take an optional `issuer`. `ClientCredentialsGrant`
   refuses a credential bound to an authorization server other than the one the protected resource names.
 - `OperationScopeMiddleware` and `SecuredHttpEndpoint`'s `operationScopes` argument: scopes a single tool,

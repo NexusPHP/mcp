@@ -48,11 +48,14 @@ serves.
 The capability entry rides the `server/discover` response. The client declares its supported extensions on every
 request through the `_meta` `io.modelcontextprotocol/clientCapabilities` envelope.
 
-A gate wraps every extension request handler and enforces the client half. When a client whose per-request
+A gate wraps an extension's request handlers and enforces the client half. When a client whose per-request
 capabilities did not declare the extension requests an extension-owned method, the gate answers `-32021`
 (`MissingRequiredClientCapability`). It names the identifier both in the message (`extensions.{identifier}`) and
 in `error.data.requiredCapabilities`, and the handler never runs. An extension-owned method has no core behaviour
 to fall back to, so rejection is the only conformant answer.
+
+An extension whose methods a client may call without declaring it also implements the empty
+`OptionalClientDeclarationInterface`, and the builder serves its request handlers without the gate.
 
 Extension **notifications** are not gated. A notification's `_meta` carries no capability declaration to check.
 Where an extension needs notification-level enforcement, that belongs to the handler itself.

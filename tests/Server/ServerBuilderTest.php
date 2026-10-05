@@ -102,6 +102,7 @@ use Nexus\Mcp\Tests\Fixtures\Server\Discovery\CompletionHandlers;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\DiscoverableServer;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\SelfDescribingServer;
 use Nexus\Mcp\Tests\Fixtures\Server\Extension\StubDecoratingServerExtension;
+use Nexus\Mcp\Tests\Fixtures\Server\Extension\StubOptionalClientDeclarationServerExtension;
 use Nexus\Mcp\Tests\Fixtures\Server\Extension\StubServerExtension;
 use Nexus\Mcp\Tests\Fixtures\Server\Tool\PagedToolStore;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -1411,6 +1412,17 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             'This request requires client capabilities the client did not declare: extensions.com.example/feature.',
             $message->error->message,
         );
+    }
+
+    public function testAnExtensionAClientNeedNotDeclareServesANonDeclaringClient(): void
+    {
+        $server = (new ServerBuilder())
+            ->setServerInfo('demo', '1.0.0')
+            ->enableExtension(new StubOptionalClientDeclarationServerExtension($this->buildServerExtension()))
+            ->build()
+        ;
+
+        self::assertInstanceOf(EmptyResult::class, $this->dispatch($server, TestClientRequest::getMethod()));
     }
 
     public function testADecoratorWrapsTheDefaultToolHandlerAndServesUngated(): void
