@@ -17,7 +17,7 @@ use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Enum\SdkErrorCode;
 
 /**
- * HTTP status resolver for the JSON-RPC errors the Streamable HTTP transport answers with.
+ * HTTP status resolver for the JSON-RPC errors that the Streamable HTTP transport answers with.
  *
  * @internal
  *

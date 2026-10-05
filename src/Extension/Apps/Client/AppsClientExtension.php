@@ -23,7 +23,7 @@ use Nexus\Mcp\Extension\Apps\Apps;
 final readonly class AppsClientExtension implements ClientExtensionInterface
 {
     /**
-     * @param list<non-empty-string> $mimeTypes The UI resource mime types the host renders
+     * @param list<non-empty-string> $mimeTypes The UI resource mime types rendered by the host
      */
     public function __construct(private array $mimeTypes = [Apps::MIME_TYPE])
     {

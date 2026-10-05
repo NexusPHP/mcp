@@ -58,8 +58,8 @@ understand why the SDK is built this way.
 - **[Transports](transports.md)**: the transport contract and lifecycle, with one page per binding:
   **[stdio](transports/stdio.md)**, **[Streamable HTTP](transports/streamable-http.md)**,
   **[SupervisedTransport](transports/supervised.md)**, **[InMemoryTransport](transports/in-memory.md)**.
-- **[Server configuration](server/configuration.md)**: everything `ServerBuilder` takes.
-- **[Client configuration](client/configuration.md)**: everything `ClientBuilder` takes.
+- **[Server configuration](server/configuration.md)**: everything that `ServerBuilder` takes.
+- **[Client configuration](client/configuration.md)**: everything that `ClientBuilder` takes.
 - **[Capability advertisement](server/capabilities.md)**: how `ServerCapabilities` is derived.
 - **[ServerContext](server/context.md)**: what every handler receives.
 - **[Error handling](error-handling.md)**: exception types, JSON-RPC error codes, and the diagnostic message
@@ -72,7 +72,7 @@ understand why the SDK is built this way.
 - **[Architecture](architecture.md)**: the namespace tree, layering rules, and the dispatch kernel.
 - **[Spec compliance](spec-compliance.md)**: coverage against the targeted revision, and the deliberate omissions.
 - **[Design rationale](design-rationale.md)**: the choices behind the SDK.
-- **[Best practices](best-practices.md)**: conventions the SDK is shaped to reward.
+- **[Best practices](best-practices.md)**: conventions that the SDK is shaped to reward.
 
 ## Runnable code
 

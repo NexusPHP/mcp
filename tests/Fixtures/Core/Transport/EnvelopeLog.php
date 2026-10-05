@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Fixtures\Core\Transport;
 
 /**
- * Ordered record of the inbound JSON-RPC envelopes a transport emitted to its message listeners.
+ * Ordered record of the inbound JSON-RPC envelopes emitted by a transport to its message listeners.
  *
  * @internal
  */

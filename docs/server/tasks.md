@@ -1,7 +1,7 @@
 # Tasks
 
-The tasks extension (`io.modelcontextprotocol/tasks`, SEP-2663) lets a tool call run as a long-lived task the
-client polls, instead of holding the request open. It ships in `Nexus\Mcp\Extension\Tasks`. Like every extension,
+The tasks extension (`io.modelcontextprotocol/tasks`, SEP-2663) lets a tool call run as a long-lived task polled
+by the client, instead of holding the request open. It ships in `Nexus\Mcp\Extension\Tasks`. Like every extension,
 it is disabled until you enable it explicitly:
 
 ```php
@@ -70,7 +70,7 @@ stateDiagram-v2
   `result.isError`, never the `failed` status.
 - An `InputRequiredResult` parks the task in `input_required` with its `inputRequests` map. Each request key must
   be unique over the task's lifetime, so a tool that asks again must mint a fresh key per round. Reusing one fails
-  the task. So does parking with a `requestState` but no `inputRequests`, an unresumable state no poll could
+  the task. So does parking with a `requestState` but no `inputRequests`, an unresumable state that no poll could
   answer.
 - A protocol exception fails the task and inlines `error.code` and `error.message`. `failed` is reserved for
   protocol errors.

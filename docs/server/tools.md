@@ -34,7 +34,7 @@ advertises the `tools` capability automatically.
 
 A runtime exception thrown out of a tool executor becomes a `CallToolResult` with `isError: true` and a single
 `TextContent` that carries `"Tool execution failed."`. The SDK logs the underlying throwable at `error` level on
-the PSR-3 logger you configured with `ServerBuilder::setLogger()`.
+the PSR-3 logger configured with `ServerBuilder::setLogger()`.
 
 To surface error detail to the LLM, return the result with `isError: true` from the executor instead of
 throwing. Protocol-level conditions, such as `ToolNotFoundException`, still surface as JSON-RPC errors.
@@ -85,8 +85,8 @@ final class DocsTools
 }
 ```
 
-The method returns a full `CallToolResult`, or a shorthand the SDK adapts: a string (wrapped as `TextContent`), a
-content block or a list of them, or an array treated as `structuredContent`. See
+The method returns a full `CallToolResult`, or a shorthand that the SDK adapts: a string (wrapped as `TextContent`),
+a content block or a list of them, or an array treated as `structuredContent`. See
 [Attribute discovery](../attribute-discovery.md) for the schema-inference rules, the per-parameter
 `#[InputSchema(...)]` overrides, variadics, and object expansion.
 
@@ -117,8 +117,8 @@ them. The same block types appear in [prompt messages](prompts.md#message-conten
 
 ## Structured content
 
-A tool may return `structuredContent` instead of, or beside, its `content` blocks. It may be any JSON value the
-tool's `outputSchema` accepts:
+A tool may return `structuredContent` instead of, or beside, its `content` blocks. It may be any JSON value
+accepted by the tool's `outputSchema`:
 
 ```php
 return new CallToolResult(

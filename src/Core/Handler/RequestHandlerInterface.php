@@ -17,7 +17,7 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\Result;
 
 /**
- * Handler for a single inbound JSON-RPC request, `TMethod` binding the literal its request class returns
+ * Handler for a single inbound JSON-RPC request, `TMethod` binding the literal returned by its request class
  * from `static::getMethod()`.
  *
  * @template-covariant TMethod of non-empty-string

@@ -41,7 +41,7 @@ The four server entries need the server to emit an `InputRequest` for `sampling/
 
 Reproduce with `composer conformance:server`, `composer conformance:client`, then `composer conformance:score`. The referee exits non-zero on an unlisted failure and on a stale baseline entry, so the list burns down rather than rotting.
 
-**Tier verdict**: **Tier 2**. `Stable Release`, the single check `tier-check` failed before `v1.0.0`, is met by that tag, and conformance, labels (12 of 12), triage, and P0 resolution all pass. Re-run `tier-check` at the assessment to record the tool's verdict. `Policy Signals` reports partial because this repository keeps `DEPENDENCY_POLICY.md`, `ROADMAP.md`, `BREAKING_CHANGES.md`, and `VERSIONING.md` at the root rather than under `docs/`, and uses `.github/dependabot.yml` in place of a Renovate config. The partial is accepted: every document the check wants exists and is current, root placement is where GitHub and consumers look for policy files, and dependency tooling is not chosen to satisfy a scorer's proxy. Do not add `docs/` pointer stubs or a Renovate config for this signal.
+**Tier verdict**: **Tier 2**. `Stable Release`, the single check that `tier-check` failed before `v1.0.0`, is met by that tag, and conformance, labels (12 of 12), triage, and P0 resolution all pass. Re-run `tier-check` at the assessment to record the tool's verdict. `Policy Signals` reports partial because this repository keeps `DEPENDENCY_POLICY.md`, `ROADMAP.md`, `BREAKING_CHANGES.md`, and `VERSIONING.md` at the root rather than under `docs/`, and uses `.github/dependabot.yml` in place of a Renovate config. The partial is accepted: every document that the check wants exists and is current, root placement is where GitHub and consumers look for policy files, and dependency tooling is not chosen to satisfy a scorer's proxy. Do not add `docs/` pointer stubs or a Renovate config for this signal.
 
 ---
 
@@ -162,7 +162,7 @@ Reproduce with `composer conformance:server`, `composer conformance:client`, the
     - [x] Transport configuration (docs/transports.md)
     - [x] Error handling (docs/error-handling.md)
     - [x] Best practices (docs/best-practices.md)
-  - Evidence/Notes: scores 37 of 48 on the SEP-1730 canonical feature list. All 11 misses are features the SDK deliberately does not implement because 2026-07-28 removed or deprecated them, each named with its SEP in the table below. No feature the SDK ships is undocumented, and no documented feature lacks an example. The scoring model is raised upstream at [conformance#441](https://github.com/modelcontextprotocol/conformance/issues/441)
+  - Evidence/Notes: scores 37 of 48 on the SEP-1730 canonical feature list. All 11 misses are features deliberately not implemented by the SDK because 2026-07-28 removed or deprecated them, each named with its SEP in the table below. No feature shipped by the SDK is undocumented, and no documented feature lacks an example. The scoring model is raised upstream at [conformance#441](https://github.com/modelcontextprotocol/conformance/issues/441)
   - The 11 misses (canonical-list row, why absent, what replaces it):
 
     | # | Feature | Why absent, and the replacement |
@@ -264,7 +264,7 @@ Omitting `--conformance-server-url` skips server conformance, and omitting `--cl
 
 ### Scoring model
 
-A scenario counts toward the tier percentage only when it is live at one of the **2025 dated versions** (`2025-03-26`, `2025-06-18`, `2025-11-25`). Scenarios live only at `2026-07-28`, and those tagged `extension`, land in a separate bucket the report prints under "Informational (not scored for tier)". The carried-forward scenarios this SDK passes do count. The ones the 2026-07-28 revision introduced do not.
+A scenario counts toward the tier percentage only when it is live at one of the **2025 dated versions** (`2025-03-26`, `2025-06-18`, `2025-11-25`). Scenarios live only at `2026-07-28`, and those tagged `extension`, land in a separate bucket that the report prints under "Informational (not scored for tier)". The carried-forward scenarios passed by this SDK do count. The ones introduced by the 2026-07-28 revision do not.
 
 Two rules differ from `composer conformance:score`, and both matter when reading a tier number:
 

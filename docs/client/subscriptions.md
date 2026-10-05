@@ -1,6 +1,6 @@
 # Subscriptions
 
-`listen()` opens a `subscriptions/listen` stream and routes every notification the server tags with that
+`listen()` opens a `subscriptions/listen` stream and routes every notification tagged by the server with that
 stream's ID to the given callback. It returns as soon as the request is away, so the caller is not blocked for the
 life of the stream.
 
@@ -24,17 +24,17 @@ supports, and MUST NOT push a type that was not asked for.
 ## Routing
 
 Routing is per stream, and the most specific route wins. A notification that carries a subscription ID goes to
-that stream's callback and to nothing else. One that arrives untagged, or names a stream this client does not
-hold, falls through to the build-time notification handler for its method. This mirrors how a per-call
+that stream's callback and to nothing else. One that arrives untagged, or names a stream not held by this
+client, falls through to the build-time notification handler for its method. This mirrors how a per-call
 `onProgress` claims its token ahead of the build-time `notifications/progress` handler.
 
 ## Closing and awaiting
 
-`close()` ends the stream. It sends the `notifications/cancelled` the spec requires and retires the correlation
+`close()` ends the stream. It sends the `notifications/cancelled` required by the spec and retires the correlation
 slot. It is idempotent, and the server answers an abrupt close with nothing.
 
-`await()` blocks until the *server* tears the stream down. It returns the empty result the spec calls graceful
-closure. A stream the client closed carries no response, so do not await one.
+`await()` blocks until the *server* tears the stream down. It returns the empty result that the spec calls graceful
+closure. A stream closed by the client carries no response, so do not await one.
 
 No deadline applies. A listen request legitimately never returns, so it is exempt from the request timeouts that
 bound every other call.

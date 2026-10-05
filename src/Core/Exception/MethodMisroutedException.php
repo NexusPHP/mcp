@@ -19,7 +19,7 @@ use Nexus\Mcp\Core\Schema\RequestId;
 
 /**
  * Thrown when an inbound envelope's shape (request or notification) does not
- * match the shape the method was registered under.
+ * match the shape that the method was registered under.
  */
 final class MethodMisroutedException extends AbstractJsonRpcProtocolException
 {

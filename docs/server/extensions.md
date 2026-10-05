@@ -1,7 +1,7 @@
 # Extensions
 
-Extensions (SEP-2133) bundle a capability identifier, its settings, and the methods it owns into one object the
-builder consumes. They are disabled by default. Nothing is advertised or served until you enable the extension
+Extensions (SEP-2133) bundle a capability identifier, its settings, and the methods it owns into one object consumed
+by the builder. They are disabled by default. Nothing is advertised or served until you enable the extension
 explicitly.
 
 ```php
@@ -15,7 +15,7 @@ $server = (new ServerBuilder())
 
 ## Declaring an extension
 
-A server extension implements `ServerExtensionInterface`, a closed declarative surface the builder consumes at
+A server extension implements `ServerExtensionInterface`, a closed declarative surface consumed by the builder at
 enable time:
 
 | Method | Declares |
@@ -33,12 +33,12 @@ enable time:
 
 - The identifier must follow the `_meta` key grammar, with a mandatory prefix.
 - The settings must be a string-keyed object.
-- The handler maps must carry exactly the methods the declared classes name, and no class may name a method
+- The handler maps must carry exactly the methods named by the declared classes, and no class may name a method
   twice.
 - Request classes must implement the `ClientRequest` marker with `RequestParams`-typed params. The dispatcher
   rejects anything else.
 - A method may not collide with the MCP specification, another enabled extension, or a builder-registered
-  handler. Collisions are symmetric: `addRequestHandler()` equally refuses a method an enabled extension owns.
+  handler. Collisions are symmetric: `addRequestHandler()` equally refuses a method owned by an enabled extension.
 
 The builder snapshots the declaration as validated, so later getter calls cannot change what the built server
 serves.

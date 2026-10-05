@@ -34,7 +34,7 @@ final class PendingInboundRequests implements \Countable
     private array $map = [];
 
     /**
-     * Claims `$id`, returning the cancellation its handler runs under, or null when it is already in flight.
+     * Claims `$id`, returning the cancellation that its handler runs under, or null when it is already in flight.
      */
     public function claim(RequestId $id): ?Cancellation
     {

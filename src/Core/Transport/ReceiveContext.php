@@ -24,8 +24,8 @@ final readonly class ReceiveContext
 {
     /**
      * @param null|ServerRequestInterface $request       Originating HTTP request when the transport is request-scoped, null otherwise
-     * @param null|VerifiedAccessToken    $authInfo      Bearer token the request was authorized with, null when the endpoint is unprotected
-     * @param null|RequestId              $peerRequestId Id the peer sent, when the transport dispatches under an id of its own, null otherwise
+     * @param null|VerifiedAccessToken    $authInfo      Bearer token that the request was authorized with, null when the endpoint is unprotected
+     * @param null|RequestId              $peerRequestId Id sent by the peer, when the transport dispatches under an id of its own, null otherwise
      */
     public function __construct(
         public ?ServerRequestInterface $request = null,

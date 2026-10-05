@@ -33,7 +33,7 @@ interface MessageDispatcherInterface
     public function flushPending(): void;
 
     /**
-     * Cancels the in-flight request `$id` names, if one is still running under it.
+     * Cancels the in-flight request named by `$id`, if one is still running under it.
      */
     public function cancelRequest(RequestId $id): void;
 }

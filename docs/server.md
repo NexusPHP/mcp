@@ -27,8 +27,8 @@ loop.
   and the in-flight dispatch cap.
 - **[Tools](server/tools.md)**: registering tools, structured content, and schema validation.
 - **[Prompts](server/prompts.md)**: registering prompt renderers.
-- **[Resources](server/resources.md)**: static and templated resources, and the cache hints every read and list
-  result carries.
+- **[Resources](server/resources.md)**: static and templated resources, and the cache hints carried by every read
+  and list result.
 - **[Completions](server/completions.md)**: serving `completion/complete` from a completion store.
 - **[Stores and pagination](server/stores.md)**: page size, custom store implementations, and runtime mutation.
 - **[Custom handlers](server/handlers.md)**: vendor-extension methods and spec-method overrides.

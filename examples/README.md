@@ -35,7 +35,7 @@ autoloader, an uncaught-exception handler, and `PsrLogger`) lives in
 npx @modelcontextprotocol/inspector php examples/stdio-server.php
 ```
 
-Open the URL Inspector prints, click **Connect**, then drive tools, resources,
+Open the URL printed by Inspector, click **Connect**, then drive tools, resources,
 and prompts from the UI. The SDK's own PSR-3 chatter goes to STDERR, which
 Inspector surfaces alongside the server's output.
 

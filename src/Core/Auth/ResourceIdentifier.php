@@ -51,7 +51,7 @@ final readonly class ResourceIdentifier
 
     /**
      * Whether a token minted for this resource may be presented to `$uri`: the resource itself or
-     * anything under its path. A path a server could normalise out of the subtree (dot segments,
+     * anything under its path. A path that a server could normalise out of the subtree (dot segments,
      * percent-encoded dots, slashes, or backslashes) is never covered.
      */
     public function covers(string $uri): bool

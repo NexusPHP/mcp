@@ -131,8 +131,8 @@ ignores `SIGTERM`, so `SIGKILL` is the only signal guaranteed to terminate the c
 
 The transport implements
 [`SupervisableTransportInterface`](../../src/Core/Transport/SupervisableTransportInterface.php).
-`onUnexpectedExit(fn (?int $exitCode) => ...)` reports a teardown nobody asked for: the subprocess exited on its
-own, or it stopped serving and was killed. Calling `close()` notifies nobody. The transport is spent once this
+`onUnexpectedExit(fn (?int $exitCode) => ...)` reports a teardown that nobody asked for: the subprocess exited on
+its own, or it stopped serving and was killed. Calling `close()` notifies nobody. The transport is spent once this
 fires, so a supervisor respawns by building a fresh `StdioClientTransport`, not by restarting this one.
 
 ```php

@@ -36,7 +36,7 @@ transport and detaches it, so a later `connect()` can run. Either way, the SDK c
 
 ## Request metadata
 
-Every request the client sends carries the client's identity in its `_meta` block. The SDK stamps three namespaced
+Every request sent by the client carries the client's identity in its `_meta` block. The SDK stamps three namespaced
 keys onto every outbound request: `io.modelcontextprotocol/protocolVersion`, `io.modelcontextprotocol/clientInfo`,
 and `io.modelcontextprotocol/clientCapabilities`. The server reads the client's identity and capabilities from each
 request's `_meta`.

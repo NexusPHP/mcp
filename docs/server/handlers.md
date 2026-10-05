@@ -16,9 +16,9 @@ for the rest.
 `ClientRequest` marker. Registration rejects a class that lacks the marker, since the dispatcher only serves
 `ClientRequest` requests.
 
-Its params must be `RequestParams`-typed. They carry the lifecycle `_meta` every request is gated on. Otherwise
-the dispatcher answers `-32600`. Notification classes extend `JsonRpcNotification` the same way, without the
-marker.
+Its params must be `RequestParams`-typed. They carry the lifecycle `_meta` that every request is gated on.
+Otherwise the dispatcher answers `-32600`. Notification classes extend `JsonRpcNotification` the same way, without
+the marker.
 
 ## Overriding a spec method
 

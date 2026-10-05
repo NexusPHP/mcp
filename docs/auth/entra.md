@@ -1,7 +1,7 @@
 # Microsoft Entra ID
 
-Entra ID has no dynamic client registration and no `resource` parameter, so both sides lean on configuration the
-tenant admin does once.
+Entra ID has no dynamic client registration and no `resource` parameter, so both sides lean on configuration done
+once by the tenant admin.
 
 ## Configure the tenant
 
@@ -12,7 +12,7 @@ tenant admin does once.
 
 With no registration endpoint, the SDK client falls back to the pre-registered credentials you pass it (see
 [choosing a client identifier](client.md#choosing-a-client-identifier)). Entra ignores the RFC 8707 `resource`
-parameter the client sends and derives the audience from the scope instead, so request the exposed scope by its
+parameter sent by the client and derives the audience from the scope instead, so request the exposed scope by its
 full name: `api://mcp.example.com/mcp:use`.
 
 ## Validate the tokens

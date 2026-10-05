@@ -25,7 +25,7 @@ Registering any completion advertises the `completions` capability. The built-in
 argument. An unknown pair answers an empty `values` list.
 
 A provider is a closure of the shape above, or a `CompletionProviderInterface` implementation. Its `complete()`
-receives the same three inputs: the partial value being typed, the values the client has already resolved for the
+receives the same three inputs: the partial value being typed, the values already resolved by the client for the
 other arguments, and the `ServerContext`. The resolved values are `null` when the client sent none. They let a
 `city` completion narrow by the chosen `country`.
 
@@ -73,7 +73,7 @@ on the first request. The method returns a list of strings, which the SDK wraps 
 ## Bringing a whole store
 
 For full control, such as dynamic lookups or one handler for every ref, implement `CompletionStoreInterface` and
-set it wholesale. An explicit store replaces anything the `add*Completion()` methods collected:
+set it wholesale. An explicit store replaces anything collected by the `add*Completion()` methods:
 
 ```php
 use Nexus\Mcp\Core\Schema\Prompt\PromptReference;

@@ -26,8 +26,8 @@ The SDK is five packages cut from one tree: the umbrella `nexusphp/mcp` and the 
 read-only subtree split of `src/<Component>/`. One tag names one release across all five: every component
 receives every release tag, sibling requirements are pinned with `self.version`, and the umbrella `replace`s
 the four components so the two forms never coexist in one install. `mcp-extensions` requires both
-`mcp-server` and `mcp-client`, since every extension ships both halves. `1.0.0` is the first tagged version the
-component packages carry on Packagist.
+`mcp-server` and `mcp-client`, since every extension ships both halves. `1.0.0` is the first tagged version
+carried by the component packages on Packagist.
 
 ## Public API surface
 
@@ -37,7 +37,7 @@ SemVer guarantees apply to the **public, supported surface** only:
   together with their public and protected members and their documented behaviour.
 - **Not covered:** any symbol carrying the `@internal` PHPDoc tag (PHPStan flags external use), private
   members, exact exception **messages** (the exception **types** are covered), the `tools/` project,
-  `tests/`, `examples/`, and anything a docblock marks as experimental.
+  `tests/`, `examples/`, and anything marked as experimental by a docblock.
 
 If you depend on an `@internal` class you are outside the compatibility promise, and an update may break you
 in any release.
@@ -49,9 +49,9 @@ Shipped in a major:
 - Removing or renaming a public class, interface, enum case, method, or property.
 - Adding a required parameter, narrowing a parameter type, or incompatibly changing a return type.
 - Renaming a public parameter, since PHP 8 named arguments make the name part of the signature.
-- Changing observable behaviour or the type of exception a public method throws.
+- Changing observable behaviour or the type of exception thrown by a public method.
 - Raising the PHP version floor (see [DEPENDENCY_POLICY.md](DEPENDENCY_POLICY.md)).
-- Removing a previously deprecated symbol, or dropping SDK surface for a feature the spec has removed (see below).
+- Removing a previously deprecated symbol, or dropping SDK surface for a feature removed from the spec (see below).
 
 Shipped in a minor (backward-compatible):
 
@@ -82,7 +82,7 @@ Two gaps in that tool are covered elsewhere:
 
 Symbols slated for removal are marked with the `@deprecated` PHPDoc tag, naming the replacement, and
 recorded under a `Deprecated` heading in [CHANGELOG.md](CHANGELOG.md). The tag covers every symbol kind
-the compatibility promise does (classes, interfaces, enum cases, methods, properties), and
+that the compatibility promise does (classes, interfaces, enum cases, methods, properties), and
 `phpstan/phpstan-deprecation-rules` reports usages statically. Once the PHP floor reaches 8.4, the
 native `#[\Deprecated]` attribute is added as a runtime signal where PHP supports it (methods and class
 constants), alongside the tag rather than replacing it. A deprecated symbol survives for at least one

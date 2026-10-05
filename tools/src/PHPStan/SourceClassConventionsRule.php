@@ -35,7 +35,7 @@ final class SourceClassConventionsRule implements Rule
     private const int DOCBLOCK_SUMMARY_MAX_WIDTH = 120;
 
     /**
-     * Classes carrying a public method outside their declared interface for a constraint PHP interfaces cannot
+     * Classes carrying a public method outside their declared interface for a constraint that PHP interfaces cannot
      * express: paired construction behind a private constructor, and a half-`Arrayable` envelope.
      */
     private const array INTERFACE_FAITHFULNESS_EXEMPT = [

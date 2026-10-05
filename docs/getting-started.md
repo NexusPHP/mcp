@@ -66,7 +66,7 @@ $server->run(new StdioServerTransport());
 ```
 
 That is a full, runnable MCP server. It advertises one tool, `greet`. It exposes the `server/discover`,
-`tools/list`, and `tools/call` handlers the SDK ships by default. It speaks line-framed JSON-RPC over STDIN and
+`tools/list`, and `tools/call` handlers that the SDK ships by default. It speaks line-framed JSON-RPC over STDIN and
 STDOUT.
 
 ## Run it

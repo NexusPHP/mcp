@@ -23,8 +23,8 @@ final readonly class SendContext
     /**
      * @param bool                            $fromHandler Whether a request handler's execution produced the message, letting a
      *                                                     request-scoped transport map the response to a transport-level status.
-     * @param array<non-empty-string, string> $headers     Transport headers the protocol layer computed for this message. A
-     *                                                     transport that carries no headers ignores them.
+     * @param array<non-empty-string, string> $headers     Transport headers computed by the protocol layer for this message.
+     *                                                     A transport that carries no headers ignores them.
      */
     public function __construct(
         public ?RequestId $relatedRequestId = null,

@@ -23,7 +23,7 @@ sequenceDiagram
 
 ## Composing an authorized client
 
-`AuthorizedHttpClient` is a decorator around the HTTP client the Streamable HTTP transport already takes. Wrap
+`AuthorizedHttpClient` is a decorator around the HTTP client that the Streamable HTTP transport already takes. Wrap
 the client, hand the wrapper to the transport, and the rest of the SDK is unchanged.
 
 ```php
@@ -54,8 +54,8 @@ The decorator takes the builder rather than a built client, because it derives t
 on the client you configured. Every authorization leg, metadata discovery included, runs on one that follows no
 redirect, so the decorator refuses a hop off this server's resource path before the credential travels.
 
-A downgrade from `https` to `http` on the same host is such a hop. It is the one an ordinary client would follow
-while it keeps the `Authorization` header, since it strips headers only when the authority changes, and an
+A downgrade from `https` to `http` on the same host is such a hop. It is the one that an ordinary client would
+follow while it keeps the `Authorization` header, since it strips headers only when the authority changes, and an
 authority carries no scheme.
 
 Configure the transport on the builder as usual: `usingPool()`, `intercept()`, `interceptNetwork()`, `retry()`.
@@ -90,7 +90,7 @@ Nothing happens until the server challenges. On the first `401`, the decorator r
 header, discovers the authorization server, obtains a token, and replays the request with it. Later requests
 present the stored token directly.
 
-The token goes only to the resource the decorator was built for, or a path under it. A request aimed anywhere
+The token goes only to the resource that the decorator was built for, or a path under it. A request aimed anywhere
 else, another path on the same origin included, goes out unauthenticated rather than leak the credential.
 
 A request that does reach the resource has its redirects resolved here, whether or not a token was ready. A hop
@@ -108,7 +108,7 @@ strategy instead. Pass `null` for the user authorization and one of the
 `grantStrategy:`.
 
 An unattended grant also renews itself when its token expires, since no refresh token is issued to redeem. The
-seam is public, so a grant this SDK does not model is one you can
+seam is public, so a grant not modelled by this SDK is one you can
 [write yourself](extension-grants.md#writing-your-own-grant).
 
 ## Implementing the user-agent leg
@@ -138,7 +138,7 @@ pair, the `state` value, the expected issuer, and every validation of the respon
 different request, names a different issuer, or carries an error is rejected before the code is redeemed.
 
 Read the answer without blocking the event loop. A bare `fgets(\STDIN)` halts every fiber in the process,
-including the SSE streams the transport holds open. `$cancellation` fires when the request that needs the token
+including the SSE streams held open by the transport. `$cancellation` fires when the request that needs the token
 is abandoned. Honour it, because that is what lets a client shut down while a consent screen is still open.
 
 A host that runs a loopback listener returns `new AuthorizationCallback((string) $request->getUri())` instead of
@@ -146,7 +146,7 @@ prompting.
 
 ## Choosing a client identifier
 
-Clients are identified in one of three ways. The SDK walks them in the order the spec fixes:
+Clients are identified in one of three ways. The SDK walks them in the order fixed by the spec:
 
 1. **Pre-registration.** Credentials issued out of band, passed as `preRegistered`. They are bound to one
    authorization server. Presenting them to a different one is refused rather than silently attempted.
@@ -154,10 +154,10 @@ Clients are identified in one of three ways. The SDK walks them in the order the
    `clientIdMetadataDocumentUrl`. The URL *is* the `client_id`. It works with any authorization server that
    advertises `client_id_metadata_document_supported`, and it needs no registration at all.
 3. **Dynamic Client Registration.** Used when the server publishes a `registration_endpoint`. The SDK declares
-   `application_type`, which defaults to `native`, the type loopback redirect URIs need. It stores the resulting
-   identifier against the issuer that minted it. Two clients that share one registration store may both register
-   against the same authorization server at once, since nothing outside a single client can serialise them. Both
-   registrations are valid, and the store keeps the last.
+   `application_type`, which defaults to `native`, the type needed by loopback redirect URIs. It stores the
+   resulting identifier against the issuer that minted it. Two clients that share one registration store may both
+   register against the same authorization server at once, since nothing outside a single client can serialise
+   them. Both registrations are valid, and the store keeps the last.
 
 When none of the three applies, `ClientRegistrationRequiredException` says so rather than fail obscurely.
 
@@ -186,7 +186,7 @@ new AuthorizationOptions(
 The opt-out admits cleartext on `localhost`, any name under `.localhost`, `127.0.0.0/8`, and `[::1]`, and nothing
 else. A remote cleartext host is still refused. So is a private-network address, and so is a URL that carries a
 fragment. Never set it in production. It is the difference between a token that cannot leave the machine and one
-an observer on the network can read.
+that an observer on the network can read.
 
 A name such as `tenant-a.localhost` suits a local setup that separates tenants by host. The client does not
 resolve it itself, so it reaches the local machine only where the system resolver follows RFC 6761.

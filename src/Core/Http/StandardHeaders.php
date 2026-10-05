@@ -58,7 +58,7 @@ final readonly class StandardHeaders
     }
 
     /**
-     * Validates the standard headers a request carries against its body, returning the mismatch to reject
+     * Validates the standard headers carried by a request against its body, returning the mismatch to reject
      * with or null when they agree.
      *
      * @param array<string, string> $headers
@@ -164,7 +164,7 @@ final readonly class StandardHeaders
     }
 
     /**
-     * The body value `Mcp-Name` mirrors, or null when the method carries none.
+     * The body value mirrored by `Mcp-Name`, or null when the method carries none.
      *
      * @param array<string, mixed> $body
      */
@@ -176,7 +176,7 @@ final readonly class StandardHeaders
     }
 
     /**
-     * The `params` key `Mcp-Name` mirrors for the body's method.
+     * The `params` key mirrored by `Mcp-Name` for the body's method.
      *
      * @param array<string, mixed> $body
      */

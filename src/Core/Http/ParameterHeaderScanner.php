@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Http;
 
 /**
- * Scanner for the `x-mcp-header` bindings a tool `inputSchema` declares.
+ * Scanner for the `x-mcp-header` bindings declared by a tool `inputSchema`.
  *
  * @internal
  *

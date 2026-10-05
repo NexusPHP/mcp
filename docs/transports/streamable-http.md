@@ -92,7 +92,7 @@ $endpoint = new SecuredHttpEndpoint(
 );
 ```
 
-The `toolStore` must be the one the server serves, or the middleware validates headers against a different set
+The `toolStore` must be the one that the server serves, or the middleware validates headers against a different set
 of tools. `ServerBuilder::getToolStore()` returns it whether you supplied it through `setToolStore()` or the
 builder assembled it from `addTool()` and `register()` entries:
 
@@ -155,7 +155,7 @@ $client->connect($transport);
 The transport computes the required request-metadata headers from the message body itself, so header and body
 cannot disagree: `MCP-Protocol-Version`, `Mcp-Method`, and `Mcp-Name`. The last is base64 sentinel-encoded when
 the value is not header-safe, which in practice means a resource URI. The transport also merges the
-`Mcp-Param-{Name}` headers the client mirrored from a `tools/call`. See [Client API](../client.md).
+`Mcp-Param-{Name}` headers that the client mirrored from a `tools/call`. See [Client API](../client.md).
 
 `close()` cancels in-flight POSTs rather than await them, because a `subscriptions/listen` stream never ends on
 its own.
@@ -182,7 +182,7 @@ buffered body, a read stalled past `readTimeout`, or a status whose body settles
 caller with an `OutboundRequestFailedException` instead of leaving it to await a response that can no longer
 arrive.
 
-A failure status stands only when its body is the JSON-RPC answer to the very request the exchange carries. An
+A failure status stands only when its body is the JSON-RPC answer to the very request carried by the exchange. An
 ID-less error envelope, an answer to some other ID, or a `202` to a request all fail the exchange, since no
 dispatcher could settle the request from them. Other in-flight requests are untouched. A notification has no
 caller, so its failure is reported as it stands. Inside an SSE stream, a single unreadable frame is reported but

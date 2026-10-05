@@ -1,8 +1,8 @@
 # Error handling
 
-Every exception the SDK throws implements the marker interface
+Every exception thrown by the SDK implements the marker interface
 [`Nexus\Mcp\Core\Exception\McpExceptionInterface`](../src/Core/Exception/McpExceptionInterface.php). A single
-catch block traps anything the SDK raises:
+catch block traps anything raised by the SDK:
 
 ```php
 use Nexus\Mcp\Core\Exception\McpExceptionInterface;
@@ -71,16 +71,16 @@ not-found exceptions map to -32602 too, because the named entity is treated as a
 Any of them may also carry an `errorData` payload. It becomes the error response's `data` slot, and the slot is
 omitted when the payload is null. Three producers ship with the SDK:
 
-- `ResourceNotFoundException` and `ResourceNotRegisteredException` carry the `data.uri` the spec's
-  resource-not-found example shows.
+- `ResourceNotFoundException` and `ResourceNotRegisteredException` carry the `data.uri` shown in the spec's
+  resource-not-found example.
 - A `tools/call` argument failure carries the `data.validation_errors` list described under
   [Diagnostic message conventions](#diagnostic-message-conventions).
-- `MissingRequiredClientCapabilityException` carries the `data.requiredCapabilities` its code requires.
+- `MissingRequiredClientCapabilityException` carries the `data.requiredCapabilities` required by its code.
 
 Only the last is required. The spec defines `data` as "defined by the sender", so the URI echo is this SDK's
 choice. The SDK echoes the URI whole, so a client can match it against the URI it sent. That is safe, because
 decode already confines `params.uri` to printable ASCII by the RFC 3986 grammar and to 8192 bytes. The echo
-carries no control bytes, and it is never longer than the URI the peer itself sent.
+carries no control bytes, and it is never longer than the URI sent by the peer itself.
 
 ### Bounded messages
 
@@ -90,13 +90,13 @@ is rendered as `\xNN` before it leaves the server, so non-ASCII text comes back 
 trailing `...`. A URI or a whole nested cause is cut to 256.
 
 The spec asks that a `message` stay "a concise single sentence". An unbounded echo is both a response amplifier and
-a way to put terminal escapes into whatever renders the error. The same treatment reaches a `data` slot the request
-grammar does not already confine. `UnsupportedProtocolVersionError`'s `data.requested` is capped and escaped,
+a way to put terminal escapes into whatever renders the error. The same treatment reaches a `data` slot not already
+confined by the request grammar. `UnsupportedProtocolVersionError`'s `data.requested` is capped and escaped,
 because `_meta` accepts any non-empty string as a protocol version.
 
 ### What the policy does not cover
 
-The policy covers the values this SDK composes, and it stops there. A protocol exception thrown by a handler of
+The policy covers the values composed by this SDK, and it stops there. A protocol exception thrown by a handler of
 your own reaches the peer with both its `message` and its `errorData` unchanged. The SDK never rewrites an error
 you meant to send. The tasks extension stores the same two values on the task record, where a later `tasks/get`
 returns them.
@@ -107,7 +107,7 @@ yourself with [`SafeDisplay`](../src/Core/SafeDisplay.php): `SafeDisplay::saniti
 
 ### Missing client capabilities
 
-A handler that needs a client capability the request did not declare raises
+A handler that needs a client capability not declared by the request raises
 `MissingRequiredClientCapabilityException` with the `ClientCapabilities` it wanted. That answers -32021. The
 Streamable HTTP transport pins it to `400`, even though handler-raised errors otherwise ride `200`.
 
@@ -131,7 +131,7 @@ server-returned errors as exceptions:
 | Exception | Thrown when |
 | --- | --- |
 | `LogicException` | A request is issued before `connect()`, or `connect()` is called twice. |
-| `ServerCapabilityNotSupportedException` | A typed request targets a capability the server did not advertise via `server/discover` (for example `complete()` against a server with no completions). |
+| `ServerCapabilityNotSupportedException` | A typed request targets a capability that the server did not advertise via `server/discover` (for example `complete()` against a server with no completions). |
 | `RemoteCallFailedException` | The server answered with a JSON-RPC error response. The decoded `Error` (code, message, data) is available on the exception. |
 | `TransportAlreadyClosedException` | The transport closed while a request was in flight (also raised on send-after-close). |
 | `OutboundRequestFailedException` | The transport could not carry the request to completion (connection refused, TLS failure, a stalled read, an HTTP status whose body settles nothing), so no response can arrive. The underlying fault is the exception's `previous`. |

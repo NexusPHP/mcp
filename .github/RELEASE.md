@@ -26,7 +26,7 @@ composer conformance:extensions
 composer conformance:badge
 ```
 
-Both modes take the suite selector CI uses, since the badges score the draft and pending scenarios too and
+Both modes take the suite selector used by CI, since the badges score the draft and pending scenarios too and
 the client referee refuses to run without one.
 
 Commit any badge change before the release-prep commit.
@@ -51,7 +51,7 @@ Then re-record the parameter names it cannot compare on a final class, and commi
 composer bc:snapshot
 ```
 
-The snapshot describes the surface this tag freezes, so a symbol added since the last release joins it
+The snapshot describes the surface frozen by this tag, so a symbol added since the last release joins it
 here. Renaming one before this point was never a break, and after it is.
 
 ## 4. Prepare the changelog commit
@@ -85,8 +85,8 @@ from the published tag, so verify the new version appears on
 
 The same push triggers [split-components.yml](workflows/split-components.yml), which signs the tag with the
 maintainer's signing subkey and pushes it to the four component mirrors. Confirm each mirror shows the tag
-as **Verified**, and that Packagist lists the version for every component. A mirror Packagist does not list
-yet is submitted at <https://packagist.org/packages/submit> with the GitHub hook enabled before its first tag.
+as **Verified**, and that Packagist lists the version for every component. A mirror not yet listed by Packagist
+is submitted at <https://packagist.org/packages/submit> with the GitHub hook enabled before its first tag.
 
 ## Rotating the split secrets
 

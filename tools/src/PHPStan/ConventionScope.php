@@ -17,7 +17,7 @@ use PHPStan\Reflection\ClassReflection;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Scope predicates for the `src` and test classes the convention rules govern.
+ * Scope predicates for the `src` and test classes governed by the convention rules.
  *
  * @internal
  */

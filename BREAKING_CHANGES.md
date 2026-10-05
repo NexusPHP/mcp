@@ -97,7 +97,7 @@ own audience check stays, so a validator of your own that skips it is still caug
 
 ### `SchemaValidatorInterface::validate()` returns `SchemaViolation` objects
 
-The interface returned `list<string>`, one sentence per failure, which threw away the JSON pointer the
+The interface returned `list<string>`, one sentence per failure, which threw away the JSON pointer that the
 engine had. It now returns `list<SchemaViolation>`, each carrying an RFC 6901 `pointer` and the same
 `message`. A validator of your own wraps each sentence:
 
@@ -108,7 +108,7 @@ return ['"q" must be a string, int given.'];
 return [new SchemaViolation('/q', '"q" must be a string, int given.')];
 ```
 
-`ToolOutputValidationException` takes the same list. The `-32602` an argument failure answers with is
+`ToolOutputValidationException` takes the same list. The `-32602` that an argument failure answers with is
 unchanged in `message` and gains `data.validation_errors`, a list of `{pointer, message}` objects capped
 at eight.
 
@@ -116,8 +116,8 @@ at eight.
 
 `ParameterHeaderValidationMiddleware` skipped a binding whose body argument was a float, an integer beyond
 the safe range (past `2**53 - 1`), null, or absent, so a header could disagree with such an argument unchecked.
-It now treats an integral float as the integer JSON Schema reads it as, compares a large integer exactly, and
-answers `-32020` to a header whose body argument is absent, null, a fractional float, or not a primitive.
+It now treats an integral float as the integer that JSON Schema reads it as, compares a large integer exactly,
+and answers `-32020` to a header whose body argument is absent, null, a fractional float, or not a primitive.
 An integer beyond the safe range may still arrive without a header, since a client cannot mirror it. On the
 client, `callTool()` now mirrors an integral float such as `5.0` as `5`.
 
@@ -141,8 +141,8 @@ the `use` statements. Nothing else about the contracts changed.
 
 ### `SubscriptionStoreInterface::open()` gains a `$peer` parameter
 
-`open()` now takes `?string $peer = null`, the stable identity the per-peer subscription budget is
-keyed by. `SubscriptionsListenRequestHandler` passes the verified token's client id (or subject), and
+`open()` now takes `?string $peer = null`, the stable identity that the per-peer subscription budget
+is keyed by. `SubscriptionsListenRequestHandler` passes the verified token's client id (or subject), and
 the bundled `SubscriptionStore` refuses a peer holding `maxSubscriptionsPerPeer` streams (default 256).
 A custom implementation adds the parameter and may ignore it.
 
@@ -150,7 +150,7 @@ A custom implementation adds the parameter and may ignore it.
 
 A store reused on a new transport must clear its drained state, so the interface now declares
 `reopen(): void` and `Server` calls it when attaching to a transport. A custom implementation adds the
-method (for the bundled `SubscriptionStore` it resets the flag `closeAll()` sets).
+method (for the bundled `SubscriptionStore` it resets the flag set by `closeAll()`).
 
 ## v0.12.0 to v0.13.0
 
@@ -240,12 +240,14 @@ The signed material is now length-prefixed with the binding, so a `requestState`
 no longer verifies. This applies whether or not you adopt bindings, since the prefix is unconditional.
 
 A server keyed by `generate()` is unaffected, its states never outliving the process that minted them. One
-keyed from configuration takes the whole break, and that is the topology the shared key exists for: during a
-rolling deploy the fleet is mixed-version, so every state minted by an old instance fails at a new one until
+keyed from configuration takes the whole break, and that is the topology that the shared key exists for: during
+a rolling deploy the fleet is mixed-version, so every state minted by an old instance fails at a new one until
 the rollout finishes. A handler already treats `null` from `verify()` as "this server did not mint it", which
-is the right answer for a stale state too, so the failure is an error the client can restart from, not a crash.
+is the right answer for a stale state too, so the failure is an error that the client can restart from,
+not a crash.
 
-Bind the state to whoever may resume it, since an unbound one is replayable by any caller the server talks to:
+Bind the state to whoever may resume it, since an unbound one is replayable by any caller that the server
+talks to:
 
 ```php
 $caller = $context->receiveContext->authInfo?->subject ?? '';
@@ -260,8 +262,8 @@ null `requestState` as a first call rather than passing it to `verify()`.
 
 Both are documented `null|non-empty-string`, since a claim naming nobody is indistinguishable from an absent
 one. The native types are still `?string`, so what changes for a *consumer* is static analysis: a custom
-`AccessTokenValidatorInterface` passing a plain `string` or `?string` is flagged, and the fix is the guard the
-shipped validator uses.
+`AccessTokenValidatorInterface` passing a plain `string` or `?string` is flagged, and the fix is the guard
+used by the shipped validator.
 
 One observable behaviour changed, which the taxonomy lists as breaking. `JwksAccessTokenValidator` now reads an empty or non-string `sub`, `azp`,
 `client_id` or `cid` as absent, where an empty one previously reached the handler as `''` and a non-string one
@@ -326,7 +328,7 @@ Migrate only if you relied on the constructor throwing. A store you implement yo
 It took a built `DelegateHttpClient`, which meant the redirect behaviour of credentialed traffic belonged
 to the caller. An HTTP client strips headers on a redirect only when the authority changes, and an
 authority carries no scheme, so a hop from `https` to cleartext on the same host kept the `Authorization`
-header and put the token on the network in the open. Nothing the decorator could do after the fact
+header and put the token on the network in the open. Nothing that the decorator could do after the fact
 un-sends it.
 
 ```php
@@ -362,7 +364,7 @@ new JwksAccessTokenValidator($keys);
 new JwksAccessTokenValidator($keys, 'https://auth.example.com');
 ```
 
-Use the exact `iss` string your authorization server mints, which for Keycloak is the realm URL
+Use the exact `iss` string minted by your authorization server, which for Keycloak is the realm URL
 (`https://kc.example.com/realms/mcp`) rather than the JWKS URL. Tokens whose `iss` is absent or different
 are now refused, as are tokens carrying no `exp`. If your provider issues tokens without `exp`, that is
 the thing to fix: nothing revokes them.
@@ -395,8 +397,8 @@ What changes is static analysis. PHPStan now reports a plain `string` passed whe
 `Client::getPrompt()`, `Client::readResource()`, the `#[AsTool]` / `#[AsPrompt]` / `#[AsResource]` /
 `#[AsResourceTemplate]` / `#[AsServer]` attributes, and the resource read surface
 (`ResourceReaderInterface`, `TemplatedResourceReaderInterface`, `ResourceStoreInterface`,
-`ResourceTemplateStoreInterface`, and the `\Closure` types `ServerBuilder::addResource()` and
-`addResourceTemplate()` accept).
+`ResourceTemplateStoreInterface`, and the `\Closure` types accepted by
+`ServerBuilder::addResource()` and `addResourceTemplate()`).
 
 Narrow at your own boundary rather than at the call:
 
@@ -414,8 +416,8 @@ the declaration instead of a throw during discovery.
 ### Resource request params enforce the spec's `uri` format
 
 `ResourceRequestParams` and `ReadResourceRequestParams` hold `uri` to the RFC 3986 absolute-URI
-shape the spec's `format: uri` fixes. `Resource` already enforced it on the emit side, so this makes
-the two directions symmetric.
+shape fixed by the spec's `format: uri`. `Resource` already enforced it on the emit side, so this
+makes the two directions symmetric.
 
 A `resources/read` naming an empty, relative, or non-ASCII URI is now refused when the params are
 decoded rather than reaching the store. The JSON-RPC error code is unchanged (`-32602`), and only
@@ -540,7 +542,7 @@ SEP-2549 makes `ttlMs` and `cacheScope` required on `ReadResourceResult` and eve
 - Constructing `ReadResourceResult` (and `ListToolsResult`, `ListPromptsResult`,
   `ListResourcesResult`, `ListResourceTemplatesResult` directly) now requires
   `ttlMs: <int>` and `cacheScope: CacheScope::Public|Private`.
-- Stores the builder assembles from `add*()` entries default to `ttlMs: 0` /
+- Stores assembled by the builder from `add*()` entries default to `ttlMs: 0` /
   `CacheScope::Private`. Change the defaults with `ServerBuilder::setTtlMs()` /
   `setCacheScope()`, or per feature by constructing the store yourself.
 

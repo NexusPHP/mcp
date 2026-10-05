@@ -101,11 +101,11 @@ full `ReadResourceResult` passes through. Adapted returns carry the conservative
 
 `ReadResourceResult` and the `*/list` results require two cache hints that the server returns to the client.
 `ttlMs` is how many milliseconds the client MAY treat the response as fresh, where `0` means re-fetch every time.
-`cacheScope` is `CacheScope::Public` for a response any shared cache MAY serve to any user, or
-`CacheScope::Private` for one only the requesting user's client MAY cache.
+`cacheScope` is `CacheScope::Public` for a response that any shared cache MAY serve to any user, or
+`CacheScope::Private` for one that only the requesting user's client MAY cache.
 
 Both default to `ttlMs: 0` and `CacheScope::Private`. `setTtlMs()` and `setCacheScope()` change them for every
-store the builder assembles from its `add*()` entries:
+store assembled by the builder from its `add*()` entries:
 
 ```php
 ->setTtlMs(60_000)

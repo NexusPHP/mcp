@@ -43,12 +43,12 @@ $client = (new ClientBuilder())
 ### When a deadline elapses
 
 The client frees the request's correlation slot. It sends `notifications/cancelled`, so the peer can stop working
-on a result nobody will read. It throws `RequestTimeoutException`, which names the request and the deadline that
+on a result that nobody will read. It throws `RequestTimeoutException`, which names the request and the deadline that
 fired. A response that arrives afterwards has no awaiter left, and the client discards it as an orphan.
 
 ### Inbound cancellation
 
-In the other direction, an inbound `notifications/cancelled` cancels the request the client serves under that ID,
+In the other direction, an inbound `notifications/cancelled` cancels the request served by the client under that ID,
 and the client then suppresses the response, the same as on the server. Register your own
 `notifications/cancelled` handler to replace that behaviour below the
 [in-flight dispatch cap](configuration.md#in-flight-dispatch-cap). At the cap, the dispatcher itself cancels the

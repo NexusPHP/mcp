@@ -13,7 +13,7 @@ of the flow is the SDK's discovery doing its usual walk. The one seam is the aud
 - The issuer is `https://{tenant}.auth0.com/`.
 
 Auth0 selects the audience from its own `audience` request parameter, not from the RFC 8707 `resource` parameter
-the SDK client sends. Set the API as the tenant's **default audience**, so authorization requests that carry no
+sent by the SDK client. Set the API as the tenant's **default audience**, so authorization requests that carry no
 `audience` still mint tokens for it. Without that, Auth0 answers with an opaque token for the userinfo endpoint,
 and your validator refuses it.
 

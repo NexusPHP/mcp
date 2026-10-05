@@ -43,7 +43,7 @@ single scenario is:
 
 `tasks-status-notifications` is a SKIPPED placeholder upstream, pending its subscriptions/listen
 rewrite. The other nine pass against [`TasksServer.php`](TasksServer.php), and the three OAuth
-scenarios pass against the grant strategies [`client.php`](client.php) registers. The three server-mode
+scenarios pass against the grant strategies registered by [`client.php`](client.php). The three server-mode
 skills scenarios pass against the two skill directories under [`skills/`](skills/), and the four client-mode
 ones against the `SkillClient` that [`client.php`](client.php) drives.
 
@@ -57,7 +57,7 @@ Needs Node (for `npx`) and a free port. `PORT` and `HOST` override the default `
 Results land in `results/`, which is gitignored, and every run prunes superseded results so the
 directory holds one entry per scenario ([`prune-results.sh`](prune-results.sh)). The referee declares no engine constraint, so any maintained Node works. CI tracks the active LTS.
 
-`URL_HOST` overrides only the authority the referee reaches the fixture by, leaving the bind address
+`URL_HOST` overrides only the authority that the referee reaches the fixture by, leaving the bind address
 to `HOST`. The fixture admits both spellings of loopback, and `dns-rebinding-protection` is the one
 scenario that can tell them apart, since it sends an `Origin` matching whichever spelling the URL
 carried. Deriving both from `HOST` would mean a run never exercises the other one, so CI re-runs that
@@ -79,12 +79,12 @@ fixture that stops type-checking fails the normal gates rather than waiting for 
 
 ## Production posture
 
-[`server.php`](server.php) forces itself into the posture production code runs under: xdebug off and
+[`server.php`](server.php) forces itself into the posture that production code runs under: xdebug off and
 `assert()` not executing. When the invoking PHP has xdebug active, [`composer/xdebug-handler`][handler]
 restarts the script once with the extension dropped from the loaded ini, and `zend.assertions` is
 lowered at runtime (`-1` is startup-only, so runtime lowering stops at compiled-but-not-executed).
 Nothing needs setting up front: a bare `php conformance/server.php` from a development shell lands in
-the same posture CI measures.
+the same posture that CI measures.
 
 [handler]: https://github.com/composer/xdebug-handler
 
@@ -92,34 +92,34 @@ This is load-bearing for the scores, not hygiene. An instrumented fixture can st
 the HTTP host to time a streaming response out mid-body, and the referee reads the truncated stream
 as a missing `tools/call` result, so timing-sensitive scenarios such as `tools-call-with-progress`
 fail intermittently under xdebug while the production posture passes them reliably. Score only
-against the posture the fixture forces.
+against the posture forced by the fixture.
 
 To step-debug the fixture itself, set `MCP_CONFORMANCE_ALLOW_XDEBUG=1`, which
 skips the restart. The restart leaves the original process waiting as a parent, which is why
 `run-server.sh` tears the fixture down by process group rather than by single PID.
 
 The fixture also closes the connection after every response. On macOS loopback, a kept-alive
-connection the referee's Node client reuses after an idle gap can stall into TCP retransmission
+connection reused by the referee's Node client after an idle gap can stall into TCP retransmission
 for 10+ seconds, tripping the referee's request timeout on checks that pause between requests
 (the tasks TTL probe was the reproducible case, and a bare `amphp/http-server` echo fixture
 reproduces it with no SDK code involved). One connection per response sidesteps the interaction
-at a cost conformance traffic never notices.
+at a cost that conformance traffic never notices.
 
 ## What is being targeted
 
 `--spec-version 2026-07-28`, pinned in [`run-server.sh`](run-server.sh). This SDK implements that
 revision only, and the referee filters scenarios by a `removedIn` field, so pinning the version is
-also what drops the 2025-era scenarios for features this SDK deliberately does not implement
+also what drops the 2025-era scenarios for features deliberately not implemented by this SDK
 (`initialize`, `logging/setLevel`, sampling, `resources/subscribe`) instead of failing them.
 
 The SEP-1730 tier percentage is scored over a narrower set than the badges report, and the referee's own
 `tier-check` is what computes it. A scenario counts only when it is live at one of the 2025 dated
-versions, so the ones the 2026-07-28 revision introduced are reported as informational. The tier scorer
+versions, so the ones introduced by the 2026-07-28 revision are reported as informational. The tier scorer
 also counts scenarios rather than checks and tolerates an unmet SHOULD, so it reads higher than
 `composer conformance:score` does, and it runs server conformance at the referee's default
 `--suite active`, which leaves the draft and pending scenarios out of the denominator entirely.
 
-Server 20 of 20 (100%), client 15 of 15 (100%). The stable-release check, the one item
+Server 20 of 20 (100%), client 15 of 15 (100%). The stable-release check, the one item that
 `tier-check` failed before `v1.0.0`, is met by that tag. The verdict is a self-assessment: the SDK Working
 Group currently assigns tiers to official SDKs only. See [.github/TIERING_CHECKLIST.md](../.github/TIERING_CHECKLIST.md) for the gate,
 the command to reproduce it, and the assignment-practice caveat.
@@ -136,7 +136,7 @@ composer conformance:badge
 
 The scorer buckets extension-tagged scenarios separately, so the spec badges measure exactly what
 the referee's suites measure and the two extensions badges score the extension scenarios on their
-own. Only the badges the run covered are rewritten, so scoring a client run cannot blank the
+own. Only the badges covered by the run are rewritten, so scoring a client run cannot blank the
 server badges. CI runs the suites and the extension set, regenerates, and diffs them, and a stale
 file fails the build rather than quietly advertising a score nobody measured.
 
@@ -197,7 +197,7 @@ That also puts the feature under third-party pressure. `tools-list` validates ev
 against the spec, which is a sharper test of the generator than the SDK's own unit tests.
 
 [`MultiRoundServer.php`](MultiRoundServer.php) carries the `input-required-result-*` fixtures, and
-[`TasksServer.php`](TasksServer.php) the tools the `tasks-*` scenarios name (`greet`,
+[`TasksServer.php`](TasksServer.php) the tools named by the `tasks-*` scenarios (`greet`,
 `slow_compute`, `failing_job`, and friends), with their per-tool `ToolTaskPolicy` map living in
 [`server.php`](server.php)'s `TasksServerExtension` registration.
 
@@ -212,10 +212,10 @@ collection to co-locate and its handlers are singletons.
 [`HeadlessUserAuthorization.php`](HeadlessUserAuthorization.php) supplies the consent step.
 The OAuth scenarios need consent granted without a browser, and the referee's mock authorization
 server grants it on the first request, so following the authorization URL once with redirects
-disabled and reading `Location` yields the callback the SDK expects.
+disabled and reading `Location` yields the callback expected by the SDK.
 
 One authorized client serves the whole OAuth block, since what varies between those scenarios lives
-in the referee's mock rather than in anything the client chooses. Two of them are the exception and
+in the referee's mock rather than in anything chosen by the client. Two of them are the exception and
 carry their own handler, because the obligation under test is only reachable after the first
 request succeeds: a step-up challenge answers a `tools/call`, and an authorization-server change is
 announced to the request that follows the one it accepted. The Client ID Metadata Document URL is a
@@ -229,5 +229,5 @@ Two things sit outside the attribute-discovered fixture:
   hand-written 2020-12 document survives verbatim, down to `$anchor` and `if`/`then`/`else`.
 - `test_trigger_tool_change` and `test_trigger_prompt_change` mutate the listings at runtime, which the
   subscription checks need in order to observe a `list_changed` on an open stream. They are the one place
-  the fixture reaches for the stores `build()` assembled rather than declaring through attributes, so
+  the fixture reaches for the stores assembled by `build()` rather than declaring through attributes, so
   [`server.php`](server.php) hands them over with `useStores()` after building.

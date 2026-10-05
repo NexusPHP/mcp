@@ -1,7 +1,7 @@
 # Subscriptions
 
-`subscriptions/listen` opens a long-lived stream the server pushes notifications down. Register a store to serve
-it:
+`subscriptions/listen` opens a long-lived stream that the server pushes notifications down. Register a store to
+serve it:
 
 ```php
 $subscriptions = new SubscriptionStore(
@@ -23,15 +23,15 @@ $builder->setSubscriptionStore($subscriptions);
 `SubscriptionStore::DEFAULT_MAX_SUBSCRIPTIONS` (1024). A listen request past the limit is refused with `-32603`
 before any acknowledgement, so the client never sees a stream it does not have.
 
-`maxSubscriptionsPerPeer` bounds the streams one authorized client holds, so a single tenant cannot exhaust the
+`maxSubscriptionsPerPeer` bounds the streams held by one authorized client, so a single tenant cannot exhaust the
 shared budget. It defaults to `DEFAULT_MAX_SUBSCRIPTIONS_PER_PEER` (256). The peer is the verified token's OAuth
 client ID, or its subject when the token names no client. On an unprotected endpoint, requests carry no identity,
 so only the server-wide cap applies.
 
 `maxResourceSubscriptionsPerStream` bounds how many resource URIs one stream may watch. It defaults to
 `DEFAULT_MAX_RESOURCE_SUBSCRIPTIONS_PER_STREAM` (256). A listen request naming more is refused the same way, and a
-client that needs more opens another stream. The cap counts the URIs the store honours, so it does not apply when
-`resourceSubscriptions` is off.
+client that needs more opens another stream. The cap counts the URIs honoured by the store, so it does not apply
+when `resourceSubscriptions` is off.
 
 ## What a listen is acknowledged with
 
@@ -39,16 +39,16 @@ The constructor flags say what this server can deliver. `build()` reads them to 
 `subscribe` capabilities.
 
 A listen request is acknowledged with the intersection of three sets: what the client asked for, what those flags
-allow, and the `listChanged` types a change-reporting store backs. That is the same set the capabilities
-advertise. The acknowledgement is always the first message on the stream. Types the server cannot deliver are
+allow, and the `listChanged` types backed by a change-reporting store. That is the same set that the capabilities
+advertise. The acknowledgement is always the first message on the stream. Types that the server cannot deliver are
 omitted from it rather than denied. A store left at its defaults honours nothing, so nothing is advertised.
 
 A listen that honours nothing is not held open. The server sends the acknowledgement, with its empty set, and
 answers the request at once with the graceful-closure result, so the client knows the stream ended cleanly and
 has no reason to reconnect.
 
-Every message on a stream carries `io.modelcontextprotocol/subscriptionId` in `_meta`. It names the ID the client
-sent on its `subscriptions/listen` request.
+Every message on a stream carries `io.modelcontextprotocol/subscriptionId` in `_meta`. It names the ID sent by the
+client on its `subscriptions/listen` request.
 
 ```mermaid
 sequenceDiagram
@@ -93,8 +93,8 @@ carries no payload, so nothing is lost. The client re-lists either way.
 
 A stream ends when the client cancels it, or when the server tears it down with `close($entry)` or `closeAll()`.
 The client cancels with `notifications/cancelled` over stdio, or by closing the SSE body over HTTP. A
-server-initiated teardown sends the `notifications/cancelled` the spec requires, naming the
-`subscriptions/listen` request. It then answers the held-open request with the empty result the spec calls
+server-initiated teardown sends the `notifications/cancelled` required by the spec, naming the
+`subscriptions/listen` request. It then answers the held-open request with the empty result that the spec calls
 graceful closure.
 
 `close()` takes the `SubscriptionEntry` that `open()` returned, not a request ID. Request IDs are unique per
@@ -111,7 +111,7 @@ transport calls `reopen()`, which clears that drained state, so a reused store s
 
 Over Streamable HTTP, the SDK ignores an inbound `notifications/cancelled` from a client. The spec makes closing
 the response stream the cancellation signal there. A client's request ID names its own ID space, not the
-transport-internal one the server dispatches under.
+transport-internal one that the server dispatches under.
 
 A `subscriptions/listen` always answers over SSE, whatever
 [`ResponseMode`](../transports/streamable-http.md#streamablehttpservertransport) the transport is configured with.

@@ -6,7 +6,7 @@
 
 The protocol foundation shared by the server and client halves of the
 [Nexus MCP SDK](https://github.com/NexusPHP/mcp): the MCP schema types, the JSON-RPC envelope,
-the transport contract, and the dispatch kernel both sides build on.
+the transport contract, and the dispatch kernel that both sides build on.
 
 > [!IMPORTANT]
 > This repository is a read-only subtree split of [NexusPHP/mcp](https://github.com/NexusPHP/mcp).

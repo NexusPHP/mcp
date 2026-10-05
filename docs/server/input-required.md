@@ -49,7 +49,7 @@ Four constraints apply to a handler.
 
 ## The client resends only the newest round's answers
 
-Anything an earlier round learned has to travel in `requestState`. That is why a multi-round handler reads its
+Anything learned by an earlier round has to travel in `requestState`. That is why a multi-round handler reads its
 position from the state, not from an accumulated `inputResponses` map.
 
 ## `requestState` is opaque to the client and unverified on arrival
@@ -70,7 +70,7 @@ $payload = null === $context->requestState
         ?? throw new InvalidParamsException($context->requestId, 'The "requestState" failed its integrity check.');
 ```
 
-`verify()` returns the payload it signed. It returns `null` for a state this server did not mint, or minted under
+`verify()` returns the payload it signed. It returns `null` for a state not minted by this server, or minted under
 a different binding. `RequestStateSigner::generate()` draws a key for a server whose states never outlive its own
 process. Anything longer-lived wants a key from configuration, so a state survives a restart or a second instance
 behind a load balancer.
@@ -85,9 +85,9 @@ will not verify under another. The authenticated subject is the usual choice. It
 unprotected endpoint, and for an accepted token that carries no non-empty `sub` claim. In each case, `?? ''` is
 the same as passing no binding at all.
 
-Anything a replaying caller can also send is worthless here. An endpoint that serves more than one caller has no
-trustworthy caller identity until something authenticates them, whether the endpoint itself or a proxy in front of
-it.
+Anything that a replaying caller can also send is worthless here. An endpoint that serves more than one caller has
+no trustworthy caller identity until something authenticates them, whether the endpoint itself or a proxy in front
+of it.
 
 The payload is signed, not encrypted, and travels in the clear. Put a continuation marker in it, never a secret.
 Expiry is not built in. Encode a timestamp in the payload and check it after `verify()` if a state should go
@@ -96,8 +96,8 @@ stale. A binding stops another caller replaying a state. It does not stop the sa
 ## Only elicitation is available to ask for
 
 The spec's `InputRequest` union also admits `sampling/createMessage` and `roots/list`. Both are deprecated as of
-2026-07-28 (SEP-2577), and this SDK does not model them. `ElicitRequest` is the only thing a handler can put in
-`inputRequests`.
+2026-07-28 (SEP-2577), and this SDK does not model them. `ElicitRequest` is the only thing that a handler can put
+in `inputRequests`.
 
 ## The field vocabulary
 
@@ -135,8 +135,8 @@ defensively, as the example above does with `$answer instanceof ElicitResult`.
 
 ## URL mode
 
-A form is one of two elicitation modes. `ElicitRequestUrlParams` instead sends the user to a URL the server names,
-such as a checkout page or a device-authorization screen. The client answers once the visit is done:
+A form is one of two elicitation modes. `ElicitRequestUrlParams` instead sends the user to a URL named by the
+server, such as a checkout page or a device-authorization screen. The client answers once the visit is done:
 
 ```php
 use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestUrlParams;

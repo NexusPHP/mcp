@@ -24,7 +24,7 @@ final class SuggestedDependencyGuard
 {
     /**
      * @param class-string          $consumer   The class that needs the package
-     * @param string                $class      A class the package autoloads, probed via `class_exists`
+     * @param string                $class      A class autoloaded by the package, probed via `class_exists`
      * @param non-empty-string      $package    The composer package name
      * @param null|non-empty-string $constraint The version constraint to install with, null leaving the choice to Composer
      *

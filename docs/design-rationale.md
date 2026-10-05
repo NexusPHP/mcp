@@ -11,7 +11,7 @@ suppressions.
 
 Runtime input validation at trust boundaries uses [`nexusphp/assert`](https://github.com/NexusPHP/assert). Its
 type-specifying extension feeds the narrowing back into PHPStan. The type information you see is the type
-information the analyser enforces.
+information enforced by the analyser.
 
 Type-inference lock-in tests under `tests/AutoReview/data/` pin the generic contracts of the spec classes. A
 refactor that widens a return type fails the build.
@@ -63,7 +63,7 @@ optional: failed discovery, malformed envelopes, and out-of-order notifications.
 ## Liberal decode, conservative authoring
 
 Where the spec leaves a field wider than good practice, the SDK decodes the full spec shape and holds the narrow
-form only where it authors the value itself. A peer's one odd value must not make the envelope it rides in
+form only where it authors the value itself. A peer's one odd value must not make the envelope carrying it
 undecodable, and the judgement about what to do with that value belongs to the host that renders, opens, or
 otherwise acts on it.
 
@@ -97,7 +97,7 @@ Some omissions are choices, not gaps.
 
 ### No `ServerInterface` or `ClientInterface`
 
-There is no second implementation to justify the lockstep an interface imposes, and `Client` is not a `Server`.
+There is no second implementation to justify the lockstep imposed by an interface, and `Client` is not a `Server`.
 The builders return concrete types on purpose.
 
 ### No umbrella capability registry

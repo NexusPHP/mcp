@@ -17,7 +17,7 @@ use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
 
 /**
- * Content Security Policy allow-lists a UI resource declares for its sandbox.
+ * Content Security Policy allow-lists declared by a UI resource for its sandbox.
  *
  * @implements Arrayable<array{
  *   connectDomains?: list<non-empty-string>,

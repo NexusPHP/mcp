@@ -16,8 +16,8 @@ namespace Nexus\Mcp\Core\Exception;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 
 /**
- * Thrown when the params payload of a known method fails the shape check the
- * concrete request or notification class enforces in `fromArray()`.
+ * Thrown when the params payload of a known method fails the shape check
+ * enforced by the concrete request or notification class in `fromArray()`.
  */
 final class InvalidParamsException extends AbstractJsonRpcProtocolException
 {

@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Http;
 
 /**
- * The HTTP status codes the Streamable HTTP transport answers with.
+ * The HTTP status codes that the Streamable HTTP transport answers with.
  *
  * @internal
  */

@@ -1,6 +1,6 @@
 # Keycloak
 
-Keycloak supports everything the SDK's client discovers on its own:
+Keycloak supports everything that the SDK's client discovers on its own:
 authorization-server metadata, anonymous dynamic client registration, and standard `scope` claims.
 
 ## Configure the realm

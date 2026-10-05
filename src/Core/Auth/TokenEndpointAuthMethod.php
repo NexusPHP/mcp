@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Auth;
 
 /**
- * The client authentication methods an MCP client offers at an authorization server's token endpoint.
+ * The client authentication methods offered by an MCP client at an authorization server's token endpoint.
  *
  * @see https://datatracker.ietf.org/doc/html/rfc8414#section-2
  */

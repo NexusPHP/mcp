@@ -57,7 +57,7 @@ two OAuth extensions. See [official extensions](server/extensions.md#official-ex
 Sampling, roots, and logging. SEP-2577 deprecated them, and the spec tells new implementations not to adopt a
 deprecated feature, so a greenfield SDK carries none of them.
 
-The schema shape is still mirrored faithfully. A slot the 2026-07-28 schema itself keeps, such as the deprecated
+The schema shape is still mirrored faithfully. A slot kept by the 2026-07-28 schema itself, such as the deprecated
 `logging` capability on `ServerCapabilities`, is modelled so a peer's capabilities decode. Nothing in the SDK acts
 on it.
 

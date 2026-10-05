@@ -30,7 +30,7 @@ final readonly class MetadataReader
     private const int MAX_ERROR_FIELD_LENGTH = 200;
 
     /**
-     * @param non-empty-string $label Document name the field messages open with
+     * @param non-empty-string $label Document name at the start of the field messages
      */
     public function __construct(private string $label)
     {

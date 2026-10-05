@@ -28,9 +28,9 @@ a tool call with a task handle. After `discover()`, the outbound gate refuses `t
 ## Calling a tool that may become a task
 
 Once the extension is enabled, route every tool that may carry a policy through the facade. The typed
-`Client::callTool()` decodes with the core response envelope, which cannot represent a task handle. A call the
-server diverts into a task therefore fails with a decode error while the task runs on unobserved.
-`callToolAsTask()` decodes all three shapes the server may choose:
+`Client::callTool()` decodes with the core response envelope, which cannot represent a task handle. A call
+diverted into a task by the server therefore fails with a decode error while the task runs on unobserved.
+`callToolAsTask()` decodes all three shapes that the server may choose:
 
 ```php
 use Nexus\Mcp\Extension\Tasks\Schema\Result\CreateTaskResult;
@@ -88,7 +88,7 @@ immediately, which makes an `awaitTask()` scenario run in microseconds.
 
 ### Keys and stalls
 
-Keys already answered in the current park are not dispatched again. A key the server issues again after the task
+Keys already answered in the current park are not dispatched again. A key issued again by the server after the task
 resumes `working` is offered again. An answer for a key that was never offered is discarded rather than sent.
 
 A task that stays `input_required` while the resolver sends nothing for `stallCeiling` consecutive polls throws

@@ -254,7 +254,7 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
     }
 
     /**
-     * The expiry is spelled from a base the test resolves, since one baked in here would age past
+     * The expiry is spelled from a base resolved by the test, since one baked in here would age past
      * the token's lifetime on a slow run.
      *
      * @return iterable<string, array{0: \Closure(int): (float|int|string)}>

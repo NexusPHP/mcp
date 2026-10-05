@@ -121,7 +121,7 @@ flowchart TD
 
 ### The ID rule
 
-On a parse failure, the envelope's `id` decides the answer. The method the envelope names never does.
+On a parse failure, the envelope's `id` decides the answer. The method named by the envelope never does.
 
 The protocol is stateless. Every inbound request dispatches immediately. It carries the client's identity and
 capabilities in its `_meta`, which the server-side handler reads through `ServerContext::$meta`.
@@ -148,8 +148,8 @@ envelope carries one.
 
 The second is what each side serves. The revision defines no server-to-client request methods, so a built client's
 request registry is empty until a consumer registers a handler. The ID rule still binds both dispatchers equally.
-An ID-carrying envelope the client cannot serve gets an error that echoes the ID. The same envelope without an ID
-is dropped with a warning.
+An ID-carrying envelope that the client cannot serve gets an error that echoes the ID. The same envelope without an
+ID is dropped with a warning.
 
 The client is therefore both a responder and a requester. As a responder, it routes `notifications/progress` to
 per-call listeners and answers what it cannot serve. As a requester, it awaits the responses to its own calls, and

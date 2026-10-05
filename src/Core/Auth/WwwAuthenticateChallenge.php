@@ -26,7 +26,7 @@ final readonly class WwwAuthenticateChallenge
     public const string BEARER_SCHEME = 'Bearer';
 
     /**
-     * RFC 7230 `token`, the production both an auth-scheme and an auth-param name follow.
+     * RFC 7230 `token`, the production that both an auth-scheme and an auth-param name follow.
      */
     private const string TOKEN = '[!#$%&\'*+.^_`|~0-9A-Za-z-]+';
 
@@ -45,7 +45,7 @@ final readonly class WwwAuthenticateChallenge
     private const string SEGMENT_PIECES_PATTERN = '/"(?:[^"\\\\]|\\\\.)*"?|[^,"]+|,/s';
 
     /**
-     * The control octets RFC 9110 excludes from a field value, HTAB aside, stripped in both directions.
+     * The control octets excluded by RFC 9110 from a field value, HTAB aside, stripped in both directions.
      *
      * @see https://datatracker.ietf.org/doc/html/rfc9110#section-5.5
      */
@@ -74,7 +74,7 @@ final readonly class WwwAuthenticateChallenge
     }
 
     /**
-     * Builds the bearer challenge a protected resource answers with, omitting `error` when it is null and
+     * Builds the bearer challenge that a protected resource answers with, omitting `error` when it is null and
      * `scope` when the set is empty.
      *
      * @see https://datatracker.ietf.org/doc/html/rfc6750#section-3

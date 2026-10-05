@@ -1,6 +1,6 @@
 # Client configuration
 
-Everything `ClientBuilder` takes before `build()`.
+Everything that `ClientBuilder` takes before `build()`.
 
 ## Client info
 
@@ -79,9 +79,9 @@ flight at the same time.
 
 ## Extra `_meta` keys
 
-Optional. `setMetaExtrasFactory()` takes a `\Closure(): array<non-empty-string, mixed>` the client calls once
+Optional. `setMetaExtrasFactory()` takes a `\Closure(): array<non-empty-string, mixed>` that the client calls once
 per outbound request. The keys it returns join the request's `_meta` beside the lifecycle fields. Use it to
-propagate the W3C trace context the spec reserves for OpenTelemetry (`traceparent`, `tracestate`, `baggage`):
+propagate the W3C trace context reserved by the spec for OpenTelemetry (`traceparent`, `tracestate`, `baggage`):
 
 ```php
 ->setMetaExtrasFactory(static fn(): array => ['traceparent' => $propagator->currentTraceparent()])

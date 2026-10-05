@@ -54,7 +54,7 @@ final readonly class IdentityAssertionExchanger
     }
 
     /**
-     * The ID-JAG the enterprise IdP issued for the assertion.
+     * The ID-JAG issued by the enterprise IdP for the assertion.
      *
      * @param non-empty-string $audience The resource authorization server's issuer identifier
      *

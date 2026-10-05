@@ -1,7 +1,7 @@
 # When the server asks for input first
 
-`callTool()`, `readResource()`, and `getPrompt()` can answer with an `InputRequiredResult` instead of the result
-you asked for. The server needs something from the user before it can finish. Branch on the type. Do not assume
+`callTool()`, `readResource()`, and `getPrompt()` can answer with an `InputRequiredResult` instead of the requested
+result. The server needs something from the user before it can finish. Branch on the type. Do not assume
 the happy path.
 
 ```php

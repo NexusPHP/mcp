@@ -43,7 +43,7 @@ final class Iso8601DateTimeValidator
 
         $secfrac = $matches['secfrac'];
 
-        // RFC 3339's `"." 1*DIGIT` fraction is truncated to the six digits `u` reads.
+        // RFC 3339's `"." 1*DIGIT` fraction is truncated to the six digits read by `u`.
         $parsed = '' === $secfrac
             ? \DateTimeImmutable::createFromFormat(\DateTimeInterface::RFC3339, $value)
             : \DateTimeImmutable::createFromFormat(

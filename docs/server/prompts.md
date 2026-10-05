@@ -70,4 +70,4 @@ return new GetPromptResult(messages: [
 ```
 
 Each message holds exactly one block. To pair a caption with an image, send two messages, as above. The block
-types are the same five a [tool result](tools.md#result-content-types) carries.
+types are the same five that a [tool result](tools.md#result-content-types) carries.

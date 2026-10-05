@@ -34,7 +34,7 @@ $server = (new ServerBuilder())
 ```
 
 The extension defines no JSON-RPC methods, so enabling it only advertises the `io.modelcontextprotocol/ui`
-capability slot. Everything else is metadata on the tools and resources the builder already registers.
+capability slot. Everything else is metadata on the tools and resources already registered by the builder.
 
 ## Declaring a UI resource
 
@@ -60,8 +60,8 @@ $contents = new TextResourceContents(
 );
 ```
 
-`UiResourceMeta` carries the sandbox configuration the host enforces: the CSP allow-lists (`UiResourceCsp`, where
-an empty list means the same as an omitted one), the requested `UiResourcePermissions` (each encoded as a key
+`UiResourceMeta` carries the sandbox configuration enforced by the host: the CSP allow-lists (`UiResourceCsp`,
+where an empty list means the same as an omitted one), the requested `UiResourcePermissions` (each encoded as a key
 with an empty-object value), the host-defined dedicated `domain`, and the `prefersBorder` rendering hint. The spec
 puts the same shape on both the `resources/list` descriptor and each `resources/read` content item, so declare it
 in both places, as above.

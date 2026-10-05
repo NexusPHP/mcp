@@ -6,8 +6,8 @@ same way.
 ## Pagination
 
 `CursorPaginator` paginates the `*/list` results, and each built-in store composes it. A store returns at most 50
-entries per page. When more remain, it returns a `nextCursor` the client passes back to fetch the next page.
-`setPageSize()` changes that for every store the builder assembles from its `add*()` entries:
+entries per page. When more remain, it returns a `nextCursor` that the client passes back to fetch the next page.
+`setPageSize()` changes that for every store assembled by the builder from its `add*()` entries:
 
 ```php
 ->setPageSize(200)
@@ -19,7 +19,7 @@ siblings keeps its own page size.
 ## Custom stores
 
 The in-memory stores that back tools, prompts, resources, and resource templates can be swapped for a custom
-implementation. A setter replaces the store the builder would otherwise assemble from the matching `add*()`
+implementation. A setter replaces the store that the builder would otherwise assemble from the matching `add*()`
 entries, so registering a store also lights up that feature's capability.
 
 ```php
@@ -31,7 +31,7 @@ entries, so registering a store also lights up that feature's capability.
 
 ### The store contracts
 
-Each store implements the read surface its built-in handlers depend on: `list()` plus `call()`, `get()`, or
+Each store implements the read surface that its built-in handlers depend on: `list()` plus `call()`, `get()`, or
 `read()`. The built-in in-memory stores go further. They implement the matching `Mutable*StoreInterface`, which
 adds `add*()` and `remove*()` plus the `onListChanged()` seam from `ListChangeSourceInterface`.
 
@@ -45,7 +45,7 @@ those entries.
 ### Resources and templates together
 
 A custom resource store still composes with a resource template store, custom or entry-built, for
-`resources/read`. In that composition, throw `ResourceNotRegisteredException` for a URI the store does not hold.
+`resources/read`. In that composition, throw `ResourceNotRegisteredException` for a URI not held by the store.
 That is the one miss that falls through to templates.
 
 A `ResourceNotFoundException` is authoritative. It ends the read without consulting templates, so an overlapping

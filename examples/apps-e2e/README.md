@@ -32,7 +32,7 @@ php examples/apps-e2e/host.php     # host backend on 127.0.0.1:8942
 
 Open <http://127.0.0.1:8942>, click **Server status panel**, and the view renders the tool's
 `structuredContent`. The **Refresh** button inside the panel is the view calling `tools/call`
-through the host's proxy, the round trip the extension exists for.
+through the host's proxy, the round trip that the extension exists for.
 
 Both scripts force the production posture the way `conformance/server.php` does: xdebug is
 dropped through one `composer/xdebug-handler` restart and `zend.assertions` is lowered at
@@ -49,6 +49,6 @@ not part of the SDK:
   proxy. Everything else is answered with `-32601`.
 - The CSP rides a `<meta http-equiv>` tag injected into the sandboxed `srcdoc` document. A
   production host serves views from a dedicated origin and enforces CSP as a response header,
-  along with the rest of the host obligations the
-  [extension spec](https://github.com/modelcontextprotocol/ext-apps) places on it.
+  along with the rest of the host obligations placed on it by the
+  [extension spec](https://github.com/modelcontextprotocol/ext-apps).
 - Nothing here runs in CI beyond the repo's normal linters on the PHP files.

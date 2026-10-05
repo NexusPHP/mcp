@@ -17,7 +17,7 @@ use Nexus\Mcp\Extension\Auth\Enterprise\IdentityAssertionProviderInterface;
 use Nexus\Mcp\Extension\Auth\Enterprise\IdentityAssertionType;
 
 /**
- * Identity assertion provider fixed to the ID token the referee provisioned.
+ * Identity assertion provider fixed to the ID token provisioned by the referee.
  */
 final readonly class StaticIdentityAssertionProvider implements IdentityAssertionProviderInterface
 {

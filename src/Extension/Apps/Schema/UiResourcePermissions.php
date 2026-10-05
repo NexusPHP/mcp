@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Extension\Apps\Schema;
 use Nexus\Mcp\Core\Schema\Arrayable;
 
 /**
- * Sandbox permissions a UI resource requests from the host.
+ * Sandbox permissions requested from the host by a UI resource.
  *
  * @implements Arrayable<array{
  *   camera?: \stdClass,

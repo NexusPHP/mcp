@@ -22,7 +22,7 @@ use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\Tool\ToolStoreInterface;
 
 /**
- * Tool store double serving a fixed sequence of pages, refusing to serve one it has already handed out.
+ * Tool store double serving a fixed sequence of pages, refusing to serve one already handed out.
  *
  * @internal
  */

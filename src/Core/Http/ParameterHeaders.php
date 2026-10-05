@@ -27,12 +27,12 @@ final readonly class ParameterHeaders
     public const string HEADER_PREFIX = 'Mcp-Param-';
 
     /**
-     * A strict decimal, excluding the looser forms `Number()` would accept (`0x1a`, ` 42 `, `1e3`).
+     * A strict decimal, excluding the looser forms that `Number()` would accept (`0x1a`, ` 42 `, `1e3`).
      */
     private const string DECIMAL_PATTERN = '/\A-?\d+(\.\d+)?\z/';
 
     /**
-     * The largest integer JavaScript can represent exactly (`2 ** 53 - 1`).
+     * The largest integer that JavaScript can represent exactly (`2 ** 53 - 1`).
      */
     private const int SAFE_INTEGER_MAX = 9_007_199_254_740_991;
 
@@ -64,7 +64,7 @@ final readonly class ParameterHeaders
     }
 
     /**
-     * Validates the `Mcp-Param-{Name}` headers a request carries against its body arguments, returning the
+     * Validates the `Mcp-Param-{Name}` headers carried by a request against its body arguments, returning the
      * mismatch to reject with or null when every binding agrees.
      *
      * @param list<ParameterHeaderBinding> $bindings

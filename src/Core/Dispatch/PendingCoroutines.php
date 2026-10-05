@@ -20,7 +20,7 @@ use Psr\Log\NullLogger;
 use function Amp\Future\awaitAll;
 
 /**
- * Tracker for the `Amp\Future` instances inbound dispatch holds against a budget.
+ * Tracker for the `Amp\Future` instances held by inbound dispatch against a budget.
  *
  * @internal
  */

@@ -10,10 +10,10 @@ What one `php client.php` run walks through:
    [protected resource metadata](../../docs/auth/server.md) document.
 2. The SDK reads it, discovers the realm's authorization-server metadata, and
    registers itself through anonymous Dynamic Client Registration.
-3. The authorization-code exchange runs with PKCE. The one leg the SDK cannot
-   do itself, a user logging in at the realm's consent page, is played by
-   [KeycloakLogin.php](KeycloakLogin.php), which posts the demo credentials to
-   the login form headlessly.
+3. The authorization-code exchange runs with PKCE. The one leg that the SDK
+   cannot do itself, a user logging in at the realm's consent page, is played
+   by [KeycloakLogin.php](KeycloakLogin.php), which posts the demo credentials
+   to the login form headlessly.
 4. The minted token comes back bound to the server's canonical URI (stamped
    into `aud` by the realm's mapper) and scoped `mcp:use`. The SDK replays the
    request with it, and the `whoami` tool reports what the validated token
@@ -44,8 +44,8 @@ Tear down with `docker compose -f examples/keycloak-e2e/compose.yaml down -v`.
 ## The realm
 
 [keycloak/mcp-realm.json](keycloak/mcp-realm.json) is imported on first start
-and holds everything the [Keycloak recipe](../../docs/auth/keycloak.md)
-describes:
+and holds everything described by the
+[Keycloak recipe](../../docs/auth/keycloak.md):
 
 - a `demo` / `demo-password` user,
 - an `mcp:use` client scope, granted to every registered client by default,

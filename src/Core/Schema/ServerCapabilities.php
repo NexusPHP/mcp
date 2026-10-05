@@ -50,7 +50,7 @@ final readonly class ServerCapabilities implements Arrayable
      * @param null|PromptsCapability            $prompts
      * @param null|ResourcesCapability          $resources
      * @param null|ToolsCapability              $tools
-     * @param array<string, mixed>              $extras       Capabilities outside the set this schema names
+     * @param array<string, mixed>              $extras       Capabilities outside the set named by this schema
      */
     public function __construct(
         public ?array $completions = null,

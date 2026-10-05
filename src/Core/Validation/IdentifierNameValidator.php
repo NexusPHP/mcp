@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Core\Validation;
 use Nexus\Assert\Assert;
 
 /**
- * Enforces the format the spec recommends for every handle the SDK authors, never on a decode path since
+ * Enforces the format recommended by the spec for every handle authored by the SDK, never on a decode path since
  * the rule is only SHOULD and the schema carries no `pattern`.
  *
  * @internal

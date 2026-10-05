@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Extension\Auth\Enterprise;
 
 /**
- * The RFC 8693 subject token types an identity assertion is exchanged as.
+ * The RFC 8693 subject token types that an identity assertion is exchanged as.
  *
  * @see https://datatracker.ietf.org/doc/html/rfc8693#section-3
  */

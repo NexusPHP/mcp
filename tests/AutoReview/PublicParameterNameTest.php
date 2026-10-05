@@ -19,11 +19,11 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
- * Refuses a rename of any public parameter the last release froze on a final class or enum.
+ * Refuses a rename of any public parameter frozen by the last release on a final class or enum.
  *
  * `composer bc:check` routes a class that was final in the released version through a reduced check
  * set omitting `ParameterNameChanged`, so this is the only gate over that surface. It reads the
- * snapshot `composer bc:snapshot` writes at release time, which is why a symbol added since the last
+ * snapshot written by `composer bc:snapshot` at release time, which is why a symbol added since the last
  * release is absent here and renaming it is not a break.
  *
  * @internal

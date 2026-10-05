@@ -77,8 +77,8 @@ The stdio transports have a single peer, so IDs pass through.
 - `fromHandler` marks a response that a request handler produced. A request-scoped transport uses it to map the
   response to a transport-level status: a handler error rides HTTP 200 with the JSON-RPC error in the body, and a
   protocol error gets a real status.
-- `headers` carries transport headers the protocol layer computed. Today these are the `Mcp-Param-{Name}`
-  mirrors a `tools/call` derives from its arguments. Stdio ignores them.
+- `headers` carries transport headers computed by the protocol layer. Today these are the `Mcp-Param-{Name}`
+  mirrors that a `tools/call` derives from its arguments. Stdio ignores them.
 
 Further transport-specific fields can arrive through the same value object without a change to the interface
 shape.

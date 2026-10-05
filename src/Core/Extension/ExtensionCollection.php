@@ -26,7 +26,7 @@ use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Validation\ExtensionIdentifierValidator;
 
 /**
- * Collection of the extensions a builder enables, owning the method-ownership ledgers.
+ * Collection of the extensions enabled by a builder, owning the method-ownership ledgers.
  *
  * @internal
  *
@@ -85,9 +85,9 @@ final class ExtensionCollection
 
     /**
      * @param ExtensionInterface<TContext>                    $extension
-     * @param list<non-empty-string>                          $claimedRequests      Methods a builder-registered request handler already owns
-     * @param list<non-empty-string>                          $claimedNotifications Methods a builder-registered notification handler already owns
-     * @param list<non-empty-string>                          $outboundRequests     Client-to-server methods the extension invokes
+     * @param list<non-empty-string>                          $claimedRequests      Methods already owned by a builder-registered request handler
+     * @param list<non-empty-string>                          $claimedNotifications Methods already owned by a builder-registered notification handler
+     * @param list<non-empty-string>                          $outboundRequests     Client-to-server methods invoked by the extension
      * @param array<non-empty-string, StoredRequestDecorator> $requestDecorators
      *
      * @throws LogicException

@@ -1,7 +1,7 @@
 # SupervisedTransport
 
 Restart supervision for a client transport whose peer can die underneath it. This page covers the restart budget,
-the state that survives a respawn, and the opt-in request retry. The lifecycle both ends honour is in
+the state that survives a respawn, and the opt-in request retry. The lifecycle honoured by both ends is in
 [the transport contract](../transports.md#the-contract).
 
 The decorator wraps a factory that mints one `SupervisableTransportInterface` per connection. It respawns the
@@ -73,12 +73,12 @@ setup.
 
 ## Subscriptions across a restart
 
-A `subscriptions/listen` stream is the one piece of client state a fresh peer cannot infer, because the server
+A `subscriptions/listen` stream is the one piece of client state that a fresh peer cannot infer, because the server
 holds the filter and the client holds the handle. `Client` re-sends the listen request for every stream still
 open, **under the same subscription ID**, as soon as the replacement is serving.
 
 The subscription ID *is* the JSON-RPC ID of the listen request, and the caller holds it on
-`SubscriptionStream::$subscriptionId`. A fresh ID would leave the caller naming a stream the server has never
+`SubscriptionStream::$subscriptionId`. A fresh ID would leave the caller naming a stream that the server has never
 heard of.
 
 ### What the caller sees
@@ -86,13 +86,13 @@ heard of.
 The `SubscriptionStream` is not spent by a restart. Its callback keeps receiving notifications, and `await()` does
 not settle on the peer loss. It resumes against the replacement.
 
-A peer that answers still ends the stream. Only a failure a replacement will be given another go at is absorbed.
-A server that refuses the subscription has answered it, so the refusal reaches `await()` as
+A peer that answers still ends the stream. Only a failure that a replacement will be given another go at is
+absorbed. A server that refuses the subscription has answered it, so the refusal reaches `await()` as
 `RemoteCallFailedException`, and the stream is not replayed. `Client` tells the two apart by asking
 `ReconnectingTransportInterface::isReconnecting()` at the moment the request fails, not by the transport's type.
 A live connection has no replacement pending, so its failures are answers.
 
-A re-open the replacement cannot take is logged and left registered, so the peer after it tries again.
+A re-open that the replacement cannot take is logged and left registered, so the peer after it tries again.
 
 ### What ends a stream for good
 
@@ -100,7 +100,7 @@ A re-open the replacement cannot take is logged and left registered, so the peer
   is coming.
 - `Client::disconnect()` fails them with `TransportAlreadyClosedException`, and so does closing the transport
   directly while a replacement is pending.
-- A stream the caller closed before the restart is not restored.
+- A stream closed by the caller before the restart is not restored.
 - A delivery shed at the client's [in-flight dispatch cap](../client/configuration.md#in-flight-dispatch-cap)
   ends the stream on any transport, restart or none. `await()` throws `SubscriptionDeliveryDroppedException`.
 
@@ -132,8 +132,8 @@ is a vendor method sent through `sendRequest()`, whose semantics the SDK cannot 
 fails on peer loss exactly as it does with the flag off.
 
 An MCP multi-round-trip continuation is excluded even though it names an eligible method. It carries the user's
-answers plus an opaque resume token. Sending it again would hand a one-time answer over twice and resume work the
-dead peer's token named.
+answers plus an opaque resume token. Sending it again would hand a one-time answer over twice and resume work named
+by the dead peer's token.
 
 ### Deadlines and budgets
 

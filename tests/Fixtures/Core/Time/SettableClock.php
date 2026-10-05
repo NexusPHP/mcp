@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Tests\Fixtures\Core\Time;
 use Nexus\Clock\Clock;
 
 /**
- * Clock double the test moves to any instant, counting reads.
+ * Clock double moved by the test to any instant, counting reads.
  */
 final class SettableClock implements Clock
 {

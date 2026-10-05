@@ -25,7 +25,7 @@ use Nexus\Mcp\Extension\Tasks\Schema\Enum\TaskStatus;
 
 /**
  * A task handle returned in lieu of a request's standard result, identifying
- * the long-running task the client polls with `tasks/get`.
+ * the long-running task polled by the client with `tasks/get`.
  *
  * @extends Result<array{
  *   _meta?: template-type<ResultMetaObject, MetaObject, 'T'>,

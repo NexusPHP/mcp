@@ -54,14 +54,14 @@ interface ExtensionInterface
     public function getNotifications(): array;
 
     /**
-     * Handlers for `getRequests()`, keyed by the method each class declares.
+     * Handlers for `getRequests()`, keyed by the method declared by each class.
      *
      * @return array<non-empty-string, RequestHandlerInterface<non-empty-string, Result, TContext>>
      */
     public function getRequestHandlers(): array;
 
     /**
-     * Handlers for `getNotifications()`, keyed by the method each class declares.
+     * Handlers for `getNotifications()`, keyed by the method declared by each class.
      *
      * @return array<non-empty-string, NotificationHandlerInterface<non-empty-string>>
      */

@@ -19,7 +19,7 @@ methods directly.
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `supportedVersions` | `list<string>` | The protocol revisions the server speaks. |
+| `supportedVersions` | `list<string>` | The protocol revisions spoken by the server. |
 | `capabilities` | `ServerCapabilities` | Advertised server capabilities. |
 | `instructions` | `?string` | Optional model-facing guidance. |
 | `ttlMs` / `cacheScope` | `int` / `CacheScope` | Cache hints, inherited from `CacheableResult`. |

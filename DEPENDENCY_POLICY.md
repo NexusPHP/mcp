@@ -38,8 +38,8 @@ Production dependencies are kept deliberately small and are declared with caret 
 (PHP-CS-Fixer, Infection, StructArmed, composer-dependency-analyser) lives in a separate `tools/`
 project so it never enters the SDK's own dependency graph. Shadow and unused dependencies are caught in
 CI by `composer deps:check` (shipmonk/composer-dependency-analyser), which runs once against the umbrella
-manifest and once per component manifest under `src/`. Each component declares only the subset its own tree
-uses, at the umbrella's constraints, and `ComponentManifestTest` refuses any divergence between the five.
+manifest and once per component manifest under `src/`. Each component declares only the subset used by its
+own tree, at the umbrella's constraints, and `ComponentManifestTest` refuses any divergence between the five.
 
 ## Update cadence
 

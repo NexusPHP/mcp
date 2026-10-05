@@ -25,7 +25,7 @@ final readonly class ClientSecretCredential
     /**
      * @param non-empty-string      $clientId
      * @param non-empty-string      $clientSecret
-     * @param null|non-empty-string $issuer       The authorization server the credential was registered with, or null to leave it unbound
+     * @param null|non-empty-string $issuer       The authorization server that the credential was registered with, or null to leave it unbound
      */
     public function __construct(
         public string $clientId,

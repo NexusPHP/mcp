@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Core\Exception;
 
 /**
  * Thrown when an HTTP exchange answers with a status that carries no JSON-RPC payload settling
- * the message the exchange was sent for.
+ * the message that the exchange was sent for.
  */
 final class UnexpectedHttpStatusException extends \RuntimeException implements McpExceptionInterface
 {

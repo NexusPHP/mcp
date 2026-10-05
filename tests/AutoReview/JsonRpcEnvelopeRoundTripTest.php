@@ -68,7 +68,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
- * Pins the exact JSON-RPC envelope shape every concrete request, notification, result response, and error response writes, two fixtures per class: `all-props.json` and `none.json`.
+ * Pins the exact JSON-RPC envelope shape written by every concrete request, notification, result response, and error response, two fixtures per class: `all-props.json` and `none.json`.
  *
  * @internal
  */

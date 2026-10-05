@@ -38,7 +38,7 @@ final readonly class ClientCapabilities implements Arrayable
      * @param null|ElicitationCapability  $elicitation
      * @param null|ExperimentalCapability $experimental
      * @param null|ExtensionsCapability   $extensions
-     * @param array<string, mixed>        $extras       Capabilities outside the set this schema names
+     * @param array<string, mixed>        $extras       Capabilities outside the set named by this schema
      */
     public function __construct(
         public ?array $elicitation = null,

@@ -28,7 +28,7 @@ unmodelled until ratified.
 
 - [ ] **Declare operation scopes at registration.** `OperationScopeMiddleware` takes its scopes as maps
   keyed by tool name, prompt name, and resource URI, held apart from the registrations they describe. A
-  key that names nothing the server serves is ignored, so a renamed tool keeps its scopes only if its
+  key that names nothing served by the server is ignored, so a renamed tool keeps its scopes only if its
   key is renamed with it. `ServerBuilder`'s `add*()` methods and the `#[As*]` attributes take the scopes
   alongside the tool, prompt, or resource, and the builder hands the assembled map to the middleware, so
   a scope can neither outlive the thing it guards nor miss it.
@@ -58,14 +58,14 @@ SDK's own discretion. Expect at least one major release per PHP minor that drops
 Tracked, but not engineering work in this repository.
 
 - **Server conformance ceiling.** Four `input-required` scenarios require the server to emit the half of
-  the `InputRequest` union the 2026-07-28 revision deprecates (SEP-2577), which a new implementation must
-  not adopt. Baselined with rationale in `conformance/expected-failures.yaml` and raised upstream as
+  the `InputRequest` union that the 2026-07-28 revision deprecates (SEP-2577), which a new implementation
+  must not adopt. Baselined with rationale in `conformance/expected-failures.yaml` and raised upstream as
   [conformance#439](https://github.com/modelcontextprotocol/conformance/issues/439). Until it lands, the
   server score caps at 33/37 with nothing missing.
 - **Documentation scoring.** The SEP-1730 canonical feature list is evaluated against the union of all
-  spec revisions rather than the revision an SDK targets, so features this SDK correctly omits (removed
-  or deprecated by 2026-07-28) score as undocumented. No feature the SDK ships is undocumented, and no
-  documented feature lacks an example. Raised upstream as
+  spec revisions rather than the revision targeted by an SDK, so features correctly omitted by this SDK
+  (removed or deprecated by 2026-07-28) score as undocumented. No feature shipped by the SDK is
+  undocumented, and no documented feature lacks an example. Raised upstream as
   [conformance#441](https://github.com/modelcontextprotocol/conformance/issues/441). Until it lands,
   the docs score caps below full marks with nothing missing.
 - **Issue triage track record.** The label taxonomy and process scaffolding are in place. Demonstrating
@@ -78,4 +78,4 @@ Tracked, but not engineering work in this repository.
 - **[Client API](docs/client.md)**: client builder + typed request reference.
 - **[Transports](docs/transports.md)**: stdio contract + HTTP planning.
 - **[Architecture](docs/architecture.md)**: dispatch kernel and layering. **[Spec compliance](docs/spec-compliance.md)**: coverage against the targeted revision.
-- **[Tiering checklist](.github/TIERING_CHECKLIST.md)**: the SEP-1730 assessment, including the features the targeted revision removed.
+- **[Tiering checklist](.github/TIERING_CHECKLIST.md)**: the SEP-1730 assessment, including the features removed by the targeted revision.

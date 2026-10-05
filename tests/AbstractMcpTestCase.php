@@ -17,7 +17,7 @@ use PHPUnit\Framework\TestCase;
 
 if (method_exists(TestCase::class, 'expectExceptionMessageIs')) {
     /**
-     * Base class every test extends.
+     * Base class extended by every test.
      *
      * @internal
      */
@@ -26,7 +26,7 @@ if (method_exists(TestCase::class, 'expectExceptionMessageIs')) {
     }
 } else {
     /**
-     * Base class every test extends.
+     * Base class extended by every test.
      *
      * @internal
      */

@@ -1,7 +1,7 @@
 # InMemoryTransport
 
 An in-process transport pair for tests, with no I/O underneath. Each side delivers the other side's `send()`
-calls as its own `onMessage` events, so an end-to-end server test runs without a subprocess. The lifecycle the
+calls as its own `onMessage` events, so an end-to-end server test runs without a subprocess. The lifecycle that the
 pair shares with the production bindings is in [the transport contract](../transports.md#the-contract).
 
 ```php

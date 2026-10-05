@@ -12,7 +12,7 @@ declare(strict_types=1);
  */
 
 /**
- * The client the conformance referee drives, best run through `./conformance/run-client.sh`,
+ * The client driven by the conformance referee, best run through `./conformance/run-client.sh`,
  * which sets up its contract:
  *
  * - the server URL arrives as the last argv entry
@@ -275,7 +275,7 @@ $register('sep-2322-client-request-state', static function (string $serverUrl) u
     }
 });
 
-// The `client_id` the CIMD scenario expects, compared as a string and never fetched, so nothing serves it.
+// The `client_id` expected by the CIMD scenario, compared as a string and never fetched, so nothing serves it.
 $clientIdMetadataDocumentUrl = 'https://conformance-test.local/client-metadata.json';
 
 $scenarioContext = static function (): array {
@@ -379,7 +379,7 @@ foreach ([
     $register($authScenario, $authorize);
 }
 
-// The mock guards the tool call behind a second scope, so calling one provokes the step-up listing never would.
+// The mock guards the tool call behind a second scope, so calling one provokes the step-up that listing never would.
 $register('auth/scope-step-up', $withAuthorization(static function (Client $client): void {
     $client->listTools();
     $client->callTool(name: 'test-tool');
@@ -501,7 +501,7 @@ $register('sep-2640-client-verify-size', $loadFirstSkill);
 $register('sep-2640-client-verify-frontmatter', $loadFirstSkill);
 
 /**
- * Null means the throwable is a genuine failure rather than a refusal the scenario expects.
+ * Null means the throwable is a genuine failure rather than a refusal expected by the scenario.
  */
 function resolveDeliberateRefusal(Throwable $throwable): ?Throwable
 {

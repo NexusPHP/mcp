@@ -139,7 +139,7 @@ public function forecast(
 ## Return values
 
 A handler may return the full result object (`CallToolResult`, `GetPromptResult`, `ReadResourceResult`,
-`CompleteResult`) or a shorthand the SDK adapts:
+`CompleteResult`) or a shorthand that the SDK adapts:
 
 | Handler | Shorthand returns |
 | --- | --- |
@@ -181,9 +181,9 @@ their normal last-call-wins behaviour. Only conflicting attributes are rejected.
 
 - **[examples/attribute-discovery.php](../examples/attribute-discovery.php)**: a runnable server built this way.
 - **[conformance/EverythingServer.php](../conformance/EverythingServer.php)**: the largest one, and the only one
-  held to the spec by an outside referee. Every capability the MCP conformance suite exercises is an
+  held to the spec by an outside referee. Every capability exercised by the MCP conformance suite is an
   attribute-marked method on a single class, including the `#[InputSchema(definition: ...)]` escape hatch for a
   hand-written JSON Schema 2020-12 document.
-- **[Server API](server.md)**: the manual `add*` and `set*` registration these attributes build on.
+- **[Server API](server.md)**: the manual `add*` and `set*` registration that these attributes build on.
 - **[Design rationale](design-rationale.md)**: why explicit composition is the substrate and attribute discovery
   is layered on top.

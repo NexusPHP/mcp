@@ -24,7 +24,7 @@ final readonly class TaskRecord
 {
     /**
      * @param non-empty-string                           $taskId
-     * @param non-empty-string                           $toolName             The `tools/call` tool the task runs
+     * @param non-empty-string                           $toolName             The `tools/call` tool run by the task
      * @param non-empty-string                           $createdAt            ISO 8601
      * @param non-empty-string                           $lastUpdatedAt        ISO 8601
      * @param null|array<array-key, mixed>               $arguments            The original call arguments
@@ -32,7 +32,7 @@ final readonly class TaskRecord
      * @param null|array<string, mixed>                  $error                The stored error payload, once failed
      * @param array<int|non-empty-string, InputRequest>  $pendingInputRequests Input requests awaiting `tasks/update` answers
      * @param array<int|non-empty-string, InputResponse> $inputResponses       Accumulated answers, re-dispatched with `$requestState`
-     * @param null|string                                $requestState         The continuation token the parked result carried
+     * @param null|string                                $requestState         The continuation token carried by the parked result
      * @param array<array-key, true>                     $issuedInputKeys      Every input-request key issued over the task's lifetime
      * @param null|non-empty-string                      $statusMessage
      */

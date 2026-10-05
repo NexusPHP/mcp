@@ -1,6 +1,6 @@
 # Contributing
 
-This guide covers local setup, the quality gates, and the conventions the project follows.
+This guide covers local setup, the quality gates, and the conventions followed by the project.
 
 ## Requirements
 

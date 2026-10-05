@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Tools;
 /**
  * Snapshot of the public parameter names on every final class and enum outside `@internal`.
  *
- * Regenerate it as part of cutting a release, since the file records the surface a tag froze and the
+ * Regenerate it as part of cutting a release, since the file records the surface frozen by a tag and the
  * check that reads it refuses a later rename of anything named here.
  */
 final class PublicParameterSnapshot

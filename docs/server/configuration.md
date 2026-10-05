@@ -1,6 +1,6 @@
 # Server configuration
 
-Everything `ServerBuilder` takes before any feature is registered.
+Everything that `ServerBuilder` takes before any feature is registered.
 
 ## Server info
 
@@ -93,7 +93,7 @@ can be refused while every slot is free.
 
 `notifications/cancelled` is admitted past the cap only when it frees work: the first one that names a request
 in flight, which is cancelled on admission. Any other cancellation meets the cap like any notification, so a flood
-of them cannot occupy the memory the cap exists to bound.
+of them cannot occupy the memory that the cap exists to bound.
 
 ### Sizing the cap
 

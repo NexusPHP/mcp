@@ -21,7 +21,7 @@ $apps = new AppClient($client);
 ```
 
 Enabling the extension stamps `{"mimeTypes": ["text/html;profile=mcp-app"]}` under `io.modelcontextprotocol/ui`
-in the `_meta` capabilities envelope on every request. That is the declaration a server consults before it
+in the `_meta` capabilities envelope on every request. That is the declaration consulted by a server before it
 exposes its UI-enabled tools.
 
 The spec makes `mimeTypes` required, so the constructor rejects an empty list. A host that renders more than the
@@ -32,7 +32,7 @@ declares no methods of its own, so nothing new is gated or dispatched.
 ## Finding UI-enabled tools
 
 `resolveToolMeta()` decodes a tool's `_meta.ui` object into a typed `UiToolMeta`. `findAppTools()` filters a
-listing down to the tools that link a view, each paired with the metadata the filter already resolved:
+listing down to the tools that link a view, each paired with the metadata already resolved by the filter:
 
 ```php
 $tools = $client->listTools();
@@ -53,7 +53,7 @@ resolve. The SDK itself never emits the deprecated key.
 ## Reading the view
 
 `readAppResource()` wraps `Client::readResource()` for `ui://` URIs. It rejects any other scheme up front. It
-verifies that every returned content item carries one of the accepted mime types, which are the `mimeTypes` the
+verifies that every returned content item carries one of the accepted mime types, which are the `mimeTypes` that the
 facade was constructed with, defaulting to `text/html;profile=mcp-app`. It throws `RuntimeException` when the
 server drifts. An `InputRequiredResult` passes through untouched, like any other
 [input-required flow](input-required.md):

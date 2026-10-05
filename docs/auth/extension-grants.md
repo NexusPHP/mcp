@@ -51,7 +51,7 @@ $http = new AuthorizedHttpClient(
 ```
 
 `ClientSecretCredential('the-worker', $secret, 'https://auth.example.com')` is the Basic-auth counterpart.
-Signing needs the suggested `firebase/php-jwt` package, the same one `JwksAccessTokenValidator` uses on the
+Signing needs the suggested `firebase/php-jwt` package, the same one used by `JwksAccessTokenValidator` on the
 server side. A missing install surfaces as an actionable message on the first grant.
 
 `issuer` binds the credential to the authorization server it was registered with. When the protected resource
@@ -79,7 +79,7 @@ The ID-JAG profile. The user signs into the client application through the enter
 not a redirect to the resource's authorization server, is what authorizes MCP access. The grant runs two legs:
 
 1. An RFC 8693 token exchange at the enterprise IdP turns the sign-on's identity assertion into an ID-JAG, a JWT
-   authorization grant the IdP subjects to admin policy.
+   authorization grant that the IdP subjects to admin policy.
 2. An RFC 7523 JWT-bearer grant redeems that ID-JAG at the resource's authorization server for the access token.
 
 The client's seam to its own sign-on is `IdentityAssertionProviderInterface`. The grant asks it for a current
@@ -159,8 +159,8 @@ server classes exist for the same discoverability.
 
 ## Writing your own grant
 
-The seam the two shipped grants ride is public, so an OAuth grant this SDK does not model is a class you can write
-yourself. Implement `GrantStrategyInterface`:
+The seam that the two shipped grants ride is public, so an OAuth grant not modelled by this SDK is a class you
+can write yourself. Implement `GrantStrategyInterface`:
 
 ```php
 use Amp\Cancellation;
@@ -192,8 +192,8 @@ final readonly class DeviceCodeGrant implements GrantStrategyInterface
 
 `GrantContext` is what the coordinator hands a grant once discovery has run. It carries the discovery result
 (`$context->discovered->server` for the authorization server's metadata, `->metadata` for the MCP server's own),
-the `resource` the token is for, the `scopes` to ask for, the `options` the client was built with, and an
-`httpClient` and `logger` for anything the grant does on its own.
+the `resource` that the token is for, the `scopes` to ask for, the `options` that the client was built with, and an
+`httpClient` and `logger` for anything that the grant does on its own.
 
 The two authorization-server calls are methods on the context, not collaborators you assemble:
 

@@ -456,7 +456,7 @@ final class OperationScopeMiddlewareTest extends AbstractMcpTestCase
     }
 
     /**
-     * @param null|list<non-empty-string> $grantedScopes `null` for a request no token travels on
+     * @param null|list<non-empty-string> $grantedScopes `null` for a request carrying no token
      */
     private function buildRequest(string $body, ?array $grantedScopes): ServerRequestInterface
     {

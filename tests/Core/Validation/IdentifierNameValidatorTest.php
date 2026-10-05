@@ -94,7 +94,7 @@ final class IdentifierNameValidatorTest extends AbstractMcpTestCase
 
     /**
      * The `string $name` parameter type widens past the literal-string types
-     * PHPStan would otherwise pin on the data-provider values, so the
+     * that PHPStan would otherwise pin on the data-provider values, so the
      * validator's `@phpstan-assert non-empty-string $name` doesn't produce an
      * always-true error at the call site.
      *

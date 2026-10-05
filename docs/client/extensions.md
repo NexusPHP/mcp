@@ -20,10 +20,10 @@ A client extension implements `ClientExtensionInterface`. It is the same closed 
 (identifier, settings, inbound request and notification classes and handlers, all validated at enable time),
 bound to `ClientContext`, plus one client-only declaration.
 
-`getOutboundRequests()` names the client-to-server methods the extension invokes. After `discover()`, sending one
+`getOutboundRequests()` names the client-to-server methods invoked by the extension. After `discover()`, sending one
 of these to a server that did not advertise the extension throws `ServerCapabilityNotSupportedException` instead
 of a doomed round trip. Before discovery the send passes ungated, which mirrors how the core capability gate
-behaves. An outbound method may not name a spec method, or a method another extension already claimed.
+behaves. An outbound method may not name a spec method, or a method already claimed by another extension.
 
 ### Inbound gating
 
@@ -42,7 +42,7 @@ There is no silent precedence.
 
 Outbound extension calls ride [`sendRequest()`](requests.md#the-escape-hatch-sendrequest). Build the params with
 `$client->stampMeta()`, so the request carries the lifecycle `_meta` fields, including the advertised extensions
-the server-side gate checks:
+checked by the server-side gate:
 
 ```php
 $response = $client->sendRequest(

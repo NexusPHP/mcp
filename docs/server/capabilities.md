@@ -20,7 +20,7 @@ notification type, **and** the feature's own store can report its changes, which
 `emitResourceUpdated()` calls rather than from a store.
 
 The builder holds the two surfaces to the same set. It asks the store what it honours to derive the capabilities,
-and it narrows every listen request to the `listChanged` types a change-reporting store backs. Neither a
+and it narrows every listen request to the `listChanged` types backed by a change-reporting store. Neither a
 capability nor an acknowledgement can promise more than the other. Advertising `listChanged` without both
-conditions is a promise the server cannot keep, and the conformance suite scores an undelivered `list_changed` as
-a failure.
+conditions is a promise that the server cannot keep, and the conformance suite scores an undelivered `list_changed`
+as a failure.

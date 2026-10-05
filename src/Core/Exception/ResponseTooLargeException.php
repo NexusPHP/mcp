@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Exception;
 
 /**
- * Thrown when a peer's response exceeds the byte cap the reader is willing to hold in memory.
+ * Thrown when a peer's response exceeds the byte cap that the reader is willing to hold in memory.
  */
 final class ResponseTooLargeException extends \RuntimeException implements McpExceptionInterface
 {

@@ -4,12 +4,12 @@ How the client chooses the scopes it asks for, and how it reacts when a server s
 
 ## Choosing the scopes
 
-Scope selection starts from the `scope` a challenge names. It falls back to `defaultScopes` if you declared any,
+Scope selection starts from the `scope` named by a challenge. It falls back to `defaultScopes` if you declared any,
 then to the resource's `scopes_supported`. It omits the parameter entirely when none of those names anything.
 
-The first two rungs are the spec's. `defaultScopes` is an extra tier the SDK adds, so you can avoid asking for
-everything a resource happens to advertise when your client needs only part of it. Servers *should* name a `scope`
-in the challenge, so `defaultScopes` mostly bites against servers that omit it.
+The first two rungs are the spec's. `defaultScopes` is an extra tier added by the SDK, so you can avoid asking for
+everything that a resource happens to advertise when your client needs only part of it. Servers *should* name a
+`scope` in the challenge, so `defaultScopes` mostly bites against servers that omit it.
 
 Whatever the baseline, the scopes already granted are unioned on top. They survive a token being dropped, so
 re-authorizing never asks for less than the client already holds.
@@ -18,7 +18,7 @@ re-authorizing never asks for less than the client already holds.
 
 A token response that omits `scope` grants exactly what was asked (RFC 6749 section 3.3). One that names a
 narrower `scope` is the server withdrawing the difference. The remembered set is replaced by the token's scopes
-rather than merged, so a scope the server has stopped granting is dropped from the next grant's ask instead of
+rather than merged, so a scope that the server has stopped granting is dropped from the next grant's ask instead of
 being requested forever.
 
 ### `offline_access`
@@ -34,25 +34,25 @@ generally will, and a silent answer carries no refresh token.
 ## Step-up
 
 A `403` that carries `error="insufficient_scope"` triggers a step-up. The SDK unions the challenged scopes with
-those already granted, so a fresh grant never costs permissions other operations depend on, and retries.
+those already granted, so a fresh grant never costs permissions that other operations depend on, and retries.
 `maxScopeUpgrades` caps how many rounds that may take. The default is `2`. Past it, the client raises
-`InsufficientScopeException` naming the scopes the server wants.
+`InsufficientScopeException` naming the scopes that the server wants.
 
 A server built with this SDK issues that challenge per operation through
 [`OperationScopeMiddleware`](server.md#scopes-for-one-operation).
 
-A challenge that names no scope the token is missing, including one that names no scope at all, raises the same
-exception rather than retry. Asking again would produce the same token and the same `403`. The only thing the
+A challenge that names no scope missing from the token, including one that names no scope at all, raises the same
+exception rather than retry. Asking again would produce the same token and the same `403`. The only thing that the
 round trip would buy the user is a second consent screen.
 
 ### Reporting instead of asking
 
 Pass `onInsufficientScope: InsufficientScopePolicy::Fail` to be told instead of asked. The SDK then raises
 `InsufficientScopeException` immediately, without running discovery or opening a consent screen, which is what an
-unattended process usually wants. It is raised for every insufficient-scope answer, before any of the rounds
+unattended process usually wants. It is raised for every insufficient-scope answer, before any of the rounds that
 `Reauthorize` would have attempted.
 
-That covers the `403` path only. To refuse every prompt, including the one a `401` provokes, throw from your
+That covers the `403` path only. To refuse every prompt, including the one provoked by a `401`, throw from your
 `UserAuthorizationInterface` instead.
 
 Through the Streamable HTTP transport, the exception reaches a typed call wrapped. `callTool()` and its siblings
@@ -73,7 +73,7 @@ try {
 
 ### What `required` carries
 
-`required` carries no control bytes. Every scope the SDK reads from a peer is held to the RFC 6749
+`required` carries no control bytes. Every scope that the SDK reads from a peer is held to the RFC 6749
 `scope-token` grammar, whether it comes from a challenge, a token response, or an authorization server's
 `scopes_supported`. It carries no space, quote, backslash, or byte outside printable ASCII. A value that names
 anything else is dropped rather than carried into your consent screen. The same holds for

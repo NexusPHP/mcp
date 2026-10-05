@@ -35,7 +35,7 @@ final readonly class ProtocolVersion
     ];
 
     /**
-     * The protocol revisions this server implements, newest first.
+     * The protocol revisions implemented by this server, newest first.
      */
     public const array SUPPORTED_VERSIONS = [self::LATEST_VERSION];
 

@@ -42,7 +42,7 @@ use Nexus\Mcp\Server\Tool\MutableToolStoreInterface;
 use function Amp\delay;
 
 /**
- * The fixture the conformance referee drives, its tool names pinned to the ones the referee looks up.
+ * The fixture driven by the conformance referee, its tool names pinned to the ones looked up by the referee.
  */
 #[AsServer(
     name: 'mcp-conformance-test-server',
@@ -166,12 +166,12 @@ final class EverythingServer
 
     /**
      * The `server-stateless` scenario calls this to prove the server refuses work
-     * needing a client capability the client never declared.
+     * needing a client capability never declared by the client.
      */
     #[AsTool(name: 'test_missing_capability', description: 'Needs the sampling client capability.')]
     public function missingCapability(ServerContext $context): string
     {
-        // Sampling is outside the capability set this SDK models, so it arrives as an extra.
+        // Sampling is outside the capability set modelled by this SDK, so it arrives as an extra.
         if (! array_key_exists('sampling', $context->meta->clientCapabilities->extras)) {
             throw new MissingRequiredClientCapabilityException(
                 new ClientCapabilities(extras: ['sampling' => []]),
@@ -310,7 +310,7 @@ final class EverythingServer
 
     /**
      * Both prompt arguments and the template variable complete from the same
-     * canned list the referee expects to see filtered.
+     * canned list that the referee expects to see filtered.
      */
     #[AsCompletion(argument: 'arg1', prompt: 'test_prompt_with_arguments')]
     #[AsCompletion(argument: 'arg2', prompt: 'test_prompt_with_arguments')]

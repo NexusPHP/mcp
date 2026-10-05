@@ -3498,7 +3498,7 @@ final class ClientTest extends AbstractMcpTestCase
     }
 
     /**
-     * Runs a call its deadline is expected to abandon, keeping the loop busy past it since these in-memory fixtures hold no I/O to reach one.
+     * Runs a call that its deadline is expected to abandon, keeping the loop busy past it since these in-memory fixtures hold no I/O to reach one.
      *
      * @template TReturn
      *

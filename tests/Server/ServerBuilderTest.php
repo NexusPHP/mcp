@@ -3118,7 +3118,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     }
 
     /**
-     * The `notifications` slot of the acknowledgement a full-filter `subscriptions/listen` earns.
+     * The `notifications` slot of the acknowledgement earned by a full-filter `subscriptions/listen`.
      *
      * @return array<array-key, mixed>
      */

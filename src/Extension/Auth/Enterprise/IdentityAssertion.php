@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Extension\Auth\Enterprise;
 use Nexus\Assert\Assert;
 
 /**
- * The identity assertion the client's own sign-on produced, offered to the enterprise IdP as the subject
+ * The identity assertion produced by the client's own sign-on, offered to the enterprise IdP as the subject
  * token of the RFC 8693 exchange.
  */
 final readonly class IdentityAssertion

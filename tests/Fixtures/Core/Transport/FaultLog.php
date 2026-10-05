@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Fixtures\Core\Transport;
 
 /**
- * Ordered record of the faults a transport reported to its error listeners.
+ * Ordered record of the faults reported by a transport to its error listeners.
  *
  * @internal
  */

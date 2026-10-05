@@ -44,14 +44,14 @@ final readonly class TaskClient implements TaskClientInterface
     public const int DEFAULT_MIN_POLL_INTERVAL_MS = 100;
 
     /**
-     * Ceiling a server-suggested `pollIntervalMs` is held to, so it stays a duration the delay can carry.
+     * Ceiling that a server-suggested `pollIntervalMs` is held to, so it stays a duration that the delay can carry.
      */
     public const int MAX_POLL_INTERVAL_MS = 3_600_000;
 
     /**
      * @param int<1, max> $stallCeiling      Consecutive `input_required` polls sending no
      *                                       answers before `awaitTask()` gives up
-     * @param int<1, max> $minPollIntervalMs Floor a shorter server-suggested `pollIntervalMs` is raised to
+     * @param int<1, max> $minPollIntervalMs Floor that a shorter server-suggested `pollIntervalMs` is raised to
      */
     public function __construct(
         private Client $client,

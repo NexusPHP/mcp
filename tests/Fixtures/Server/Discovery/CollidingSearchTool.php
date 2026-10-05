@@ -16,7 +16,7 @@ namespace Nexus\Mcp\Tests\Fixtures\Server\Discovery;
 use Nexus\Mcp\Server\Attribute\AsTool;
 
 /**
- * Source object declaring the tool name the duplicate-registration tests collide on.
+ * Source object declaring the tool name that the duplicate-registration tests collide on.
  */
 final class CollidingSearchTool
 {

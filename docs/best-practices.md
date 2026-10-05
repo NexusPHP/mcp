@@ -1,6 +1,6 @@
 # Best practices
 
-Practical guidance for building servers and clients with the SDK. These are conventions the SDK is shaped to
+Practical guidance for building servers and clients with the SDK. These are conventions that the SDK is shaped to
 reward, not hard requirements.
 
 ## Server
@@ -15,13 +15,13 @@ silent. That is why the SDK does not advertise `listChanged` for the immutable-a
 ### Keep STDOUT for the protocol
 
 A stdio server MUST NOT write anything to STDOUT except the JSON-RPC stream. Send all diagnostics to STDERR through
-the PSR-3 logger you pass to the builder. The examples' `PsrLogger`
+the PSR-3 logger passed to the builder. The examples' `PsrLogger`
 ([examples/PsrLogger.php](../examples/PsrLogger.php)) does this.
 
 ### Signal tool failures with `isError`, not exceptions
 
 A tool that fails for a domain reason should return a `CallToolResult` with `isError: true` and a descriptive
-content block. Bad input the schema allowed and an upstream timeout are domain reasons. Reserve thrown exceptions
+content block. Bad input allowed by the schema and an upstream timeout are domain reasons. Reserve thrown exceptions
 for protocol-level faults. The dispatcher turns an uncaught handler throwable into a generic `-32603`, so internal
 details never leak. See [error handling](error-handling.md).
 

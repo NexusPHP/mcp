@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Auth;
 
 /**
- * The metadata document an authorization server publishes.
+ * The metadata document published by an authorization server.
  *
  * @see https://datatracker.ietf.org/doc/html/rfc8414#section-2
  * @see https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata

@@ -295,7 +295,7 @@ final class LineDuplex
     }
 
     /**
-     * Whether the caller is the close owner or a loop fiber the drain waits on, either of which would
+     * Whether the caller is the close owner or a loop fiber that the drain waits on, either of which would
      * deadlock awaiting the close it is part of.
      */
     private function participatesInClose(): bool

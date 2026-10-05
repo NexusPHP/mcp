@@ -25,7 +25,7 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcMessage;
 final class InMemoryTransport implements TransportInterface
 {
     /**
-     * Envelopes the peer's `send()` delivered before this side called `start()`, drained there in arrival order.
+     * Envelopes delivered by the peer's `send()` before this side called `start()`, drained there in arrival order.
      *
      * @var list<array<string, mixed>>
      */

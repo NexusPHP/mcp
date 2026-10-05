@@ -28,7 +28,7 @@ final readonly class PrivateKeyJwtCredential
      * @param non-empty-string      $privateKeyPem The signing key in PEM form
      * @param non-empty-string      $algorithm     The JWS algorithm registered for the client, e.g. `ES256`
      * @param null|non-empty-string $keyId         The `kid` stamped on the assertion header, when the server keys by one
-     * @param null|non-empty-string $issuer        The authorization server the credential was registered with, or null to leave it unbound
+     * @param null|non-empty-string $issuer        The authorization server that the credential was registered with, or null to leave it unbound
      */
     public function __construct(
         public string $clientId,

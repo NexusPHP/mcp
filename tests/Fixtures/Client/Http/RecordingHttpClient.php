@@ -289,7 +289,7 @@ final class RecordingHttpClient implements DelegateHttpClient
             yield from $later;
         }
 
-        // Never completed, so the stream stays open without holding a timer the test would have to cancel.
+        // Never completed, so the stream stays open without holding a timer that the test would have to cancel.
         (new DeferredFuture())->getFuture()->await();
     }
 

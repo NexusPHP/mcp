@@ -45,7 +45,7 @@ named, whose `aud` does not name the resource, or which carries no `exp` at all.
 A key set may sign for several issuers, so the issuer is what bounds the tenant rather than the audience alone.
 A token minted with no expiry would otherwise be a permanent credential.
 
-The validator maps the claim spellings the common providers use: `scope` or `scp` (string or list) for scopes,
+The validator maps the claim spellings used by the common providers: `scope` or `scp` (string or list) for scopes,
 and `azp`, `client_id`, or `cid` for the authorizing client. The [provider recipes](../authorization.md#guide)
 name each provider's JWKS URL and quirks.
 
@@ -130,7 +130,7 @@ request is turned away without being parsed.
 
 `requiredScopes` applies to every request. To ask more of a single tool, prompt, or resource, add
 `OperationScopeMiddleware`. A client then starts with the endpoint's scopes and steps up only when it reaches an
-operation that needs more, which is the least-privilege model the spec recommends.
+operation that needs more, which is the least-privilege model recommended by the spec.
 
 ```php
 use Nexus\Mcp\Server\Transport\Http\Middleware\OperationScopeMiddleware;
@@ -167,20 +167,20 @@ runs. An operation with no entry needs nothing beyond `requiredScopes`.
 
 Pass the bearer middleware's `requiredScopes` as `endpointScopes`. The challenge then names them ahead of the
 operation's own, every scope and not only the missing ones, so a client that asks for exactly what a challenge
-names still ends up with a token the endpoint accepts.
+names still ends up with a token accepted by the endpoint.
 
-A resource key is a URI or a URI template in the form `addResourceTemplate()` takes. A URI that matches several
-keys needs the scopes of all of them. A URI is matched as sent and again percent-decoded, since a template binds
-either form to the same value.
+A resource key is a URI or a URI template in the form that `addResourceTemplate()` takes. A URI that matches
+several keys needs the scopes of all of them. A URI is matched as sent and again percent-decoded, since a template
+binds either form to the same value.
 
 Each scope must be an RFC 6749 `scope-token`, so two scopes joined by a space are refused when the middleware is
-built rather than becoming a requirement no token can meet.
+built rather than becoming a requirement that no token can meet.
 
 The keys are not checked against what the server serves. A key that names nothing is ignored, so a renamed tool
 keeps its scopes only if its key is renamed with it.
 
-The middleware reads the body, so it runs after the body-size cap. It checks the token an authentication
-middleware validated, and `SecuredHttpEndpoint` refuses `operationScopes` without `authentication`. An
+The middleware reads the body, so it runs after the body-size cap. It checks the token validated by an
+authentication middleware, and `SecuredHttpEndpoint` refuses `operationScopes` without `authentication`. An
 authenticator of your own must store the `VerifiedAccessToken` on the request attribute
 `VerifiedAccessToken::REQUEST_ATTRIBUTE`, as `BearerAuthenticationMiddleware` does. A scoped operation that
 arrives without one throws `LogicException` rather than challenge a client that did nothing wrong.
@@ -212,8 +212,8 @@ $metadata = new ProtectedResourceMetadataHandler(
 | `/.well-known/oauth-protected-resource` | `ProtectedResourceMetadataHandler` |
 
 The handler serves the document only at those two paths, which RFC 9728 derives from the MCP server's own URL.
-Mounting it anywhere else answers `404` rather than publish the same document under a name no client will look it
-up by.
+Mounting it anywhere else answers `404` rather than publish the same document under a name that no client will look
+it up by.
 
 Serve both well-known paths. A client that never saw a `WWW-Authenticate` header falls
 back to probing them, path-scoped first.
@@ -237,4 +237,4 @@ $builder->addTool(new Tool(name: 'whoami'), function (CallToolRequest $request, 
 
 `authInfo` is `null` on an unprotected endpoint and over stdio. Its `subject` is separately `null` for an accepted
 token that carries no non-empty string `sub` claim. That is why the two are tested apart above. An authenticated
-caller the token cannot name is not an anonymous one.
+caller that the token cannot name is not an anonymous one.

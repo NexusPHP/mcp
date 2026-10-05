@@ -47,7 +47,7 @@ The server decides the page size. See [Stores and pagination](../server/stores.m
 
 Once `discover()` has run, every typed request requires the server to have advertised the matching capability.
 `tools/*` needs `tools`, `resources/*` needs `resources`, `prompts/*` needs `prompts`, and `completion/complete`
-needs `completions`. Calling one the server did not advertise throws `ServerCapabilityNotSupportedException`
+needs `completions`. Calling one that the server did not advertise throws `ServerCapabilityNotSupportedException`
 before anything reaches the transport.
 
 Before discovery, and again after a `disconnect()`, there are no advertised capabilities to gate against, so
@@ -62,7 +62,7 @@ body. Supporting this is mandatory for a client on the Streamable HTTP transport
 - `listTools()` scans each tool's `inputSchema` and caches its declarations.
 - `callTool()` extracts the annotated arguments, encodes them, and sends them as `Mcp-Param-{Name}` headers. An
   argument that is absent or `null` sends no header, which is what the server expects. An integral float such
-  as `5.0` is mirrored as `5`, the integer JSON Schema reads it as.
+  as `5.0` is mirrored as `5`, the integer that JSON Schema reads it as.
 - A `-32020 HeaderMismatch` rejection re-lists the tool and retries the call once, so a cached schema that has
   fallen behind the server's recovers on its own.
 
@@ -70,7 +70,7 @@ body. Supporting this is mandatory for a client on the Streamable HTTP transport
 
 The spec requires a client to exclude a tool it cannot mirror rather than call it unmirrored, since the server
 would reject the call anyway. The SDK drops the tool and logs a warning that names the tool and the reason. Check
-your logger if a tool you expect is missing.
+your logger if an expected tool is missing.
 
 Declarations are invalid when they are empty, are not a valid HTTP field-name token, collide case-insensitively,
 sit on a `number` parameter, or sit somewhere not reachable through a plain `properties` chain.
@@ -87,7 +87,7 @@ clears the cache, since it described the server you just left.
 The walk runs inside the `callTool()` you are awaiting, and every page is answered, so no request deadline can end
 it. It stops when the server sends a cursor it has already followed, and at 100 pages either way. It logs a
 warning in both cases. Giving up also forgets the tool's cached declarations, so the one retry goes out unmirrored
-rather than carry the header the server just rejected. A listing deeper than 100 pages therefore behaves like a
+rather than carry the header just rejected by the server. A listing deeper than 100 pages therefore behaves like a
 tool you never listed.
 
 None of this applies on stdio. That transport may ignore the annotations entirely, so the listing passes through
