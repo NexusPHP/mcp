@@ -12,14 +12,21 @@ component packages, stable since `1.0.0`.
 
 ## Official extensions
 
-The five official extensions ship enabled-by-opt-in per the extensions framework (SEP-2133). One
-follow-up remains.
+The five official extensions ship enabled-by-opt-in per the extensions framework (SEP-2133). Two
+follow-ups remain.
 
 - [ ] **`notifications/tasks` delivered via `subscriptions/listen`.** SEP-2663 makes these
   notifications optional, so the polling-only `TaskClient` loop is conformant on its own. The upstream
   conformance scenario is a placeholder pending a harness rewrite against the subscriptions channel,
   and that rewrite is the trigger to pick this up. Settling the loop onto push updates starts with the
   SEP's opt-in shape for the listen filter, which `SubscriptionFilter` has no slot for.
+- [ ] **Consistent SDK extension points (SEP-3371).** A draft upstream, picked up once it reaches
+  Final. It asks an SDK for three public extension points, so that an extension can ship as its own
+  package: registration, custom methods, and middleware. `enableExtension()` covers the first two.
+  Two parts need design. An extension has no way to declare a local dependency, such as a core
+  capability or another extension, for `build()` to check whatever the enable order. Middleware has to
+  wrap core and custom requests, responses and notifications in both directions, where
+  `RequestHandlerDecoratorInterface` wraps specification requests on the server alone.
 
 DPoP (SEP-1932) and workload identity federation (SEP-1933) are open proposals upstream and stay
 unmodelled until ratified.
