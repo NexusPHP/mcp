@@ -30,7 +30,6 @@ use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use Nexus\Mcp\Core\Transport\InMemoryTransport;
 use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Server\ServerContext;
-use Psr\Log\NullLogger;
 
 use function Amp\async;
 
@@ -108,7 +107,7 @@ $server = (new ServerBuilder())
 ;
 
 $client = (new ClientBuilder())
-    ->setLogger(new NullLogger())
+    ->setLogger(new PsrLogger())
     ->setClientInfo(name: 'nexus-completions-example-client', version: '0.1.0')
     ->build()
 ;

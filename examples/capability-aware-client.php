@@ -17,10 +17,9 @@ use Nexus\Mcp\Client\ClientBuilder;
 use Nexus\Mcp\Client\Exception\ServerCapabilityNotSupportedException;
 use Nexus\Mcp\Client\Transport\StdioClientTransport;
 use Nexus\Mcp\Core\Schema\Prompt\PromptReference;
-use Psr\Log\NullLogger;
 
 $client = (new ClientBuilder())
-    ->setLogger(new NullLogger())
+    ->setLogger(new PsrLogger())
     ->setClientInfo(name: 'nexus-capability-example-client', version: '0.1.0')
     ->build()
 ;

@@ -25,7 +25,6 @@ use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\Subscription\SubscriptionStore;
 use Nexus\Mcp\Server\Tool\ClosureToolExecutor;
 use Nexus\Mcp\Server\Tool\ToolStore;
-use Psr\Log\NullLogger;
 
 use function Amp\async;
 use function Amp\delay;
@@ -54,7 +53,7 @@ $toolStore = $builder->getToolStore();
 assert($toolStore instanceof ToolStore);
 
 $client = (new ClientBuilder())
-    ->setLogger(new NullLogger())
+    ->setLogger(new PsrLogger())
     ->setClientInfo(name: 'nexus-subscriptions-example-client', version: '0.1.0')
     ->build()
 ;

@@ -20,10 +20,9 @@ use Nexus\Mcp\Core\Schema\Resource\TextResourceContents;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
 use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
-use Psr\Log\NullLogger;
 
 $client = (new ClientBuilder())
-    ->setLogger(new NullLogger())
+    ->setLogger(new PsrLogger())
     ->setClientInfo(name: 'nexus-stdio-example-client', version: '0.1.0')
     ->build()
 ;
