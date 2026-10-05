@@ -306,7 +306,7 @@ $runAuthorized = static function (
     ;
 
     if (null !== $extension) {
-        $builder = $builder->enableExtension($extension);
+        $builder->enableExtension($extension);
     }
 
     $client = $builder->build();
