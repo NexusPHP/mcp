@@ -155,14 +155,14 @@ final class ReportSkills implements SkillProviderInterface
 $store = new SkillStore($skills, new ReportSkills());
 ```
 
-The store consults the provider only for a URI not answered by its own skills, and `resources/read` asks it
-about `skill://` URIs alone. Each method returns `null` for a URI not served by the provider: `skills/get` and
+The store consults the provider only for a URI outside its own skills, and `resources/read` asks it about
+`skill://` URIs alone. Each method returns `null` for a URI not served by the provider: `skills/get` and
 `resources/directory/read` then answer `-32602`, and `resources/read` falls through to the server's other
 resources.
 
 A `Skill` built with `Skills::DYNAMIC_RESOURCES` is sent with `"resources": "dynamic"`. That tells the host the
 content carries no stable digests, so it reads the files without verifying them. Give an entry a list of
-`SkillResource` instead when the bytes are stable, and build each digest from the same bytes returned by
+`SkillResource` instead when the bytes are stable, and build each digest from the bytes returned by
 `findFile()`.
 
 For full control over listing and lookup, implement `SkillStoreInterface` and pass it to `SkillsServerExtension`

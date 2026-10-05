@@ -18,8 +18,7 @@ use Nexus\Mcp\Extension\Skills\Schema\Skill;
 use Nexus\Mcp\Server\ServerContext;
 
 /**
- * Source of skills served by a store without being listed, such as a set too large to enumerate or one whose
- * content is generated on request.
+ * Source of unlisted skills, such as a set too large to enumerate or one whose content is generated on request.
  */
 interface SkillProviderInterface
 {
