@@ -16,6 +16,8 @@ autoloader, an uncaught-exception handler, and `PsrLogger`) lives in
 | `completions-and-templates` | RFC 6570 templated resources (`users://{userId}`) and `completion/complete` for both a template argument and a prompt argument, server and client in one process. | [completions-and-templates.php](completions-and-templates.php) |
 | `capability-aware-client` | Spawns `stdio-server`, prints the negotiated `ServerCapabilities`, and shows `ServerCapabilityNotSupportedException` raised when calling an unadvertised capability (`completion/complete`). | [capability-aware-client.php](capability-aware-client.php) |
 | `tasks` | The SEP-2663 tasks extension in one process: a policied tool answers with a task handle, `TaskClient` polls it to completion (`getTask`, `awaitTask`), and a second task is cancelled cooperatively mid-flight. | [tasks.php](tasks.php) |
+| `skills-server` | Stdio MCP server for the SEP-2640 skills extension: one skill read from a directory with `DirectorySkill`, and one unlisted skill generated on each read through `SkillProviderInterface`. | [skills-server.php](skills-server.php) |
+| `skills-client` | Spawns `skills-server` and drives it through `SkillClient`: `listSkills`, a verified `readSkillFile`, a file refused for being off the manifest, `readDirectory`, and `getSkill` for the unlisted skill. | [skills-client.php](skills-client.php) |
 | `subscriptions` | `subscriptions/listen` in one process: the client opens a filtered stream, the server grows a tool at runtime and publishes a resource update, and both notifications arrive on the stream's callback. | [subscriptions.php](subscriptions.php) |
 | `input-required` | The elicitation round trip in one process: a tool answers with `InputRequiredResult`, the client re-calls with the collected answer and the echoed `requestState`, and the server verifies the state before finishing. | [input-required.php](input-required.php) |
 | `http-server` | Streamable HTTP MCP server bound to a socket by `amphp/http-server`, behind `SecuredHttpEndpoint`. One tool reports progress (answered as an SSE stream), one declares `x-mcp-header` (validated against the mirrored header). | [http-server.php](http-server.php) |
@@ -93,6 +95,19 @@ php examples/capability-aware-client.php
 
 Spawns `stdio-server`, prints the negotiated `ServerCapabilities`, then attempts an unadvertised capability,
 which the client gates with `ServerCapabilityNotSupportedException` before anything reaches the transport.
+
+### Skills
+
+```bash
+php examples/skills-client.php
+```
+
+`skills-client` spawns `skills-server` and prints what a host sees: the listing with each file's size and digest,
+the `SKILL.md` once it has passed verification, and the refusal of a file not listed by the manifest. The skill
+it serves lives under [skills/release-notes](skills/release-notes).
+
+MCP Inspector supports the skills extension, so `npx @modelcontextprotocol/inspector php examples/skills-server.php`
+browses the same server.
 
 ### Streamable HTTP (two terminals)
 

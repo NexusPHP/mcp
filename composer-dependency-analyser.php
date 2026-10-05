@@ -27,6 +27,7 @@ return (new Configuration())
     ->ignoreErrorsOnExtensionAndPath('ext-pcntl', __DIR__.'/examples/apps-e2e/server.php', [ErrorType::SHADOW_DEPENDENCY])
     ->ignoreErrorsOnExtensionAndPath('ext-pcntl', __DIR__.'/examples/http-server.php', [ErrorType::SHADOW_DEPENDENCY])
     ->ignoreErrorsOnExtensionAndPath('ext-pcntl', __DIR__.'/examples/keycloak-e2e/server.php', [ErrorType::SHADOW_DEPENDENCY])
+    ->ignoreErrorsOnExtensionAndPath('ext-pcntl', __DIR__.'/examples/skills-server.php', [ErrorType::SHADOW_DEPENDENCY])
     ->ignoreErrorsOnExtensionAndPath('ext-pcntl', __DIR__.'/conformance/server.php', [ErrorType::SHADOW_DEPENDENCY])
     // A suggested dependency: JwksAccessTokenValidator guards its use behind `class_exists` and
     // names the package to install, so production code may reference it without requiring it.
