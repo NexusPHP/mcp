@@ -8,6 +8,13 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+## [v1.1.0](https://github.com/NexusPHP/mcp/compare/v1.0.0...v1.1.0) - 2026-10-05
+
+The skills extension (SEP-2640) joins the official extensions on both sides, the HTTP endpoint can require
+scopes per tool, prompt, or resource, and a client credential can be bound to one authorization server. The
+fixes cover the OAuth `resource` parameter, large Server-Sent Events, `subscriptions/listen` streams with
+nothing to deliver, `.localhost` loopback names, and the stdio client transport on Windows and at shutdown.
+
 ### Added
 
 - The skills extension (SEP-2640): `SkillsServerExtension` serves skill directories as `skill://` resources, and
