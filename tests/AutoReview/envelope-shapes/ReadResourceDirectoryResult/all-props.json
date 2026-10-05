@@ -1,0 +1,25 @@
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "_meta": {
+            "vendor.brand": "acme"
+        },
+        "resultType": "complete",
+        "resources": [
+            {
+                "name": "templates",
+                "uri": "skill://acme/billing/refunds/templates",
+                "mimeType": "inode/directory"
+            },
+            {
+                "name": "refunds",
+                "uri": "skill://acme/billing/refunds/SKILL.md",
+                "description": "Process customer refund requests per company policy.",
+                "mimeType": "text/markdown",
+                "size": 5
+            }
+        ],
+        "nextCursor": "cursor-token"
+    }
+}

@@ -12,7 +12,7 @@ The repository is a single Composer monorepo with four logical namespaces under 
 - `src/Core/`: shared foundation. JSON-RPC 2.0 types, MCP schema classes, and reusable utilities used by both server and client packages.
 - `src/Server/`: MCP server implementation. Handles tool/resource/prompt registration and responds to client requests.
 - `src/Client/`: MCP client implementation. Connects to MCP servers, calls tools, reads resources, and gets prompts.
-- `src/Extension/`: the official MCP extensions (tasks, MCP Apps, OAuth extension grants), each with server and client halves. Depends on the other three, and nothing depends on it.
+- `src/Extension/`: the official MCP extensions (tasks, MCP Apps, skills, OAuth extension grants), each with server and client halves. Depends on the other three, and nothing depends on it.
 
 All code is managed under the unified namespace `Nexus\Mcp\` with the directory structure mirroring the namespace hierarchy. Tests mirror the source structure under `tests/` with namespace `Nexus\Mcp\Tests\`. Development tooling is isolated in a separate `tools/` directory with its own dependencies.
 

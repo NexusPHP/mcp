@@ -1,0 +1,21 @@
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "skills/list",
+    "params": {
+        "_meta": {
+            "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+            "io.modelcontextprotocol/clientInfo": {
+                "name": "test-client",
+                "version": "1.0.0"
+            },
+            "io.modelcontextprotocol/clientCapabilities": {
+                "experimental": {
+                    "acme.experimental": {
+                        "enabled": true
+                    }
+                }
+            }
+        }
+    }
+}

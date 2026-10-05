@@ -58,7 +58,8 @@
         "phpstan/phpstan-deprecation-rules": "^2.0",
         "phpstan/phpstan-phpunit": "^2.0",
         "phpstan/phpstan-strict-rules": "^2.0",
-        "phpunit/phpunit": "^12.5 || ^13.0"
+        "phpunit/phpunit": "^12.5 || ^13.0",
+        "symfony/yaml": "^7.0 || ^8.0"
     },
     "replace": {
         "nexusphp/mcp-client": "self.version",
@@ -69,7 +70,8 @@
     },
     "suggest": {
         "ext-sodium": "Required with EncryptedFileTokenStore.",
-        "firebase/php-jwt": "Required with JwksAccessTokenValidator and with ClientCredentialsGrant (^7.0)."
+        "firebase/php-jwt": "Required with JwksAccessTokenValidator and with ClientCredentialsGrant (^7.0).",
+        "symfony/yaml": "Required with the skills extension, to read SKILL.md frontmatter (^7.0 || ^8.0)."
     },
     "minimum-stability": "dev",
     "prefer-stable": true,

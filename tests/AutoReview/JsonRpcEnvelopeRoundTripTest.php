@@ -52,6 +52,12 @@ use Nexus\Mcp\Core\Schema\ResultResponse\ListResourceTemplatesResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\ListToolsResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\ReadResourceResultResponse;
 use Nexus\Mcp\Core\Schema\ResultResponse\SubscriptionsListenResultResponse;
+use Nexus\Mcp\Extension\Skills\Schema\Request\GetSkillRequest;
+use Nexus\Mcp\Extension\Skills\Schema\Request\ListSkillsRequest;
+use Nexus\Mcp\Extension\Skills\Schema\Request\ReadResourceDirectoryRequest;
+use Nexus\Mcp\Extension\Skills\Schema\ResultResponse\GetSkillResultResponse;
+use Nexus\Mcp\Extension\Skills\Schema\ResultResponse\ListSkillsResultResponse;
+use Nexus\Mcp\Extension\Skills\Schema\ResultResponse\ReadResourceDirectoryResultResponse;
 use Nexus\Mcp\Extension\Tasks\Schema\Request\CancelTaskRequest;
 use Nexus\Mcp\Extension\Tasks\Schema\Request\GetTaskRequest;
 use Nexus\Mcp\Extension\Tasks\Schema\Request\UpdateTaskRequest;
@@ -216,6 +222,12 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
         yield 'CancelTaskRequest' => ['wrapper' => CancelTaskRequest::class, 'inner' => null];
 
+        yield 'ListSkillsRequest' => ['wrapper' => ListSkillsRequest::class, 'inner' => null];
+
+        yield 'GetSkillRequest' => ['wrapper' => GetSkillRequest::class, 'inner' => null];
+
+        yield 'ReadResourceDirectoryRequest' => ['wrapper' => ReadResourceDirectoryRequest::class, 'inner' => null];
+
         yield 'CancelledNotification' => ['wrapper' => CancelledNotification::class, 'inner' => null];
 
         yield 'ProgressNotification' => ['wrapper' => ProgressNotification::class, 'inner' => null];
@@ -257,6 +269,12 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
         yield 'CreateTaskResult' => ['wrapper' => GenericResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => CreateTaskResult::class];
 
         yield 'GetTaskResult' => ['wrapper' => GenericResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => GetTaskResult::class];
+
+        yield 'ListSkillsResult' => ['wrapper' => ListSkillsResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
+
+        yield 'GetSkillResult' => ['wrapper' => GetSkillResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
+
+        yield 'ReadResourceDirectoryResult' => ['wrapper' => ReadResourceDirectoryResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
 
         yield 'JsonRpcErrorResponse-HeaderMismatchError' => ['wrapper' => JsonRpcErrorResponse::class, 'inner' => null];
 

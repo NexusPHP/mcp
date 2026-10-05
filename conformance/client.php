@@ -59,6 +59,9 @@ use Nexus\Mcp\Extension\Auth\ClientCredentials\ClientSecretCredential;
 use Nexus\Mcp\Extension\Auth\ClientCredentials\PrivateKeyJwtCredential;
 use Nexus\Mcp\Extension\Auth\Enterprise\EnterpriseAuthorizationClientExtension;
 use Nexus\Mcp\Extension\Auth\Enterprise\IdentityAssertionGrant;
+use Nexus\Mcp\Extension\Skills\Client\Exception\SkillVerificationFailedException;
+use Nexus\Mcp\Extension\Skills\Client\SkillClient;
+use Nexus\Mcp\Extension\Skills\Client\SkillsClientExtension;
 
 /** @var array<string, Closure(string): void> $scenarios */
 $scenarios = [];
@@ -67,14 +70,19 @@ $register = static function (string $name, Closure $handler) use (&$scenarios): 
     $scenarios[$name] = $handler;
 };
 
-$connect = static function (string $serverUrl): Client {
+$connect = static function (string $serverUrl, ?ClientExtensionInterface $extension = null): Client {
     Assert::that($serverUrl)->isNonEmptyString('The conformance runner must supply a server URL.');
 
-    $client = (new ClientBuilder())
+    $builder = (new ClientBuilder())
         ->setLogger(new PsrLogger())
         ->setClientInfo(name: 'nexus-mcp-conformance-client', version: '1.0.0')
-        ->build()
     ;
+
+    if (null !== $extension) {
+        $builder->enableExtension($extension);
+    }
+
+    $client = $builder->build();
 
     $client->connect(new StreamableHttpClientTransport(
         endpoint: $serverUrl,
@@ -455,6 +463,43 @@ $register('auth/enterprise-managed-authorization', static function (string $serv
     )($serverUrl);
 });
 
+$register('sep-2640-client-no-prefetch', static function (string $serverUrl) use ($connect): void {
+    $client = $connect($serverUrl, new SkillsClientExtension());
+
+    try {
+        (new SkillClient($client))->listSkills();
+    } finally {
+        $client->disconnect();
+    }
+});
+
+$loadFirstSkill = static function (string $serverUrl) use ($connect): void {
+    $client = $connect($serverUrl, new SkillsClientExtension());
+
+    try {
+        $skills = new SkillClient($client);
+        $skill = $skills->listSkills()->skills[0] ?? null;
+
+        if (null === $skill) {
+            return;
+        }
+
+        $skills->readSkillFile($skill, $skill->uri);
+
+        foreach (is_array($skill->resources) ? $skill->resources : [] as $resource) {
+            if ($resource->uri !== $skill->uri) {
+                $skills->readSkillFile($skill, $resource->uri);
+            }
+        }
+    } finally {
+        $client->disconnect();
+    }
+};
+
+$register('sep-2640-client-verify-digest', $loadFirstSkill);
+$register('sep-2640-client-verify-size', $loadFirstSkill);
+$register('sep-2640-client-verify-frontmatter', $loadFirstSkill);
+
 /**
  * Null means the throwable is a genuine failure rather than a refusal the scenario expects.
  */
@@ -470,6 +515,7 @@ function resolveDeliberateRefusal(Throwable $throwable): ?Throwable
         PkceNotSupportedException::class,
         RedirectRefusedException::class,
         ServerCapabilityNotSupportedException::class,
+        SkillVerificationFailedException::class,
         UntrustedAuthorizationMetadataException::class,
     ];
 

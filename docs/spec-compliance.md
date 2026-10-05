@@ -49,8 +49,8 @@ validator is pluggable through `SchemaValidatorInterface`. A `structuredContent`
 
 ### Official extensions
 
-Every official extension ratified for the targeted revision ships, each opt-in: Tasks, MCP Apps, and the two OAuth
-extensions. See [official extensions](server/extensions.md#official-extensions).
+Every official extension ratified for the targeted revision ships, each opt-in: Tasks, MCP Apps, Skills, and the
+two OAuth extensions. See [official extensions](server/extensions.md#official-extensions).
 
 ## What is deliberately omitted
 

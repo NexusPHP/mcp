@@ -29,8 +29,8 @@ Both runners pass arguments straight through to the referee:
 ./conformance/run-client.sh --scenario tools_call
 ```
 
-Extension-tagged scenarios (the ten server-mode `tasks-*` ones and the three client-mode
-`auth/*` ones for the OAuth extensions) sit outside every suite, `all` included, and run
+Extension-tagged scenarios (the server-mode `tasks-*` ones, the `sep-2640-*` skills ones in both
+modes, and the client-mode `auth/*` ones for the OAuth extensions) sit outside every suite, `all` included, and run
 individually with `--force` because the tag also makes the referee consider them inapplicable at
 the pinned spec version. `composer conformance:extensions` runs the whole set,
 `conformance:extensions:server` / `conformance:extensions:client` narrow it to one mode, and a
@@ -43,7 +43,9 @@ single scenario is:
 
 `tasks-status-notifications` is a SKIPPED placeholder upstream, pending its subscriptions/listen
 rewrite. The other nine pass against [`TasksServer.php`](TasksServer.php), and the three OAuth
-scenarios pass against the grant strategies [`client.php`](client.php) registers.
+scenarios pass against the grant strategies [`client.php`](client.php) registers. The three server-mode
+skills scenarios pass against the two skill directories under [`skills/`](skills/), and the four client-mode
+ones against the `SkillClient` that [`client.php`](client.php) drives.
 
 The two modes invert. In **server mode** the referee is the client, so `run-server.sh` boots
 [`server.php`](server.php) first and tears it down after. In **client mode** the referee is the

@@ -22,6 +22,7 @@ understand why the SDK is built this way.
 - **[Extensions](server/extensions.md)**: enabling SEP-2133 extensions and the capability gate.
 - **[Tasks](server/tasks.md)**: brokering tool calls into polled long-running tasks (SEP-2663).
 - **[Apps](server/apps.md)**: declaring `ui://` views and linking tools to them (SEP-1865).
+- **[Skills](server/skills.md)**: serving Agent Skills under `skill://` (SEP-2640).
 - **[Subscriptions](server/subscriptions.md)**: serving `subscriptions/listen` streams.
 - **[Asking the client for input](server/input-required.md)**: the `InputRequiredResult` flow.
 - **[Attribute discovery](attribute-discovery.md)**: declaring features with `#[AsTool]` and friends.
@@ -37,6 +38,7 @@ understand why the SDK is built this way.
 - **[Extensions](client/extensions.md)**: enabling SEP-2133 extensions and the outbound gate.
 - **[Tasks](client/tasks.md)**: calling tools as tasks and polling them to completion (SEP-2663).
 - **[Apps](client/apps.md)**: advertising renderable mime types and reading `_meta.ui` (SEP-1865).
+- **[Skills](client/skills.md)**: listing skills and reading their files verified (SEP-2640).
 - **[Subscriptions](client/subscriptions.md)**: opening `subscriptions/listen` streams.
 
 ### Authorization

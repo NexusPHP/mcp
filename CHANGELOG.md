@@ -10,6 +10,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Added
 
+- The skills extension (SEP-2640): `SkillsServerExtension` serves skill directories as `skill://` resources, and
+  `SkillClient` lists skills and verifies each file it reads.
 - `OptionalClientDeclarationInterface`, for a server extension whose methods a client may call without declaring it.
 - `ClientSecretCredential` and `PrivateKeyJwtCredential` take an optional `issuer`. `ClientCredentialsGrant`
   refuses a credential bound to an authorization server other than the one the protected resource names.

@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/github/license/NexusPHP/mcp)](LICENSE)
 
 The official MCP extensions for the [Nexus MCP SDK](https://github.com/NexusPHP/mcp), each with its
-server and client halves: tasks, MCP Apps, and the OAuth extension grants.
+server and client halves: tasks, MCP Apps, skills, and the OAuth extension grants.
 
 > [!IMPORTANT]
 > This repository is a read-only subtree split of [NexusPHP/mcp](https://github.com/NexusPHP/mcp).
@@ -26,18 +26,21 @@ ships both halves. The umbrella `nexusphp/mcp` includes it.
 | --- | --- |
 | `Nexus\Mcp\Extension\Tasks` | Long-running tool calls brokered into polled tasks (SEP-2663) |
 | `Nexus\Mcp\Extension\Apps` | `ui://` views linked to tools (SEP-1865) |
+| `Nexus\Mcp\Extension\Skills` | Agent Skills served as `skill://` resources (SEP-2640) |
 | `Nexus\Mcp\Extension\Auth` | Client credentials (SEP-1046) and enterprise-managed authorization (SEP-990) |
 
 Each extension keeps its capability identifier and protocol literals on a vocabulary class (`Tasks`,
-`Apps`, `Auth\ClientCredentials\ClientCredentials`, `Auth\Enterprise\EnterpriseAuthorization`), with
+`Apps`, `Skills`, `Auth\ClientCredentials\ClientCredentials`, `Auth\Enterprise\EnterpriseAuthorization`), with
 `Server` and `Client` subnamespaces for the two halves.
 
 ## Documentation
 
 - Server guides: [Extensions](https://nexusphp.github.io/mcp/server/extensions/),
-  [Tasks](https://nexusphp.github.io/mcp/server/tasks/), [Apps](https://nexusphp.github.io/mcp/server/apps/).
+  [Tasks](https://nexusphp.github.io/mcp/server/tasks/), [Apps](https://nexusphp.github.io/mcp/server/apps/),
+  [Skills](https://nexusphp.github.io/mcp/server/skills/).
 - Client guides: [Extensions](https://nexusphp.github.io/mcp/client/extensions/),
-  [Tasks](https://nexusphp.github.io/mcp/client/tasks/), [Apps](https://nexusphp.github.io/mcp/client/apps/).
+  [Tasks](https://nexusphp.github.io/mcp/client/tasks/), [Apps](https://nexusphp.github.io/mcp/client/apps/),
+  [Skills](https://nexusphp.github.io/mcp/client/skills/).
 - [OAuth extension grants](https://nexusphp.github.io/mcp/auth/extension-grants/).
 - [API reference](https://nexusphp.github.io/mcp/api/).
 - [Changelog](https://github.com/NexusPHP/mcp/blob/1.x/CHANGELOG.md) and

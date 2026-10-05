@@ -62,7 +62,7 @@ $scenarioName = static function (string $checkFile) use ($resultsDir): string {
     return implode('/', [...$segments, $leaf]);
 };
 
-$extensionPrefixes = ['tasks-'];
+$extensionPrefixes = ['sep-2640-', 'tasks-'];
 
 $extensionScenarios = [
     'auth/client-credentials-basic',

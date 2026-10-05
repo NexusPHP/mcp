@@ -37,7 +37,8 @@
         "psr/log": "^3.0"
     },
     "suggest": {
-        "firebase/php-jwt": "Required with ClientCredentialsGrant (^7.0)."
+        "firebase/php-jwt": "Required with ClientCredentialsGrant (^7.0).",
+        "symfony/yaml": "Required with the skills extension, to read SKILL.md frontmatter (^7.0 || ^8.0)."
     },
     "minimum-stability": "dev",
     "prefer-stable": true,

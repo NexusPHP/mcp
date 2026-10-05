@@ -30,6 +30,9 @@ case "${1:-}" in
 esac
 
 SERVER_SCENARIOS=(
+    sep-2640-skills-directory
+    sep-2640-skills-enumeration
+    sep-2640-skills-manifest
     tasks-capability-negotiation
     tasks-dispatch-and-envelope
     tasks-lifecycle
@@ -49,6 +52,10 @@ CLIENT_SCENARIOS=(
     auth/dpop-nonce
     auth/enterprise-managed-authorization
     auth/wif-jwt-bearer
+    sep-2640-client-no-prefetch
+    sep-2640-client-verify-digest
+    sep-2640-client-verify-frontmatter
+    sep-2640-client-verify-size
 )
 
 if [[ "$MODE" != "client" ]]; then

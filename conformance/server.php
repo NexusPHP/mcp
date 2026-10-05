@@ -32,6 +32,9 @@ use Amp\Http\Server\Request;
 use Amp\Http\Server\RequestHandler;
 use Amp\Http\Server\Response;
 use Amp\Http\Server\SocketHttpServer;
+use Nexus\Mcp\Extension\Skills\Server\DirectorySkill;
+use Nexus\Mcp\Extension\Skills\Server\SkillsServerExtension;
+use Nexus\Mcp\Extension\Skills\Server\Store\SkillStore;
 use Nexus\Mcp\Extension\Tasks\Server\TasksServerExtension;
 use Nexus\Mcp\Extension\Tasks\Server\TaskSupport;
 use Nexus\Mcp\Extension\Tasks\Server\ToolTaskPolicy;
@@ -76,6 +79,10 @@ $builder = (new ServerBuilder())
         ],
         logger: $logger,
     ))
+    ->enableExtension(new SkillsServerExtension(new SkillStore([
+        new DirectorySkill('code-review', __DIR__.'/skills/code-review'),
+        new DirectorySkill('docs/release-notes', __DIR__.'/skills/release-notes'),
+    ], logger: $logger)))
 ;
 
 $subscriptions = new SubscriptionStore(

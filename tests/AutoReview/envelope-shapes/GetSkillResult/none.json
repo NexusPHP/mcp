@@ -1,0 +1,17 @@
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "resultType": "complete",
+        "skill": {
+            "uri": "skill://reports/q3/SKILL.md",
+            "frontmatter": {
+                "name": "q3",
+                "description": "Summarise the third-quarter report."
+            },
+            "resources": "dynamic"
+        },
+        "ttlMs": 0,
+        "cacheScope": "private"
+    }
+}

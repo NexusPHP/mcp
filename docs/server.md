@@ -37,6 +37,7 @@ loop.
 - **[Tasks](server/tasks.md)**: the SEP-2663 tasks extension. It brokers tool calls into polled long-running tasks.
 - **[Apps](server/apps.md)**: the SEP-1865 MCP Apps extension. It declares `ui://` view resources and links tools to
   them.
+- **[Skills](server/skills.md)**: the SEP-2640 skills extension. It serves Agent Skills as `skill://` resources.
 - **[Capability advertisement](server/capabilities.md)**: how `ServerCapabilities` is derived from what you
   registered.
 - **[Subscriptions](server/subscriptions.md)**: serving `subscriptions/listen` streams and the list-changed

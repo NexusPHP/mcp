@@ -64,6 +64,10 @@ The [apps extension](apps.md) (`io.modelcontextprotocol/ui`, SEP-1865) is the se
 `AppsClientExtension` declares the renderable `mimeTypes` and no methods at all, and the `AppClient` facade only
 reads metadata and verifies `ui://` resource reads.
 
+The [skills extension](skills.md) (`io.modelcontextprotocol/skills`, SEP-2640) declares the outbound `skills/*`
+and `resources/directory/read` methods through `SkillsClientExtension`. The `SkillClient` facade lists skills and
+verifies each file it reads against the skill's manifest.
+
 The [OAuth extensions](../auth/extension-grants.md) are client credentials (SEP-1046) and enterprise-managed
 authorization (SEP-990). They are settings-free declarations whose behaviour lives entirely at
 the HTTP layer, as unattended grant strategies plugged into `AuthorizedHttpClient`.

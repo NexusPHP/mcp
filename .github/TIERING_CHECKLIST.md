@@ -31,9 +31,9 @@ Two measurements answer different questions, and conflating them is what makes t
 | | Suite | Server | Client | What it answers |
 | --- | --- | --- | --- | --- |
 | **Tier score** | referee default (`active`) | 20/20 scenarios | 15/15 scenarios | What `tier-check` counts toward the tier percentage |
-| **Full sweep** | `--suite all` | 46/50 scenarios, 189/193 checks | 36/39 scenarios, 382/391 checks | What this SDK's own CI gates on |
+| **Full sweep** | `--suite all` | 49/53 scenarios, 234/238 checks | 40/43 scenarios, 386/395 checks | What this SDK's own CI gates on |
 
-Full-sweep totals: **82/89 scenarios, 571/584 checks (97.8%)**, split 511/515 spec checks and 60/69 extension checks, with 0 unmet SHOULD checks and 14 skipped (excluded from the denominator).
+Full-sweep totals: **89/96 scenarios, 620/633 checks (97.9%)**, split 511/515 spec checks and 109/118 extension checks, with 0 unmet SHOULD checks and 14 skipped (excluded from the denominator).
 
 Both tier-scored legs pass outright at 100%. Scored against the frozen 2026-07-28 requirement set instead of the `active` suite, as the tier audit does, the server leg is 33/37 (89.2%) and the client leg 32/32. The 7 failing full-sweep scenarios are the seven entries in [`conformance/expected-failures.yaml`](../conformance/expected-failures.yaml), none of which sit in the `active` suite, so they do not bear on the tier score. The three client entries are the DPoP and WIF scenarios, whose SEPs are open proposals.
 
@@ -51,7 +51,7 @@ Reproduce with `composer conformance:server`, `composer conformance:client`, the
 
 - [x] **SDK Implementation Started**
   - Reference: Basic MCP protocol support available
-  - Notes: full server and client against MCP 2026-07-28 over stdio and Streamable HTTP (tools, prompts, resources incl. RFC 6570 templates, completions, subscriptions, the input-required flow), plus the three official extensions
+  - Notes: full server and client against MCP 2026-07-28 over stdio and Streamable HTTP (tools, prompts, resources incl. RFC 6570 templates, completions, subscriptions, the input-required flow), plus the five official extensions
 
 ---
 

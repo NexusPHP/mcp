@@ -12,7 +12,7 @@ component packages, stable since `1.0.0`.
 
 ## Official extensions
 
-The three official extensions ship enabled-by-opt-in per the extensions framework (SEP-2133). One
+The five official extensions ship enabled-by-opt-in per the extensions framework (SEP-2133). One
 follow-up remains.
 
 - [ ] **`notifications/tasks` delivered via `subscriptions/listen`.** SEP-2663 makes these

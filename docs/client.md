@@ -68,6 +68,7 @@ When the rejection names no usable version, or the retry is rejected in turn, th
 - **[Tasks](client/tasks.md)**: the SEP-2663 tasks extension. It calls tools as tasks and polls them to completion.
 - **[Apps](client/apps.md)**: the SEP-1865 MCP Apps extension. It advertises renderable mime types and reads
   `_meta.ui` metadata.
+- **[Skills](client/skills.md)**: the SEP-2640 skills extension. It lists skills and verifies each file it reads.
 - **[Subscriptions](client/subscriptions.md)**: opening `subscriptions/listen` streams.
 
 ## Lifecycle

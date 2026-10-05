@@ -39,7 +39,7 @@ read-only subtree mirror and tagged in lockstep, with `1.0.0` as the first tagge
 | [`nexusphp/mcp-core`](https://github.com/NexusPHP/mcp-core) | Schema types, the JSON-RPC envelope, the transport contract, and the dispatch kernel |
 | [`nexusphp/mcp-server`](https://github.com/NexusPHP/mcp-server) | `ServerBuilder`, `Server`, both server transports, and the resource-server side of OAuth. Requires `mcp-core` |
 | [`nexusphp/mcp-client`](https://github.com/NexusPHP/mcp-client) | `ClientBuilder`, `Client`, both client transports, and the OAuth client. Requires `mcp-core` |
-| [`nexusphp/mcp-extensions`](https://github.com/NexusPHP/mcp-extensions) | Tasks, MCP Apps, and the OAuth extension grants, both halves of each. Requires `mcp-server` and `mcp-client` |
+| [`nexusphp/mcp-extensions`](https://github.com/NexusPHP/mcp-extensions) | Tasks, MCP Apps, skills, and the OAuth extension grants, both halves of each. Requires `mcp-server` and `mcp-client` |
 
 Report issues and open pull requests here, never on a mirror.
 

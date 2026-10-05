@@ -55,7 +55,8 @@ in `error.data.requiredCapabilities`, and the handler never runs. An extension-o
 to fall back to, so rejection is the only conformant answer.
 
 An extension whose methods a client may call without declaring it also implements the empty
-`OptionalClientDeclarationInterface`, and the builder serves its request handlers without the gate.
+`OptionalClientDeclarationInterface`, and the builder serves its request handlers without the gate. The shipped
+[skills extension](skills.md) is an example.
 
 Extension **notifications** are not gated. A notification's `_meta` carries no capability declaration to check.
 Where an extension needs notification-level enforcement, that belongs to the handler itself.
@@ -83,10 +84,12 @@ call into a task when the client declared the capability.
 
 ## Official extensions
 
-Four official extensions ship with the SDK. The [tasks extension](tasks.md) exercises the whole surface above:
+Five official extensions ship with the SDK. The [tasks extension](tasks.md) exercises the whole surface above:
 owned methods, handlers, and a `tools/call` decorator. The [apps extension](apps.md) sits at the other end. It
 defines no methods, so `AppsServerExtension` only advertises the capability slot, and the substance is typed
-`_meta.ui` metadata on the tools and resources you already register.
+`_meta.ui` metadata on the tools and resources you already register. The [skills extension](skills.md) owns
+`skills/list`, `skills/get`, and `resources/directory/read`, and decorates `resources/list` and `resources/read`
+so skill files travel as ordinary resources.
 
 The two [OAuth extensions](../auth/extension-grants.md) are advertisement-only on the server too. Those are client
 credentials (SEP-1046) and enterprise-managed authorization (SEP-990). Their grants run at the HTTP layer inside
