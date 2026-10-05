@@ -26,6 +26,9 @@ use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\Transport\StdioServerTransport;
 
+use function Amp\async;
+use function Amp\trapSignal;
+
 #[AsServer(
     name: 'nexus-attribute-example',
     version: '0.1.0',
@@ -79,4 +82,13 @@ $server = (new ServerBuilder())
     ->build()
 ;
 
-$server->run(new StdioServerTransport(logger: $logger));
+$transport = new StdioServerTransport(logger: $logger);
+
+if (defined('SIGINT')) {
+    async(static function () use ($transport): void {
+        trapSignal([\SIGINT, \SIGTERM], reference: false);
+        $transport->close();
+    });
+}
+
+$server->run($transport);
