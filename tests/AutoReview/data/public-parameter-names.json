@@ -1820,7 +1820,8 @@
     "Nexus\\Mcp\\Extension\\Auth\\ClientCredentials\\ClientSecretCredential": {
         "__construct": [
             "clientId",
-            "clientSecret"
+            "clientSecret",
+            "issuer"
         ]
     },
     "Nexus\\Mcp\\Extension\\Auth\\ClientCredentials\\PrivateKeyJwtCredential": {
@@ -1828,7 +1829,8 @@
             "clientId",
             "privateKeyPem",
             "algorithm",
-            "keyId"
+            "keyId",
+            "issuer"
         ]
     },
     "Nexus\\Mcp\\Extension\\Auth\\Enterprise\\IdentityAssertion": {
@@ -1847,6 +1849,244 @@
         "grant": [
             "context",
             "cancellation"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Skills\\Client\\Exception\\SkillVerificationFailedException": {
+        "__construct": [
+            "uri",
+            "reason"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Skills\\Client\\SkillClient": {
+        "__construct": [
+            "client",
+            "maxFileBytes"
+        ],
+        "getSkill": [
+            "uri"
+        ],
+        "listSkills": [
+            "cursor"
+        ],
+        "readDirectory": [
+            "uri",
+            "cursor"
+        ],
+        "readSkillFile": [
+            "skill",
+            "uri",
+            "inputResponses",
+            "requestState"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Skills\\Schema\\RequestParams\\GetSkillRequestParams": {
+        "__construct": [
+            "uri",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Skills\\Schema\\RequestParams\\ReadResourceDirectoryRequestParams": {
+        "__construct": [
+            "uri",
+            "meta",
+            "cursor"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Skills\\Schema\\Request\\GetSkillRequest": {
+        "__construct": [
+            "id",
+            "params"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Skills\\Schema\\Request\\ListSkillsRequest": {
+        "__construct": [
+            "id",
+            "params"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Skills\\Schema\\Request\\ReadResourceDirectoryRequest": {
+        "__construct": [
+            "id",
+            "params"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Skills\\Schema\\ResultResponse\\GetSkillResultResponse": {
+        "__construct": [
+            "id",
+            "result"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Skills\\Schema\\ResultResponse\\ListSkillsResultResponse": {
+        "__construct": [
+            "id",
+            "result"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Skills\\Schema\\ResultResponse\\ReadResourceDirectoryResultResponse": {
+        "__construct": [
+            "id",
+            "result"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Skills\\Schema\\Result\\GetSkillResult": {
+        "__construct": [
+            "skill",
+            "ttlMs",
+            "cacheScope",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ],
+        "rebuildWithMeta": [
+            "meta"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Skills\\Schema\\Result\\ListSkillsResult": {
+        "__construct": [
+            "skills",
+            "ttlMs",
+            "cacheScope",
+            "nextCursor",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ],
+        "rebuildWithMeta": [
+            "meta"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Skills\\Schema\\Result\\ReadResourceDirectoryResult": {
+        "__construct": [
+            "resources",
+            "nextCursor",
+            "meta"
+        ],
+        "fromArray": [
+            "data"
+        ],
+        "rebuildWithMeta": [
+            "meta"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Skills\\Schema\\Skill": {
+        "__construct": [
+            "uri",
+            "frontmatter",
+            "resources"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Skills\\Schema\\SkillResource": {
+        "__construct": [
+            "uri",
+            "digest",
+            "size"
+        ],
+        "fromArray": [
+            "data"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Skills\\Server\\DirectorySkill": {
+        "__construct": [
+            "path",
+            "directory"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Skills\\Server\\Handler\\GetSkillRequestHandler": {
+        "__construct": [
+            "store"
+        ],
+        "handle": [
+            "request",
+            "context"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Skills\\Server\\Handler\\ListSkillsRequestHandler": {
+        "__construct": [
+            "store"
+        ],
+        "handle": [
+            "request",
+            "context"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Skills\\Server\\Handler\\ReadResourceDirectoryRequestHandler": {
+        "__construct": [
+            "store"
+        ],
+        "handle": [
+            "request",
+            "context"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Skills\\Server\\SkillFile": {
+        "__construct": [
+            "uri",
+            "contents",
+            "mimeType"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Skills\\Server\\SkillsServerExtension": {
+        "__construct": [
+            "store",
+            "directoryRead"
+        ]
+    },
+    "Nexus\\Mcp\\Extension\\Skills\\Server\\Store\\SkillStore": {
+        "__construct": [
+            "skills",
+            "provider",
+            "pageSize",
+            "ttlMs",
+            "cacheScope",
+            "logger"
+        ],
+        "get": [
+            "uri",
+            "context"
+        ],
+        "list": [
+            "cursor"
+        ],
+        "listResources": [
+            "cursor"
+        ],
+        "readDirectory": [
+            "uri",
+            "cursor",
+            "context"
+        ],
+        "readFile": [
+            "uri",
+            "context"
         ]
     },
     "Nexus\\Mcp\\Extension\\Tasks\\Client\\Exception\\StalledTaskException": {
@@ -2863,6 +3103,21 @@
             "handler"
         ]
     },
+    "Nexus\\Mcp\\Server\\Transport\\Http\\Middleware\\OperationScopeMiddleware": {
+        "__construct": [
+            "resourceMetadataUrl",
+            "responseFactory",
+            "streamFactory",
+            "tools",
+            "prompts",
+            "resources",
+            "endpointScopes"
+        ],
+        "process": [
+            "request",
+            "handler"
+        ]
+    },
     "Nexus\\Mcp\\Server\\Transport\\Http\\Middleware\\ParameterHeaderValidationMiddleware": {
         "__construct": [
             "store",
@@ -2909,7 +3164,8 @@
             "maxBodyBytes",
             "toolStore",
             "logger",
-            "authentication"
+            "authentication",
+            "operationScopes"
         ],
         "handle": [
             "request"
