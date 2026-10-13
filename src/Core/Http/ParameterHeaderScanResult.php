@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Core\Http;
 
+use Nexus\Assert\Assert;
+
 /**
  * Outcome of scanning a tool `inputSchema`: the collected `x-mcp-header` bindings, or the first violated constraint.
  *
@@ -20,26 +22,18 @@ namespace Nexus\Mcp\Core\Http;
  */
 final readonly class ParameterHeaderScanResult
 {
+    public bool $valid;
+
     /**
-     * @param list<ParameterHeaderBinding> $bindings
+     * @param list<ParameterHeaderBinding> $bindings The declarations that hold, which an invalid result keeps only when its one fault is a property type
+     * @param null|non-empty-string        $reason   The first violated constraint, null when every declaration holds
      */
-    private function __construct(
-        public bool $valid,
-        public array $bindings,
-        public ?string $reason,
+    public function __construct(
+        public array $bindings = [],
+        public ?string $reason = null,
     ) {
-    }
+        Assert::that($reason)->nullOr()->isNonEmptyString('A scan result\'s reason must name the violated constraint or be null.');
 
-    /**
-     * @param list<ParameterHeaderBinding> $bindings
-     */
-    public static function valid(array $bindings): self
-    {
-        return new self(true, $bindings, null);
-    }
-
-    public static function invalid(string $reason): self
-    {
-        return new self(false, [], $reason);
+        $this->valid = null === $reason;
     }
 }

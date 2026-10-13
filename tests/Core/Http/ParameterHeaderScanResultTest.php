@@ -27,22 +27,31 @@ use PHPUnit\Framework\Attributes\Group;
 #[Group('core-tests')]
 final class ParameterHeaderScanResultTest extends AbstractMcpTestCase
 {
-    public function testValidCarriesBindingsAndNoReason(): void
+    public function testAResultWithoutAReasonIsValid(): void
     {
         $binding = new ParameterHeaderBinding(['region'], 'Region', 'string');
-        $result = ParameterHeaderScanResult::valid([$binding]);
+        $result = new ParameterHeaderScanResult([$binding]);
 
         self::assertTrue($result->valid);
         self::assertSame([$binding], $result->bindings);
         self::assertNull($result->reason);
     }
 
-    public function testInvalidCarriesReasonAndNoBindings(): void
+    public function testAResultWithAReasonIsInvalid(): void
     {
-        $result = ParameterHeaderScanResult::invalid('bad schema');
+        $result = new ParameterHeaderScanResult(reason: 'bad schema');
 
         self::assertFalse($result->valid);
         self::assertSame([], $result->bindings);
         self::assertSame('bad schema', $result->reason);
+    }
+
+    public function testAnEmptyReasonIsRefused(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('A scan result\'s reason must name the violated constraint or be null.');
+
+        // @phpstan-ignore argument.type (an empty reason drives the runtime guard PHPStan rejects statically)
+        new ParameterHeaderScanResult(reason: '');
     }
 }

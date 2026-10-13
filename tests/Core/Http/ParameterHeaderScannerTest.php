@@ -70,6 +70,11 @@ final class ParameterHeaderScannerTest extends AbstractMcpTestCase
             [[['count'], 'Count', 'integer']],
         ];
 
+        yield 'a property named by digits keeps a string path' => [
+            ['properties' => ['7' => ['type' => 'string', 'x-mcp-header' => 'Seven']]],
+            [[['7'], 'Seven', 'string']],
+        ];
+
         yield 'boolean property' => [
             ['properties' => ['flag' => ['type' => 'boolean', 'x-mcp-header' => 'Flag']]],
             [[['flag'], 'Flag', 'boolean']],
@@ -130,6 +135,20 @@ final class ParameterHeaderScannerTest extends AbstractMcpTestCase
             ['properties' => ['n' => ['type' => 'number', 'x-mcp-header' => 'N']]],
         ];
 
+        yield 'a number-typed header shares its name with a valid one' => [
+            ['properties' => [
+                'n' => ['type' => 'number', 'x-mcp-header' => 'Size'],
+                's' => ['type' => 'string', 'x-mcp-header' => 'size'],
+            ]],
+        ];
+
+        yield 'a number-typed header beside a binding at the root' => [
+            ['x-mcp-header' => 'Root', 'properties' => [
+                'n' => ['type' => 'number', 'x-mcp-header' => 'N'],
+                's' => ['type' => 'string', 'x-mcp-header' => 'S'],
+            ]],
+        ];
+
         yield 'absent type' => [
             ['properties' => ['x' => ['x-mcp-header' => 'X']]],
         ];
@@ -188,6 +207,23 @@ final class ParameterHeaderScannerTest extends AbstractMcpTestCase
         yield 'binding reachable then passing through oneOf' => [
             ['properties' => ['a' => ['oneOf' => [['type' => 'string', 'x-mcp-header' => 'X']]]]],
         ];
+    }
+
+    public function testATypeFaultKeepsTheDeclarationsThatStillHold(): void
+    {
+        $result = ParameterHeaderScanner::scan(['properties' => [
+            'region' => ['type' => 'string', 'x-mcp-header' => 'Region'],
+            'size' => ['type' => 'number', 'x-mcp-header' => 'Size'],
+            'count' => ['type' => 'integer', 'x-mcp-header' => 'Count'],
+            'ratio' => ['x-mcp-header' => 'Ratio'],
+        ]]);
+
+        self::assertFalse($result->valid);
+        self::assertSame('size: x-mcp-header is only permitted on a string, integer, or boolean property.', $result->reason);
+        self::assertSame(
+            [['region'], ['count']],
+            array_map(static fn(ParameterHeaderBinding $binding): array => $binding->path, $result->bindings),
+        );
     }
 
     public function testRejectionReasonNamesANestedLocation(): void

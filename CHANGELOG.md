@@ -16,6 +16,11 @@ in `0.x`, minor releases may include breaking changes.
 - `RequestStateSigner` binds a state to the authenticated subject, the method, its target and a digest of its
   arguments by default, and `bindBy()` replaces that policy.
 
+### Fixed
+
+- The HTTP endpoint checks the `Mcp-Param-*` headers of a tool whose only invalid `x-mcp-header` is a
+  `number`-typed one, where it used to skip every header of that tool.
+
 ### Changed
 
 - A `RequestStateSigner` state expires, after ten minutes by default (`ttlSeconds`). The wire format carries the

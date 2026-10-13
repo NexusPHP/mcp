@@ -258,14 +258,56 @@ final class ParameterHeaderValidationMiddlewareTest extends AbstractMcpTestCase
         self::assertNotSame('', (string) $handler->received->getBody(), 'Peeking at the body must not consume it.');
     }
 
-    public function testSkipsAndWarnsForAToolWithInvalidDeclarations(): void
+    public function testChecksTheValidDeclarationsOfAToolWithANumberTypedOne(): void
+    {
+        $logger = new ArrayLogger();
+        $store = new PagedToolStore([[
+            new Tool(name: 'broken', inputSchema: [
+                'type' => 'object',
+                'properties' => [
+                    'size' => ['type' => 'number', 'x-mcp-header' => 'Size'],
+                    'region' => ['type' => 'string', 'x-mcp-header' => 'Region'],
+                ],
+            ]),
+        ]]);
+        $middleware = new ParameterHeaderValidationMiddleware($store, new Psr17Factory(), new Psr17Factory(), $logger);
+        $post = fn(array $headers): ServerRequestInterface => $this->post([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tools/call',
+            'params' => ['name' => 'broken', 'arguments' => ['size' => 4, 'region' => 'us-west1']],
+        ], $headers);
+
+        $handler = $this->buildHandler();
+        $response = $middleware->process($post(['Mcp-Param-Region' => 'eu-west1']), $handler);
+
+        self::assertFalse($handler->called);
+        self::assertSame(400, $response->getStatusCode());
+
+        $handler = $this->buildHandler();
+        $response = $middleware->process($post(['Mcp-Param-Region' => 'us-west1', 'Mcp-Param-Size' => '5']), $handler);
+
+        self::assertTrue($handler->called, 'The number-typed declaration is invalid, so no header is expected for it.');
+        self::assertSame(200, $response->getStatusCode());
+
+        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Tool {tool} declares an invalid "x-mcp-header", so only its {checked} valid declarations are checked.');
+        self::assertCount(1, $matches);
+        self::assertSame('broken', $matches[0]['context']['tool'] ?? null);
+        self::assertSame(1, $matches[0]['context']['checked'] ?? null);
+        self::assertIsString($matches[0]['context']['reason'] ?? null, 'The scan fault is reported so the operator can fix the schema.');
+    }
+
+    public function testSkipsAToolWhoseDeclarationsFailBeyondTheirType(): void
     {
         $logger = new ArrayLogger();
         $handler = $this->buildHandler();
         $store = new PagedToolStore([[
             new Tool(name: 'broken', inputSchema: [
                 'type' => 'object',
-                'properties' => ['size' => ['type' => 'number', 'x-mcp-header' => 'Size']],
+                'properties' => [
+                    'region' => ['type' => 'string', 'x-mcp-header' => 'Region'],
+                    'zone' => ['type' => 'string', 'x-mcp-header' => 'region'],
+                ],
             ]),
         ]]);
 
@@ -274,16 +316,15 @@ final class ParameterHeaderValidationMiddlewareTest extends AbstractMcpTestCase
                 'jsonrpc' => '2.0',
                 'id' => 1,
                 'method' => 'tools/call',
-                'params' => ['name' => 'broken', 'arguments' => ['size' => 4]],
+                'params' => ['name' => 'broken', 'arguments' => ['region' => 'us-west1', 'zone' => 'a']],
             ]), $handler)
         ;
 
         self::assertTrue($handler->called);
         self::assertSame(200, $response->getStatusCode());
-        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Skipping {tool} header validation: its "x-mcp-header" declarations are invalid.');
+        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Tool {tool} declares an invalid "x-mcp-header", so only its {checked} valid declarations are checked.');
         self::assertCount(1, $matches);
-        self::assertSame('broken', $matches[0]['context']['tool'] ?? null);
-        self::assertIsString($matches[0]['context']['reason'] ?? null, 'The scan fault is reported so the operator can fix the schema.');
+        self::assertSame(0, $matches[0]['context']['checked'] ?? null);
     }
 
     public function testDoesNotWarnForAToolWithValidDeclarations(): void
@@ -297,7 +338,7 @@ final class ParameterHeaderValidationMiddlewareTest extends AbstractMcpTestCase
             ->process($this->callPost(['region' => 'us-west1'], ['Mcp-Param-Region' => 'us-west1']), $this->buildHandler())
         ;
 
-        self::assertSame([], $logger->recordsMatching(LogLevel::WARNING, 'Skipping {tool} header validation: its "x-mcp-header" declarations are invalid.'));
+        self::assertSame([], $logger->messagesAtLevel(LogLevel::WARNING));
     }
 
     public function testScansEveryPageOfTheStore(): void

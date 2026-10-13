@@ -54,26 +54,33 @@ final class ParameterHeaderScanner
     {
         $bindings = [];
         $seen = [];
-        $fault = self::visit($inputSchema, [], true, $bindings, $seen);
+        $typeFault = null;
+        $fault = self::visit($inputSchema, [], true, $bindings, $seen, $typeFault);
 
         return null === $fault
-            ? ParameterHeaderScanResult::valid($bindings)
-            : ParameterHeaderScanResult::invalid($fault);
+            ? new ParameterHeaderScanResult($bindings, $typeFault)
+            : new ParameterHeaderScanResult(reason: $fault);
     }
 
     /**
+     * Walks the schema, returning the first fault that ends the scan. A type fault only lands in `$typeFault`,
+     * since the other declarations still hold.
+     *
      * @param list<string>                 $path
      * @param list<ParameterHeaderBinding> $bindings
      * @param array<string, string>        $seen
+     * @param null|non-empty-string        $typeFault
+     *
+     * @return null|non-empty-string
      */
-    private static function visit(mixed $node, array $path, bool $reachable, array &$bindings, array &$seen): ?string
+    private static function visit(mixed $node, array $path, bool $reachable, array &$bindings, array &$seen, ?string &$typeFault): ?string
     {
         if (! \is_array($node)) {
             return null;
         }
 
         if (\array_key_exists('x-mcp-header', $node)) {
-            $fault = self::inspectBinding($node, $path, $reachable, $bindings, $seen);
+            $fault = self::inspectBinding($node, $path, $reachable, $bindings, $seen, $typeFault);
 
             if (null !== $fault) {
                 return $fault;
@@ -84,7 +91,7 @@ final class ParameterHeaderScanner
 
         if (\is_array($properties)) {
             foreach ($properties as $key => $child) {
-                $fault = self::visit($child, [...$path, (string) $key], $reachable, $bindings, $seen);
+                $fault = self::visit($child, [...$path, (string) $key], $reachable, $bindings, $seen, $typeFault);
 
                 if (null !== $fault) {
                     return $fault;
@@ -98,7 +105,7 @@ final class ParameterHeaderScanner
             }
 
             foreach (self::resolveBranches($keyword, $node[$keyword]) as $branch) {
-                $fault = self::visit($branch, [...$path, \sprintf('<%s>', $keyword)], false, $bindings, $seen);
+                $fault = self::visit($branch, [...$path, \sprintf('<%s>', $keyword)], false, $bindings, $seen, $typeFault);
 
                 if (null !== $fault) {
                     return $fault;
@@ -114,8 +121,11 @@ final class ParameterHeaderScanner
      * @param list<string>                 $path
      * @param list<ParameterHeaderBinding> $bindings
      * @param array<string, string>        $seen
+     * @param null|non-empty-string        $typeFault
+     *
+     * @return null|non-empty-string
      */
-    private static function inspectBinding(array $node, array $path, bool $reachable, array &$bindings, array &$seen): ?string
+    private static function inspectBinding(array $node, array $path, bool $reachable, array &$bindings, array &$seen, ?string &$typeFault): ?string
     {
         $location = self::formatPath($path);
 
@@ -133,12 +143,6 @@ final class ParameterHeaderScanner
             return \sprintf('%s: x-mcp-header "%s" is not a valid RFC 9110 token.', $location, $raw);
         }
 
-        $type = $node['type'] ?? null;
-
-        if (! \is_string($type) || ! \in_array($type, self::PERMITTED_TYPES, true)) {
-            return \sprintf('%s: x-mcp-header is only permitted on a string, integer, or boolean property.', $location);
-        }
-
         $lower = strtolower($raw);
 
         if (\array_key_exists($lower, $seen)) {
@@ -146,13 +150,21 @@ final class ParameterHeaderScanner
         }
 
         $seen[$lower] = $raw;
+        $type = $node['type'] ?? null;
+
+        if (! \is_string($type) || ! \in_array($type, self::PERMITTED_TYPES, true)) {
+            $typeFault ??= \sprintf('%s: x-mcp-header is only permitted on a string, integer, or boolean property.', $location);
+
+            return null;
+        }
+
         $bindings[] = new ParameterHeaderBinding($path, $raw, $type);
 
         return null;
     }
 
     /**
-     * @return list<mixed>
+     * @return array<array-key, mixed>
      */
     private static function resolveBranches(string $keyword, mixed $value): array
     {
@@ -160,12 +172,8 @@ final class ParameterHeaderScanner
             return [];
         }
 
-        if (array_is_list($value)) {
+        if (array_is_list($value) || \in_array($keyword, self::OBJECT_VALUED_KEYWORDS, true)) {
             return $value;
-        }
-
-        if (\in_array($keyword, self::OBJECT_VALUED_KEYWORDS, true)) {
-            return array_values($value);
         }
 
         return [$value];
