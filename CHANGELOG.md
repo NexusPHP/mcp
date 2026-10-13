@@ -8,6 +8,19 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+### Added
+
+- `ServerBuilder::setRequestStateSigner()`: the server verifies every echoed `requestState` before its handler
+  runs, answering `-32602` for one it did not mint, and hands the handler the verified payload as
+  `$context->requestStatePayload` and a bound signer as `$context->requestStateSigner`.
+- `RequestStateSigner` binds a state to the authenticated subject, the method, its target and a digest of its
+  arguments by default, and `bindBy()` replaces that policy.
+
+### Changed
+
+- A `RequestStateSigner` state expires, after ten minutes by default (`ttlSeconds`). The wire format carries the
+  expiry, so a state minted before this release no longer verifies.
+
 ## [v1.1.0](https://github.com/NexusPHP/mcp/compare/v1.0.0...v1.1.0) - 2026-10-05
 
 The skills extension (SEP-2640) joins the official extensions on both sides, the HTTP endpoint can require

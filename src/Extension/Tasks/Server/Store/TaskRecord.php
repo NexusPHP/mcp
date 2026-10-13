@@ -32,7 +32,7 @@ final readonly class TaskRecord
      * @param null|array<string, mixed>                  $error                The stored error payload, once failed
      * @param array<int|non-empty-string, InputRequest>  $pendingInputRequests Input requests awaiting `tasks/update` answers
      * @param array<int|non-empty-string, InputResponse> $inputResponses       Accumulated answers, re-dispatched with `$requestState`
-     * @param null|string                                $requestState         The continuation token carried by the parked result
+     * @param null|string                                $requestState         The continuation token carried by the parked result, or its verified payload when the server signs states
      * @param array<array-key, true>                     $issuedInputKeys      Every input-request key issued over the task's lifetime
      * @param null|non-empty-string                      $statusMessage
      */

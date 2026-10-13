@@ -39,8 +39,10 @@ use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
 use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
 use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
+use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
+use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\DiscoverResult;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
@@ -50,6 +52,7 @@ use Nexus\Mcp\Core\Transport\SendContext;
 use Nexus\Mcp\Server\Dispatch\ServerMessageDispatcher;
 use Nexus\Mcp\Server\Exception\ResourceNotFoundException;
 use Nexus\Mcp\Server\Handler\Request\DiscoverRequestHandler;
+use Nexus\Mcp\Server\RequestStateSigner;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
@@ -597,6 +600,140 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         $dispatcher->flushPending();
 
         self::assertSame($serverInfo, $this->readSentResult($transport)->meta->serverInfo);
+    }
+
+    public function testAVerifiedRequestStateReachesTheHandlerAsItsPayload(): void
+    {
+        $signer = new RequestStateSigner('secret');
+        $binding = $this->deriveToolsCallBinding();
+        $state = $signer->sign('round-2', $binding);
+
+        [$seen, $transport] = $this->dispatchToolsCall($signer, $state);
+
+        self::assertInstanceOf(ServerContext::class, $seen);
+        self::assertSame($state, $seen->requestState);
+        self::assertSame('round-2', $seen->requestStatePayload);
+        self::assertInstanceOf(RequestStateSigner::class, $seen->requestStateSigner);
+        self::assertSame('round-3', $signer->verify($seen->requestStateSigner->sign('round-3'), $binding));
+        self::assertCount(1, $transport->sent);
+        self::assertInstanceOf(JsonRpcResultResponse::class, $transport->sent[0]['message']);
+    }
+
+    public function testARequestStateTheSignerRejectsIsAnsweredWithInvalidParamsBeforeTheHandlerRuns(): void
+    {
+        $signer = new RequestStateSigner('secret');
+
+        [$seen, $transport, $logger] = $this->dispatchToolsCall($signer, $signer->sign('round-2', 'someone-else'));
+
+        self::assertNull($seen);
+        self::assertCount(1, $transport->sent);
+        $message = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
+        self::assertSame(ProtocolErrorCode::InvalidParams->value, $message->error->code);
+        self::assertSame('Invalid or expired "requestState".', $message->error->message);
+        $records = $logger->recordsMatching(LogLevel::WARNING, 'Rejected the "requestState" echoed on {method}.');
+        self::assertCount(1, $records);
+        self::assertSame(['method' => 'tools/call'], $records[0]['context']);
+    }
+
+    public function testAFirstRoundCarriesTheBoundSignerAndNoPayload(): void
+    {
+        $signer = new RequestStateSigner('secret');
+
+        [$seen] = $this->dispatchToolsCall($signer, null);
+
+        self::assertInstanceOf(ServerContext::class, $seen);
+        self::assertNull($seen->requestState);
+        self::assertNull($seen->requestStatePayload);
+        self::assertInstanceOf(RequestStateSigner::class, $seen->requestStateSigner);
+        self::assertSame('round-1', $signer->verify($seen->requestStateSigner->sign('round-1'), $this->deriveToolsCallBinding()));
+    }
+
+    public function testARequestThatCannotCarryAStateGetsNoSigner(): void
+    {
+        $seen = null;
+        $transport = new RecordingTransport();
+        $dispatcher = $this->buildDispatcher(
+            requestHandlers: ['tools/list' => new ClosureRequestHandler(static function ($request, AbstractContext $context) use (&$seen): Result {
+                $seen = $context;
+
+                return new EmptyResult();
+            })],
+            requestStateSigner: new RequestStateSigner('secret'),
+        );
+
+        $dispatcher->dispatch($this->buildToolsListEnvelope(1), $transport, new ReceiveContext());
+        $dispatcher->flushPending();
+
+        self::assertInstanceOf(ServerContext::class, $seen);
+        self::assertNull($seen->requestStateSigner);
+    }
+
+    public function testAHandlerAnsweringWithAForeignRequestStateIsAnInternalError(): void
+    {
+        $transport = new RecordingTransport();
+        $logger = new ArrayLogger();
+        $dispatcher = $this->buildDispatcher(
+            requestHandlers: ['tools/call' => new ClosureRequestHandler(
+                static fn(): Result => new InputRequiredResult(requestState: RequestStateSigner::generate()->sign('round-1')),
+            )],
+            logger: $logger,
+            requestStateSigner: new RequestStateSigner('secret'),
+        );
+
+        $dispatcher->dispatch($this->buildToolsCallEnvelope(1, null), $transport, new ReceiveContext());
+        $dispatcher->flushPending();
+
+        self::assertCount(1, $transport->sent);
+        $message = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
+        self::assertSame(ProtocolErrorCode::InternalError->value, $message->error->code);
+        $records = $logger->recordsMatching(LogLevel::ERROR, 'Uncaught request handler exception.');
+        self::assertCount(1, $records);
+        $logged = $records[0]['context']['exception'] ?? null;
+        self::assertInstanceOf(\LogicException::class, $logged);
+        self::assertSame('The handler for "tools/call" answered with a "requestState" that does not verify under the server\'s signer.', $logged->getMessage());
+    }
+
+    public function testAHandlerAnsweringWithAStateItMintedThroughTheContextIsServed(): void
+    {
+        $transport = new RecordingTransport();
+        $dispatcher = $this->buildDispatcher(
+            requestHandlers: ['tools/call' => new ClosureRequestHandler(static function ($request, AbstractContext $context): Result {
+                self::assertInstanceOf(ServerContext::class, $context);
+                self::assertInstanceOf(RequestStateSigner::class, $context->requestStateSigner);
+
+                return new InputRequiredResult(requestState: $context->requestStateSigner->sign('round-1'));
+            })],
+            requestStateSigner: new RequestStateSigner('secret'),
+        );
+
+        $dispatcher->dispatch($this->buildToolsCallEnvelope(1, null), $transport, new ReceiveContext());
+        $dispatcher->flushPending();
+
+        self::assertCount(1, $transport->sent);
+        self::assertInstanceOf(JsonRpcResultResponse::class, $transport->sent[0]['message']);
+    }
+
+    public function testWithoutASignerTheRequestStatePassesThroughUnverified(): void
+    {
+        $seen = null;
+        $transport = new RecordingTransport();
+        $dispatcher = $this->buildDispatcher(
+            requestHandlers: ['tools/call' => new ClosureRequestHandler(static function ($request, AbstractContext $context) use (&$seen): Result {
+                $seen = $context;
+
+                return new CallToolResult(content: []);
+            })],
+        );
+
+        $dispatcher->dispatch($this->buildToolsCallEnvelope(1, 'anything'), $transport, new ReceiveContext());
+        $dispatcher->flushPending();
+
+        self::assertInstanceOf(ServerContext::class, $seen);
+        self::assertSame('anything', $seen->requestState);
+        self::assertNull($seen->requestStatePayload);
+        self::assertNull($seen->requestStateSigner);
     }
 
     public function testACancelledRequestWhoseHandlerPropagatesTheCancellationIsNotAnswered(): void
@@ -1692,6 +1829,11 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         self::assertSame(['exception'], array_keys($matches[0]['context']), 'The peer envelope must not ride the log record.');
     }
 
+    private function deriveToolsCallBinding(): string
+    {
+        return RequestStateSigner::deriveBinding(CallToolRequest::fromArray($this->buildToolsCallEnvelope(1, null)), new ReceiveContext());
+    }
+
     /**
      * @param array<non-empty-string, RequestHandlerInterface<non-empty-string, Result, ServerContext>> $requestHandlers
      * @param array<non-empty-string, NotificationHandlerInterface<non-empty-string>>                   $notificationHandlers
@@ -1705,6 +1847,7 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         ?Implementation $serverInfo = null,
         ?int $maxInFlight = null,
         ?PendingInboundRequests $inboundRequests = null,
+        ?RequestStateSigner $requestStateSigner = null,
     ): ServerMessageDispatcher {
         return new ServerMessageDispatcher(
             new HandlerRegistry($requestHandlers, RequestHandlerInterface::class, 'Request handler'),
@@ -1714,7 +1857,48 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
             serverInfo: $serverInfo,
             maxInFlight: $maxInFlight,
             inboundRequests: $inboundRequests ?? new PendingInboundRequests(),
+            requestStateSigner: $requestStateSigner,
         );
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function buildToolsCallEnvelope(int $id, ?string $requestState): array
+    {
+        $params = ['_meta' => RequestMetaObjectFactory::shape(), 'name' => 'deploy'];
+
+        if (null !== $requestState) {
+            $params['requestState'] = $requestState;
+        }
+
+        return ['jsonrpc' => '2.0', 'id' => $id, 'method' => 'tools/call', 'params' => $params];
+    }
+
+    /**
+     * Dispatches one `tools/call` through a signer-aware dispatcher and returns what the handler saw.
+     *
+     * @return array{mixed, RecordingTransport, ArrayLogger}
+     */
+    private function dispatchToolsCall(RequestStateSigner $signer, ?string $requestState): array
+    {
+        $seen = null;
+        $transport = new RecordingTransport();
+        $logger = new ArrayLogger();
+        $dispatcher = $this->buildDispatcher(
+            requestHandlers: ['tools/call' => new ClosureRequestHandler(static function ($request, AbstractContext $context) use (&$seen): Result {
+                $seen = $context;
+
+                return new CallToolResult(content: []);
+            })],
+            logger: $logger,
+            requestStateSigner: $signer,
+        );
+
+        $dispatcher->dispatch($this->buildToolsCallEnvelope(1, $requestState), $transport, new ReceiveContext());
+        $dispatcher->flushPending();
+
+        return [$seen, $transport, $logger];
     }
 
     /**

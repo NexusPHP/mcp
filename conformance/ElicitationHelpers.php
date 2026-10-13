@@ -27,6 +27,15 @@ use Nexus\Mcp\Server\ServerContext;
 trait ElicitationHelpers
 {
     /**
+     * A state minted through the server's signer, bound to the request in hand.
+     */
+    private function mint(ServerContext $context, string $payload): string
+    {
+        return $context->requestStateSigner?->sign($payload)
+            ?? throw new LogicException('The server has no request-state signer configured.');
+    }
+
+    /**
      * @param non-empty-string $key
      * @param non-empty-string $message
      * @param non-empty-string $field

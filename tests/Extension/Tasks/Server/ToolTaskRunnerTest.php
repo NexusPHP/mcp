@@ -17,6 +17,7 @@ use Amp\CancelledException;
 use Amp\DeferredFuture;
 use Amp\NullCancellation;
 use Nexus\Mcp\Core\Exception\InvalidParamsException;
+use Nexus\Mcp\Core\Handler\AbstractContext;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequest;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequestedSchema;
@@ -27,6 +28,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestFormParams;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
+use Nexus\Mcp\Core\Transport\ReceiveContext;
 use Nexus\Mcp\Extension\Tasks\Schema\Enum\TaskStatus;
 use Nexus\Mcp\Extension\Tasks\Server\Exception\TaskLimitReachedException;
 use Nexus\Mcp\Extension\Tasks\Server\Store\InMemoryTaskStore;
@@ -34,6 +36,7 @@ use Nexus\Mcp\Extension\Tasks\Server\Store\TaskRecord;
 use Nexus\Mcp\Extension\Tasks\Server\Store\TaskStoreInterface;
 use Nexus\Mcp\Extension\Tasks\Server\TaskCancellationRegistry;
 use Nexus\Mcp\Extension\Tasks\Server\ToolTaskRunner;
+use Nexus\Mcp\Server\RequestStateSigner;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
@@ -116,6 +119,74 @@ final class ToolTaskRunnerTest extends AbstractMcpTestCase
         self::assertSame(TaskStatus::InputRequired, $record->status);
         self::assertSame(['confirm' => $request], $record->pendingInputRequests);
         self::assertSame('state-1', $record->requestState);
+    }
+
+    public function testAParkedStateIsStoredAsItsPayloadWhenTheServerSignsStates(): void
+    {
+        $elicit = $this->buildElicitRequest();
+        $signer = new RequestStateSigner('secret');
+        [$store, $runner] = $this->buildRunner(new ClosureRequestHandler(
+            static function ($request, AbstractContext $context) use ($elicit): Result {
+                self::assertInstanceOf(ServerContext::class, $context);
+                self::assertInstanceOf(RequestStateSigner::class, $context->requestStateSigner);
+
+                return new InputRequiredResult(inputRequests: ['confirm' => $elicit], requestState: $context->requestStateSigner->sign('step-2'));
+            },
+        ));
+        $taskId = $store->createTask('slow_compute', null, null, 1_000)->taskId;
+
+        $runner->startTask($taskId, $this->buildRequest(), $this->buildContext($signer), null, null);
+        delay(0);
+
+        $record = $store->findTask($taskId);
+        self::assertInstanceOf(TaskRecord::class, $record);
+        self::assertSame(TaskStatus::InputRequired, $record->status);
+        self::assertSame('step-2', $record->requestState);
+    }
+
+    public function testAParkedStateTheServerDidNotMintFailsTheTask(): void
+    {
+        $request = $this->buildElicitRequest();
+        [$store, $runner] = $this->buildRunner(new ClosureRequestHandler(
+            static fn(): Result => new InputRequiredResult(inputRequests: ['confirm' => $request], requestState: 'unsigned'),
+        ));
+        $taskId = $store->createTask('slow_compute', null, null, 1_000)->taskId;
+
+        $runner->startTask($taskId, $this->buildRequest(), $this->buildContext(new RequestStateSigner('secret')), null, null);
+        delay(0);
+
+        $record = $store->findTask($taskId);
+        self::assertInstanceOf(TaskRecord::class, $record);
+        self::assertSame(TaskStatus::Failed, $record->status);
+        self::assertSame(
+            ['code' => -32_603, 'message' => 'The tool parked the task with a "requestState" that does not verify under the server\'s signer.'],
+            $record->error,
+        );
+    }
+
+    public function testAResumedTaskReadsItsStoredPayloadUnderAFreshSignature(): void
+    {
+        $signer = new RequestStateSigner('secret');
+        $seen = null;
+        [$store, $runner] = $this->buildRunner(new ClosureRequestHandler(
+            static function ($request, AbstractContext $context) use (&$seen): Result {
+                $seen = $context;
+
+                return new CallToolResult(content: []);
+            },
+        ));
+        $taskId = $store->createTask('slow_compute', null, null, 1_000)->taskId;
+
+        $runner->startTask($taskId, $this->buildRequest(), $this->buildContext($signer), null, 'step-2');
+        delay(0);
+
+        $binding = RequestStateSigner::deriveBinding($this->buildRequest(), new ReceiveContext());
+        self::assertInstanceOf(ServerContext::class, $seen);
+        self::assertSame('step-2', $seen->requestStatePayload);
+        self::assertIsString($seen->requestState);
+        self::assertSame('step-2', $signer->verify($seen->requestState, $binding));
+        self::assertInstanceOf(RequestStateSigner::class, $seen->requestStateSigner);
+        self::assertSame('step-3', $signer->verify($seen->requestStateSigner->sign('step-3'), $binding));
     }
 
     public function testARequestStateOnlyParkFailsTheTask(): void
@@ -390,13 +461,14 @@ final class ToolTaskRunnerTest extends AbstractMcpTestCase
         ]);
     }
 
-    private function buildContext(): ServerContext
+    private function buildContext(?RequestStateSigner $signer = null): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 7),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
             new RecordingSender(),
+            requestStateSigner: $signer,
         );
     }
 

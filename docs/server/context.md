@@ -10,6 +10,8 @@ Every handler closure receives a `ServerContext` as its last argument.
 | `$context->receiveContext` | What the transport knew about the delivery. Over Streamable HTTP that is `request` (the PSR-7 `ServerRequestInterface`) and `authInfo` (the `VerifiedAccessToken` verified by an authentication middleware, see [authorization](../auth/server.md#reading-the-token-in-a-handler)). Both are `null` over stdio. |
 | `$context->inputResponses` | The client's answers to a prior `InputRequiredResult`, keyed by the identifiers assigned by that result, or `null` on a first call. |
 | `$context->requestState` | The opaque continuation token carried by that result, echoed back unchanged, or `null` on a first call. |
+| `$context->requestStateSigner` | The server's [`RequestStateSigner`](input-required.md#what-the-signature-covers) bound to this request, or `null` when none is configured. |
+| `$context->requestStatePayload` | The payload of `requestState` once the signer verified it, or `null` on a first call and when no signer is configured. |
 
 `$context->meta->logLevel` is the revision's per-request replacement for the removed `logging/setLevel` method.
 It is the client's requested minimum level for this request, as a `LoggingLevel` case, or `null` when the request

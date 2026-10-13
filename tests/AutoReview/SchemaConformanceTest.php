@@ -1167,7 +1167,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
         self::assertIsArray(self::$latestSchema[$schema], \sprintf('Schema definition for "%s" is not an array.', $schema));
         self::assertArrayHasKey($property, self::$latestSchema[$schema], \sprintf('Schema definition for "%s" does not have "%s".', $schema, $property));
 
-        return self::$latestSchema[$schema][$property]; // @phpstan-ignore offsetAccess.notFound
+        return self::$latestSchema[$schema][$property];
     }
 
     /**

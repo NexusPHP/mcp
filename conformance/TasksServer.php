@@ -18,7 +18,6 @@ use Nexus\Mcp\Core\Schema\Elicitation\StringSchema;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
 use Nexus\Mcp\Server\Attribute\AsTool;
-use Nexus\Mcp\Server\RequestStateSigner;
 use Nexus\Mcp\Server\ServerContext;
 
 use function Amp\delay;
@@ -29,13 +28,6 @@ use function Amp\delay;
 final class TasksServer
 {
     use ElicitationHelpers;
-
-    private readonly RequestStateSigner $states;
-
-    public function __construct()
-    {
-        $this->states = RequestStateSigner::generate();
-    }
 
     #[AsTool(name: 'greet', description: 'Greets the given name synchronously.')]
     public function greet(string $name): string
@@ -89,7 +81,7 @@ final class TasksServer
             return new CallToolResult(content: [new TextContent(text: sprintf('Left %s in place.', $filename))]);
         }
 
-        return self::ask('confirm_delete', sprintf('Delete %s?', $filename), 'confirm', new BooleanSchema(), $this->states->sign('confirm_delete'));
+        return self::ask('confirm_delete', sprintf('Delete %s?', $filename), 'confirm', new BooleanSchema(), $this->mint($context, 'confirm_delete'));
     }
 
     #[AsTool(name: 'multi_input', description: 'Fans out two input requests at once.')]
@@ -111,7 +103,7 @@ final class TasksServer
                 'multi_name' => $this->buildInputRequest('What is your name?', 'name', new StringSchema()),
                 'multi_confirm' => $this->buildInputRequest('Confirm the run?', 'confirm', new BooleanSchema()),
             ],
-            requestState: $this->states->sign('multi_input'),
+            requestState: $this->mint($context, 'multi_input'),
         );
     }
 
@@ -132,6 +124,6 @@ final class TasksServer
             return new CallToolResult(content: [new TextContent(text: 'Hello, stranger!')]);
         }
 
-        return self::ask('task_user_name', 'What is your name?', 'name', state: $this->states->sign('task_user_name'));
+        return self::ask('task_user_name', 'What is your name?', 'name', state: $this->mint($context, 'task_user_name'));
     }
 }

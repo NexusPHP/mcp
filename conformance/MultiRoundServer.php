@@ -11,7 +11,6 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Elicitation\BooleanSchema;
 use Nexus\Mcp\Core\Schema\Enum\Role;
@@ -21,7 +20,6 @@ use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
 use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
 use Nexus\Mcp\Server\Attribute\AsPrompt;
 use Nexus\Mcp\Server\Attribute\AsTool;
-use Nexus\Mcp\Server\RequestStateSigner;
 use Nexus\Mcp\Server\ServerContext;
 
 /**
@@ -30,13 +28,6 @@ use Nexus\Mcp\Server\ServerContext;
 final class MultiRoundServer
 {
     use ElicitationHelpers;
-
-    private readonly RequestStateSigner $signer;
-
-    public function __construct()
-    {
-        $this->signer = RequestStateSigner::generate();
-    }
 
     #[AsTool(name: 'test_input_required_result_elicitation', description: 'Asks for a name, then greets it.')]
     public function elicitation(ServerContext $context): CallToolResult|InputRequiredResult
@@ -53,14 +44,8 @@ final class MultiRoundServer
     #[AsTool(name: 'test_input_required_result_request_state', description: 'Carries an opaque continuation token across the round trip.')]
     public function requestState(ServerContext $context): CallToolResult|InputRequiredResult
     {
-        $state = $context->requestState;
-
-        if (null === $state) {
-            return self::ask('confirm', 'Please confirm', 'ok', new BooleanSchema(), $this->signer->sign('confirm'));
-        }
-
-        if ($this->signer->verify($state) === null) {
-            throw new InvalidParamsException($context->requestId, 'The "requestState" failed its integrity check.');
+        if (null === $context->requestStatePayload) {
+            return self::ask('confirm', 'Please confirm', 'ok', new BooleanSchema(), $this->mint($context, 'confirm'));
         }
 
         return new CallToolResult(content: [new TextContent(text: 'state-ok')]);
@@ -69,10 +54,10 @@ final class MultiRoundServer
     #[AsTool(name: 'test_input_required_result_multi_round', description: 'Asks two questions in sequence, evolving the continuation token.')]
     public function multiRound(ServerContext $context): CallToolResult|InputRequiredResult
     {
-        $round = null === $context->requestState ? null : $this->signer->verify($context->requestState);
+        $round = $context->requestStatePayload;
 
         if (null === $round) {
-            return self::ask('step1', 'Step 1: What is your name?', 'name', state: $this->signer->sign('round-1'));
+            return self::ask('step1', 'Step 1: What is your name?', 'name', state: $this->mint($context, 'round-1'));
         }
 
         if (str_starts_with($round, 'round-1')) {
@@ -80,7 +65,7 @@ final class MultiRoundServer
             // The client will not resend this answer, so the next round carries it in the state.
             $carried = is_string($name) ? $name : 'friend';
 
-            return self::ask('step2', 'Step 2: Which colour do you like best?', 'color', state: $this->signer->sign('round-2|'.$carried));
+            return self::ask('step2', 'Step 2: Which colour do you like best?', 'color', state: $this->mint($context, 'round-2|'.$carried));
         }
 
         $color = self::readAcceptedAnswer($context, 'step2', 'color');
@@ -95,14 +80,8 @@ final class MultiRoundServer
     #[AsTool(name: 'test_input_required_result_tampered_state', description: 'Refuses a continuation token that fails its integrity check.')]
     public function tamperedState(ServerContext $context): CallToolResult|InputRequiredResult
     {
-        $state = $context->requestState;
-
-        if (null === $state) {
-            return self::ask('confirm', 'Please confirm', 'ok', new BooleanSchema(), $this->signer->sign('confirm'));
-        }
-
-        if ($this->signer->verify($state) === null) {
-            throw new InvalidParamsException($context->requestId, 'The "requestState" failed its integrity check.');
+        if (null === $context->requestStatePayload) {
+            return self::ask('confirm', 'Please confirm', 'ok', new BooleanSchema(), $this->mint($context, 'confirm'));
         }
 
         return new CallToolResult(content: [new TextContent(text: 'State verified.')]);

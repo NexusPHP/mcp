@@ -34,6 +34,7 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\Notification\SubscriptionsAcknowledgedNotification;
 use Nexus\Mcp\Core\Schema\Prompt\Prompt;
+use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestFormParams;
 use Nexus\Mcp\Core\Schema\Resource\Resource;
@@ -55,6 +56,7 @@ use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use Nexus\Mcp\Core\Schema\ServerCapabilities;
 use Nexus\Mcp\Core\Schema\SubscriptionFilter;
 use Nexus\Mcp\Core\Schema\Tool\Tool;
+use Nexus\Mcp\Core\Transport\ReceiveContext;
 use Nexus\Mcp\Server\Attribute\AsCompletion;
 use Nexus\Mcp\Server\Attribute\AsPrompt;
 use Nexus\Mcp\Server\Attribute\AsResource;
@@ -67,6 +69,7 @@ use Nexus\Mcp\Server\ListChangeSourceInterface;
 use Nexus\Mcp\Server\Prompt\MutablePromptStoreInterface;
 use Nexus\Mcp\Server\Prompt\PromptStore;
 use Nexus\Mcp\Server\Prompt\PromptStoreInterface;
+use Nexus\Mcp\Server\RequestStateSigner;
 use Nexus\Mcp\Server\Resource\MutableResourceStoreInterface;
 use Nexus\Mcp\Server\Resource\MutableResourceTemplateStoreInterface;
 use Nexus\Mcp\Server\Resource\ResourceStore;
@@ -1414,6 +1417,70 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         );
     }
 
+    public function testAConfiguredSignerVerifiesTheEchoedRequestStateBeforeTheTool(): void
+    {
+        $signer = RequestStateSigner::generate();
+        $server = (new ServerBuilder())
+            ->setServerInfo('demo', '1.0.0')
+            ->setRequestStateSigner($signer)
+            ->addTool(
+                new Tool(name: 'deploy', inputSchema: ['type' => 'object']),
+                static fn(?array $args, ServerContext $ctx): CallToolResult => new CallToolResult(content: [new TextContent(text: $ctx->requestStatePayload ?? 'first')]),
+            )
+            ->build()
+        ;
+
+        $binding = RequestStateSigner::deriveBinding(
+            CallToolRequest::fromArray(['id' => 2, 'params' => ['_meta' => RequestMetaObjectFactory::shape(), 'name' => 'deploy']]),
+            new ReceiveContext(),
+        );
+        $result = $this->dispatch($server, 'tools/call', ['name' => 'deploy', 'requestState' => $signer->sign('round-2', $binding)]);
+
+        self::assertInstanceOf(CallToolResult::class, $result);
+        self::assertArrayHasKey(0, $result->content);
+        self::assertInstanceOf(TextContent::class, $result->content[0]);
+        self::assertSame('round-2', $result->content[0]->text);
+    }
+
+    public function testAConfiguredSignerRefusesAForgedRequestState(): void
+    {
+        $server = (new ServerBuilder())
+            ->setServerInfo('demo', '1.0.0')
+            ->setRequestStateSigner(RequestStateSigner::generate())
+            ->addTool(
+                new Tool(name: 'deploy', inputSchema: ['type' => 'object']),
+                static fn(?array $args, $ctx): CallToolResult => new CallToolResult(content: []),
+            )
+            ->build()
+        ;
+
+        $transport = new RecordingTransport();
+        $serverRun = \Amp\async(static function () use ($server, $transport): void {
+            $server->run($transport);
+        });
+
+        EventLoop::queue(static function () use ($transport): void {
+            $transport->emitMessage([
+                'jsonrpc' => '2.0',
+                'id' => 2,
+                'method' => 'tools/call',
+                'params' => ['_meta' => RequestMetaObjectFactory::shape(), 'name' => 'deploy', 'requestState' => 'forged'],
+            ]);
+        });
+
+        EventLoop::queue(static function () use ($transport): void {
+            $transport->close();
+        });
+
+        $serverRun->await();
+
+        self::assertCount(1, $transport->sent);
+        $message = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
+        self::assertSame(ProtocolErrorCode::InvalidParams->value, $message->error->code);
+        self::assertSame('Invalid or expired "requestState".', $message->error->message);
+    }
+
     public function testAnExtensionAClientNeedNotDeclareServesANonDeclaringClient(): void
     {
         $server = (new ServerBuilder())
@@ -2516,6 +2583,8 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
         yield 'setSchemaValidator' => [static fn(ServerBuilder $b): ServerBuilder => $b->setSchemaValidator(new OpisSchemaValidator())];
 
+        yield 'setRequestStateSigner' => [static fn(ServerBuilder $b): ServerBuilder => $b->setRequestStateSigner(RequestStateSigner::generate())];
+
         yield 'setPageSize' => [static fn(ServerBuilder $b): ServerBuilder => $b->setPageSize(5)];
 
         yield 'setTtlMs' => [static fn(ServerBuilder $b): ServerBuilder => $b->setTtlMs(5)];
@@ -3217,6 +3286,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             requestDecorators: [
                 'tools/call' => static fn(RequestHandlerInterface $inner): RequestHandlerInterface => new ClosureRequestHandler(
                     static function (JsonRpcRequest $request, AbstractContext $context) use ($inner, $marker): Result {
+                        \assert($context instanceof ServerContext);
                         $result = $inner->handle($request, $context);
                         \assert($result instanceof CallToolResult);
                         $text = $result->content[0] ?? null;

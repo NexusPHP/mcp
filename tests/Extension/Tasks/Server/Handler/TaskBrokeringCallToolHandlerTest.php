@@ -21,6 +21,7 @@ use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
+use Nexus\Mcp\Core\Transport\ReceiveContext;
 use Nexus\Mcp\Extension\Tasks\Schema\Enum\TaskStatus;
 use Nexus\Mcp\Extension\Tasks\Schema\Result\CreateTaskResult;
 use Nexus\Mcp\Extension\Tasks\Server\Exception\TaskLimitReachedException;
@@ -32,6 +33,7 @@ use Nexus\Mcp\Extension\Tasks\Server\TaskSupport;
 use Nexus\Mcp\Extension\Tasks\Server\ToolTaskPolicy;
 use Nexus\Mcp\Extension\Tasks\Server\ToolTaskRunner;
 use Nexus\Mcp\Server\Exception\MissingRequiredClientCapabilityException;
+use Nexus\Mcp\Server\RequestStateSigner;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
@@ -119,6 +121,41 @@ final class TaskBrokeringCallToolHandlerTest extends AbstractMcpTestCase
         $result = $broker->handle($this->buildRequest('confirm_delete'), $this->buildContext(declared: true));
 
         self::assertSame($marker, $result);
+    }
+
+    public function testAVerifiedRequestStateReachesTheTaskAsItsPayload(): void
+    {
+        $seen = null;
+        $store = new InMemoryTaskStore();
+        $runner = new ToolTaskRunner($store, new TaskCancellationRegistry(), new ArrayLogger());
+        $inner = new ClosureRequestHandler(static function ($request, $context) use (&$seen): Result {
+            $seen = $context;
+
+            return new CallToolResult(content: []);
+        });
+        $runner->bindInnerHandler($inner);
+        $broker = new TaskBrokeringCallToolHandler(
+            inner: $inner,
+            identifier: self::IDENTIFIER,
+            store: $store,
+            runner: $runner,
+            toolPolicies: ['confirm_delete' => new ToolTaskPolicy(support: TaskSupport::Optional, resolvesInputFirst: true)],
+            defaultTtlMs: 300_000,
+            defaultPollIntervalMs: 1_000,
+        );
+        $request = $this->buildRequest('confirm_delete');
+        $signer = (new RequestStateSigner('secret'))->bindFor($request, new ReceiveContext());
+
+        $broker->handle(
+            $request,
+            $this->buildContext(declared: true, requestState: $signer->sign('round-2'), signer: $signer, payload: 'round-2'),
+        );
+        delay(0);
+
+        self::assertInstanceOf(ServerContext::class, $seen);
+        self::assertSame('round-2', $seen->requestStatePayload);
+        self::assertIsString($seen->requestState);
+        self::assertSame('round-2', $signer->verify($seen->requestState));
     }
 
     public function testAResolvesInputFirstToolCreatesATaskOnceTheTokenArrives(): void
@@ -216,7 +253,7 @@ final class TaskBrokeringCallToolHandlerTest extends AbstractMcpTestCase
         ]);
     }
 
-    private function buildContext(bool $declared, ?string $requestState = null): ServerContext
+    private function buildContext(bool $declared, ?string $requestState = null, ?RequestStateSigner $signer = null, ?string $payload = null): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 7),
@@ -226,6 +263,8 @@ final class TaskBrokeringCallToolHandlerTest extends AbstractMcpTestCase
             ),
             new RecordingSender(),
             requestState: $requestState,
+            requestStateSigner: $signer,
+            requestStatePayload: $payload,
         );
     }
 }

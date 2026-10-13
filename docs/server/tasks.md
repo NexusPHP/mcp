@@ -86,8 +86,10 @@ acks.
 `tasks/update` merges the client's `inputResponses` into the pending set. Responses for keys that were never
 issued are ignored, whatever their shape, and a partial answer keeps the task in `input_required`. Once nothing is
 pending, the tool call re-dispatches in a fresh background fiber with the accumulated responses and the stored
-`requestState`. That is byte-for-byte what a synchronous client would re-issue, so the tool's continuation token
-carries all the state.
+`requestState`. That is what a synchronous client would re-issue, so the tool's continuation token carries all
+the state. When the server has a [`RequestStateSigner`](input-required.md#what-the-signature-covers), the store
+holds the verified payload and the resumed call carries it under a fresh signature, so a task may wait longer
+than the signer's expiry.
 
 A background task cannot reach the creating request's connection. Outbound notifications from a task fiber are
 dropped with a debug log, and outbound requests throw.

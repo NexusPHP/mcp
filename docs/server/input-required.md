@@ -17,11 +17,11 @@ sequenceDiagram
 ```
 
 ```php
-$signer = new RequestStateSigner($secretFromConfig);
+$builder->setRequestStateSigner(new RequestStateSigner($secretFromConfig));
 
 $builder->addTool(
     tool: new Tool(name: 'deploy', inputSchema: ['type' => 'object']),
-    executor: static function (?array $args, ServerContext $context) use ($signer): CallToolResult|InputRequiredResult {
+    executor: static function (?array $args, ServerContext $context): CallToolResult|InputRequiredResult {
         $answer = $context->inputResponses['confirm'] ?? null;
 
         if (! $answer instanceof ElicitResult || ElicitAction::Accept !== $answer->action) {
@@ -33,10 +33,7 @@ $builder->addTool(
                         required: ['ok'],
                     ),
                 ))],
-                requestState: $signer->sign(
-                    'awaiting-confirmation',
-                    $context->receiveContext->authInfo?->subject ?? '',
-                ),
+                requestState: $context->requestStateSigner?->sign('awaiting-confirmation'),
             );
         }
 
@@ -52,46 +49,78 @@ Four constraints apply to a handler.
 Anything learned by an earlier round has to travel in `requestState`. That is why a multi-round handler reads its
 position from the state, not from an accumulated `inputResponses` map.
 
-## `requestState` is opaque to the client and unverified on arrival
+## `requestState` is opaque to the client and attacker-controlled on arrival
 
 The spec has the client echo the state back untouched, so a hostile client may echo back something else entirely.
-`RequestStateSigner` mints and checks it:
+Give the builder a `RequestStateSigner` and the server verifies every echoed state before the handler runs:
 
 ```php
-$caller = $context->receiveContext->authInfo?->subject ?? '';
+use Nexus\Mcp\Server\RequestStateSigner;
 
-// Minting, when the handler asks for input.
-$state = $signer->sign('awaiting-confirmation', $caller);
-
-// Checking, when the call comes back. A null state is a first call, not a forgery.
-$payload = null === $context->requestState
-    ? null
-    : $signer->verify($context->requestState, $caller)
-        ?? throw new InvalidParamsException($context->requestId, 'The "requestState" failed its integrity check.');
+$server = (new ServerBuilder())
+    ->setRequestStateSigner(new RequestStateSigner($secret))
+    // ...
 ```
 
-`verify()` returns the payload it signed. It returns `null` for a state not minted by this server, or minted under
-a different binding. `RequestStateSigner::generate()` draws a key for a server whose states never outlive its own
-process. Anything longer-lived wants a key from configuration, so a state survives a restart or a second instance
-behind a load balancer.
+A handler then mints through the signer on its context and reads the verified payload back, with no check of
+its own:
 
-## Bind the state to whoever is entitled to resume it
+```php
+// Minting, when the handler asks for input.
+$state = $context->requestStateSigner?->sign('awaiting-confirmation');
 
-The signature answers "did a server holding this secret mint this". On its own, that lets any caller replay any
-other caller's state, and a configuration key shared across instances widens that to the whole deployment.
+// When the call comes back. A null payload is a first call.
+if (null === $context->requestStatePayload) {
+    // ask
+}
+```
 
-The second argument to `sign()` and `verify()` is folded into the signature, so a state minted for one binding
-will not verify under another. The authenticated subject is the usual choice. It is `null` over stdio, on an
-unprotected endpoint, and for an accepted token that carries no non-empty `sub` claim. In each case, `?? ''` is
-the same as passing no binding at all.
+A state that fails verification is answered `-32602` with the fixed message `Invalid or expired "requestState"`,
+and the reason goes to the logger as a warning. The handler never sees it. Without a signer, `requestState`
+reaches the handler as the raw string, `requestStatePayload` stays `null`, and the integrity check is the
+handler's own.
 
-Anything that a replaying caller can also send is worthless here. An endpoint that serves more than one caller has
-no trustworthy caller identity until something authenticates them, whether the endpoint itself or a proxy in front
-of it.
+`RequestStateSigner::generate()` draws a key for a server whose states never outlive its own process. Anything
+longer-lived wants a key from configuration, so a state survives a restart or a second instance behind a load
+balancer.
+
+## What the signature covers
+
+The signature folds in three things beyond the payload, which are the spec's own replay checks:
+
+- **The binding.** By default the authenticated subject, the method, the tool name, prompt name or resource URI
+  it targets, and a digest of its arguments. A state minted for one call verifies on no other tool, for no
+  other caller, and with no other arguments, so a confirmation obtained for `{target: staging}` cannot resume
+  the tool with `{target: production}`. The subject is empty over stdio, on an unprotected endpoint, and for an
+  accepted token that carries no non-empty `sub` claim, so an endpoint serving more than one caller has no
+  caller binding until something authenticates them.
+- **An expiry.** Ten minutes by default, set per signer with `ttlSeconds`. A state echoed after it is refused.
+- **The secret.** A state minted by another server, or by this one under another key, is refused.
+
+`bindBy()` replaces the default binding with a closure over the request and its `ReceiveContext`, for a
+deployment that identifies callers another way:
+
+```php
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
+use Nexus\Mcp\Core\Transport\ReceiveContext;
+
+$signer = (new RequestStateSigner($secret))->bindBy(
+    static fn(JsonRpcRequest $request, ReceiveContext $receiveContext): string => $receiveContext->authInfo?->clientId ?? '',
+);
+```
 
 The payload is signed, not encrypted, and travels in the clear. Put a continuation marker in it, never a secret.
-Expiry is not built in. Encode a timestamp in the payload and check it after `verify()` if a state should go
-stale. A binding stops another caller replaying a state. It does not stop the same caller replaying it later.
+A binding stops another caller replaying a state and the expiry bounds how long. Neither stops the same caller
+replaying it inside the window, so a state that must be consumed once needs that enforced server-side.
+
+`RequestStateSigner::deriveBinding()` is the default policy, so a `bindBy()` closure can extend it rather than
+replace it. The server applies the policy through `bindFor()`, and `bindTo()` fixes a binding on a signer
+outright. `sign()` and `verify()` also take an explicit binding, which overrides the bound one for that call.
+
+With a signer configured, the server verifies every echoed state under the policy and refuses an outgoing one
+that does not verify under it, so a handler cannot mint under a binding of its own. Change what the server
+binds to with `bindBy()`. The explicit arguments serve a server that has no signer configured and checks its
+states by hand.
 
 ## Only elicitation is available to ask for
 

@@ -14,7 +14,6 @@ declare(strict_types=1);
 require __DIR__.'/bootstrap.php';
 
 use Nexus\Mcp\Client\ClientBuilder;
-use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Elicitation\BooleanSchema;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequest;
@@ -34,11 +33,10 @@ use function Amp\async;
 
 [$serverSide, $clientSide] = InMemoryTransport::createPair();
 
-$signer = RequestStateSigner::generate();
-
 $server = (new ServerBuilder())
     ->setLogger(new PsrLogger())
     ->setServerInfo(name: 'nexus-input-required-example', version: '0.1.0')
+    ->setRequestStateSigner(RequestStateSigner::generate())
     ->addTool(
         new Tool(
             name: 'deploy',
@@ -49,10 +47,10 @@ $server = (new ServerBuilder())
             ],
             description: 'Deploys to a target after the user confirms.',
         ),
-        static function (?array $args, ServerContext $context) use ($signer): CallToolResult|InputRequiredResult {
+        static function (?array $args, ServerContext $context): CallToolResult|InputRequiredResult {
             $target = is_string($args['target'] ?? null) ? $args['target'] : 'somewhere';
 
-            if (null === $context->requestState) {
+            if (null === $context->requestStatePayload) {
                 return new InputRequiredResult(
                     inputRequests: ['confirm' => new ElicitRequest(params: new ElicitRequestFormParams(
                         message: sprintf('Deploy to %s?', $target),
@@ -61,12 +59,8 @@ $server = (new ServerBuilder())
                             required: ['ok'],
                         ),
                     ))],
-                    requestState: $signer->sign('awaiting-confirmation'),
+                    requestState: $context->requestStateSigner?->sign('awaiting-confirmation'),
                 );
-            }
-
-            if ($signer->verify($context->requestState) === null) {
-                throw new InvalidParamsException($context->requestId, 'The "requestState" failed its integrity check.');
             }
 
             $answer = $context->inputResponses['confirm'] ?? null;

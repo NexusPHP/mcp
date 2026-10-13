@@ -39,6 +39,7 @@ use Nexus\Mcp\Extension\Tasks\Server\TasksServerExtension;
 use Nexus\Mcp\Extension\Tasks\Server\TaskSupport;
 use Nexus\Mcp\Extension\Tasks\Server\ToolTaskPolicy;
 use Nexus\Mcp\Server\Prompt\MutablePromptStoreInterface;
+use Nexus\Mcp\Server\RequestStateSigner;
 use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Server\Subscription\SubscriptionStore;
 use Nexus\Mcp\Server\Tool\MutableToolStoreInterface;
@@ -67,6 +68,7 @@ $psr17 = new Psr17Factory();
 $everythingServer = new EverythingServer();
 $builder = (new ServerBuilder())
     ->setLogger($logger)
+    ->setRequestStateSigner(RequestStateSigner::generate())
     ->register($everythingServer, new MultiRoundServer(), new TasksServer())
     ->enableExtension(new TasksServerExtension(
         toolPolicies: [

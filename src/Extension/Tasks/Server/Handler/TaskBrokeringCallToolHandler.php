@@ -84,7 +84,13 @@ final readonly class TaskBrokeringCallToolHandler implements RequestHandlerInter
             $this->defaultPollIntervalMs,
         );
 
-        $this->runner->startTask($record->taskId, $request, $context, $context->inputResponses, $context->requestState);
+        $this->runner->startTask(
+            $record->taskId,
+            $request,
+            $context,
+            $context->inputResponses,
+            $context->requestStatePayload ?? $context->requestState,
+        );
 
         return new CreateTaskResult(
             taskId: $record->taskId,

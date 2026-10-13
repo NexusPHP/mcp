@@ -86,6 +86,7 @@ final class ToolTaskRunner
      *
      * @param non-empty-string                                $taskId
      * @param null|array<int|non-empty-string, InputResponse> $inputResponses
+     * @param null|string                                     $requestState   The state as the tool handler reads it: the verified payload when the server signs states, the raw token otherwise
      */
     public function startTask(string $taskId, CallToolRequest $request, ServerContext $origin, ?array $inputResponses, ?string $requestState): void
     {
@@ -95,6 +96,7 @@ final class ToolTaskRunner
             throw new \LogicException('The tasks broker has not been applied, so no tool handler can serve the task.');
         }
 
+        $signer = $origin->requestStateSigner?->bindFor($request, $origin->receiveContext);
         $background = new ServerContext(
             requestId: $origin->requestId,
             cancellation: $this->cancellations->register($taskId),
@@ -102,7 +104,9 @@ final class ToolTaskRunner
             sender: new DetachedTaskSender($this->logger, $origin->requestId),
             receiveContext: $origin->receiveContext,
             inputResponses: $inputResponses,
-            requestState: $requestState,
+            requestState: null === $signer || null === $requestState ? $requestState : $signer->sign($requestState),
+            requestStateSigner: $signer,
+            requestStatePayload: null === $signer ? null : $requestState,
         );
 
         async(function () use ($taskId, $request, $background, $inner): void {
@@ -124,16 +128,22 @@ final class ToolTaskRunner
             $result = $inner->handle($request, $context);
 
             if ($result instanceof InputRequiredResult) {
+                $state = $result->requestState;
+                $payload = null === $context->requestStateSigner || null === $state ? $state : $context->requestStateSigner->verify($state);
+
                 if (null === $result->inputRequests) {
                     $this->store->trySetFailed($taskId, ErrorFactory::create(
                         ProtocolErrorCode::InternalError,
                         'The tool parked the task without any input requests.',
                     )->toArray());
-
-                    return;
+                } elseif (null === $payload && null !== $state) {
+                    $this->store->trySetFailed($taskId, ErrorFactory::create(
+                        ProtocolErrorCode::InternalError,
+                        'The tool parked the task with a "requestState" that does not verify under the server\'s signer.',
+                    )->toArray());
+                } else {
+                    $this->store->trySetInputRequired($taskId, $result->inputRequests, $payload);
                 }
-
-                $this->store->trySetInputRequired($taskId, $result->inputRequests, $result->requestState);
 
                 return;
             }
