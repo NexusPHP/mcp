@@ -2710,7 +2710,28 @@
     "Nexus\\Mcp\\Server\\RequestStateSigner": {
         "__construct": [
             "secret",
-            "algorithm"
+            "algorithm",
+            "ttlSeconds",
+            "clock",
+            "binding",
+            "policy"
+        ],
+        "bindBy": [
+            "policy"
+        ],
+        "bindFor": [
+            "request",
+            "receiveContext"
+        ],
+        "bindTo": [
+            "binding"
+        ],
+        "deriveBinding": [
+            "request",
+            "receiveContext"
+        ],
+        "generate": [
+            "ttlSeconds"
         ],
         "sign": [
             "payload",
@@ -2924,6 +2945,9 @@
         "setPromptStore": [
             "store"
         ],
+        "setRequestStateSigner": [
+            "signer"
+        ],
         "setResourceStore": [
             "store"
         ],
@@ -2962,7 +2986,9 @@
             "sender",
             "receiveContext",
             "inputResponses",
-            "requestState"
+            "requestState",
+            "requestStateSigner",
+            "requestStatePayload"
         ]
     },
     "Nexus\\Mcp\\Server\\Subscription\\SubscriptionEntry": {
