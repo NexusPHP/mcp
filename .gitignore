@@ -2,7 +2,6 @@
 /.php-cs-fixer.php
 /.venv/
 /build/
-/CLAUDE.local.md
 /composer.lock
 /conformance/results/
 /latest-schema.json
