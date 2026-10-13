@@ -8,6 +8,12 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+## [v1.2.0](https://github.com/NexusPHP/mcp/compare/v1.1.0...v1.2.0) - 2026-10-13
+
+The server verifies every echoed `requestState` itself once given a `RequestStateSigner`, binding each state
+to its caller, method, target and arguments, and expiring it after ten minutes. The HTTP endpoint keeps
+checking the valid `Mcp-Param-*` headers of a tool that also declares an invalid one.
+
 ### Added
 
 - `ServerBuilder::setRequestStateSigner()`: the server verifies every echoed `requestState` before its handler

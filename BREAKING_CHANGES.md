@@ -4,7 +4,11 @@ This file is the upgrade guide: what breaks at each version boundary and how to 
 for *when* breaking changes may land and how they are communicated lives in
 [VERSIONING.md](VERSIONING.md).
 
-## v1.1.0 to Unreleased
+## v1.2.0 to Unreleased
+
+## v1.1.0 to v1.2.0
+
+No breaking changes.
 
 ## v1.0.0 to v1.1.0
 
