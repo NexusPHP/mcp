@@ -10,6 +10,11 @@ updates:
     schedule:
       interval: 'daily'
     open-pull-requests-limit: 10
+    groups:
+      all-dependencies:
+        group-by: dependency-name
+        patterns:
+          - '*'
 
   - package-ecosystem: 'composer'
     directories:
@@ -17,3 +22,8 @@ updates:
       - '/tools'
     schedule:
       interval: 'daily'
+    groups:
+      all-dependencies:
+        group-by: dependency-name
+        patterns:
+          - '*'
