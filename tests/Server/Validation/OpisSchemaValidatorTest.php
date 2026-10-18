@@ -17,6 +17,8 @@ use Nexus\Mcp\Server\Validation\OpisSchemaValidator;
 use Nexus\Mcp\Server\Validation\SchemaViolation;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Opis\JsonSchema\Exceptions\UnresolvedReferenceException;
+use Opis\JsonSchema\SchemaLoader;
+use Opis\JsonSchema\Validator;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -86,6 +88,8 @@ final class OpisSchemaValidatorTest extends AbstractMcpTestCase
      */
     public static function provideAnEmptySubSchemaValidatesAsAlwaysTrueCases(): iterable
     {
+        yield 'root' => [[], 'x'];
+
         yield 'additionalProperties' => [['type' => 'object', 'additionalProperties' => []], ['a' => 1]];
 
         yield 'contains' => [['type' => 'array', 'contains' => []], [1]];
@@ -160,6 +164,20 @@ final class OpisSchemaValidatorTest extends AbstractMcpTestCase
         self::assertSame([], (new OpisSchemaValidator())->validate([], ['const' => []]));
     }
 
+    public function testRepeatedValidationReusesTheParsedSchema(): void
+    {
+        $validator = new OpisSchemaValidator();
+        $other = ['type' => 'object', 'properties' => ['s' => ['type' => 'string']]];
+
+        $validator->validate(['n' => 1], self::SCHEMA);
+        $validator->validate(['s' => 'x'], $other);
+        $cached = $this->countParsedSchemas($validator);
+
+        self::assertSame([], $validator->validate(['n' => 2], self::SCHEMA));
+        self::assertNotSame([], $validator->validate(['s' => 1], $other));
+        self::assertSame($cached, $this->countParsedSchemas($validator));
+    }
+
     public function testARemoteRefIsRefusedWithoutAttemptingAFetch(): void
     {
         $schema = ['type' => 'object', 'properties' => ['n' => ['$ref' => 'https://example.invalid/schema.json']]];
@@ -187,6 +205,17 @@ final class OpisSchemaValidatorTest extends AbstractMcpTestCase
 
         self::assertSame('Unresolved reference: https://example.invalid/schema.json#', $message);
         self::assertSame([], $attempts);
+    }
+
+    private function countParsedSchemas(OpisSchemaValidator $validator): int
+    {
+        $opis = (new \ReflectionProperty(OpisSchemaValidator::class, 'validator'))->getValue($validator);
+        self::assertInstanceOf(Validator::class, $opis);
+
+        $cache = (new \ReflectionProperty(SchemaLoader::class, 'dataCache'))->getValue($opis->loader());
+        self::assertInstanceOf(\SplObjectStorage::class, $cache);
+
+        return \count($cache);
     }
 
     /**
