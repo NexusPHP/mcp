@@ -59,7 +59,7 @@ here. Renaming one before this point was never a break, and after it is.
 One commit, titled `Prepare changelog for vX.Y.Z`:
 
 - In `CHANGELOG.md`, insert `## [vX.Y.Z](https://github.com/NexusPHP/mcp/compare/vPREV...vX.Y.Z) - YYYY-MM-DD`
-  under the `## [Unreleased]` heading, with a short intro paragraph, so the unreleased entries move
+  under the `## [Unreleased]` heading, so the unreleased entries move
   under the new heading and `Unreleased` is left empty.
 - In `BREAKING_CHANGES.md`, rename `## vPREV to Unreleased` to `## vPREV to vX.Y.Z` and add a fresh
   empty `## vX.Y.Z to Unreleased` above it.

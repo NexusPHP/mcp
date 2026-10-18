@@ -19,10 +19,6 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [v1.2.0](https://github.com/NexusPHP/mcp/compare/v1.1.0...v1.2.0) - 2026-10-13
 
-The server verifies every echoed `requestState` itself once given a `RequestStateSigner`, binding each state
-to its caller, method, target and arguments, and expiring it after ten minutes. The HTTP endpoint keeps
-checking the valid `Mcp-Param-*` headers of a tool that also declares an invalid one.
-
 ### Added
 
 - `ServerBuilder::setRequestStateSigner()`: the server verifies every echoed `requestState` before its handler
@@ -42,11 +38,6 @@ checking the valid `Mcp-Param-*` headers of a tool that also declares an invalid
   expiry, so a state minted before this release no longer verifies.
 
 ## [v1.1.0](https://github.com/NexusPHP/mcp/compare/v1.0.0...v1.1.0) - 2026-10-05
-
-The skills extension (SEP-2640) joins the official extensions on both sides, the HTTP endpoint can require
-scopes per tool, prompt, or resource, and a client credential can be bound to one authorization server. The
-fixes cover the OAuth `resource` parameter, large Server-Sent Events, `subscriptions/listen` streams with
-nothing to deliver, `.localhost` loopback names, and the stdio client transport on Windows and at shutdown.
 
 ### Added
 
@@ -76,12 +67,6 @@ nothing to deliver, `.localhost` loopback names, and the stdio client transport 
 
 ## [v1.0.0](https://github.com/NexusPHP/mcp/compare/v0.16.0...v1.0.0) - 2026-09-04
 
-The stable major. The 2026-07-28 revision ships complete on both sides, over both transports, with both
-authorization halves and the four official extensions, and from here every release follows Semantic
-Versioning. The SDK is now five packages cut from one tree: the umbrella plus four component packages,
-tagged in lockstep. Time is injectable everywhere through `nexusphp/clock`, which retires the last closure
-seams (see [BREAKING_CHANGES.md](BREAKING_CHANGES.md)).
-
 ### Added
 
 - The SDK is also published as component packages: `nexusphp/mcp-core`, `nexusphp/mcp-server`,
@@ -106,13 +91,6 @@ seams (see [BREAKING_CHANGES.md](BREAKING_CHANGES.md)).
 - The `nexusphp/assert` floor is `^1.5`.
 
 ## [v0.16.0](https://github.com/NexusPHP/mcp/compare/v0.15.0...v0.16.0) - 2026-08-24
-
-The pre-v1 hardening release. Every default now bounds what a peer or a slow reader can cost (request
-body, SSE backlog, task fibers and records, subscription watch lists), the OAuth client seals discovery
-SSRF and binds the bearer token to the resource's path, and a schema failure surfaces its structured
-violations. Handler registration takes the envelope class, and a verified access token always carries
-its expiry (see [BREAKING_CHANGES.md](BREAKING_CHANGES.md)). New: an encrypted file token store and a
-worked PHP-FPM mount.
 
 ### Added
 
@@ -175,12 +153,6 @@ worked PHP-FPM mount.
 
 ## [v0.15.0](https://github.com/NexusPHP/mcp/compare/v0.14.0...v0.15.0) - 2026-08-20
 
-The dependency floors are now tested: a prefer-lowest CI leg proved the declared minimums wrong, so
-the constraints rise to the oldest versions the suite passes on. `RequestBodySizeLimitMiddleware`
-holds a body of unreported size to its cap, the first-run error messages say what to do next, and a
-stdio server spawned on Windows inherits its search path (see
-[BREAKING_CHANGES.md](BREAKING_CHANGES.md) for `SafeDisplay`'s now-private caps).
-
 ### Changed
 
 - Dependency floors are raised to the oldest versions the suite passes on (`amphp/amp` `^3.1.1`,
@@ -199,12 +171,6 @@ stdio server spawned on Windows inherits its search path (see
 
 ## [v0.14.0](https://github.com/NexusPHP/mcp/compare/v0.13.0...v0.14.0) - 2026-08-18
 
-Subscription streams are now budgeted per authorized peer alongside the server-wide cap, and a store
-reused across transports serves live streams again. A concurrent `close()` blocks until the close
-settles on every transport, and `ClientBuilder` refuses registration after `build()`. The extension
-contracts move under `Server\Extension` and `Client\Extension` (see
-[BREAKING_CHANGES.md](BREAKING_CHANGES.md)).
-
 ### Changed
 
 - `ClientBuilder` refuses every registration after `build()`, matching `ServerBuilder`.
@@ -221,12 +187,6 @@ contracts move under `Server\Extension` and `Client\Extension` (see
   one OAuth client cannot exhaust the server-wide subscription cap. See BREAKING_CHANGES.md.
 
 ## [v0.13.0](https://github.com/NexusPHP/mcp/compare/v0.12.0...v0.13.0) - 2026-08-14
-
-Peer-visible diagnostics now speak one documented grammar, from schema validation through argument
-binding, and datetime fields are held to RFC 3339. The exception surface shrinks with it: twenty-eight
-message-only classes collapse into two shared ones, the one breaking change (see
-[BREAKING_CHANGES.md](BREAKING_CHANGES.md)). Registration refuses magic-method handlers and duplicate
-discovered entries, and extension notifications gain the client-side capability gate.
 
 ### Changed
 
@@ -299,11 +259,6 @@ discovered entries, and extension notifications gain the client-side capability 
 
 ## [v0.12.0](https://github.com/NexusPHP/mcp/compare/v0.11.0...v0.12.0) - 2026-08-12
 
-Lifecycle correctness on both peers: close/drain ordering, in-flight caps that hold under pressure,
-subscription accounting, and task expiry and stall guarantees. The schema side now honours the spec's
-open capability set and the empty `{}` sub-schemas the decoder collapses to `[]`. Seven breaking changes are
-listed in [BREAKING_CHANGES.md](BREAKING_CHANGES.md).
-
 ### Added
 
 - `ClientBuilder::setMaxInFlightDispatches()` caps how many inbound messages a client processes at once.
@@ -371,11 +326,6 @@ listed in [BREAKING_CHANGES.md](BREAKING_CHANGES.md).
   cannot be encoded or built, and settles those still in flight when `close()` runs.
 
 ## [v0.11.0](https://github.com/NexusPHP/mcp/compare/v0.10.0...v0.11.0) - 2026-08-10
-
-Closes a family of security defects where peer-supplied bytes reached a renderer unbounded and
-unescaped, in a JSON-RPC error, a log record, or an exception message. The rest is decode correctness
-for names and keys the 2026-07-28 schema permits and this SDK refused. Three breaking changes are listed in
-[BREAKING_CHANGES.md](BREAKING_CHANGES.md).
 
 ### Added
 
@@ -461,8 +411,6 @@ for names and keys the 2026-07-28 schema permits and this SDK refused. Three bre
 
 ## [v0.10.0](https://github.com/NexusPHP/mcp/compare/v0.9.0...v0.10.0) - 2026-08-07
 
-Ships the PHP 8.3 floor ahead of the stable tag, so it has real exposure before 1.0. No breaking changes.
-
 ### Changed
 
 - The PHP floor is **8.3**, down from 8.4. Lowering a floor needs no migration. CI runs the suite on 8.3,
@@ -474,9 +422,6 @@ Ships the PHP 8.3 floor ahead of the stable tag, so it has real exposure before 
   still dropped.
 
 ## [v0.9.0](https://github.com/NexusPHP/mcp/compare/v0.8.0...v0.9.0) - 2026-08-06
-
-Closes the extensions backlog with the two ratified OAuth extensions, completing the 2026-07-28
-migration. Three breaking changes are listed in [BREAKING_CHANGES.md](BREAKING_CHANGES.md).
 
 ### Added
 
@@ -513,9 +458,6 @@ migration. Three breaking changes are listed in [BREAKING_CHANGES.md](BREAKING_C
 
 ## [v0.8.0](https://github.com/NexusPHP/mcp/compare/v0.7.0...v0.8.0) - 2026-08-05
 
-Ships the second official extension, MCP Apps (SEP-1865). One breaking change is listed in
-[BREAKING_CHANGES.md](BREAKING_CHANGES.md).
-
 ### Added
 
 - The MCP Apps extension (`io.modelcontextprotocol/ui`, SEP-1865) under `Nexus\Mcp\Extension\Apps`. It
@@ -531,9 +473,6 @@ Ships the second official extension, MCP Apps (SEP-1865). One breaking change is
   `Nexus\Mcp\Extension\Tasks\Tasks`, so the client half no longer imports a server-namespace class.
 
 ## [v0.7.0](https://github.com/NexusPHP/mcp/compare/v0.6.0...v0.7.0) - 2026-08-05
-
-Introduces the SEP-2133 extensions framework and the first extension built on it, tasks (SEP-2663).
-Task status is delivered by polling only, which SEP-2663 makes conformant.
 
 ### Added
 
@@ -570,10 +509,6 @@ Task status is delivered by polling only, which SEP-2663 makes conformant.
   `-32603`. It is now rejected as `-32600` with the echoed id.
 
 ## [v0.6.0](https://github.com/NexusPHP/mcp/compare/v0.5.0...v0.6.0) - 2026-08-03
-
-The tracked MCP specification moves from **2025-11-25** to **2026-07-28** with no compatibility layer,
-so this boundary is breaking throughout. [BREAKING_CHANGES.md](BREAKING_CHANGES.md) is the upgrade
-guide. The entries below are the inventory.
 
 ### Added
 
