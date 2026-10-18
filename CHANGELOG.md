@@ -8,6 +8,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+## [v1.2.1](https://github.com/NexusPHP/mcp/compare/v1.2.0...v1.2.1) - 2026-10-18
+
 ### Fixed
 
 - `OpisSchemaValidator` parses each distinct schema once, where a long-running server used to grow by about
