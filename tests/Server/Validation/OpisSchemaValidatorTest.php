@@ -171,10 +171,12 @@ final class OpisSchemaValidatorTest extends AbstractMcpTestCase
 
         $validator->validate(['n' => 1], self::SCHEMA);
         $validator->validate(['s' => 'x'], $other);
+        $opis = $this->readOpisValidator($validator);
         $cached = $this->countParsedSchemas($validator);
 
         self::assertSame([], $validator->validate(['n' => 2], self::SCHEMA));
         self::assertNotSame([], $validator->validate(['s' => 1], $other));
+        self::assertSame($opis, $this->readOpisValidator($validator));
         self::assertSame($cached, $this->countParsedSchemas($validator));
     }
 
@@ -207,12 +209,19 @@ final class OpisSchemaValidatorTest extends AbstractMcpTestCase
         self::assertSame([], $attempts);
     }
 
-    private function countParsedSchemas(OpisSchemaValidator $validator): int
+    private function readOpisValidator(OpisSchemaValidator $validator): Validator
     {
         $opis = (new \ReflectionProperty(OpisSchemaValidator::class, 'validator'))->getValue($validator);
         self::assertInstanceOf(Validator::class, $opis);
 
-        $cache = (new \ReflectionProperty(SchemaLoader::class, 'dataCache'))->getValue($opis->loader());
+        return $opis;
+    }
+
+    private function countParsedSchemas(OpisSchemaValidator $validator): int
+    {
+        $cache = (new \ReflectionProperty(SchemaLoader::class, 'dataCache'))->getValue(
+            $this->readOpisValidator($validator)->loader(),
+        );
         self::assertInstanceOf(\SplObjectStorage::class, $cache);
 
         return \count($cache);
