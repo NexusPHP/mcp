@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 require __DIR__.'/bootstrap.php';
 
+use Amp\NullCancellation;
+use Amp\SignalCancellation;
 use Nexus\Mcp\Core\Schema\Resource\Resource;
 use Nexus\Mcp\Extension\Skills\Schema\Skill;
 use Nexus\Mcp\Extension\Skills\Server\DirectorySkill;
@@ -25,9 +27,6 @@ use Nexus\Mcp\Server\Resource\ResourceStore;
 use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\Transport\StdioServerTransport;
-
-use function Amp\async;
-use function Amp\trapSignal;
 
 /**
  * A skill left out of `skills/list`, whose `SKILL.md` is written afresh on every read.
@@ -89,11 +88,4 @@ $server = (new ServerBuilder())
 
 $transport = new StdioServerTransport(logger: $logger);
 
-if (defined('SIGINT')) {
-    async(static function () use ($transport): void {
-        trapSignal([\SIGINT, \SIGTERM], reference: false);
-        $transport->close();
-    });
-}
-
-$server->run($transport);
+$server->run($transport, defined('SIGINT') ? new SignalCancellation([\SIGINT, \SIGTERM]) : new NullCancellation());

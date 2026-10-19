@@ -59,7 +59,13 @@ object with `#[AsTool]`, `#[AsPrompt]`, `#[AsResource]`, `#[AsResourceTemplate]`
 ### Run
 
 `run($transport)` registers the listener chain on the transport and starts it. The call blocks until the transport
-closes.
+closes. Pass an Amp `Cancellation` as the second argument to stop the server from outside, for example on a signal:
+
+```php
+use Amp\SignalCancellation;
+
+$server->run(new StdioServerTransport(), new SignalCancellation([\SIGINT, \SIGTERM]));
+```
 
 ### Dispatch
 
@@ -74,7 +80,10 @@ or a `ParseError` error.
 
 The transport signals shutdown when it closes. For stdio, that is EOF on stdin. The dispatcher drains the in-flight
 coroutines before the transport's close listeners fire, so responses already in flight are flushed before the
-process exits. On an event-loop HTTP host, call `close()` on the transport *before* stopping the HTTP server:
+process exits. A requested `run()` cancellation stops harder: on a dispatcher implementing
+`CancellableMessageDispatcherInterface`, as the one built by `ServerBuilder` does, every request in flight sees
+`$context->cancellation` requested and goes unanswered, so a handler that honours it lets the process exit without
+waiting for slow work. On an event-loop HTTP host, call `close()` on the transport *before* stopping the HTTP server:
 closing ends every open `subscriptions/listen` stream, and the HTTP server's own stop waits for those responses to
 finish, so the reverse order deadlocks with a stream open.
 

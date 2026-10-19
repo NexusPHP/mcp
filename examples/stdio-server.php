@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 require __DIR__.'/bootstrap.php';
 
+use Amp\NullCancellation;
+use Amp\SignalCancellation;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Enum\Role;
@@ -29,9 +31,7 @@ use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\Transport\StdioServerTransport;
 
-use function Amp\async;
 use function Amp\delay;
-use function Amp\trapSignal;
 
 $logger = new PsrLogger();
 
@@ -153,11 +153,4 @@ $server = (new ServerBuilder())
 
 $transport = new StdioServerTransport(logger: $logger);
 
-if (defined('SIGINT')) {
-    async(static function () use ($transport): void {
-        trapSignal([\SIGINT, \SIGTERM], reference: false);
-        $transport->close();
-    });
-}
-
-$server->run($transport);
+$server->run($transport, defined('SIGINT') ? new SignalCancellation([\SIGINT, \SIGTERM]) : new NullCancellation());

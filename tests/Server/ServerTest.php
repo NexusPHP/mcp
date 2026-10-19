@@ -13,6 +13,9 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Server;
 
+use Amp\DeferredCancellation;
+use Nexus\Mcp\Core\Dispatch\CancellableMessageDispatcherInterface;
+use Nexus\Mcp\Core\Dispatch\MessageDispatcherInterface;
 use Nexus\Mcp\Core\Handler\AbstractContext;
 use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
@@ -21,6 +24,8 @@ use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Schema\SubscriptionFilter;
 use Nexus\Mcp\Core\Transport\InMemoryTransport;
+use Nexus\Mcp\Core\Transport\ReceiveContext;
+use Nexus\Mcp\Core\Transport\TransportInterface;
 use Nexus\Mcp\Server\Server;
 use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Server\Subscription\SubscriptionStore;
@@ -34,6 +39,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use Psr\Log\LogLevel;
 use Revolt\EventLoop;
+use Revolt\EventLoop\UncaughtThrowable;
 
 use function Amp\async;
 use function Amp\delay;
@@ -46,6 +52,8 @@ use function Amp\delay;
 #[Group('server-tests')]
 final class ServerTest extends AbstractMcpTestCase
 {
+    private const float HELD_REQUEST_SECONDS = 5.0;
+
     public function testAttachingANewTransportReopensADrainedStore(): void
     {
         $subscriptions = new SubscriptionStore(toolsListChanged: true);
@@ -241,6 +249,208 @@ final class ServerTest extends AbstractMcpTestCase
         self::assertArrayHasKey('result', $clientReceived[0]);
     }
 
+    public function testARequestedCancellationCancelsTheRequestsInFlightAndStopsTheServer(): void
+    {
+        $observed = [];
+        $transport = new RecordingTransport();
+        $stop = new DeferredCancellation();
+        $server = $this->buildServerHoldingDiscover($observed);
+
+        EventLoop::queue(static function () use ($transport, $stop): void {
+            $transport->emitMessage(self::buildDiscoverEnvelope());
+            $stop->cancel();
+        });
+
+        $started = hrtime(true);
+        $server->run($transport, $stop->getCancellation());
+
+        self::assertLessThan(self::HELD_REQUEST_SECONDS, (hrtime(true) - $started) / 1e9);
+        self::assertSame([true], $observed);
+        self::assertTrue($transport->closed);
+        self::assertSame([], $transport->sent);
+    }
+
+    public function testACancellationRequestedDuringAGracefulDrainStillCancelsTheRequestsInFlight(): void
+    {
+        $observed = [];
+        [$serverSide, $clientSide] = InMemoryTransport::createPair();
+        $stop = new DeferredCancellation();
+        $server = $this->buildServerHoldingDiscover($observed);
+
+        EventLoop::queue(static function () use ($clientSide, $serverSide, $stop): void {
+            $clientSide->start();
+            $clientSide->send(new DiscoverRequest(
+                id: new RequestId(id: 1),
+                params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create()),
+            ));
+            EventLoop::queue($stop->cancel(...));
+            $serverSide->close();
+        });
+
+        $started = hrtime(true);
+        $server->run($serverSide, $stop->getCancellation());
+
+        self::assertLessThan(self::HELD_REQUEST_SECONDS, (hrtime(true) - $started) / 1e9);
+        self::assertSame([true], $observed);
+    }
+
+    public function testARequestStartedFromALineReadDuringTheDrainIsCancelledToo(): void
+    {
+        $observed = [];
+        $transport = new RecordingTransport();
+        $stop = new DeferredCancellation();
+        $server = $this->buildServerHoldingDiscover($observed);
+        $transport->onDrain(static function () use ($transport): void {
+            $transport->emitMessage(self::buildDiscoverEnvelope());
+        });
+
+        EventLoop::queue($stop->cancel(...));
+
+        $started = hrtime(true);
+        $server->run($transport, $stop->getCancellation());
+
+        self::assertLessThan(self::HELD_REQUEST_SECONDS, (hrtime(true) - $started) / 1e9);
+        self::assertSame([true], $observed);
+    }
+
+    public function testAFailedCloseOnCancellationIsLoggedAndTheServerStillStops(): void
+    {
+        $logger = new ArrayLogger();
+        $transport = new RecordingTransport();
+        $stop = new DeferredCancellation();
+        $server = (new ServerBuilder())->setServerInfo('demo', '1.0.0')->setLogger($logger)->build();
+        $transport->onDrain(static function (): void {
+            throw new \RuntimeException('drain failed');
+        });
+
+        EventLoop::queue($stop->cancel(...));
+        $server->run($transport, $stop->getCancellation());
+
+        $matches = $logger->recordsMatching(LogLevel::ERROR, 'Closing the transport on cancellation failed.');
+        self::assertCount(1, $matches);
+        self::assertInstanceOf(\RuntimeException::class, $matches[0]['context']['exception'] ?? null);
+        self::assertTrue($transport->closed);
+    }
+
+    public function testACancellationRequestedAfterTheLoopFailedLeavesTheTransportAlone(): void
+    {
+        $transport = new RecordingTransport();
+        $stop = new DeferredCancellation();
+        $server = $this->buildServer();
+
+        EventLoop::queue(static function (): void {
+            throw new \RuntimeException('loop failed');
+        });
+
+        try {
+            $server->run($transport, $stop->getCancellation());
+            self::fail('The loop failure did not reach run().');
+        } catch (UncaughtThrowable) {
+        }
+
+        $stop->cancel();
+        EventLoop::run();
+
+        self::assertFalse($transport->closed);
+    }
+
+    public function testAClosingTransportStillLetsTheRequestsInFlightFinish(): void
+    {
+        $observed = [];
+        $transport = new RecordingTransport();
+        $server = $this->buildServerHoldingDiscover($observed, seconds: 0.01);
+
+        EventLoop::queue(static function () use ($transport): void {
+            $transport->emitMessage(self::buildDiscoverEnvelope());
+            $transport->close();
+        });
+
+        $stop = new DeferredCancellation();
+        $server->run($transport, $stop->getCancellation());
+
+        self::assertSame([false], $observed);
+        self::assertCount(1, $transport->sent);
+    }
+
+    public function testARequestedCancellationReachesACustomCancellableDispatcher(): void
+    {
+        $transport = new RecordingTransport();
+        $stop = new DeferredCancellation();
+        $dispatcher = new class implements CancellableMessageDispatcherInterface {
+            public int $cancelAllCalls = 0;
+
+            #[\Override]
+            public function dispatch(array $envelope, TransportInterface $transport, ReceiveContext $context): void
+            {
+            }
+
+            #[\Override]
+            public function flushPending(): void
+            {
+            }
+
+            #[\Override]
+            public function cancelRequest(RequestId $id): void
+            {
+            }
+
+            #[\Override]
+            public function cancelAll(): void
+            {
+                ++$this->cancelAllCalls;
+            }
+        };
+
+        EventLoop::queue($stop->cancel(...));
+
+        (new Server($dispatcher))->run($transport, $stop->getCancellation());
+
+        self::assertSame(2, $dispatcher->cancelAllCalls);
+        self::assertTrue($transport->closed);
+    }
+
+    public function testARequestedCancellationStopsAServerOnACustomDispatcher(): void
+    {
+        $transport = new RecordingTransport();
+        $stop = new DeferredCancellation();
+        $server = new Server(new class implements MessageDispatcherInterface {
+            #[\Override]
+            public function dispatch(array $envelope, TransportInterface $transport, ReceiveContext $context): void
+            {
+            }
+
+            #[\Override]
+            public function flushPending(): void
+            {
+            }
+
+            #[\Override]
+            public function cancelRequest(RequestId $id): void
+            {
+            }
+        });
+
+        EventLoop::queue($stop->cancel(...));
+
+        $server->run($transport, $stop->getCancellation());
+
+        self::assertTrue($transport->closed);
+    }
+
+    public function testRunReleasesTheTransportFromTheCancellationOnceItReturns(): void
+    {
+        $transport = new RecordingTransport();
+        $released = \WeakReference::create($transport);
+        $stop = new DeferredCancellation();
+
+        EventLoop::queue($transport->close(...));
+        $this->buildServer()->run($transport, $stop->getCancellation());
+        unset($transport);
+        gc_collect_cycles();
+
+        self::assertNull($released->get());
+    }
+
     public function testListenStartsTheTransportWithoutBlocking(): void
     {
         $transport = new RecordingTransport();
@@ -337,5 +547,40 @@ final class ServerTest extends AbstractMcpTestCase
     private function buildServer(): Server
     {
         return (new ServerBuilder())->setServerInfo('demo', '1.0.0')->build();
+    }
+
+    /**
+     * @param list<bool> $observed
+     */
+    private function buildServerHoldingDiscover(array &$observed, float $seconds = self::HELD_REQUEST_SECONDS): Server
+    {
+        return (new ServerBuilder())
+            ->setServerInfo('demo', '1.0.0')
+            ->replaceRequestHandler('server/discover', new ClosureRequestHandler(
+                static function ($request, AbstractContext $context) use (&$observed, $seconds): Result {
+                    try {
+                        delay($seconds, cancellation: $context->cancellation);
+                    } finally {
+                        $observed[] = $context->cancellation->isRequested();
+                    }
+
+                    return new EmptyResult();
+                },
+            ))
+            ->build()
+        ;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function buildDiscoverEnvelope(): array
+    {
+        return [
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'server/discover',
+            'params' => ['_meta' => RequestMetaObjectFactory::shape()],
+        ];
     }
 }

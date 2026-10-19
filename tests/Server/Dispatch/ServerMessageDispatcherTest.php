@@ -851,6 +851,33 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         self::assertSame([], $transport->sent);
     }
 
+    public function testCancelAllCancelsEveryRequestInFlight(): void
+    {
+        $observed = [];
+        $dispatcher = $this->buildDispatcher(
+            requestHandlers: ['tools/list' => new ClosureRequestHandler(
+                static function ($request, AbstractContext $context) use (&$observed): Result {
+                    try {
+                        delay(self::CANCELLATION_ANCHOR, cancellation: $context->cancellation);
+                    } finally {
+                        $observed[] = $context->cancellation->isRequested();
+                    }
+
+                    return new EmptyResult();
+                },
+            )],
+        );
+        $transport = new RecordingTransport();
+
+        $dispatcher->dispatch($this->buildToolsListEnvelope(1), $transport, new ReceiveContext());
+        $dispatcher->dispatch($this->buildToolsListEnvelope(2), $transport, new ReceiveContext());
+        $dispatcher->cancelAll();
+        $dispatcher->flushPending();
+
+        self::assertSame([true, true], $observed);
+        self::assertSame([], $transport->sent);
+    }
+
     public function testAnUncancelledRequestIsStillAnswered(): void
     {
         [$dispatcher, $transport] = $this->buildCancellableDispatcher(

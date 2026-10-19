@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 require __DIR__.'/bootstrap.php';
 
+use Amp\NullCancellation;
+use Amp\SignalCancellation;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Enum\Role;
 use Nexus\Mcp\Core\Schema\Prompt\PromptMessage;
@@ -25,9 +27,6 @@ use Nexus\Mcp\Server\Attribute\AsTool;
 use Nexus\Mcp\Server\ServerBuilder;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Server\Transport\StdioServerTransport;
-
-use function Amp\async;
-use function Amp\trapSignal;
 
 #[AsServer(
     name: 'nexus-attribute-example',
@@ -84,11 +83,4 @@ $server = (new ServerBuilder())
 
 $transport = new StdioServerTransport(logger: $logger);
 
-if (defined('SIGINT')) {
-    async(static function () use ($transport): void {
-        trapSignal([\SIGINT, \SIGTERM], reference: false);
-        $transport->close();
-    });
-}
-
-$server->run($transport);
+$server->run($transport, defined('SIGINT') ? new SignalCancellation([\SIGINT, \SIGTERM]) : new NullCancellation());

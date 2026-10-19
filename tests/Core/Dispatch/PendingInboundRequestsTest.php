@@ -170,6 +170,22 @@ final class PendingInboundRequestsTest extends AbstractMcpTestCase
         self::assertTrue($cancellation->isRequested());
     }
 
+    public function testCancelAllCancelsEveryRequestInFlight(): void
+    {
+        $set = new PendingInboundRequests();
+        $first = $set->claim(new RequestId(id: 1));
+        $second = $set->claim(new RequestId(id: 'two'));
+        $set->cancel(new RequestId(id: 1));
+
+        $set->cancelAll();
+
+        self::assertNotNull($first);
+        self::assertNotNull($second);
+        self::assertTrue($first->isRequested());
+        self::assertTrue($second->isRequested());
+        self::assertCount(2, $set);
+    }
+
     public function testCancellingOneRequestLeavesTheOthersRunning(): void
     {
         $set = new PendingInboundRequests();

@@ -8,6 +8,12 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+### Added
+
+- `Server::run()` takes an optional `Cancellation`: when requested, it cancels every request in flight and closes
+  the transport, where closing the transport alone waits for every handler to finish.
+- `CancellableMessageDispatcherInterface`, for a custom dispatcher that `run()`'s cancellation should reach.
+
 ## [v1.2.1](https://github.com/NexusPHP/mcp/compare/v1.2.0...v1.2.1) - 2026-10-18
 
 ### Fixed

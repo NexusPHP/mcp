@@ -65,6 +65,13 @@ final class PendingInboundRequests implements \Countable
         return true;
     }
 
+    public function cancelAll(): void
+    {
+        foreach ($this->map as $deferred) {
+            $deferred->cancel();
+        }
+    }
+
     public function release(RequestId $id): void
     {
         unset($this->map[$this->buildKey($id)]);
