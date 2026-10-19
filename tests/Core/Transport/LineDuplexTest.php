@@ -42,10 +42,12 @@ use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\RequiresPhpExtension;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
 use Revolt\EventLoop;
+use Revolt\EventLoop\Driver\StreamSelectDriver;
 
 use function Amp\async;
 use function Amp\delay;
@@ -146,6 +148,34 @@ final class LineDuplexTest extends AbstractMcpTestCase
         $duplex->close();
 
         self::assertSame(['drain', 'close'], $events);
+    }
+
+    #[RequiresPhpExtension('pcntl')]
+    public function testTheFirstLineIsReadOnlyOnceASignalWatcherRegisteredBeforeStartIsActive(): void
+    {
+        if (! EventLoop::getDriver() instanceof StreamSelectDriver) {
+            self::markTestSkipped('Only the stream-select driver installs signal watchers through pcntl.');
+        }
+
+        $watcher = EventLoop::unreference(EventLoop::onSignal(\SIGUSR2, static function (): void {}));
+        $handlers = [];
+        $duplex = $this->buildDuplex();
+        $duplex->onMessage(static function () use (&$handlers): void {
+            $handlers[] = pcntl_signal_get_handler(\SIGUSR2);
+        });
+
+        self::assertSame(\SIG_DFL, pcntl_signal_get_handler(\SIGUSR2));
+
+        $duplex->start(new ReadableBuffer("{\"jsonrpc\":\"2.0\",\"method\":\"demo\"}\n"), new WritableBuffer());
+
+        try {
+            EventLoop::run();
+        } finally {
+            EventLoop::cancel($watcher);
+        }
+
+        self::assertCount(1, $handlers);
+        self::assertNotSame(\SIG_DFL, $handlers[0]);
     }
 
     public function testCloseInTheSameTickAsStartStillDrainsBeforeReturning(): void

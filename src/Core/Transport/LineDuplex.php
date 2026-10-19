@@ -138,7 +138,10 @@ final class LineDuplex
         $completion = new DeferredFuture();
         $this->readLoopCompletion = $completion;
 
-        EventLoop::queue($this->readLoop(...), $completion);
+        // The first read follows the tick that activates the watchers registered before start(), signal watchers included.
+        EventLoop::defer(function () use ($completion): void {
+            $this->readLoop($completion);
+        });
     }
 
     /**

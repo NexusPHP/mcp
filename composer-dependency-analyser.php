@@ -31,6 +31,8 @@ return (new Configuration())
     ->ignoreErrorsOnExtensionAndPath('ext-pcntl', __DIR__.'/examples/skills-server.php', [ErrorType::SHADOW_DEPENDENCY])
     ->ignoreErrorsOnExtensionAndPath('ext-pcntl', __DIR__.'/examples/stdio-server.php', [ErrorType::SHADOW_DEPENDENCY])
     ->ignoreErrorsOnExtensionAndPath('ext-pcntl', __DIR__.'/conformance/server.php', [ErrorType::SHADOW_DEPENDENCY])
+    // The signal-ordering test is skipped through `RequiresPhpExtension` where ext-pcntl is absent.
+    ->ignoreErrorsOnExtensionAndPath('ext-pcntl', __DIR__.'/tests/Core/Transport/LineDuplexTest.php', [ErrorType::SHADOW_DEPENDENCY])
     // A suggested dependency: JwksAccessTokenValidator guards its use behind `class_exists` and
     // names the package to install, so production code may reference it without requiring it.
     ->ignoreErrorsOnPackageAndPath('firebase/php-jwt', __DIR__.'/src/Server/Auth/JwksAccessTokenValidator.php', [ErrorType::DEV_DEPENDENCY_IN_PROD])

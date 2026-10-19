@@ -14,6 +14,11 @@ in `0.x`, minor releases may include breaking changes.
   the transport, where closing the transport alone waits for every handler to finish.
 - `CancellableMessageDispatcherInterface`, for a custom dispatcher that `run()`'s cancellation should reach.
 
+### Fixed
+
+- The stdio transports read their first line after the event loop activates watchers registered before
+  `start()`, so a signal handler is in place before the first request is answered.
+
 ## [v1.2.1](https://github.com/NexusPHP/mcp/compare/v1.2.0...v1.2.1) - 2026-10-18
 
 ### Fixed
