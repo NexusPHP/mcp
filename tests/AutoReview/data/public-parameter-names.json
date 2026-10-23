@@ -1984,6 +1984,8 @@
     "Nexus\\Mcp\\Extension\\Skills\\Schema\\Result\\ReadResourceDirectoryResult": {
         "__construct": [
             "resources",
+            "ttlMs",
+            "cacheScope",
             "nextCursor",
             "meta"
         ],
@@ -1998,7 +2000,8 @@
         "__construct": [
             "uri",
             "frontmatter",
-            "resources"
+            "resources",
+            "meta"
         ],
         "fromArray": [
             "data"
@@ -2872,7 +2875,8 @@
             "transport"
         ],
         "run": [
-            "transport"
+            "transport",
+            "cancellation"
         ]
     },
     "Nexus\\Mcp\\Server\\ServerBuilder": {
