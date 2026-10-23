@@ -4,7 +4,7 @@ This file is the upgrade guide: what breaks at each version boundary and how to 
 for *when* breaking changes may land and how they are communicated lives in
 [VERSIONING.md](VERSIONING.md).
 
-## v1.2.1 to Unreleased
+## v1.2.1 to v1.3.0
 
 ### `ReadResourceDirectoryResult` requires `ttlMs` and `cacheScope`
 

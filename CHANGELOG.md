@@ -8,6 +8,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+## [v1.3.0](https://github.com/NexusPHP/mcp/compare/v1.2.1...v1.3.0) - 2026-10-23
+
 ### Added
 
 - `Server::run()` takes an optional `Cancellation`: when requested, it cancels every request in flight and closes
