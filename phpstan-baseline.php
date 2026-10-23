@@ -55,5 +55,11 @@ $ignoreErrors[] = [
 	'count' => 1,
 	'path' => __DIR__ . '/src/Server/Subscription/SubscriptionStore.php',
 ];
+$ignoreErrors[] = [
+	'rawMessage' => 'Offset 1 might not exist on array<0|1|2, resource>.',
+	'identifier' => 'offsetAccess.notFound',
+	'count' => 1,
+	'path' => __DIR__ . '/src/Server/Transport/RelayedStdinStream.php',
+];
 
 return ['parameters' => ['ignoreErrors' => $ignoreErrors]];

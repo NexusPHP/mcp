@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Tests\Server\Transport;
 
 use Amp\ByteStream\ReadableBuffer;
 use Amp\ByteStream\ReadableIterableStream;
+use Amp\ByteStream\ReadableResourceStream;
 use Amp\ByteStream\WritableBuffer;
 use Amp\ByteStream\WritableStream;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
@@ -42,6 +43,23 @@ use Revolt\EventLoop;
 #[Group('server-tests')]
 final class StdioServerTransportTest extends AbstractMcpTestCase
 {
+    public function testTheDefaultStdinReadsTheProcessStdinWhenItAcceptsNonBlockingMode(): void
+    {
+        if ('Windows' === \PHP_OS_FAMILY) {
+            self::markTestSkipped('The STDIN of a Windows runner may be an anonymous pipe, which takes the relay.');
+        }
+
+        try {
+            $transport = new StdioServerTransport(stdout: new WritableBuffer());
+            $stdin = (new \ReflectionProperty($transport, 'stdin'))->getValue($transport);
+
+            self::assertInstanceOf(ReadableResourceStream::class, $stdin);
+            self::assertSame(\STDIN, $stdin->getResource());
+        } finally {
+            stream_set_blocking(\STDIN, true);
+        }
+    }
+
     public function testStartAfterStartThrows(): void
     {
         $transport = new StdioServerTransport(new ReadableBuffer(''), new WritableBuffer());

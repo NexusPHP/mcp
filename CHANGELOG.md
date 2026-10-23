@@ -8,6 +8,11 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+### Fixed
+
+- `StdioServerTransport` on Windows answers each request while STDIN stays open, where it held every response until
+  STDIN closed.
+
 ## [v1.3.0](https://github.com/NexusPHP/mcp/compare/v1.2.1...v1.3.0) - 2026-10-23
 
 ### Added

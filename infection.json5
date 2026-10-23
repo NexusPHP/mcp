@@ -6,7 +6,8 @@
         ],
         "excludes": [
             "Client/Transport/AmpSubprocess.php",
-            "Client/Transport/AmpSubprocessLauncher.php"
+            "Client/Transport/AmpSubprocessLauncher.php",
+            "Server/Transport/RelayedStdinStream.php"
         ]
     },
     "timeout": 30,

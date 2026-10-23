@@ -13,7 +13,7 @@ use Nexus\Mcp\Server\Transport\StdioServerTransport;
 use Psr\Log\NullLogger;
 
 $transport = new StdioServerTransport(
-    stdin: $stream,          // optional ReadableStream; default: new ReadableResourceStream(\STDIN)
+    stdin: $stream,          // optional ReadableStream; default: the process STDIN
     stdout: $writableStream, // optional WritableStream; default: new WritableResourceStream(\STDOUT)
     logger: $psrLogger,      // optional; default: new NullLogger
     maxLineBytes: 4_194_304, // optional cap on a single inbound line; default 4 MiB
@@ -22,7 +22,9 @@ $transport = new StdioServerTransport(
 
 The `stdin` and `stdout` parameters take `Amp\ByteStream\ReadableStream` and `WritableStream` implementations,
 not raw PHP stream resources. The defaults wrap the live process streams: `new ReadableResourceStream(\STDIN)` and
-`new WritableResourceStream(\STDOUT)` from `amphp/byte-stream`.
+`new WritableResourceStream(\STDOUT)` from `amphp/byte-stream`. Where STDIN refuses non-blocking mode, as an
+anonymous pipe does on Windows, the default reads it through a PHP subprocess that relays it over a socket, and
+closing the transport terminates that subprocess.
 
 ### Framing
 
