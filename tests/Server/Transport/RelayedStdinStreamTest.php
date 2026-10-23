@@ -47,12 +47,7 @@ final class RelayedStdinStreamTest extends AbstractMcpTestCase
 
     public function testClosingTheStreamTerminatesTheRelay(): void
     {
-        $pair = stream_socket_pair('Windows' === \PHP_OS_FAMILY ? \STREAM_PF_INET : \STREAM_PF_UNIX, \STREAM_SOCK_STREAM, 0);
-        self::assertIsArray($pair);
-        $writer = array_shift($pair);
-        $reader = array_shift($pair);
-        self::assertIsResource($writer);
-        self::assertIsResource($reader);
+        [$writer, $reader] = self::createSocketPair();
         $stream = new RelayedStdinStream($reader);
         $closed = false;
         $stream->onClose(static function () use (&$closed): void {
@@ -71,11 +66,54 @@ final class RelayedStdinStreamTest extends AbstractMcpTestCase
         fclose($writer);
     }
 
+    public function testReleasingTheStreamTerminatesTheRelay(): void
+    {
+        [$writer, $reader] = self::createSocketPair();
+        $stream = new RelayedStdinStream($reader);
+        $relay = self::getRelay($stream);
+
+        unset($stream);
+
+        self::assertFalse(self::isRunning($relay));
+        fclose($writer);
+    }
+
+    /**
+     * @return array{resource, resource}
+     */
+    private static function createSocketPair(): array
+    {
+        $pair = stream_socket_pair('Windows' === \PHP_OS_FAMILY ? \STREAM_PF_INET : \STREAM_PF_UNIX, \STREAM_SOCK_STREAM, 0);
+        self::assertIsArray($pair);
+        $writer = array_shift($pair);
+        $reader = array_shift($pair);
+        self::assertIsResource($writer);
+        self::assertIsResource($reader);
+
+        return [$writer, $reader];
+    }
+
     private static function isRelayRunning(RelayedStdinStream $stream): bool
+    {
+        return self::isRunning(self::getRelay($stream));
+    }
+
+    /**
+     * @return resource
+     */
+    private static function getRelay(RelayedStdinStream $stream): mixed
     {
         $relay = (new \ReflectionProperty($stream, 'relay'))->getValue($stream);
         self::assertIsResource($relay);
 
+        return $relay;
+    }
+
+    /**
+     * @param resource $relay
+     */
+    private static function isRunning(mixed $relay): bool
+    {
         for ($attempt = 0; $attempt < 50 && proc_get_status($relay)['running']; ++$attempt) {
             delay(0.02);
         }

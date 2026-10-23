@@ -49,14 +49,51 @@ final class StdioServerTransportTest extends AbstractMcpTestCase
             self::markTestSkipped('The STDIN of a Windows runner may be an anonymous pipe, which takes the relay.');
         }
 
+        $transport = new StdioServerTransport(stdout: new WritableBuffer());
+        $property = new \ReflectionProperty($transport, 'stdin');
+
+        self::assertNull($property->getValue($transport));
+
         try {
-            $transport = new StdioServerTransport(stdout: new WritableBuffer());
-            $stdin = (new \ReflectionProperty($transport, 'stdin'))->getValue($transport);
+            $transport->start();
+            $stdin = $property->getValue($transport);
 
             self::assertInstanceOf(ReadableResourceStream::class, $stdin);
             self::assertSame(\STDIN, $stdin->getResource());
         } finally {
+            $duplex = (new \ReflectionProperty($transport, 'duplex'))->getValue($transport);
+            self::assertIsObject($duplex);
+            (new \ReflectionProperty($duplex, 'readable'))->setValue($duplex, new ReadableBuffer(''));
+            $property->setValue($transport, new ReadableBuffer(''));
+            $transport->close();
             stream_set_blocking(\STDIN, true);
+        }
+    }
+
+    public function testStartKeepsAnInjectedStdin(): void
+    {
+        $stdin = new ReadableBuffer('');
+        $transport = new StdioServerTransport($stdin, new WritableBuffer());
+
+        $transport->start();
+
+        try {
+            self::assertSame($stdin, (new \ReflectionProperty($transport, 'stdin'))->getValue($transport));
+        } finally {
+            EventLoop::run();
+        }
+    }
+
+    public function testARefusedStartOpensNoStdin(): void
+    {
+        $transport = new StdioServerTransport(stdout: new WritableBuffer());
+        $transport->close();
+
+        try {
+            $transport->start();
+            self::fail('A start after close must throw.');
+        } catch (TransportAlreadyClosedException) {
+            self::assertNull((new \ReflectionProperty($transport, 'stdin'))->getValue($transport));
         }
     }
 
