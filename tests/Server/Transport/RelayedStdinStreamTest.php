@@ -49,6 +49,7 @@ final class RelayedStdinStreamTest extends AbstractMcpTestCase
     {
         [$writer, $reader] = self::createSocketPair();
         $stream = new RelayedStdinStream($reader);
+        $relay = self::getRelay($stream);
         $closed = false;
         $stream->onClose(static function () use (&$closed): void {
             $closed = true;
@@ -62,7 +63,19 @@ final class RelayedStdinStreamTest extends AbstractMcpTestCase
 
         self::assertTrue($stream->isClosed());
         self::assertTrue($closed);
-        self::assertFalse(self::isRelayRunning($stream));
+        self::assertFalse(\is_resource($relay), 'The relay is reaped on close.');
+        fclose($writer);
+    }
+
+    public function testClosingAClosedStreamIsANoOp(): void
+    {
+        [$writer, $reader] = self::createSocketPair();
+        $stream = new RelayedStdinStream($reader);
+        $stream->close();
+
+        $stream->close();
+
+        self::assertTrue($stream->isClosed());
         fclose($writer);
     }
 
@@ -74,7 +87,7 @@ final class RelayedStdinStreamTest extends AbstractMcpTestCase
 
         unset($stream);
 
-        self::assertFalse(self::isRunning($relay));
+        self::assertFalse(\is_resource($relay), 'The relay is reaped on release.');
         fclose($writer);
     }
 
@@ -93,11 +106,6 @@ final class RelayedStdinStreamTest extends AbstractMcpTestCase
         return [$writer, $reader];
     }
 
-    private static function isRelayRunning(RelayedStdinStream $stream): bool
-    {
-        return self::isRunning(self::getRelay($stream));
-    }
-
     /**
      * @return resource
      */
@@ -107,17 +115,5 @@ final class RelayedStdinStreamTest extends AbstractMcpTestCase
         self::assertIsResource($relay);
 
         return $relay;
-    }
-
-    /**
-     * @param resource $relay
-     */
-    private static function isRunning(mixed $relay): bool
-    {
-        for ($attempt = 0; $attempt < 50 && proc_get_status($relay)['running']; ++$attempt) {
-            delay(0.02);
-        }
-
-        return proc_get_status($relay)['running'];
     }
 }
