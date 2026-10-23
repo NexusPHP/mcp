@@ -42,9 +42,9 @@ final readonly class SkillFile
     public function toResourceContents(): BlobResourceContents|TextResourceContents
     {
         if (preg_match('//u', $this->contents) === 1 && ! str_contains($this->contents, "\0")) {
-            return new TextResourceContents($this->uri, $this->contents, $this->mimeType);
+            return new TextResourceContents(uri: $this->uri, text: $this->contents, mimeType: $this->mimeType);
         }
 
-        return new BlobResourceContents($this->uri, base64_encode($this->contents), $this->mimeType);
+        return new BlobResourceContents(uri: $this->uri, blob: base64_encode($this->contents), mimeType: $this->mimeType);
     }
 }

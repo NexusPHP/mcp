@@ -38,7 +38,7 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/src/Core/Transport/LineReader.php',
 ];
 $ignoreErrors[] = [
-	'rawMessage' => 'Parameter #1 $name of class Nexus\\Mcp\\Core\\Schema\\Resource\\Resource constructor expects non-empty-string, string given.',
+	'rawMessage' => 'Parameter $name of class Nexus\\Mcp\\Core\\Schema\\Resource\\Resource constructor expects non-empty-string, string given.',
 	'identifier' => 'argument.type',
 	'count' => 1,
 	'path' => __DIR__ . '/src/Extension/Skills/Server/Store/SkillStore.php',

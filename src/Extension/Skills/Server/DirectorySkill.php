@@ -95,12 +95,20 @@ final readonly class DirectorySkill
         $resources = [];
 
         foreach ($files as $file) {
-            $resources[] = new SkillResource($file->uri, SkillResource::computeDigest($file->contents), \strlen($file->contents));
+            $resources[] = new SkillResource(
+                uri: $file->uri,
+                digest: SkillResource::computeDigest($file->contents),
+                size: \strlen($file->contents),
+            );
         }
 
         $this->rootUri = $rootUri;
         $this->files = $files;
-        $this->entry = new Skill($manifestUri, Frontmatter::parse($manifestFile->contents), $resources);
+        $this->entry = new Skill(
+            uri: $manifestUri,
+            frontmatter: Frontmatter::parse($manifestFile->contents),
+            resources: $resources,
+        );
     }
 
     /**

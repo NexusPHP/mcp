@@ -92,9 +92,10 @@ transport and dispatch diagnostics, which the SDK keeps off STDOUT.
 
 ### Construct schema objects with named arguments
 
-The classes under `Nexus\Mcp\Core\Schema` mirror the MCP spec shape. The protocol dictates their structure, not
-this SDK's backward-compatibility promise. As the spec evolves, a class may gain, drop, or reorder constructor
-parameters without that counting as a breaking change under the SDK's own versioning.
+The classes under `Nexus\Mcp\Core\Schema`, and under each extension's `Schema` namespace, mirror the MCP spec
+shape. The protocol dictates their structure, not this SDK's backward-compatibility promise. As the spec evolves,
+a class may reorder its constructor parameters, or insert an optional one, without that counting as a breaking
+change under the SDK's own versioning.
 
 Always pass arguments by name: `new TextContent(text: $body)`, not `new TextContent($body)`. Do this regardless of
 how many parameters a constructor takes today, so a future reordering or insertion cannot silently bind your values

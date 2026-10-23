@@ -82,13 +82,13 @@ final readonly class StandardHeaders
         $header = $this->readLine($headers, 'MCP-Protocol-Version');
 
         if (null === $header) {
-            return new HeaderMismatchError('The MCP-Protocol-Version header is required but absent.');
+            return new HeaderMismatchError(message: 'The MCP-Protocol-Version header is required but absent.');
         }
 
         $bodyVersion = $this->readVersion($body);
 
         if (null !== $bodyVersion && $header !== $bodyVersion) {
-            return new HeaderMismatchError('The MCP-Protocol-Version header does not match the request body protocol version.');
+            return new HeaderMismatchError(message: 'The MCP-Protocol-Version header does not match the request body protocol version.');
         }
 
         return null;
@@ -103,13 +103,13 @@ final readonly class StandardHeaders
         $header = $this->readLine($headers, 'Mcp-Method');
 
         if (null === $header) {
-            return new HeaderMismatchError('The Mcp-Method header is required but absent.');
+            return new HeaderMismatchError(message: 'The Mcp-Method header is required but absent.');
         }
 
         $bodyMethod = $this->readString($body, 'method');
 
         if (null !== $bodyMethod && $header !== $bodyMethod) {
-            return new HeaderMismatchError('The Mcp-Method header does not match the request body method.');
+            return new HeaderMismatchError(message: 'The Mcp-Method header does not match the request body method.');
         }
 
         return null;
@@ -131,17 +131,17 @@ final readonly class StandardHeaders
         if (null === $header) {
             return null === $source
                 ? null
-                : new HeaderMismatchError('The Mcp-Name header is required but absent.');
+                : new HeaderMismatchError(message: 'The Mcp-Name header is required but absent.');
         }
 
         $decoded = HeaderValueCodec::decode($header);
 
         if (null === $decoded) {
-            return new HeaderMismatchError('The Mcp-Name header is not a valid encoded value.');
+            return new HeaderMismatchError(message: 'The Mcp-Name header is not a valid encoded value.');
         }
 
         if (null !== $source && $decoded !== $source) {
-            return new HeaderMismatchError('The Mcp-Name header does not match the request body.');
+            return new HeaderMismatchError(message: 'The Mcp-Name header does not match the request body.');
         }
 
         return null;

@@ -86,21 +86,21 @@ final readonly class ParameterHeaders
                     continue;
                 }
 
-                return new HeaderMismatchError(\sprintf('The %s header is absent but the request body carries its argument.', $name));
+                return new HeaderMismatchError(message: \sprintf('The %s header is absent but the request body carries its argument.', $name));
             }
 
             if (null === $bodyString) {
-                return new HeaderMismatchError(\sprintf('The %s header is present but the request body carries no argument it can mirror.', $name));
+                return new HeaderMismatchError(message: \sprintf('The %s header is present but the request body carries no argument it can mirror.', $name));
             }
 
             $decoded = HeaderValueCodec::decode($headers[$key]);
 
             if (null === $decoded) {
-                return new HeaderMismatchError(\sprintf('The %s header is not a valid encoded value.', $name));
+                return new HeaderMismatchError(message: \sprintf('The %s header is not a valid encoded value.', $name));
             }
 
             if (! $this->matches($binding->type, $decoded, $bodyValue, $bodyString)) {
-                return new HeaderMismatchError(\sprintf('The %s header does not match the request body argument.', $name));
+                return new HeaderMismatchError(message: \sprintf('The %s header does not match the request body argument.', $name));
             }
         }
 

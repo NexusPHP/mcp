@@ -61,7 +61,7 @@ final readonly class SkillFileListResourcesHandler implements RequestHandlerInte
                 throw new InvalidCursorException($cursor, $context->requestId);
             }
 
-            $page = $this->store->listResources(new Cursor($skillCursor));
+            $page = $this->store->listResources(new Cursor(cursor: $skillCursor));
 
             return new ListResourcesResult(
                 $page->resources,

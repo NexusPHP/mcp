@@ -147,7 +147,12 @@ final readonly class SkillStore implements SkillStoreInterface
     {
         $page = $this->paginator->paginate($this->entries, $cursor);
 
-        return new ListSkillsResult($page->entries, $this->ttlMs, $this->cacheScope, $page->nextCursor);
+        return new ListSkillsResult(
+            skills: $page->entries,
+            ttlMs: $this->ttlMs,
+            cacheScope: $this->cacheScope,
+            nextCursor: $page->nextCursor,
+        );
     }
 
     #[\Override]
@@ -157,7 +162,7 @@ final readonly class SkillStore implements SkillStoreInterface
             ?? $this->provider?->findSkill($uri, $context)
             ?? throw new ResourceNotFoundException($uri, $context->requestId);
 
-        return new GetSkillResult($entry, $this->ttlMs, $this->cacheScope);
+        return new GetSkillResult(skill: $entry, ttlMs: $this->ttlMs, cacheScope: $this->cacheScope);
     }
 
     #[\Override]
@@ -165,7 +170,12 @@ final readonly class SkillStore implements SkillStoreInterface
     {
         $page = $this->paginator->paginate($this->resources, $cursor);
 
-        return new ListResourcesResult($page->entries, $this->ttlMs, $this->cacheScope, $page->nextCursor);
+        return new ListResourcesResult(
+            resources: $page->entries,
+            ttlMs: $this->ttlMs,
+            cacheScope: $this->cacheScope,
+            nextCursor: $page->nextCursor,
+        );
     }
 
     #[\Override]
@@ -177,7 +187,11 @@ final readonly class SkillStore implements SkillStoreInterface
             return null;
         }
 
-        return new ReadResourceResult([$file->toResourceContents()], $this->ttlMs, $this->cacheScope);
+        return new ReadResourceResult(
+            contents: [$file->toResourceContents()],
+            ttlMs: $this->ttlMs,
+            cacheScope: $this->cacheScope,
+        );
     }
 
     #[\Override]
@@ -189,7 +203,7 @@ final readonly class SkillStore implements SkillStoreInterface
 
         $page = $this->paginator->paginate($children, $cursor);
 
-        return new ReadResourceDirectoryResult($page->entries, $page->nextCursor);
+        return new ReadResourceDirectoryResult(resources: $page->entries, nextCursor: $page->nextCursor);
     }
 
     /**
@@ -220,6 +234,6 @@ final readonly class SkillStore implements SkillStoreInterface
      */
     private function describe(string $segment, string $uri, ?string $mimeType, ?int $size = null): Resource
     {
-        return new Resource(rawurldecode($segment), $uri, mimeType: $mimeType, size: $size);
+        return new Resource(name: rawurldecode($segment), uri: $uri, mimeType: $mimeType, size: $size);
     }
 }

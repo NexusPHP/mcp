@@ -53,6 +53,11 @@ Shipped in a major:
 - Raising the PHP version floor (see [DEPENDENCY_POLICY.md](DEPENDENCY_POLICY.md)).
 - Removing a previously deprecated symbol, or dropping SDK surface for a feature removed from the spec (see below).
 
+A schema class, under `Nexus\Mcp\Core\Schema` or an extension's `Schema` namespace, is constructed with named
+arguments (see [Construct schema objects with named arguments](docs/best-practices.md#construct-schema-objects-with-named-arguments)).
+Its constructor's parameter names are covered and their order is not, so a parameter may move to where the spec
+puts its field. Adding a required parameter is still a break.
+
 Shipped in a minor (backward-compatible):
 
 - Adding a new class, interface, optional parameter, or method.
@@ -72,7 +77,8 @@ Two gaps in that tool are covered elsewhere:
   parameter renames. `composer bc:snapshot` records those names at release time and
   `PublicParameterNameTest` refuses a later rename, which matters because most of the covered surface is
   final value objects built with named arguments. Adding a class, or appending an optional parameter,
-  is not a break and does not disturb the snapshot.
+  is not a break and does not disturb the snapshot. On a schema class the test checks names only, so an
+  optional parameter may also be inserted.
 - Static reflection cannot evaluate a `new X()` or enum-case parameter default, so a change to one of
   those defaults is not compared. The baseline in
   [.roave-backward-compatibility-check.xml](.roave-backward-compatibility-check.xml) names the two skip

@@ -33,6 +33,7 @@ use PHPUnit\Framework\Attributes\Group;
 final class PublicParameterNameTest extends AbstractMcpTestCase
 {
     private const string SNAPSHOT_PATH = __DIR__.'/data/public-parameter-names.json';
+    private const string SCHEMA_NAMESPACE_PATTERN = '/^Nexus\\\Mcp\\\(?:Core|Extension\\\\\w+)\\\Schema\\\/';
 
     /**
      * @param class-string $class
@@ -49,6 +50,16 @@ final class PublicParameterNameTest extends AbstractMcpTestCase
             static fn(\ReflectionParameter $p): string => $p->getName(),
             (new \ReflectionMethod($class, $method))->getParameters(),
         );
+
+        if (preg_match(self::SCHEMA_NAMESPACE_PATTERN, $class) === 1) {
+            self::assertSame([], array_values(array_diff($releasedNames, $currentNames)), \sprintf(
+                'The released parameter names of "%s::%s()" must survive. A schema class is constructed with named arguments, so its parameters may move, but not be renamed or removed.',
+                $class,
+                $method,
+            ));
+
+            return;
+        }
 
         self::assertSame($releasedNames, \array_slice($currentNames, 0, \count($releasedNames)), \sprintf(
             'The released parameter names of "%s::%s()" must stay in place and in order, since PHP 8 named arguments make each one part of the signature and `composer bc:check` cannot see a rename on a final class. Appending a parameter is fine.',
