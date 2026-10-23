@@ -124,6 +124,7 @@ final class SkillStoreTest extends AbstractMcpTestCase
             $store->get('skill://refunds/SKILL.md', $context),
             $store->listResources(null),
             $store->readFile('skill://refunds/SKILL.md', $context),
+            $store->readDirectory('skill://refunds', null, $context),
         ];
 
         foreach ($results as $result) {

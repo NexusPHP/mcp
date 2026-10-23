@@ -121,6 +121,8 @@ final class SkillClientTest extends AbstractMcpTestCase
         $sent = $this->respond($transport, 1, 'resources/directory/read', [
             'resultType' => 'complete',
             'resources' => [['name' => 'refunds', 'uri' => self::MANIFEST_URI]],
+            'ttlMs' => 0,
+            'cacheScope' => 'private',
         ]);
 
         $result = $call->await();

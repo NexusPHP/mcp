@@ -203,7 +203,12 @@ final readonly class SkillStore implements SkillStoreInterface
 
         $page = $this->paginator->paginate($children, $cursor);
 
-        return new ReadResourceDirectoryResult(resources: $page->entries, nextCursor: $page->nextCursor);
+        return new ReadResourceDirectoryResult(
+            resources: $page->entries,
+            ttlMs: $this->ttlMs,
+            cacheScope: $this->cacheScope,
+            nextCursor: $page->nextCursor,
+        );
     }
 
     /**

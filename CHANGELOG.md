@@ -13,6 +13,12 @@ in `0.x`, minor releases may include breaking changes.
 - `Server::run()` takes an optional `Cancellation`: when requested, it cancels every request in flight and closes
   the transport, where closing the transport alone waits for every handler to finish.
 - `CancellableMessageDispatcherInterface`, for a custom dispatcher that `run()`'s cancellation should reach.
+- `Skill` carries the optional `_meta` added by the skills extension.
+
+### Changed
+
+- `ReadResourceDirectoryResult` requires `ttlMs` and `cacheScope`, as the skills extension now does, and
+  `SkillStore` fills them from its cache policy. See BREAKING_CHANGES.md.
 
 ### Fixed
 

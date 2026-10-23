@@ -20,6 +20,8 @@
                 "size": 5
             }
         ],
-        "nextCursor": "cursor-token"
+        "nextCursor": "cursor-token",
+        "ttlMs": 300000,
+        "cacheScope": "public"
     }
 }

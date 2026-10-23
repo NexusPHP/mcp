@@ -61,8 +61,9 @@ One commit, titled `Prepare changelog for vX.Y.Z`:
 - In `CHANGELOG.md`, insert `## [vX.Y.Z](https://github.com/NexusPHP/mcp/compare/vPREV...vX.Y.Z) - YYYY-MM-DD`
   under the `## [Unreleased]` heading, so the unreleased entries move under the new heading and
   `Unreleased` is left empty.
-- When the release breaks anything, add `## vPREV to vX.Y.Z` to `BREAKING_CHANGES.md` above the latest
-  section, with the migration for each break. A release without breaking changes gets no section.
+- In `BREAKING_CHANGES.md`, rename `## vPREV to Unreleased` to `## vPREV to vX.Y.Z`. The section exists only
+  when a change since the last release breaks something, written with its migration when that change lands.
+  A release without breaking changes gets no section.
 - Run `composer lint:docs` and `composer validate --strict`.
 
 Push the commit and wait for CI.

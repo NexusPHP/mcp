@@ -41,6 +41,7 @@ final class SkillTest extends AbstractMcpTestCase
         self::assertSame(self::URI, $entry->uri);
         self::assertSame(self::FRONTMATTER, $entry->frontmatter);
         self::assertSame([$manifest, $supporting], $entry->resources);
+        self::assertSame([], $entry->meta->toArray());
     }
 
     public function testASkillAtTheTopOfTheNamespaceTakesItsNameFromTheAuthority(): void
@@ -94,6 +95,20 @@ final class SkillTest extends AbstractMcpTestCase
         ]];
 
         yield 'dynamic resources' => [['uri' => self::URI, 'frontmatter' => self::FRONTMATTER, 'resources' => 'dynamic']];
+
+        yield 'a manifest with _meta' => [[
+            'uri' => self::URI,
+            'frontmatter' => self::FRONTMATTER,
+            'resources' => [['uri' => self::URI, 'digest' => self::DIGEST, 'size' => 5]],
+            '_meta' => ['io.modelcontextprotocol.skills/origin' => 'registry'],
+        ]];
+
+        yield 'dynamic resources with _meta' => [[
+            'uri' => self::URI,
+            'frontmatter' => self::FRONTMATTER,
+            'resources' => 'dynamic',
+            '_meta' => ['vendor' => 'x'],
+        ]];
     }
 
     /**
@@ -246,5 +261,15 @@ final class SkillTest extends AbstractMcpTestCase
         yield 'a resource that is not an object' => [['uri' => self::URI, 'frontmatter' => self::FRONTMATTER, 'resources' => ['x']], 'each skill "resources" entry must be an object, string given.'];
 
         yield 'a resource that is a list' => [['uri' => self::URI, 'frontmatter' => self::FRONTMATTER, 'resources' => [['x']]], 'each skill "resources" entry must be a string-keyed object.'];
+
+        yield '_meta not an object' => [
+            ['uri' => self::URI, 'frontmatter' => self::FRONTMATTER, 'resources' => 'dynamic', '_meta' => 'oops'],
+            'skill "_meta" must be an object, string given.',
+        ];
+
+        yield '_meta a list' => [
+            ['uri' => self::URI, 'frontmatter' => self::FRONTMATTER, 'resources' => 'dynamic', '_meta' => ['x']],
+            'skill "_meta" must be a string-keyed object.',
+        ];
     }
 }

@@ -14,9 +14,12 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Extension\Skills\Schema\Result;
 
 use Nexus\Mcp\Core\Schema\Cursor;
+use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\Resource\Resource;
 use Nexus\Mcp\Core\Schema\Result;
+use Nexus\Mcp\Core\Schema\Result\CacheableResult;
+use Nexus\Mcp\Core\Schema\Result\PaginatedResult;
 use Nexus\Mcp\Extension\Skills\Schema\Result\ReadResourceDirectoryResult;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -27,6 +30,8 @@ use PHPUnit\Framework\Attributes\Group;
  * @internal
  */
 #[CoversClass(ReadResourceDirectoryResult::class)]
+#[CoversClass(PaginatedResult::class)]
+#[CoversClass(CacheableResult::class)]
 #[CoversClass(Result::class)]
 #[Group('unit-tests')]
 #[Group('extension-tests')]
@@ -36,18 +41,23 @@ final class ReadResourceDirectoryResultTest extends AbstractMcpTestCase
 
     public function testConstructionDefaults(): void
     {
-        $result = new ReadResourceDirectoryResult(resources: []);
+        $result = new ReadResourceDirectoryResult(resources: [], ttlMs: 0, cacheScope: CacheScope::Private);
 
         self::assertSame([], $result->resources);
+        self::assertSame(0, $result->ttlMs);
+        self::assertSame(CacheScope::Private, $result->cacheScope);
         self::assertNull($result->nextCursor);
         self::assertSame([], $result->meta->toArray());
     }
 
     public function testToArrayMinimal(): void
     {
-        $result = new ReadResourceDirectoryResult(resources: []);
+        $result = new ReadResourceDirectoryResult(resources: [], ttlMs: 0, cacheScope: CacheScope::Private);
 
-        self::assertSame(['resultType' => 'complete', 'resources' => []], $result->toArray());
+        self::assertSame(
+            ['resultType' => 'complete', 'resources' => [], 'ttlMs' => 0, 'cacheScope' => 'private'],
+            $result->toArray(),
+        );
         self::assertSame($result->toArray(), $result->jsonSerialize());
     }
 
@@ -59,6 +69,8 @@ final class ReadResourceDirectoryResultTest extends AbstractMcpTestCase
                 'resultType' => 'complete',
                 'resources' => [self::CHILD],
                 'nextCursor' => 'cursor-1',
+                'ttlMs' => 300_000,
+                'cacheScope' => 'public',
             ],
             $this->createFull()->toArray(),
         );
@@ -81,11 +93,15 @@ final class ReadResourceDirectoryResultTest extends AbstractMcpTestCase
         self::assertArrayHasKey(0, $rebuilt->resources);
         self::assertSame('references', $rebuilt->resources[0]->name);
         self::assertSame('cursor-1', $rebuilt->nextCursor?->cursor);
+        self::assertSame(300_000, $rebuilt->ttlMs);
+        self::assertSame(CacheScope::Public, $rebuilt->cacheScope);
     }
 
     public function testFromArrayAcceptsAnEmptyMeta(): void
     {
-        self::assertSame([], ReadResourceDirectoryResult::fromArray(['resources' => [], '_meta' => []])->meta->toArray());
+        $result = ReadResourceDirectoryResult::fromArray(['resources' => [], 'ttlMs' => 0, 'cacheScope' => 'private', '_meta' => []]);
+
+        self::assertSame([], $result->meta->toArray());
     }
 
     public function testConstructorRejectsNonListResources(): void
@@ -94,7 +110,7 @@ final class ReadResourceDirectoryResultTest extends AbstractMcpTestCase
         $this->expectExceptionMessageIs('"result.resources" must be a list, non-list array given.');
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
-        new ReadResourceDirectoryResult(resources: [5 => Resource::fromArray(self::CHILD)]);
+        new ReadResourceDirectoryResult(resources: [5 => Resource::fromArray(self::CHILD)], ttlMs: 0, cacheScope: CacheScope::Private);
     }
 
     public function testConstructorRejectsANonResource(): void
@@ -102,7 +118,7 @@ final class ReadResourceDirectoryResultTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
-        new ReadResourceDirectoryResult(resources: [42]);
+        new ReadResourceDirectoryResult(resources: [42], ttlMs: 0, cacheScope: CacheScope::Private);
     }
 
     /**
@@ -130,17 +146,39 @@ final class ReadResourceDirectoryResultTest extends AbstractMcpTestCase
 
         yield 'resource entry list-keyed' => [['resources' => [['x']]], 'each "result.resources" entry must be a string-keyed object.'];
 
-        yield 'nextCursor not a string' => [['resources' => [], 'nextCursor' => 1], '"result.nextCursor" must be a non-empty string, int given.'];
+        yield 'missing ttlMs' => [['resources' => []], '"result" is missing the required "ttlMs" key.'];
 
-        yield '_meta not an object' => [['resources' => [], '_meta' => 'oops'], '"result._meta" must be an object, string given.'];
+        yield 'ttlMs not an integer' => [['resources' => [], 'ttlMs' => 'oops'], '"result.ttlMs" must be an integer, string given.'];
 
-        yield '_meta list-keyed' => [['resources' => [], '_meta' => ['x']], '"result._meta" must be a string-keyed object.'];
+        yield 'missing cacheScope' => [['resources' => [], 'ttlMs' => 0], '"result" is missing the required "cacheScope" key.'];
+
+        yield 'cacheScope not a known value' => [
+            ['resources' => [], 'ttlMs' => 0, 'cacheScope' => 'shared'],
+            '"result.cacheScope" must be one of [\'public\', \'private\'], \'shared\' given.',
+        ];
+
+        yield 'nextCursor not a string' => [
+            ['resources' => [], 'ttlMs' => 0, 'cacheScope' => 'private', 'nextCursor' => 1],
+            '"result.nextCursor" must be a non-empty string, int given.',
+        ];
+
+        yield '_meta not an object' => [
+            ['resources' => [], 'ttlMs' => 0, 'cacheScope' => 'private', '_meta' => 'oops'],
+            '"result._meta" must be an object, string given.',
+        ];
+
+        yield '_meta list-keyed' => [
+            ['resources' => [], 'ttlMs' => 0, 'cacheScope' => 'private', '_meta' => ['x']],
+            '"result._meta" must be a string-keyed object.',
+        ];
     }
 
     private function createFull(): ReadResourceDirectoryResult
     {
         return new ReadResourceDirectoryResult(
             resources: [Resource::fromArray(self::CHILD)],
+            ttlMs: 300_000,
+            cacheScope: CacheScope::Public,
             nextCursor: new Cursor(cursor: 'cursor-1'),
             meta: new GenericResultMetaObject(extras: ['vendor' => 'x']),
         );

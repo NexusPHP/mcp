@@ -16,34 +16,39 @@ namespace Nexus\Mcp\Extension\Skills\Schema\Result;
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Cursor;
+use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Enum\ResultType;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
 use Nexus\Mcp\Core\Schema\Resource\Resource;
-use Nexus\Mcp\Core\Schema\Result;
+use Nexus\Mcp\Core\Schema\Result\PaginatedResult;
 use Nexus\Mcp\Core\Schema\Result\ServerResult;
 
 /**
  * The result returned by the server for a `resources/directory/read` request.
  *
- * @extends Result<array{
+ * @extends PaginatedResult<array{
  *   _meta?: template-type<ResultMetaObject, MetaObject, 'T'>,
  *   resultType: non-empty-string,
  *   resources: list<template-type<Resource, Arrayable, 'T'>>,
  *   nextCursor?: non-empty-string,
+ *   ttlMs: int,
+ *   cacheScope: value-of<CacheScope>,
  * }>
  *
  * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/2640-skills-extension.md
  */
-final readonly class ReadResourceDirectoryResult extends Result implements ServerResult
+final readonly class ReadResourceDirectoryResult extends PaginatedResult implements ServerResult
 {
     /**
      * @param list<Resource> $resources The directory's direct children
      */
     public function __construct(
         public array $resources,
-        public ?Cursor $nextCursor = null,
+        int $ttlMs,
+        CacheScope $cacheScope,
+        ?Cursor $nextCursor = null,
         ResultMetaObject $meta = new GenericResultMetaObject(),
     ) {
         Assert::that($resources)
@@ -51,7 +56,7 @@ final readonly class ReadResourceDirectoryResult extends Result implements Serve
             ->values()->isInstanceOf(Resource::class)
         ;
 
-        parent::__construct(meta: $meta);
+        parent::__construct(ttlMs: $ttlMs, cacheScope: $cacheScope, nextCursor: $nextCursor, meta: $meta);
     }
 
     #[\Override]
@@ -65,6 +70,14 @@ final readonly class ReadResourceDirectoryResult extends Result implements Serve
             ->isMap('each "result.resources" entry must be a string-keyed object.')
         ;
         $resources = array_map(Resource::fromArray(...), $data['resources']);
+
+        Assert::that($data)->hasOffset('ttlMs', '"result" is missing the required "ttlMs" key.');
+        $ttlMs = $data['ttlMs'];
+        Assert::that($ttlMs)->isInt('"result.ttlMs" must be an integer, {type} given.');
+
+        Assert::that($data)->hasOffset('cacheScope', '"result" is missing the required "cacheScope" key.');
+        Assert::that($data['cacheScope'])->isOneOf(array_column(CacheScope::cases(), 'value'), '"result.cacheScope" must be one of {choices}, {value} given.');
+        $cacheScope = CacheScope::from($data['cacheScope']);
 
         $nextCursor = null;
 
@@ -84,7 +97,7 @@ final readonly class ReadResourceDirectoryResult extends Result implements Serve
             $meta = GenericResultMetaObject::fromArray($data['_meta']);
         }
 
-        return new self(resources: $resources, nextCursor: $nextCursor, meta: $meta);
+        return new self(resources: $resources, ttlMs: $ttlMs, cacheScope: $cacheScope, nextCursor: $nextCursor, meta: $meta);
     }
 
     #[\Override]
@@ -104,13 +117,22 @@ final readonly class ReadResourceDirectoryResult extends Result implements Serve
             $data['nextCursor'] = $this->nextCursor->cursor;
         }
 
+        $data['ttlMs'] = $this->ttlMs;
+        $data['cacheScope'] = $this->cacheScope->value;
+
         return $data;
     }
 
     #[\Override]
     public function rebuildWithMeta(ResultMetaObject $meta): static
     {
-        return new self(resources: $this->resources, nextCursor: $this->nextCursor, meta: $meta);
+        return new self(
+            resources: $this->resources,
+            ttlMs: $this->ttlMs,
+            cacheScope: $this->cacheScope,
+            nextCursor: $this->nextCursor,
+            meta: $meta,
+        );
     }
 
     #[\Override]

@@ -4,6 +4,24 @@ This file is the upgrade guide: what breaks at each version boundary and how to 
 for *when* breaking changes may land and how they are communicated lives in
 [VERSIONING.md](VERSIONING.md).
 
+## v1.2.1 to Unreleased
+
+### `ReadResourceDirectoryResult` requires `ttlMs` and `cacheScope`
+
+The skills extension corrected its stable page so that a `resources/directory/read` result is cacheable like
+every other list-shaped result, with `ttlMs` and `cacheScope` required. The constructor requires both, and
+decoding refuses a result that omits either:
+
+```php
+// before
+new ReadResourceDirectoryResult(resources: $children, nextCursor: $cursor);
+// after
+new ReadResourceDirectoryResult(resources: $children, ttlMs: 60_000, cacheScope: CacheScope::Public, nextCursor: $cursor);
+```
+
+`SkillStore` fills them from its own `ttlMs` and `cacheScope`, so a server built on it needs no change. A client
+reading directories from a server that omits them now gets a decode failure instead of a result.
+
 ## v0.16.0 to v1.0.0
 
 ### The time seams are `nexusphp/clock` capabilities, not closures

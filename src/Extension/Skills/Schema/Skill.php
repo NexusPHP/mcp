@@ -15,6 +15,8 @@ namespace Nexus\Mcp\Extension\Skills\Schema;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
+use Nexus\Mcp\Core\Schema\MetaObject;
+use Nexus\Mcp\Core\Schema\MetaObject\PayloadMetaObject;
 use Nexus\Mcp\Extension\Skills\Skills;
 
 /**
@@ -26,6 +28,7 @@ use Nexus\Mcp\Extension\Skills\Skills;
  *   uri: non-empty-string,
  *   frontmatter: Frontmatter,
  *   resources: 'dynamic'|list<template-type<SkillResource, Arrayable, 'T'>>,
+ *   _meta?: template-type<PayloadMetaObject, MetaObject, 'T'>,
  * }>
  *
  * @see https://github.com/modelcontextprotocol/ext-skills/blob/main/specification/stable/skills.mdx
@@ -43,6 +46,7 @@ final readonly class Skill implements Arrayable
         public string $uri,
         public array $frontmatter,
         public array|string $resources,
+        public PayloadMetaObject $meta = new PayloadMetaObject(),
     ) {
         Assert::that($uri)
             ->isNonEmptyString('skill "uri" must be a non-empty string.')
@@ -110,8 +114,18 @@ final readonly class Skill implements Arrayable
         Assert::that($data)->hasOffset('resources', 'skill is missing the required "resources" key.');
         $resources = $data['resources'];
 
+        $meta = new PayloadMetaObject();
+
+        if (\array_key_exists('_meta', $data)) {
+            Assert::that($data['_meta'])
+                ->isArray('skill "_meta" must be an object, {type} given.')
+                ->not()->isNonEmptyList('skill "_meta" must be a string-keyed object.')
+            ;
+            $meta = PayloadMetaObject::fromArray($data['_meta']);
+        }
+
         if (Skills::DYNAMIC_RESOURCES === $resources) {
-            return new self(uri: $uri, frontmatter: $frontmatter, resources: $resources);
+            return new self(uri: $uri, frontmatter: $frontmatter, resources: $resources, meta: $meta);
         }
 
         Assert::that($resources)
@@ -121,19 +135,32 @@ final readonly class Skill implements Arrayable
             ->isMap('each skill "resources" entry must be a string-keyed object.')
         ;
 
-        return new self(uri: $uri, frontmatter: $frontmatter, resources: array_map(SkillResource::fromArray(...), $resources));
+        return new self(
+            uri: $uri,
+            frontmatter: $frontmatter,
+            resources: array_map(SkillResource::fromArray(...), $resources),
+            meta: $meta,
+        );
     }
 
     #[\Override]
     public function toArray(): array
     {
-        return [
+        $data = [
             'uri' => $this->uri,
             'frontmatter' => $this->frontmatter,
             'resources' => \is_array($this->resources)
                 ? array_map(static fn(SkillResource $resource): array => $resource->toArray(), $this->resources)
                 : $this->resources,
         ];
+
+        $meta = $this->meta->toArray();
+
+        if ([] !== $meta) {
+            $data['_meta'] = $meta;
+        }
+
+        return $data;
     }
 
     #[\Override]
