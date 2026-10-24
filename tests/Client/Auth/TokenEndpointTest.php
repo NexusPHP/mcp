@@ -199,6 +199,7 @@ final class TokenEndpointTest extends AbstractMcpTestCase
             new ClientRegistration('the-client', self::ISSUER),
             new AccessToken('the-old-token', self::ISSUER, refreshToken: 'the-refresh-token', scopes: ['files:read']),
             new ResourceIdentifier(self::RESOURCE),
+            false,
             new NullCancellation(),
         );
 
@@ -210,6 +211,44 @@ final class TokenEndpointTest extends AbstractMcpTestCase
         ], $this->readForm($http->readRequest()));
     }
 
+    public function testRefreshNamesTheTokenScopesWhenAsked(): void
+    {
+        $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse());
+
+        (new TokenEndpoint($http))->refresh(
+            $this->buildMetadata(),
+            new ClientRegistration('the-client', self::ISSUER),
+            new AccessToken('the-old-token', self::ISSUER, refreshToken: 'the-refresh-token', scopes: ['files:read', 'files:write']),
+            new ResourceIdentifier(self::RESOURCE),
+            true,
+            new NullCancellation(),
+        );
+
+        self::assertSame([
+            'grant_type' => 'refresh_token',
+            'refresh_token' => 'the-refresh-token',
+            'resource' => self::RESOURCE,
+            'scope' => 'files:read files:write',
+            'client_id' => 'the-client',
+        ], $this->readForm($http->readRequest()));
+    }
+
+    public function testRefreshOmitsScopeWhenAskedForATokenWithNone(): void
+    {
+        $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse());
+
+        (new TokenEndpoint($http))->refresh(
+            $this->buildMetadata(),
+            new ClientRegistration('the-client', self::ISSUER),
+            new AccessToken('the-old-token', self::ISSUER, refreshToken: 'the-refresh-token'),
+            new ResourceIdentifier(self::RESOURCE),
+            true,
+            new NullCancellation(),
+        );
+
+        self::assertArrayNotHasKey('scope', $this->readForm($http->readRequest()));
+    }
+
     public function testRefreshKeepsTheEarlierScopesWhenTheResponseNamesNone(): void
     {
         $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse());
@@ -219,6 +258,7 @@ final class TokenEndpointTest extends AbstractMcpTestCase
             new ClientRegistration('the-client', self::ISSUER),
             new AccessToken('the-old-token', self::ISSUER, refreshToken: 'the-refresh-token', scopes: ['files:read']),
             new ResourceIdentifier(self::RESOURCE),
+            false,
             new NullCancellation(),
         );
 
@@ -234,6 +274,7 @@ final class TokenEndpointTest extends AbstractMcpTestCase
             new ClientRegistration('the-client', self::ISSUER),
             new AccessToken('the-old-token', self::ISSUER, refreshToken: 'the-refresh-token'),
             new ResourceIdentifier(self::RESOURCE),
+            false,
             new NullCancellation(),
         );
 
@@ -249,6 +290,7 @@ final class TokenEndpointTest extends AbstractMcpTestCase
             new ClientRegistration('the-client', self::ISSUER),
             new AccessToken('the-old-token', self::ISSUER, refreshToken: 'the-refresh-token'),
             new ResourceIdentifier(self::RESOURCE),
+            false,
             new NullCancellation(),
         );
 
@@ -265,6 +307,7 @@ final class TokenEndpointTest extends AbstractMcpTestCase
             new ClientRegistration('the-client', self::ISSUER),
             new AccessToken('the-old-token', self::ISSUER),
             new ResourceIdentifier(self::RESOURCE),
+            false,
             new NullCancellation(),
         );
     }

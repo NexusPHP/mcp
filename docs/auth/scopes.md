@@ -31,6 +31,13 @@ a refresh token.
 stays your call. Asking for it also sends `prompt=consent`. A server that can answer silently from a prior grant
 generally will, and a silent answer carries no refresh token.
 
+### Scopes on a refresh
+
+A refresh-token request omits `scope` by default, which RFC 6749 section 6 reads as the scopes originally granted.
+Some authorization servers refuse a refresh without it, Microsoft Entra ID among them when the client and the
+resource share one app registration. Pass `sendScopeOnRefresh: true` to name the token's scopes on every refresh.
+A token with no recorded scopes still refreshes without the parameter.
+
 ## Step-up
 
 A `403` that carries `error="insufficient_scope"` triggers a step-up. The SDK unions the challenged scopes with

@@ -8,6 +8,11 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+### Added
+
+- `AuthorizationOptions::$sendScopeOnRefresh` names the token's scopes on a refresh-token request, for authorization
+  servers that refuse a refresh without them.
+
 ### Fixed
 
 - `StdioServerTransport` on Windows answers each request while STDIN stays open, where it held every response until

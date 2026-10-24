@@ -426,6 +426,20 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         self::assertSame('the-renewed-token', $store->read(self::RESOURCE)?->value);
     }
 
+    public function testARenewalNamesTheTokenScopesWhenTheOptionsAskForThem(): void
+    {
+        $http = $this->scriptFullFlow(tokenOverrides: ['expires_in' => 1, 'refresh_token' => 'the-refresh-token', 'scope' => 'files:read'])
+            ->willAnswerJson(['access_token' => 'the-renewed-token', 'token_type' => 'Bearer'])
+        ;
+        $coordinator = $this->buildCoordinator($http, new ScriptedUserAuthorization(), sendScopeOnRefresh: true);
+        $coordinator->reauthorize(null, null, new NullCancellation());
+        $coordinator->fetchToken(new NullCancellation());
+
+        $form = $this->readForm($http->readRequest(4));
+        self::assertSame('refresh_token', $form['grant_type'] ?? null);
+        self::assertSame('files:read', $form['scope'] ?? null);
+    }
+
     public function testASecondRenewalRedeemsARefreshTokenTheServerDidNotRotate(): void
     {
         $http = $this->scriptFullFlow(tokenOverrides: ['expires_in' => 1, 'refresh_token' => 'the-refresh-token'])
@@ -1178,6 +1192,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
         array $defaultScopes = [],
         string $resource = self::RESOURCE,
         ?Semaphore $lock = null,
+        bool $sendScopeOnRefresh = false,
     ): AuthorizationCoordinator {
         $clock = new FrozenClock(\sprintf('@%d', self::FROZEN_NOW));
 
@@ -1194,6 +1209,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
                 'http://localhost:3000/callback',
                 requestOfflineAccess: $offlineAccess,
                 defaultScopes: $defaultScopes,
+                sendScopeOnRefresh: $sendScopeOnRefresh,
             ),
             $logger ?? new ArrayLogger(),
             ...(null === $lock ? [] : ['lock' => $lock]),

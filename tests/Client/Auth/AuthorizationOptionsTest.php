@@ -48,6 +48,7 @@ final class AuthorizationOptionsTest extends AbstractMcpTestCase
             InsufficientScopePolicy::Fail,
             2.5,
             true,
+            true,
         );
 
         self::assertSame('Example MCP Client', $options->clientName);
@@ -61,6 +62,7 @@ final class AuthorizationOptionsTest extends AbstractMcpTestCase
         self::assertSame(InsufficientScopePolicy::Fail, $options->onInsufficientScope);
         self::assertSame(2.5, $options->timeout);
         self::assertTrue($options->allowInsecureLoopback);
+        self::assertTrue($options->sendScopeOnRefresh);
     }
 
     public function testARemoteCleartextRedirectUriIsRefused(): void
@@ -134,5 +136,6 @@ final class AuthorizationOptionsTest extends AbstractMcpTestCase
         self::assertSame(InsufficientScopePolicy::Reauthorize, $options->onInsufficientScope);
         self::assertSame(10.0, $options->timeout);
         self::assertFalse($options->allowInsecureLoopback);
+        self::assertFalse($options->sendScopeOnRefresh);
     }
 }
