@@ -40,12 +40,14 @@ final class DocsSiteStager
         self::removeDirectory($staging);
 
         $errors = [];
+        $pages = [];
         $rewritten = 0;
         $staged = 0;
 
         foreach (self::findFiles($docs) as $path) {
             $relative = substr($path, \strlen($docs) + 1);
-            $destination = $staging.'/'.('README.md' === $relative ? 'index.md' : $relative);
+            $page = 'README.md' === $relative ? 'index.md' : $relative;
+            $destination = $staging.'/'.$page;
             self::createDirectory(\dirname($destination));
 
             if (! str_ends_with($relative, '.md')) {
@@ -70,6 +72,7 @@ final class DocsSiteStager
                 throw new \RuntimeException(\sprintf('Could not write "%s" into the staging directory.', $relative));
             }
 
+            $pages[] = $page;
             ++$staged;
         }
 
@@ -80,6 +83,16 @@ final class DocsSiteStager
         if ([] !== $errors) {
             fwrite(\STDERR, "\n\033[31mEvery link above escapes docs/ but has no matching file in the repository.\033[0m\n");
 
+            return 1;
+        }
+
+        $unlisted = array_diff($pages, self::readNavPages($root));
+
+        foreach ($unlisted as $page) {
+            fwrite(\STDERR, \sprintf("\033[31mThe page \"%s\" is missing from the nav in mkdocs.yml.\033[0m\n", $page));
+        }
+
+        if ([] !== $unlisted) {
             return 1;
         }
 
@@ -129,6 +142,22 @@ final class DocsSiteStager
         }
 
         return $buildDir.'/mkdocs.yml';
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function readNavPages(string $root): array
+    {
+        $config = file_get_contents($root.'/mkdocs.yml');
+
+        if (false === $config || preg_match('#^nav:\n(.*?)(?=^\S|\z)#ms', $config, $nav) !== 1) {
+            throw new \RuntimeException('Expected "mkdocs.yml" to declare a nav.');
+        }
+
+        preg_match_all('#^\s*-\s+(?:[^:\n]+:\s+)?(\S+\.md)$#m', $nav[1], $entries);
+
+        return $entries[1];
     }
 
     /**
