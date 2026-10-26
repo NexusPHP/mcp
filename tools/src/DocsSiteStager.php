@@ -67,6 +67,7 @@ final class DocsSiteStager
             }
 
             $markdown = self::rewriteLinks($markdown, \dirname('docs/'.$relative), $root, 'docs/'.$relative, $rewritten, $errors);
+            $markdown = self::convertAlerts($markdown);
 
             if (file_put_contents($destination, $markdown) === false) {
                 throw new \RuntimeException(\sprintf('Could not write "%s" into the staging directory.', $relative));
@@ -142,6 +143,28 @@ final class DocsSiteStager
         }
 
         return $buildDir.'/mkdocs.yml';
+    }
+
+    /**
+     * Rewrites each GitHub alert blockquote (`> [!WARNING]`) into an admonition (`!!! warning`).
+     */
+    private static function convertAlerts(string $markdown): string
+    {
+        $converted = preg_replace_callback(
+            '#^> \[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\n((?:>.*\n?)+)#m',
+            static fn(array $match): string => \sprintf(
+                "!!! %s\n\n%s",
+                strtolower($match[1]),
+                preg_replace('#^> ?#m', '    ', $match[2]),
+            ),
+            $markdown,
+        );
+
+        if (! \is_string($converted)) {
+            throw new \RuntimeException('Could not convert the GitHub alerts into admonitions.');
+        }
+
+        return $converted;
     }
 
     /**
