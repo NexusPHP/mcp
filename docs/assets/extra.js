@@ -1,4 +1,4 @@
-/* Splits Pygments' single keyword class the way VS Code's Dark Modern does:
+/* Splits Pygments' single keyword class the way VS Code's Modern themes do:
    control-flow keywords and $this get their own classes for extra.css to color. */
 document.addEventListener("DOMContentLoaded", () => {
   const control = new Set([

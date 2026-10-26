@@ -2,9 +2,23 @@
   width: 9.6rem;
 }
 
-/* Pygments marks most PHP identifiers Name.Other, which the theme leaves at body color. */
-.highlight .nx {
-  color: var(--md-code-hl-function-color);
+/* Light-scheme code colors matched to VS Code's Light Modern token palette. */
+[data-md-color-scheme="default"] {
+  --md-code-bg-color: #f8f8f8;
+  --md-code-fg-color: #3b3b3b;
+  --md-code-hl-keyword-color: #0000ff;
+  --md-code-hl-function-color: #795e26;
+  --md-code-hl-string-color: #a31515;
+  --md-code-hl-number-color: #098658;
+  --md-code-hl-comment-color: #008000;
+  --md-code-hl-variable-color: #001080;
+  --md-code-hl-operator-color: #000000;
+  --md-code-hl-punctuation-color: #000000;
+  --md-code-hl-constant-color: #0000ff;
+  --md-code-hl-name-color: #3b3b3b;
+  --md-code-hl-special-color: #811f3f;
+  --vscode-type-color: #267f99;
+  --vscode-control-color: #af00db;
 }
 
 /* Dark-scheme code colors matched to VS Code's Dark Modern token palette. */
@@ -22,33 +36,34 @@
   --md-code-hl-constant-color: #569cd6;
   --md-code-hl-name-color: #cccccc;
   --md-code-hl-special-color: #d16969;
+  --vscode-type-color: #4ec9b0;
+  --vscode-control-color: #c586c0;
 }
 
-[data-md-color-scheme="slate"] .highlight .nc,
-[data-md-color-scheme="slate"] .highlight .nn {
-  color: #4ec9b0;
+/* Pygments marks most PHP identifiers Name.Other, which the theme leaves at body color. */
+.highlight .nx {
+  color: var(--md-code-hl-function-color);
 }
 
-[data-md-color-scheme="slate"] .highlight .si {
-  color: #9cdcfe;
+.highlight .nc,
+.highlight .nn,
+.highlight .nx.nx-class {
+  color: var(--vscode-type-color);
 }
 
-[data-md-color-scheme="slate"] .highlight .k.k-control {
-  color: #c586c0;
+.highlight .si,
+.highlight .nx.nx-constant {
+  color: var(--md-code-hl-variable-color);
 }
 
-[data-md-color-scheme="slate"] .highlight .nv.nv-this {
-  color: #569cd6;
+.highlight .k.k-control {
+  color: var(--vscode-control-color);
 }
 
-[data-md-color-scheme="slate"] .highlight .nx.nx-class {
-  color: #4ec9b0;
+.highlight .nv.nv-this {
+  color: var(--md-code-hl-keyword-color);
 }
 
-[data-md-color-scheme="slate"] .highlight .nx.nx-constant {
-  color: #9cdcfe;
-}
-
-[data-md-color-scheme="slate"] .highlight .na.na-call {
-  color: #dcdcaa;
+.highlight .na.na-call {
+  color: var(--md-code-hl-function-color);
 }
