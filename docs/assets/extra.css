@@ -2,6 +2,10 @@
   width: 9.6rem;
 }
 
+.md-typeset table:not([class]) code {
+  word-break: normal;
+}
+
 /* Light-scheme code colors matched to VS Code's Light Modern token palette. */
 [data-md-color-scheme="default"] {
   --md-code-bg-color: #f8f8f8;
