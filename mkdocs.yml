@@ -2,6 +2,7 @@ site_name: Nexus MCP SDK
 site_url: https://nexusphp.github.io/mcp/
 repo_url: https://github.com/NexusPHP/mcp
 repo_name: nexusphp/mcp
+copyright: Copyright © 2026-{year} John Paul E Balandan
 docs_dir: build/pages-src
 site_dir: build/pages
 strict: true
@@ -14,6 +15,8 @@ extra_javascript:
 
 theme:
   name: material
+  features:
+    - content.code.copy
   palette:
     - media: '(prefers-color-scheme: light)'
       scheme: default

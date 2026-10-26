@@ -120,6 +120,8 @@ final class DocsSiteStager
             throw new \RuntimeException(\sprintf('Expected "mkdocs.yml" to declare docs_dir and site_dir under "%s/".', $buildDir));
         }
 
+        $relocated = self::stampCopyrightYear($relocated);
+
         $destination = \sprintf('%s/%s/mkdocs.yml', $root, $buildDir);
 
         if (file_put_contents($destination, $relocated) === false) {
@@ -127,6 +129,28 @@ final class DocsSiteStager
         }
 
         return $buildDir.'/mkdocs.yml';
+    }
+
+    /**
+     * Replaces `<first year>-{year}` in the copyright with the range up to the current year, or the first year alone.
+     */
+    private static function stampCopyrightYear(string $config): string
+    {
+        $stamped = preg_replace_callback(
+            '#^(copyright: .*?)(\d{4})-\{year\}#m',
+            static function (array $match): string {
+                $year = date('Y');
+
+                return $match[1].($match[2] === $year ? $year : \sprintf('%s-%s', $match[2], $year));
+            },
+            $config,
+        );
+
+        if (! \is_string($stamped)) {
+            throw new \RuntimeException('Could not stamp the copyright year into "mkdocs.yml".');
+        }
+
+        return $stamped;
     }
 
     /**
