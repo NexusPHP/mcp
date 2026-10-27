@@ -25,7 +25,8 @@
             "defaultScopes",
             "onInsufficientScope",
             "timeout",
-            "allowInsecureLoopback"
+            "allowInsecureLoopback",
+            "sendScopeOnRefresh"
         ]
     },
     "Nexus\\Mcp\\Client\\Auth\\AuthorizationRedirect": {
