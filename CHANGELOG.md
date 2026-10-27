@@ -8,6 +8,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+## [v1.4.0](https://github.com/NexusPHP/mcp/compare/v1.3.0...v1.4.0) - 2026-10-27
+
 ### Added
 
 - `AuthorizationOptions::$sendScopeOnRefresh` names the token's scopes on a refresh-token request, for authorization
