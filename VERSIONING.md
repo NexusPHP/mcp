@@ -58,8 +58,8 @@ arguments (see [Construct schema objects with named arguments](docs/best-practic
 Its constructor's parameter names are covered and their order is not, so a parameter may move to where the spec
 puts its field. Adding a required parameter is still a break.
 
-A correction to an official extension's stable specification is the one incompatible change shipped in a minor
-(see [MCP spec revisions](#mcp-spec-revisions)).
+A change to a Beta official extension, or a correction to a Stable one, is the one incompatible change shipped in
+a minor (see [MCP spec revisions](#mcp-spec-revisions)).
 
 Shipped in a minor (backward-compatible):
 
@@ -113,9 +113,12 @@ that lifecycle:
 - A **major** is reserved for when the SDK drops a removed feature or makes an
   otherwise incompatible change. Per SEP-2596 a spec removal does not oblige the SDK to drop the feature at
   once. The removal timeline is set by this policy, not by the spec's release date.
-- A correction published by an official extension's maintainers to that extension's stable specification is
-  adopted in a **minor**, even when it is incompatible. Each break it causes is recorded with its migration in
-  [BREAKING_CHANGES.md](BREAKING_CHANGES.md), and `composer bc:check` reports it until the release is tagged.
+- A change published by the maintainers of an official extension at the Beta stage
+  ([MCP SEP-3392](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/3392-extension-lifecycle.md)),
+  or a correction to a published revision of a Stable one, is adopted in a **minor**, even when it is incompatible.
+  Each break it causes is recorded with its migration in [BREAKING_CHANGES.md](BREAKING_CHANGES.md), and
+  `composer bc:check` reports it until the release is tagged. A new revision of a Stable extension is keyed to a
+  core revision and adopted with it.
 
 The SDK does not carry support for revisions before its declared floor. The tracked revision is stated in
 [README.md](README.md) and [CHANGELOG.md](CHANGELOG.md) for every release.
