@@ -17,7 +17,7 @@ namespace Nexus\Mcp\Extension\Auth\Enterprise;
  * Protocol vocabulary of the enterprise-managed authorization extension
  * (`io.modelcontextprotocol/enterprise-managed-authorization`, SEP-990).
  *
- * @see https://github.com/modelcontextprotocol/ext-auth/blob/main/specification/stable/enterprise-managed-authorization.mdx
+ * @see https://github.com/modelcontextprotocol/ext-auth/blob/main/specification/stable/enterprise-managed-authorization/2026-07-28/enterprise-managed-authorization.mdx
  */
 final readonly class EnterpriseAuthorization
 {

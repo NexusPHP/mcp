@@ -32,7 +32,7 @@ use Nexus\Mcp\Extension\Auth\GrantTypeAdvertisement;
  * The OAuth 2.1 client credentials grant (SEP-1046), an unattended machine-to-machine flow with no user
  * and no consent screen.
  *
- * @see https://github.com/modelcontextprotocol/ext-auth/blob/main/specification/draft/oauth-client-credentials.mdx
+ * @see https://github.com/modelcontextprotocol/ext-auth/blob/main/specification/stable/oauth-client-credentials/2026-07-28/oauth-client-credentials.mdx
  */
 final readonly class ClientCredentialsGrant implements GrantStrategyInterface
 {

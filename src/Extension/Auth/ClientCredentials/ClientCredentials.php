@@ -17,7 +17,7 @@ namespace Nexus\Mcp\Extension\Auth\ClientCredentials;
  * Protocol vocabulary of the OAuth client credentials extension
  * (`io.modelcontextprotocol/oauth-client-credentials`, SEP-1046).
  *
- * @see https://github.com/modelcontextprotocol/ext-auth/blob/main/specification/draft/oauth-client-credentials.mdx
+ * @see https://github.com/modelcontextprotocol/ext-auth/blob/main/specification/stable/oauth-client-credentials/2026-07-28/oauth-client-credentials.mdx
  */
 final readonly class ClientCredentials
 {

@@ -29,7 +29,7 @@ use Psr\Log\LoggerInterface;
 /**
  * The enterprise-managed authorization grant (SEP-990), a two-legged token exchange with no user redirect.
  *
- * @see https://github.com/modelcontextprotocol/ext-auth/blob/main/specification/stable/enterprise-managed-authorization.mdx
+ * @see https://github.com/modelcontextprotocol/ext-auth/blob/main/specification/stable/enterprise-managed-authorization/2026-07-28/enterprise-managed-authorization.mdx
  */
 final readonly class IdentityAssertionGrant implements GrantStrategyInterface
 {
