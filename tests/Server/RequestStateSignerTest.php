@@ -355,7 +355,57 @@ final class RequestStateSignerTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('The request-state signing secret must be a non-empty string.');
 
+        // @phpstan-ignore argument.type (an empty secret drives the runtime guard PHPStan rejects statically)
         new RequestStateSigner('');
+    }
+
+    public function testTheFirstKeyOfARingSigns(): void
+    {
+        $ring = new RequestStateSigner(['new-secret', 'old-secret']);
+
+        self::assertSame((new RequestStateSigner('new-secret'))->sign('round-1'), $ring->sign('round-1'));
+    }
+
+    public function testEveryKeyOfARingVerifies(): void
+    {
+        $ring = new RequestStateSigner(['new-secret', 'old-secret']);
+
+        self::assertSame('round-1', $ring->verify((new RequestStateSigner('new-secret'))->sign('round-1')));
+        self::assertSame('round-1', $ring->verify((new RequestStateSigner('old-secret'))->sign('round-1')));
+        self::assertNull($ring->verify((new RequestStateSigner('other-secret'))->sign('round-1')));
+    }
+
+    public function testBindingKeepsTheKeyRing(): void
+    {
+        $bound = (new RequestStateSigner(['new-secret', 'old-secret']))->bindTo('user-alice');
+
+        self::assertSame('round-1', $bound->verify((new RequestStateSigner('old-secret'))->sign('round-1', 'user-alice')));
+        self::assertSame('round-1', $bound->bindBy(static fn(): string => '')->verify((new RequestStateSigner('old-secret'))->sign('round-1', 'user-alice')));
+    }
+
+    /**
+     * @param list<mixed> $ring
+     */
+    #[DataProvider('provideConstructorRejectsAMalformedKeyRingCases')]
+    public function testConstructorRejectsAMalformedKeyRing(array $ring, string $message): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs($message);
+
+        // @phpstan-ignore argument.type (a malformed ring drives the runtime guard PHPStan rejects statically)
+        new RequestStateSigner($ring);
+    }
+
+    /**
+     * @return iterable<string, array{list<mixed>, string}>
+     */
+    public static function provideConstructorRejectsAMalformedKeyRingCases(): iterable
+    {
+        yield 'an empty ring' => [[], 'The request-state signing key ring must be a non-empty list, array given.'];
+
+        yield 'an empty key' => [['secret', ''], 'Each request-state signing key must be a non-empty string, string given.'];
+
+        yield 'a non-string key' => [['secret', 7], 'Each request-state signing key must be a non-empty string, int given.'];
     }
 
     public function testConstructorRejectsAnUnavailableAlgorithm(): void

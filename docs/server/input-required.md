@@ -84,6 +84,10 @@ handler's own.
 longer-lived wants a key from configuration, so a state survives a restart or a second instance behind a load
 balancer.
 
+A list of keys is a key ring: the first key signs, and every key verifies. Rotate without failing a state
+in flight by deploying `[$old, $new]`, then `[$new, $old]`, then `[$new]` once a TTL has passed, with each step
+rolled out to every instance before the next.
+
 ## What the signature covers
 
 The signature folds in three things beyond the payload, which are the spec's own replay checks:

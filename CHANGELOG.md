@@ -12,6 +12,7 @@ in `0.x`, minor releases may include breaking changes.
 
 - `AuthorizationOptions::$skipOfflineAccessConsent` leaves `prompt=consent` out of an authorization request asking
   for `offline_access`, for authorization servers that refuse a forced consent screen.
+- `RequestStateSigner` takes a list of keys as a key ring, so its key rotates without failing a state in flight.
 
 ### Changed
 
