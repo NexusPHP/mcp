@@ -31,6 +31,10 @@ a refresh token.
 stays your call. Asking for it also sends `prompt=consent`. A server that can answer silently from a prior grant
 generally will, and a silent answer carries no refresh token.
 
+Some authorization servers refuse a forced consent screen when consent was already granted out of band, Microsoft
+Entra ID among them for a non-admin user on a tenant with user consent disabled. Pass
+`skipOfflineAccessConsent: true` to leave `prompt=consent` out.
+
 ### Scopes on a refresh
 
 A refresh-token request omits `scope` by default, which RFC 6749 section 6 reads as the scopes originally granted.

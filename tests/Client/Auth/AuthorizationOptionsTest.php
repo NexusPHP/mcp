@@ -49,6 +49,7 @@ final class AuthorizationOptionsTest extends AbstractMcpTestCase
             2.5,
             true,
             true,
+            true,
         );
 
         self::assertSame('Example MCP Client', $options->clientName);
@@ -63,6 +64,7 @@ final class AuthorizationOptionsTest extends AbstractMcpTestCase
         self::assertSame(2.5, $options->timeout);
         self::assertTrue($options->allowInsecureLoopback);
         self::assertTrue($options->sendScopeOnRefresh);
+        self::assertTrue($options->skipOfflineAccessConsent);
     }
 
     public function testARemoteCleartextRedirectUriIsRefused(): void
@@ -137,5 +139,6 @@ final class AuthorizationOptionsTest extends AbstractMcpTestCase
         self::assertSame(10.0, $options->timeout);
         self::assertFalse($options->allowInsecureLoopback);
         self::assertFalse($options->sendScopeOnRefresh);
+        self::assertFalse($options->skipOfflineAccessConsent);
     }
 }

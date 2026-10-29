@@ -73,6 +73,22 @@ final class AuthorizationRequestTest extends AbstractMcpTestCase
         self::assertSame('consent', $this->readQuery($redirect->url)['prompt'] ?? null);
     }
 
+    public function testBuildLeavesTheConsentScreenToTheServerWhenAskedForOfflineAccessWithoutOne(): void
+    {
+        $redirect = AuthorizationRequest::build(
+            new AuthorizationServerMetadata('https://auth.example.com', 'https://auth.example.com/authorize'),
+            'https://app.example.com/client.json',
+            'http://localhost:3000/callback',
+            new ResourceIdentifier('https://mcp.example.com/mcp'),
+            new ScopeSet(['files:read', 'offline_access']),
+            skipOfflineAccessConsent: true,
+        );
+
+        $query = $this->readQuery($redirect->url);
+        self::assertSame('files:read offline_access', $query['scope'] ?? null);
+        self::assertArrayNotHasKey('prompt', $query);
+    }
+
     public function testBuildLeavesTheConsentScreenToTheServerOtherwise(): void
     {
         self::assertArrayNotHasKey('prompt', $this->readQuery($this->build(new ScopeSet(['files:read']))->url));

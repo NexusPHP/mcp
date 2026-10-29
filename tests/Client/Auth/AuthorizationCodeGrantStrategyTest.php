@@ -70,6 +70,20 @@ final class AuthorizationCodeGrantStrategyTest extends AbstractMcpTestCase
         self::assertArrayHasKey('code_verifier', $form);
     }
 
+    public function testGrantOmitsTheConsentPromptWhenTheOptionsAskForIt(): void
+    {
+        $http = (new RecordingHttpClient())
+            ->willAnswerJson(['client_id' => 'the-registered-client'])
+            ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer'])
+        ;
+        $user = new ScriptedUserAuthorization();
+        $options = new AuthorizationOptions('Example MCP Client', 'http://localhost:3000/callback', skipOfflineAccessConsent: true);
+
+        (new AuthorizationCodeGrantStrategy($user))->grant($this->buildContext($http, new ScopeSet(['offline_access']), $options), new NullCancellation());
+
+        self::assertStringNotContainsString('prompt=', $user->readRedirect()->url);
+    }
+
     public function testGrantRefusesToRunWithoutARedirectUri(): void
     {
         $this->expectException(\InvalidArgumentException::class);
