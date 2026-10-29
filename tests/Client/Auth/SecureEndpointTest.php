@@ -89,6 +89,8 @@ final class SecureEndpointTest extends AbstractMcpTestCase
         yield 'a near-miss of the loopback block is rejected' => ['http://128.0.0.1/token'];
 
         yield 'a non-HTTP scheme is rejected' => ['ftp://auth.example.com/token'];
+
+        yield 'a non-HTTP scheme on a loopback host is rejected' => ['ftp://localhost:9000/token'];
     }
 
     #[DataProvider('provideMalformedUrlsCases')]

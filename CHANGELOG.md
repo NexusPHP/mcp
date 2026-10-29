@@ -13,6 +13,10 @@ in `0.x`, minor releases may include breaking changes.
 - `AuthorizationOptions::$skipOfflineAccessConsent` leaves `prompt=consent` out of an authorization request asking
   for `offline_access`, for authorization servers that refuse a forced consent screen.
 
+### Fixed
+
+- A redirect URI on a loopback host must use `http`, where any scheme was accepted.
+
 ## [v1.4.0](https://github.com/NexusPHP/mcp/compare/v1.3.0...v1.4.0) - 2026-10-27
 
 ### Added
