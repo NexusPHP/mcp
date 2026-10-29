@@ -192,8 +192,8 @@ final class RequestStateSignerTest extends AbstractMcpTestCase
     /**
      * @param JsonRpcRequest<non-empty-string> $request
      */
-    #[DataProvider('provideBindForDerivesTheSubjectMethodAndTargetCases')]
-    public function testBindForDerivesTheSubjectMethodAndTarget(JsonRpcRequest $request, ReceiveContext $receiveContext, string $expected): void
+    #[DataProvider('provideBindForDerivesTheCallerMethodAndTargetCases')]
+    public function testBindForDerivesTheCallerMethodAndTarget(JsonRpcRequest $request, ReceiveContext $receiveContext, string $expected): void
     {
         $signer = new RequestStateSigner('secret');
 
@@ -204,40 +204,40 @@ final class RequestStateSignerTest extends AbstractMcpTestCase
     /**
      * @return iterable<string, array{JsonRpcRequest<non-empty-string>, ReceiveContext, string}>
      */
-    public static function provideBindForDerivesTheSubjectMethodAndTargetCases(): iterable
+    public static function provideBindForDerivesTheCallerMethodAndTargetCases(): iterable
     {
         $meta = RequestMetaObjectFactory::shape();
-        $authenticated = new ReceiveContext(authInfo: new VerifiedAccessToken(['https://mcp.example.com'], 2_000_000_000, [], subject: 'alice'));
+        $authenticated = new ReceiveContext(authInfo: new VerifiedAccessToken(['https://mcp.example.com'], 2_000_000_000, [], subject: 'alice', clientId: 'app-1'));
         $digest = hash('sha256', '{"a":{"x":1,"y":[2,1]},"b":"two"}');
 
         yield 'tool call by an authenticated caller' => [
             CallToolRequest::fromArray(['id' => 1, 'params' => ['_meta' => $meta, 'name' => 'deploy']]),
             $authenticated,
-            "alice\0tools/call\0deploy\0",
+            "alice\0app-1\0tools/call\0deploy\0",
         ];
 
         yield 'tool call with arguments, keys in any order' => [
             CallToolRequest::fromArray(['id' => 1, 'params' => ['_meta' => $meta, 'name' => 'deploy', 'arguments' => ['b' => 'two', 'a' => ['y' => [2, 1], 'x' => 1]]]]),
             $authenticated,
-            "alice\0tools/call\0deploy\0".$digest,
+            "alice\0app-1\0tools/call\0deploy\0".$digest,
         ];
 
         yield 'prompt by an anonymous caller' => [
             GetPromptRequest::fromArray(['id' => 1, 'params' => ['_meta' => $meta, 'name' => 'review', 'arguments' => ['b' => 'two', 'a' => 'one']]]),
             new ReceiveContext(),
-            "\0prompts/get\0review\0".hash('sha256', '{"a":"one","b":"two"}'),
+            "\0\0prompts/get\0review\0".hash('sha256', '{"a":"one","b":"two"}'),
         ];
 
         yield 'resource read' => [
             ReadResourceRequest::fromArray(['id' => 1, 'params' => ['_meta' => $meta, 'uri' => 'file:///a']]),
             $authenticated,
-            "alice\0resources/read\0file:///a\0",
+            "alice\0app-1\0resources/read\0file:///a\0",
         ];
 
         yield 'a request without a target' => [
             ListToolsRequest::fromArray(['id' => 1, 'params' => ['_meta' => $meta]]),
             $authenticated,
-            "alice\0tools/list\0\0",
+            "alice\0app-1\0tools/list\0\0",
         ];
     }
 

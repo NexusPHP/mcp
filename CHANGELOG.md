@@ -13,6 +13,11 @@ in `0.x`, minor releases may include breaking changes.
 - `AuthorizationOptions::$skipOfflineAccessConsent` leaves `prompt=consent` out of an authorization request asking
   for `offline_access`, for authorization servers that refuse a forced consent screen.
 
+### Changed
+
+- `RequestStateSigner::deriveBinding()` binds the authenticated client as well as the subject, so a state minted
+  for one client is refused for another. A state minted before the upgrade is refused once.
+
 ### Fixed
 
 - A redirect URI on a loopback host must use `http`, where any scheme was accepted.

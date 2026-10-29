@@ -88,12 +88,13 @@ balancer.
 
 The signature folds in three things beyond the payload, which are the spec's own replay checks:
 
-- **The binding.** By default the authenticated subject, the method, the tool name, prompt name or resource URI
-  it targets, and a digest of its arguments. A state minted for one call verifies on no other tool, for no
-  other caller, and with no other arguments, so a confirmation obtained for `{target: staging}` cannot resume
-  the tool with `{target: production}`. The subject is empty over stdio, on an unprotected endpoint, and for an
-  accepted token that carries no non-empty `sub` claim, so an endpoint serving more than one caller has no
-  caller binding until something authenticates them.
+- **The binding.** By default the authenticated subject and client, the method, the tool name, prompt name or
+  resource URI it targets, and a digest of its arguments. A state minted for one call verifies on no other tool,
+  for no other caller or client, and with no other arguments, so a confirmation obtained for `{target: staging}`
+  cannot resume the tool with `{target: production}`. Both are empty over stdio and on an unprotected endpoint,
+  and each is empty for an accepted token that names no subject or client, so an endpoint serving more than one
+  caller has no caller binding until something authenticates them. A validator accepting tokens from more than
+  one issuer should add the issuer through `bindBy()`.
 - **An expiry.** Ten minutes by default, set per signer with `ttlSeconds`. A state echoed after it is refused.
 - **The secret.** A state minted by another server, or by this one under another key, is refused.
 
