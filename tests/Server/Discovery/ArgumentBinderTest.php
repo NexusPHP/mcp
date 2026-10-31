@@ -30,6 +30,7 @@ use Nexus\Mcp\Tests\Fixtures\Server\Discovery\EmptyDto;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\NestedDto;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\OpaqueDto;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\OptionalNestedDto;
+use Nexus\Mcp\Tests\Fixtures\Server\Discovery\PromotedTagsDto;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\PureEnum;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\ReflectedHandlers;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\SelfReferencingDto;
@@ -329,6 +330,14 @@ final class ArgumentBinderTest extends AbstractMcpTestCase
 
         self::assertInstanceOf(DeepDto::class, $deep);
         self::assertSame(BackedStringEnum::B, $deep->inner->origin->label);
+    }
+
+    public function testHydratesEnumsTypedByAPromotedPropertyDocblock(): void
+    {
+        $dto = $this->bindFirst('withPromotedTags', ['dto' => ['tags' => ['x'], 'colors' => ['a', 'b']]]);
+
+        self::assertInstanceOf(PromotedTagsDto::class, $dto);
+        self::assertSame([BackedStringEnum::A, BackedStringEnum::B], $dto->colors);
     }
 
     public function testConstructsAClassThatNestsItselfThroughSelf(): void

@@ -19,6 +19,8 @@ in `0.x`, minor releases may include breaking changes.
   as its case. Previously, it arrived as the raw value.
 - A constructor parameter typed as an instantiable class expands into a nested object in a tool's input schema.
   Previously, it threw at registration. A class that contains itself still throws.
+- The `@var` of a promoted constructor property types the matching parameter of an expanded class, and a `@param`
+  takes precedence. Previously, the property docblock was ignored.
 
 ### Changed
 

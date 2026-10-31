@@ -146,6 +146,10 @@ final class SampleToolHandlers
     {
     }
 
+    public function promotedTags(PromotedTagsDto $dto): void
+    {
+    }
+
     public function optionalNested(OptionalNestedDto $box): void
     {
     }

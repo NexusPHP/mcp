@@ -405,6 +405,37 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
         ], $this->generate('deepObject'));
     }
 
+    public function testPromotedPropertyDocblocksTypeTheConstructorParameters(): void
+    {
+        self::assertSame([
+            'type' => 'object',
+            '$schema' => self::DIALECT,
+            'properties' => [
+                'dto' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'tags' => [
+                            'type' => 'array',
+                            'items' => ['type' => 'string'],
+                            'description' => 'The tags to apply.',
+                        ],
+                        'colors' => [
+                            'type' => 'array',
+                            'items' => ['type' => 'string', 'enum' => ['a', 'b']],
+                            'default' => [],
+                        ],
+                        'plain' => ['type' => 'integer', 'default' => 0],
+                        'label' => ['type' => 'string', 'default' => ''],
+                        'widths' => ['type' => 'array', 'items' => ['type' => 'integer'], 'default' => []],
+                        'ratios' => ['type' => 'array', 'items' => ['type' => 'number'], 'default' => []],
+                    ],
+                    'required' => ['tags'],
+                ],
+            ],
+            'required' => ['dto'],
+        ], $this->generate('promotedTags'));
+    }
+
     public function testNullableNestedClassParameterAdmitsNull(): void
     {
         self::assertSame([

@@ -105,7 +105,8 @@ A tool parameter typed as an instantiable class is expanded into an object schem
 constructor parameters. The handler receives a constructed instance. A constructor parameter that is itself an
 instantiable class expands the same way, to any depth. A class that contains itself, directly or through another
 class, throws `LogicException` at registration. Describe it with `#[InputSchema(...)]`. Interfaces, abstract
-classes, and built-in classes such as `\DateTimeImmutable` are not expanded and throw.
+classes, and built-in classes such as `\DateTimeImmutable` are not expanded and throw. A constructor parameter takes
+its type from the constructor's `@param` line, and a promoted property's `@var` stands in when there is none.
 
 ```php
 final readonly class Coordinate

@@ -149,6 +149,11 @@ final class ReflectedHandlers
         return (string) $deep->inner->origin->longitude;
     }
 
+    public function withPromotedTags(PromotedTagsDto $dto): string
+    {
+        return implode(',', array_map(static fn(BackedStringEnum $color): string => $color->value, $dto->colors));
+    }
+
     public function withOptionalNested(OptionalNestedDto $box): string
     {
         return null === $box->origin ? 'none' : (string) $box->origin->latitude;
