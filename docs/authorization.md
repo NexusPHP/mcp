@@ -42,8 +42,9 @@ These checks are not optional. They are the checks most often skipped by impleme
 
 ### PKCE `S256`
 
-The client refuses an authorization server that does not advertise `code_challenge_methods_supported`. It never
-downgrades.
+The authorization-code grant refuses an authorization server that does not advertise `S256` in
+`code_challenge_methods_supported`. It never downgrades. A grant that sends no authorization request, such as client
+credentials, does not need PKCE and does not check for it.
 
 ### Issuer validation
 

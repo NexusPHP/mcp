@@ -38,6 +38,8 @@ in `0.x`, minor releases may include breaking changes.
 - A task is bound to the authenticated caller that created it, and `tasks/get`, `tasks/update` and `tasks/cancel`
   refuse another caller's task with `-32602`. Previously, any caller holding a task ID could read, answer or cancel
   it. A custom store implements the new `OwnedTaskStoreInterface` to serve authenticated requests.
+- The client-credentials grant works against an authorization server that does not advertise PKCE. Previously,
+  discovery refused it, and only the authorization-code grant needs PKCE.
 - The SSE frame size limit counts each frame separately, whatever the chunking. Previously, several small frames in one
   chunk could trip it and a frame split across chunks could exceed it.
 - A redirect URI on a loopback host must use `http`. Previously, any scheme was accepted.

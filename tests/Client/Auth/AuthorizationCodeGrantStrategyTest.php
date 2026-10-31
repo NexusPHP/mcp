@@ -22,6 +22,7 @@ use Nexus\Mcp\Client\Auth\DiscoveredResource;
 use Nexus\Mcp\Client\Auth\GrantContext;
 use Nexus\Mcp\Client\Auth\InMemoryClientRegistrationStore;
 use Nexus\Mcp\Client\Auth\TokenEndpoint;
+use Nexus\Mcp\Client\Exception\PkceNotSupportedException;
 use Nexus\Mcp\Core\Auth\AuthorizationServerMetadata;
 use Nexus\Mcp\Core\Auth\ProtectedResourceMetadata;
 use Nexus\Mcp\Core\Auth\ResourceIdentifier;
@@ -31,6 +32,7 @@ use Nexus\Mcp\Tests\Fixtures\Client\Auth\ScriptedUserAuthorization;
 use Nexus\Mcp\Tests\Fixtures\Client\Http\RecordingHttpClient;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 
 use function Amp\ByteStream\buffer;
@@ -84,6 +86,33 @@ final class AuthorizationCodeGrantStrategyTest extends AbstractMcpTestCase
         self::assertStringNotContainsString('prompt=', $user->readRedirect()->url);
     }
 
+    /**
+     * @param null|list<non-empty-string> $methods
+     */
+    #[DataProvider('provideGrantRefusesAServerWithoutS256Cases')]
+    public function testGrantRefusesAServerWithoutS256(?array $methods): void
+    {
+        $http = new RecordingHttpClient();
+
+        $this->expectException(PkceNotSupportedException::class);
+        $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not advertise the S256 code challenge method, so authorization cannot proceed.');
+
+        (new AuthorizationCodeGrantStrategy(new ScriptedUserAuthorization()))->grant(
+            $this->buildContext($http, new ScopeSet(), methods: $methods),
+            new NullCancellation(),
+        );
+    }
+
+    /**
+     * @return iterable<string, array{null|list<non-empty-string>}>
+     */
+    public static function provideGrantRefusesAServerWithoutS256Cases(): iterable
+    {
+        yield 'no methods advertised' => [null];
+
+        yield 'only plain advertised' => [['plain']];
+    }
+
     public function testGrantRefusesToRunWithoutARedirectUri(): void
     {
         $this->expectException(\InvalidArgumentException::class);
@@ -100,10 +129,14 @@ final class AuthorizationCodeGrantStrategyTest extends AbstractMcpTestCase
         self::assertFalse((new AuthorizationCodeGrantStrategy(new ScriptedUserAuthorization()))->renewsByFreshGrant());
     }
 
+    /**
+     * @param null|list<non-empty-string> $methods
+     */
     private function buildContext(
         RecordingHttpClient $http,
         ScopeSet $scopes,
         ?AuthorizationOptions $options = null,
+        ?array $methods = ['S256'],
     ): GrantContext {
         $resource = new ResourceIdentifier(self::RESOURCE);
 
@@ -115,7 +148,7 @@ final class AuthorizationCodeGrantStrategyTest extends AbstractMcpTestCase
                     authorizationEndpoint: 'https://auth.example.com/authorize',
                     tokenEndpoint: 'https://auth.example.com/token',
                     registrationEndpoint: 'https://auth.example.com/register',
-                    codeChallengeMethodsSupported: ['S256'],
+                    codeChallengeMethodsSupported: $methods,
                 ),
             ),
             $resource,

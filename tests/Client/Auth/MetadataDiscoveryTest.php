@@ -16,7 +16,6 @@ namespace Nexus\Mcp\Tests\Client\Auth;
 use Amp\NullCancellation;
 use Nexus\Mcp\Client\Auth\JsonHttpExchange;
 use Nexus\Mcp\Client\Auth\MetadataDiscovery;
-use Nexus\Mcp\Client\Exception\PkceNotSupportedException;
 use Nexus\Mcp\Client\Exception\UntrustedAuthorizationMetadataException;
 use Nexus\Mcp\Core\Auth\ResourceIdentifier;
 use Nexus\Mcp\Core\Auth\WwwAuthenticateChallenge;
@@ -433,26 +432,16 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
         yield 'an issuer that is not an absolute URL' => ['auth.example.com'];
     }
 
-    public function testAServerAdvertisingNoCodeChallengeMethodsIsRefused(): void
+    public function testAServerAdvertisingNoCodeChallengeMethodsIsStillDiscovered(): void
     {
         $document = $this->buildServerDocument();
         unset($document['code_challenge_methods_supported']);
         $http = (new RecordingHttpClient())->willAnswerJson($document);
 
-        $this->expectException(PkceNotSupportedException::class);
-        $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not advertise the S256 code challenge method, so authorization cannot proceed.');
+        $server = (new MetadataDiscovery($http))->discoverServer(self::ISSUER, new NullCancellation());
 
-        (new MetadataDiscovery($http))->discoverServer(self::ISSUER, new NullCancellation());
-    }
-
-    public function testAServerAdvertisingOnlyPlainIsRefused(): void
-    {
-        $http = (new RecordingHttpClient())->willAnswerJson($this->buildServerDocument(['code_challenge_methods_supported' => ['plain']]));
-
-        $this->expectException(PkceNotSupportedException::class);
-        $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not advertise the S256 code challenge method, so authorization cannot proceed.');
-
-        (new MetadataDiscovery($http))->discoverServer(self::ISSUER, new NullCancellation());
+        self::assertSame(self::ISSUER, $server->issuer);
+        self::assertNull($server->codeChallengeMethodsSupported);
     }
 
     public function testExhaustingEveryServerCandidateIsReported(): void
