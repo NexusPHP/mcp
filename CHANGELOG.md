@@ -28,9 +28,9 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
-- A redirect URI on a loopback host must use `http`, where any scheme was accepted.
+- A redirect URI on a loopback host must use `http`. Previously, any scheme was accepted.
 - The input schema for an unsealed shape (`array{a: int, ...<string, int>}`, `list{int, ...}`) allows the extra
-  entries, where it rejected them or ignored their type.
+  entries. Previously, it rejected them or ignored their type.
 
 ## [v1.4.0](https://github.com/NexusPHP/mcp/compare/v1.3.0...v1.4.0) - 2026-10-27
 
