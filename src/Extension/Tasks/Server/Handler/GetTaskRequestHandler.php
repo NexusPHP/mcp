@@ -20,6 +20,7 @@ use Nexus\Mcp\Extension\Tasks\Schema\Request\GetTaskRequest;
 use Nexus\Mcp\Extension\Tasks\Schema\Result\GetTaskResult;
 use Nexus\Mcp\Extension\Tasks\Server\Store\TaskStoreInterface;
 use Nexus\Mcp\Extension\Tasks\Server\TaskOwnership;
+use Nexus\Mcp\Server\Auth\OperationScopes;
 use Nexus\Mcp\Server\ServerContext;
 
 /**
@@ -29,8 +30,10 @@ use Nexus\Mcp\Server\ServerContext;
  */
 final readonly class GetTaskRequestHandler implements RequestHandlerInterface
 {
-    public function __construct(private TaskStoreInterface $store)
-    {
+    public function __construct(
+        private TaskStoreInterface $store,
+        private ?OperationScopes $scopes = null,
+    ) {
     }
 
     #[\Override]
@@ -39,7 +42,7 @@ final readonly class GetTaskRequestHandler implements RequestHandlerInterface
         \assert($request instanceof GetTaskRequest);
         \assert($context instanceof ServerContext);
 
-        $record = TaskOwnership::findTask($this->store, $context, $request->params->taskId);
+        $record = TaskOwnership::findTask($this->store, $context, $request->params->taskId, $this->scopes);
 
         return new GetTaskResult(
             taskId: $record->taskId,

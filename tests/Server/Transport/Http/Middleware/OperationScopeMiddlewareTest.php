@@ -16,6 +16,7 @@ namespace Nexus\Mcp\Tests\Server\Transport\Http\Middleware;
 use Nexus\Mcp\Core\Auth\VerifiedAccessToken;
 use Nexus\Mcp\Core\Auth\WwwAuthenticateChallenge;
 use Nexus\Mcp\Core\Exception\LogicException;
+use Nexus\Mcp\Server\Auth\OperationScopes;
 use Nexus\Mcp\Server\Transport\Http\Middleware\OperationScopeMiddleware;
 use Nexus\Mcp\Server\Transport\StreamableHttpServerTransport;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
@@ -285,6 +286,73 @@ final class OperationScopeMiddlewareTest extends AbstractMcpTestCase
 
         self::assertSame(403, $response->getStatusCode());
         self::assertSame('files:read deploy:read', $this->readChallenge($response)['scope'] ?? null);
+    }
+
+    public function testScopesGivenAsAnObjectAreEnforced(): void
+    {
+        $handler = $this->buildHandler();
+        $factory = new Psr17Factory();
+        $middleware = new OperationScopeMiddleware(
+            self::METADATA_URL,
+            $factory,
+            $factory,
+            operationScopes: new OperationScopes(tools: ['write_file' => ['files:write']]),
+        );
+
+        $refused = $middleware->process(
+            $this->buildRequest($this->encodeOperation('tools/call', ['name' => 'write_file']), ['files:read']),
+            $handler,
+        );
+        $allowed = $middleware->process(
+            $this->buildRequest($this->encodeOperation('tools/call', ['name' => 'write_file']), ['files:write']),
+            $handler,
+        );
+
+        self::assertSame(403, $refused->getStatusCode());
+        self::assertSame(200, $allowed->getStatusCode());
+    }
+
+    public function testScopesGivenBothWaysAreRefused(): void
+    {
+        $factory = new Psr17Factory();
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessageIs('Pass operation scopes either as $operationScopes or as $tools, $prompts and $resources, not both.');
+
+        new OperationScopeMiddleware(
+            self::METADATA_URL,
+            $factory,
+            $factory,
+            tools: ['write_file' => ['files:write']],
+            operationScopes: new OperationScopes(),
+        );
+    }
+
+    /**
+     * @param array<int|non-empty-string, list<non-empty-string>> $tools
+     * @param array<int|non-empty-string, list<non-empty-string>> $prompts
+     * @param array<int|non-empty-string, list<non-empty-string>> $resources
+     */
+    #[DataProvider('provideScopesGivenBothWaysAreRefusedForEachKindCases')]
+    public function testScopesGivenBothWaysAreRefusedForEachKind(array $tools, array $prompts, array $resources): void
+    {
+        $factory = new Psr17Factory();
+
+        $this->expectException(LogicException::class);
+
+        new OperationScopeMiddleware(self::METADATA_URL, $factory, $factory, $tools, $prompts, $resources, operationScopes: new OperationScopes());
+    }
+
+    /**
+     * @return iterable<string, array{array<array-key, mixed>, array<array-key, mixed>, array<array-key, mixed>}>
+     */
+    public static function provideScopesGivenBothWaysAreRefusedForEachKindCases(): iterable
+    {
+        yield 'tools' => [['t' => ['a']], [], []];
+
+        yield 'prompts' => [[], ['p' => ['a']], []];
+
+        yield 'resources' => [[], [], ['file:///a' => ['a']]];
     }
 
     /**

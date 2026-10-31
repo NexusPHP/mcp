@@ -133,7 +133,17 @@ request is turned away without being parsed.
 operation that needs more, which is the least-privilege model recommended by the spec.
 
 ```php
+use Nexus\Mcp\Server\Auth\OperationScopes;
 use Nexus\Mcp\Server\Transport\Http\Middleware\OperationScopeMiddleware;
+
+$operationScopes = new OperationScopes(
+    tools: ['delete_file' => ['files:write']],
+    prompts: ['release_notes' => ['repo:read']],
+    resources: [
+        'config://deploy' => ['deploy:read'],
+        'file:///reports/{name}' => ['files:read'],
+    ],
+);
 
 $endpoint = new SecuredHttpEndpoint(
     $transport,
@@ -145,19 +155,19 @@ $endpoint = new SecuredHttpEndpoint(
         'https://mcp.example.com/.well-known/oauth-protected-resource/mcp',
         $responseFactory,
         $streamFactory,
-        tools: ['delete_file' => ['files:write']],
-        prompts: ['release_notes' => ['repo:read']],
-        resources: [
-            'config://deploy' => ['deploy:read'],
-            'file:///reports/{name}' => ['files:read'],
-        ],
         endpointScopes: ['mcp:use'],
+        operationScopes: $operationScopes,
     ),
 );
 ```
 
 A request whose token lacks a listed scope is answered `403` with `error="insufficient_scope"`, before the handler
-runs. An operation with no entry needs nothing beyond `requiredScopes`.
+runs. An operation with no entry needs nothing beyond `requiredScopes`. The same `OperationScopes` can be given to
+the [tasks extension](../server/tasks.md#task-ownership), so a task's tool keeps its scopes after the call that
+created it.
+
+The `tools`, `prompts` and `resources` arguments of `OperationScopeMiddleware` still work but are deprecated in
+favour of `operationScopes`, and cannot be combined with it.
 
 | Entry | Requests it covers |
 | --- | --- |

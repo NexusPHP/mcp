@@ -24,6 +24,8 @@ in `0.x`, minor releases may include breaking changes.
   takes precedence. Previously, the property docblock was ignored.
 - A `@param` union such as `list<Suit>|string` hydrates the enums of the member that matches the argument's kind.
   Previously, the argument arrived as raw values.
+- `OperationScopes` holds the scopes of each tool, prompt and resource, and both `OperationScopeMiddleware` and
+  `TasksServerExtension` take it.
 
 ### Changed
 
@@ -33,11 +35,19 @@ in `0.x`, minor releases may include breaking changes.
 - `RequestStateSigner::deriveBinding()` binds the authenticated client as well as the subject, so a state minted
   for one client is refused for another. A state minted before the upgrade is refused once.
 
+### Deprecated
+
+- The `$tools`, `$prompts` and `$resources` arguments of `OperationScopeMiddleware`. Pass an `OperationScopes` as
+  `$operationScopes` instead, which the tasks extension can share.
+
 ### Fixed
 
 - A task is bound to the authenticated caller that created it, and `tasks/get`, `tasks/update` and `tasks/cancel`
   refuse another caller's task with `-32602`. Previously, any caller holding a task ID could read, answer or cancel
   it. A custom store implements the new `OwnedTaskStoreInterface` to serve authenticated requests.
+- `tasks/get`, `tasks/update` and `tasks/cancel` refuse a token that lacks a scope its task's tool declares, once
+  `TasksServerExtension` is given the `OperationScopes`. Previously, a caller whose scope was removed after creating a
+  task could still resume the tool through it.
 - A continuation state's default binding encodes the caller, method, target and arguments unambiguously. Previously,
   two callers whose identities joined to the same bytes could replay each other's state, and a state minted before
   the upgrade no longer verifies.

@@ -22,6 +22,7 @@ use Nexus\Mcp\Core\Transport\ReceiveContext;
 use Nexus\Mcp\Extension\Tasks\Server\Store\InMemoryTaskStore;
 use Nexus\Mcp\Extension\Tasks\Server\Store\TaskStoreInterface;
 use Nexus\Mcp\Extension\Tasks\Server\TaskOwnership;
+use Nexus\Mcp\Server\Auth\OperationScopes;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
@@ -120,6 +121,67 @@ final class TaskOwnershipTest extends AbstractMcpTestCase
         TaskOwnership::createTask($store, $this->buildContext($this->buildToken('alice', 'client-1')), 'slow_compute', null, null, 1_000);
     }
 
+    /**
+     * @param null|list<non-empty-string> $declared
+     * @param list<non-empty-string>      $held
+     */
+    #[DataProvider('provideFindTaskRequiresTheScopesOfTheTasksToolCases')]
+    public function testFindTaskRequiresTheScopesOfTheTasksTool(?array $declared, array $held, bool $allowed): void
+    {
+        $store = new InMemoryTaskStore();
+        $taskId = TaskOwnership::createTask(
+            $store,
+            $this->buildContext($this->buildToken('alice', 'client-1', ['delete:admin', 'read'])),
+            'delete',
+            null,
+            null,
+            1_000,
+        )->taskId;
+        $scopes = null === $declared ? null : new OperationScopes(tools: ['delete' => $declared]);
+
+        if ($allowed) {
+            $this->expectNotToPerformAssertions();
+        } else {
+            $this->expectException(InvalidParamsException::class);
+            $this->expectExceptionMessageIs('"params.taskId" does not name a known task.');
+        }
+
+        TaskOwnership::findTask($store, $this->buildContext($this->buildToken('alice', 'client-1', $held)), $taskId, $scopes);
+    }
+
+    /**
+     * @return iterable<string, array{null|list<non-empty-string>, list<non-empty-string>, bool}>
+     */
+    public static function provideFindTaskRequiresTheScopesOfTheTasksToolCases(): iterable
+    {
+        yield 'the tool scope held' => [['delete:admin'], ['delete:admin'], true];
+
+        yield 'the tool scope held among others' => [['delete:admin'], ['read', 'delete:admin'], true];
+
+        yield 'downscoped but the tool scope still held' => [['delete:admin'], ['delete:admin'], true];
+
+        yield 'the tool scope lost' => [['delete:admin'], ['read'], false];
+
+        yield 'every scope lost' => [['delete:admin'], [], false];
+
+        yield 'one of several tool scopes lost' => [['delete:admin', 'audit'], ['delete:admin'], false];
+
+        yield 'a tool that declares no scopes' => [[], [], true];
+
+        yield 'no scopes configured' => [null, [], true];
+    }
+
+    public function testFindTaskRefusesAnUnprotectedCallerForAScopedTool(): void
+    {
+        $store = new InMemoryTaskStore();
+        $taskId = $store->createTask('delete', null, null, 1_000)->taskId;
+
+        $this->expectException(InvalidParamsException::class);
+        $this->expectExceptionMessageIs('"params.taskId" does not name a known task.');
+
+        TaskOwnership::findTask($store, $this->buildContext(), $taskId, new OperationScopes(tools: ['delete' => ['delete:admin']]));
+    }
+
     public function testTheOwnerFindsItsTask(): void
     {
         $store = new InMemoryTaskStore();
@@ -174,12 +236,13 @@ final class TaskOwnershipTest extends AbstractMcpTestCase
     }
 
     /**
-     * @param null|non-empty-string $subject
-     * @param null|non-empty-string $clientId
+     * @param null|non-empty-string  $subject
+     * @param null|non-empty-string  $clientId
+     * @param list<non-empty-string> $scopes
      */
-    private function buildToken(?string $subject, ?string $clientId): VerifiedAccessToken
+    private function buildToken(?string $subject, ?string $clientId, array $scopes = []): VerifiedAccessToken
     {
-        return new VerifiedAccessToken(['https://mcp.test/mcp'], 1_800_000_000, subject: $subject, clientId: $clientId);
+        return new VerifiedAccessToken(['https://mcp.test/mcp'], 1_800_000_000, $scopes, subject: $subject, clientId: $clientId);
     }
 
     private function buildContext(?VerifiedAccessToken $token = null): ServerContext

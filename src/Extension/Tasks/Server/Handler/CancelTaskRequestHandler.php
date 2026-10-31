@@ -21,6 +21,7 @@ use Nexus\Mcp\Extension\Tasks\Schema\Request\CancelTaskRequest;
 use Nexus\Mcp\Extension\Tasks\Server\Store\TaskStoreInterface;
 use Nexus\Mcp\Extension\Tasks\Server\TaskCancellationRegistry;
 use Nexus\Mcp\Extension\Tasks\Server\TaskOwnership;
+use Nexus\Mcp\Server\Auth\OperationScopes;
 use Nexus\Mcp\Server\ServerContext;
 
 /**
@@ -33,6 +34,7 @@ final readonly class CancelTaskRequestHandler implements RequestHandlerInterface
     public function __construct(
         private TaskStoreInterface $store,
         private TaskCancellationRegistry $cancellations,
+        private ?OperationScopes $scopes = null,
     ) {
     }
 
@@ -42,7 +44,7 @@ final readonly class CancelTaskRequestHandler implements RequestHandlerInterface
         \assert($request instanceof CancelTaskRequest);
         \assert($context instanceof ServerContext);
 
-        $taskId = TaskOwnership::findTask($this->store, $context, $request->params->taskId)->taskId;
+        $taskId = TaskOwnership::findTask($this->store, $context, $request->params->taskId, $this->scopes)->taskId;
 
         $this->store->trySetCancelled($taskId);
         $this->cancellations->cancel($taskId);

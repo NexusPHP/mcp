@@ -37,6 +37,7 @@ use Nexus\Mcp\Extension\Tasks\Server\Store\TaskRecord;
 use Nexus\Mcp\Extension\Tasks\Server\TaskCancellationRegistry;
 use Nexus\Mcp\Extension\Tasks\Server\TaskOwnership;
 use Nexus\Mcp\Extension\Tasks\Server\ToolTaskRunner;
+use Nexus\Mcp\Server\Auth\OperationScopes;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
@@ -83,6 +84,32 @@ final class UpdateTaskRequestHandlerTest extends AbstractMcpTestCase
         $record = $store->findTask($taskId);
         self::assertInstanceOf(TaskRecord::class, $record);
         self::assertSame(['first'], array_keys($record->pendingInputRequests));
+    }
+
+    public function testACallerWithoutTheToolsScopeCannotSupplyInputToTheTask(): void
+    {
+        $store = new InMemoryTaskStore();
+        $creator = $this->buildContext('alice', ['delete:admin', 'read']);
+        $taskId = TaskOwnership::createTask($store, $creator, 'confirm_delete', null, null, 1_000)->taskId;
+        $store->trySetInputRequired($taskId, ['first' => $this->buildElicitRequest()], 'state-1');
+        $handler = new UpdateTaskRequestHandler(
+            $store,
+            $this->buildUnboundRunner($store),
+            new OperationScopes(tools: ['confirm_delete' => ['delete:admin']]),
+        );
+
+        try {
+            $handler->handle($this->buildRequest($taskId, ['first' => ['action' => 'accept']]), $this->buildContext('alice', ['read']));
+            self::fail('Expected the update to be refused.');
+        } catch (InvalidParamsException $e) {
+            self::assertSame('"params.taskId" does not name a known task.', $e->getMessage());
+        }
+
+        $record = $store->findTask($taskId);
+        self::assertInstanceOf(TaskRecord::class, $record);
+        self::assertSame(TaskStatus::InputRequired, $record->status);
+        self::assertSame(['first'], array_keys($record->pendingInputRequests));
+        self::assertSame([], $record->inputResponses);
     }
 
     public function testATerminalTaskAcksWithoutARedispatch(): void
@@ -251,9 +278,10 @@ final class UpdateTaskRequestHandlerTest extends AbstractMcpTestCase
     }
 
     /**
-     * @param null|non-empty-string $subject
+     * @param null|non-empty-string  $subject
+     * @param list<non-empty-string> $scopes
      */
-    private function buildContext(?string $subject = null): ServerContext
+    private function buildContext(?string $subject = null, array $scopes = []): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 7),
@@ -263,6 +291,7 @@ final class UpdateTaskRequestHandlerTest extends AbstractMcpTestCase
             new ReceiveContext(authInfo: null === $subject ? null : new VerifiedAccessToken(
                 ['https://mcp.test/mcp'],
                 1_800_000_000,
+                $scopes,
                 subject: $subject,
             )),
         );

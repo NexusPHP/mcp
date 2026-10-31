@@ -13,11 +13,13 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Extension\Tasks\Server;
 
+use Nexus\Mcp\Core\Auth\ScopeSet;
 use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Exception\LogicException;
 use Nexus\Mcp\Extension\Tasks\Server\Store\OwnedTaskStoreInterface;
 use Nexus\Mcp\Extension\Tasks\Server\Store\TaskRecord;
 use Nexus\Mcp\Extension\Tasks\Server\Store\TaskStoreInterface;
+use Nexus\Mcp\Server\Auth\OperationScopes;
 use Nexus\Mcp\Server\ServerContext;
 
 /**
@@ -59,17 +61,28 @@ final class TaskOwnership
     /**
      * @param non-empty-string $taskId
      *
-     * @throws InvalidParamsException when the task is unknown or belongs to another caller
+     * @throws InvalidParamsException
      */
-    public static function findTask(TaskStoreInterface $store, ServerContext $context, string $taskId): TaskRecord
-    {
+    public static function findTask(
+        TaskStoreInterface $store,
+        ServerContext $context,
+        string $taskId,
+        ?OperationScopes $scopes = null,
+    ): TaskRecord {
         $record = $store->findTask($taskId);
 
-        if (null === $record || self::resolveOwner($context) !== $record->owner) {
+        if (null === $record || self::resolveOwner($context) !== $record->owner || ! self::holdsScopesOf($record, $context, $scopes)) {
             throw new InvalidParamsException($context->requestId, '"params.taskId" does not name a known task.');
         }
 
         return $record;
+    }
+
+    private static function holdsScopesOf(TaskRecord $record, ServerContext $context, ?OperationScopes $scopes): bool
+    {
+        $held = new ScopeSet($context->receiveContext->authInfo->scopes ?? []);
+
+        return $held->containsAll($scopes?->forTool($record->toolName) ?? new ScopeSet());
     }
 
     /**

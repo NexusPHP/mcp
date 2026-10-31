@@ -36,6 +36,9 @@ unmodelled until ratified.
 
 ## Authorization
 
+- [ ] **Remove the `$tools`, `$prompts` and `$resources` arguments of `OperationScopeMiddleware` on 2.x.**
+  They are deprecated in favour of `$operationScopes`, which the tasks extension shares. Removing them lets the
+  middleware drop the conflict check and take `OperationScopes` alone.
 - [ ] **Declare operation scopes at registration.** `OperationScopeMiddleware` takes its scopes as maps
   keyed by tool name, prompt name, and resource URI, held apart from the registrations they describe. A
   key that names nothing served by the server is ignored, so a renamed tool keeps its scopes only if its

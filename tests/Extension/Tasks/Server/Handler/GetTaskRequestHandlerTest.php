@@ -27,6 +27,7 @@ use Nexus\Mcp\Extension\Tasks\Schema\Request\GetTaskRequest;
 use Nexus\Mcp\Extension\Tasks\Server\Handler\GetTaskRequestHandler;
 use Nexus\Mcp\Extension\Tasks\Server\Store\InMemoryTaskStore;
 use Nexus\Mcp\Extension\Tasks\Server\TaskOwnership;
+use Nexus\Mcp\Server\Auth\OperationScopes;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
@@ -62,6 +63,18 @@ final class GetTaskRequestHandlerTest extends AbstractMcpTestCase
         $this->expectExceptionMessageIs('"params.taskId" does not name a known task.');
 
         $handler->handle($this->buildRequest($taskId), $this->buildContext('bob'));
+    }
+
+    public function testACallerWithoutTheToolsScopeCannotReadTheTask(): void
+    {
+        $store = new InMemoryTaskStore();
+        $taskId = TaskOwnership::createTask($store, $this->buildContext('alice', ['delete:admin']), 'delete', null, null, 1_000)->taskId;
+        $handler = new GetTaskRequestHandler($store, new OperationScopes(tools: ['delete' => ['delete:admin']]));
+
+        $this->expectException(InvalidParamsException::class);
+        $this->expectExceptionMessageIs('"params.taskId" does not name a known task.');
+
+        $handler->handle($this->buildRequest($taskId), $this->buildContext('alice', ['read']));
     }
 
     public function testAWorkingTaskProjectsTheBareShape(): void
@@ -138,9 +151,10 @@ final class GetTaskRequestHandlerTest extends AbstractMcpTestCase
     }
 
     /**
-     * @param null|non-empty-string $subject
+     * @param null|non-empty-string  $subject
+     * @param list<non-empty-string> $scopes
      */
-    private function buildContext(?string $subject = null): ServerContext
+    private function buildContext(?string $subject = null, array $scopes = []): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 7),
@@ -150,6 +164,7 @@ final class GetTaskRequestHandlerTest extends AbstractMcpTestCase
             new ReceiveContext(authInfo: null === $subject ? null : new VerifiedAccessToken(
                 ['https://mcp.test/mcp'],
                 1_800_000_000,
+                $scopes,
                 subject: $subject,
             )),
         );

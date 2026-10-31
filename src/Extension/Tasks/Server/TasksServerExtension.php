@@ -25,6 +25,7 @@ use Nexus\Mcp\Extension\Tasks\Server\Handler\UpdateTaskRequestHandler;
 use Nexus\Mcp\Extension\Tasks\Server\Store\InMemoryTaskStore;
 use Nexus\Mcp\Extension\Tasks\Server\Store\TaskStoreInterface;
 use Nexus\Mcp\Extension\Tasks\Tasks;
+use Nexus\Mcp\Server\Auth\OperationScopes;
 use Nexus\Mcp\Server\Extension\RequestHandlerDecoratorInterface;
 use Nexus\Mcp\Server\Extension\ServerExtensionInterface;
 use Psr\Log\LoggerInterface;
@@ -46,6 +47,7 @@ final readonly class TasksServerExtension implements RequestHandlerDecoratorInte
      * @param array<non-empty-string, ToolTaskPolicy> $toolPolicies    Keyed by tool name, absence meaning always-synchronous
      * @param null|int                                $defaultTtlMs    Retention after a terminal transition, `null` for unlimited
      * @param int<1, max>                             $maxRunningTasks Tasks running at once before a further one is refused
+     * @param null|OperationScopes                    $operationScopes The scopes of each tool, which `tasks/get`, `tasks/update` and `tasks/cancel` require of a task's tool
      */
     public function __construct(
         private TaskStoreInterface $store = new InMemoryTaskStore(),
@@ -54,6 +56,7 @@ final readonly class TasksServerExtension implements RequestHandlerDecoratorInte
         private int $defaultPollIntervalMs = 1_000,
         LoggerInterface $logger = new NullLogger(),
         int $maxRunningTasks = self::DEFAULT_MAX_RUNNING_TASKS,
+        private ?OperationScopes $operationScopes = null,
     ) {
         $this->cancellations = new TaskCancellationRegistry();
         $this->runner = new ToolTaskRunner($store, $this->cancellations, $logger, $maxRunningTasks);
@@ -91,9 +94,9 @@ final readonly class TasksServerExtension implements RequestHandlerDecoratorInte
     public function getRequestHandlers(): array
     {
         return [
-            GetTaskRequest::getMethod() => new GetTaskRequestHandler($this->store),
-            UpdateTaskRequest::getMethod() => new UpdateTaskRequestHandler($this->store, $this->runner),
-            CancelTaskRequest::getMethod() => new CancelTaskRequestHandler($this->store, $this->cancellations),
+            GetTaskRequest::getMethod() => new GetTaskRequestHandler($this->store, $this->operationScopes),
+            UpdateTaskRequest::getMethod() => new UpdateTaskRequestHandler($this->store, $this->runner, $this->operationScopes),
+            CancelTaskRequest::getMethod() => new CancelTaskRequestHandler($this->store, $this->cancellations, $this->operationScopes),
         ];
     }
 

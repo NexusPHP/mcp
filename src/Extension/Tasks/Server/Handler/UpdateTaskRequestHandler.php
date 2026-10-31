@@ -26,6 +26,7 @@ use Nexus\Mcp\Extension\Tasks\Schema\Request\UpdateTaskRequest;
 use Nexus\Mcp\Extension\Tasks\Server\Store\TaskStoreInterface;
 use Nexus\Mcp\Extension\Tasks\Server\TaskOwnership;
 use Nexus\Mcp\Extension\Tasks\Server\ToolTaskRunner;
+use Nexus\Mcp\Server\Auth\OperationScopes;
 use Nexus\Mcp\Server\ServerContext;
 
 /**
@@ -38,6 +39,7 @@ final readonly class UpdateTaskRequestHandler implements RequestHandlerInterface
     public function __construct(
         private TaskStoreInterface $store,
         private ToolTaskRunner $runner,
+        private ?OperationScopes $scopes = null,
     ) {
     }
 
@@ -47,7 +49,7 @@ final readonly class UpdateTaskRequestHandler implements RequestHandlerInterface
         \assert($request instanceof UpdateTaskRequest);
         \assert($context instanceof ServerContext);
 
-        $record = TaskOwnership::findTask($this->store, $context, $request->params->taskId);
+        $record = TaskOwnership::findTask($this->store, $context, $request->params->taskId, $this->scopes);
 
         $accepted = [];
 

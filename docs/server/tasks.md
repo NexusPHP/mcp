@@ -128,6 +128,11 @@ On an authenticated endpoint a task belongs to the caller that created it, ident
 created, the same as for an unknown `taskId`. A task created on an unprotected endpoint belongs to no caller and
 stays invisible to an authenticated one.
 
+Give `TasksServerExtension` the same `OperationScopes` as the HTTP [`OperationScopeMiddleware`](../auth/server.md#scopes-for-one-operation)
+and `tasks/get`, `tasks/update` and `tasks/cancel` also require the scopes that a task's tool declares, answering
+`-32602` otherwise. A caller whose token lost a scope since the task was created can no longer read, answer or cancel
+it, while a token that merely narrowed to the tool's own scopes keeps access.
+
 A store records the owner by implementing `OwnedTaskStoreInterface`, which adds `createOwnedTask()` to
 `TaskStoreInterface` and sets `TaskRecord::$owner`. `InMemoryTaskStore` does. An authenticated `tools/call` that
 reaches a store without it fails, since the task could never be read back by its creator.

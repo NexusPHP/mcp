@@ -25,6 +25,7 @@ use Nexus\Mcp\Extension\Tasks\Server\Store\InMemoryTaskStore;
 use Nexus\Mcp\Extension\Tasks\Server\Store\TaskRecord;
 use Nexus\Mcp\Extension\Tasks\Server\TaskCancellationRegistry;
 use Nexus\Mcp\Extension\Tasks\Server\TaskOwnership;
+use Nexus\Mcp\Server\Auth\OperationScopes;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
@@ -58,6 +59,26 @@ final class CancelTaskRequestHandlerTest extends AbstractMcpTestCase
 
         try {
             $handler->handle($this->buildRequest($taskId), $this->buildContext('bob'));
+            self::fail('Expected the cancellation to be refused.');
+        } catch (InvalidParamsException $e) {
+            self::assertSame('"params.taskId" does not name a known task.', $e->getMessage());
+        }
+
+        self::assertSame(TaskStatus::Working, $store->findTask($taskId)?->status);
+    }
+
+    public function testACallerWithoutTheToolsScopeCannotCancelTheTask(): void
+    {
+        $store = new InMemoryTaskStore();
+        $taskId = TaskOwnership::createTask($store, $this->buildContext('alice', ['delete:admin']), 'delete', null, null, 1_000)->taskId;
+        $handler = new CancelTaskRequestHandler(
+            $store,
+            new TaskCancellationRegistry(),
+            new OperationScopes(tools: ['delete' => ['delete:admin']]),
+        );
+
+        try {
+            $handler->handle($this->buildRequest($taskId), $this->buildContext('alice', ['read']));
             self::fail('Expected the cancellation to be refused.');
         } catch (InvalidParamsException $e) {
             self::assertSame('"params.taskId" does not name a known task.', $e->getMessage());
@@ -109,9 +130,10 @@ final class CancelTaskRequestHandlerTest extends AbstractMcpTestCase
     }
 
     /**
-     * @param null|non-empty-string $subject
+     * @param null|non-empty-string  $subject
+     * @param list<non-empty-string> $scopes
      */
-    private function buildContext(?string $subject = null): ServerContext
+    private function buildContext(?string $subject = null, array $scopes = []): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 7),
@@ -121,6 +143,7 @@ final class CancelTaskRequestHandlerTest extends AbstractMcpTestCase
             new ReceiveContext(authInfo: null === $subject ? null : new VerifiedAccessToken(
                 ['https://mcp.test/mcp'],
                 1_800_000_000,
+                $scopes,
                 subject: $subject,
             )),
         );
