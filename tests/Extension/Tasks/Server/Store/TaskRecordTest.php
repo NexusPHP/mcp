@@ -50,5 +50,6 @@ final class TaskRecordTest extends AbstractMcpTestCase
         self::assertNull($record->requestState);
         self::assertSame([], $record->issuedInputKeys);
         self::assertNull($record->statusMessage);
+        self::assertNull($record->owner);
     }
 }

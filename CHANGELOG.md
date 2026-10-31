@@ -35,6 +35,9 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- A task is bound to the authenticated caller that created it, and `tasks/get`, `tasks/update` and `tasks/cancel`
+  refuse another caller's task with `-32602`. Previously, any caller holding a task ID could read, answer or cancel
+  it. A custom store implements the new `OwnedTaskStoreInterface` to serve authenticated requests.
 - A redirect URI on a loopback host must use `http`. Previously, any scheme was accepted.
 - The input schema for an unsealed shape (`array{a: int, ...<string, int>}`, `list{int, ...}`) allows the extra
   entries. Previously, it rejected them or ignored their type.

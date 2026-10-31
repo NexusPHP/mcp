@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Extension\Tasks\Server\Handler;
 
-use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Handler\AbstractContext;
 use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
@@ -21,6 +20,7 @@ use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Extension\Tasks\Schema\Request\CancelTaskRequest;
 use Nexus\Mcp\Extension\Tasks\Server\Store\TaskStoreInterface;
 use Nexus\Mcp\Extension\Tasks\Server\TaskCancellationRegistry;
+use Nexus\Mcp\Extension\Tasks\Server\TaskOwnership;
 use Nexus\Mcp\Server\ServerContext;
 
 /**
@@ -40,12 +40,9 @@ final readonly class CancelTaskRequestHandler implements RequestHandlerInterface
     public function handle(JsonRpcRequest $request, AbstractContext $context): EmptyResult
     {
         \assert($request instanceof CancelTaskRequest);
+        \assert($context instanceof ServerContext);
 
-        $taskId = $request->params->taskId;
-
-        if ($this->store->findTask($taskId) === null) {
-            throw new InvalidParamsException($context->requestId, '"params.taskId" does not name a known task.');
-        }
+        $taskId = TaskOwnership::findTask($this->store, $context, $request->params->taskId)->taskId;
 
         $this->store->trySetCancelled($taskId);
         $this->cancellations->cancel($taskId);

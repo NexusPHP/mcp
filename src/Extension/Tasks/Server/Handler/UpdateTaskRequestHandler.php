@@ -24,6 +24,7 @@ use Nexus\Mcp\Core\Schema\Result\InputResponse;
 use Nexus\Mcp\Extension\Tasks\Schema\Enum\TaskStatus;
 use Nexus\Mcp\Extension\Tasks\Schema\Request\UpdateTaskRequest;
 use Nexus\Mcp\Extension\Tasks\Server\Store\TaskStoreInterface;
+use Nexus\Mcp\Extension\Tasks\Server\TaskOwnership;
 use Nexus\Mcp\Extension\Tasks\Server\ToolTaskRunner;
 use Nexus\Mcp\Server\ServerContext;
 
@@ -46,11 +47,7 @@ final readonly class UpdateTaskRequestHandler implements RequestHandlerInterface
         \assert($request instanceof UpdateTaskRequest);
         \assert($context instanceof ServerContext);
 
-        $record = $this->store->findTask($request->params->taskId);
-
-        if (null === $record) {
-            throw new InvalidParamsException($context->requestId, '"params.taskId" does not name a known task.');
-        }
+        $record = TaskOwnership::findTask($this->store, $context, $request->params->taskId);
 
         $accepted = [];
 

@@ -20,6 +20,7 @@ use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Extension\Tasks\Schema\Result\CreateTaskResult;
 use Nexus\Mcp\Extension\Tasks\Server\Store\TaskStoreInterface;
+use Nexus\Mcp\Extension\Tasks\Server\TaskOwnership;
 use Nexus\Mcp\Extension\Tasks\Server\TaskSupport;
 use Nexus\Mcp\Extension\Tasks\Server\ToolTaskPolicy;
 use Nexus\Mcp\Extension\Tasks\Server\ToolTaskRunner;
@@ -77,7 +78,9 @@ final readonly class TaskBrokeringCallToolHandler implements RequestHandlerInter
 
         $this->runner->ensureCapacity($context->requestId);
 
-        $record = $this->store->createTask(
+        $record = TaskOwnership::createTask(
+            $this->store,
+            $context,
             $request->params->name,
             $request->params->arguments,
             $this->defaultTtlMs,

@@ -14,16 +14,19 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Extension\Tasks\Server\Handler;
 
 use Amp\NullCancellation;
+use Nexus\Mcp\Core\Auth\VerifiedAccessToken;
 use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequest;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequestedSchema;
 use Nexus\Mcp\Core\Schema\Elicitation\StringSchema;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestFormParams;
+use Nexus\Mcp\Core\Transport\ReceiveContext;
 use Nexus\Mcp\Extension\Tasks\Schema\Enum\TaskStatus;
 use Nexus\Mcp\Extension\Tasks\Schema\Request\GetTaskRequest;
 use Nexus\Mcp\Extension\Tasks\Server\Handler\GetTaskRequestHandler;
 use Nexus\Mcp\Extension\Tasks\Server\Store\InMemoryTaskStore;
+use Nexus\Mcp\Extension\Tasks\Server\TaskOwnership;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
@@ -47,6 +50,18 @@ final class GetTaskRequestHandlerTest extends AbstractMcpTestCase
         $this->expectExceptionMessageIs('"params.taskId" does not name a known task.');
 
         $handler->handle($this->buildRequest('missing'), $this->buildContext());
+    }
+
+    public function testAnotherCallersTaskIsInvalidParams(): void
+    {
+        $store = new InMemoryTaskStore();
+        $taskId = TaskOwnership::createTask($store, $this->buildContext('alice'), 'slow_compute', null, null, 1_000)->taskId;
+        $handler = new GetTaskRequestHandler($store);
+
+        $this->expectException(InvalidParamsException::class);
+        $this->expectExceptionMessageIs('"params.taskId" does not name a known task.');
+
+        $handler->handle($this->buildRequest($taskId), $this->buildContext('bob'));
     }
 
     public function testAWorkingTaskProjectsTheBareShape(): void
@@ -122,13 +137,21 @@ final class GetTaskRequestHandlerTest extends AbstractMcpTestCase
         ]);
     }
 
-    private function buildContext(): ServerContext
+    /**
+     * @param null|non-empty-string $subject
+     */
+    private function buildContext(?string $subject = null): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 7),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
             new RecordingSender(),
+            new ReceiveContext(authInfo: null === $subject ? null : new VerifiedAccessToken(
+                ['https://mcp.test/mcp'],
+                1_800_000_000,
+                subject: $subject,
+            )),
         );
     }
 }

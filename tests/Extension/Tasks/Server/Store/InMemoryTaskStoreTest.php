@@ -77,6 +77,25 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         self::assertSame($record, $store->findTask($record->taskId));
     }
 
+    public function testAnOwnedTaskKeepsItsOwnerAcrossTransitions(): void
+    {
+        $store = new InMemoryTaskStore();
+        $taskId = $store->createOwnedTask('slow_compute', null, null, 1_000, 'alice')->taskId;
+
+        $store->trySetCompleted($taskId, ['resultType' => 'complete']);
+
+        $record = $store->findTask($taskId);
+        self::assertInstanceOf(TaskRecord::class, $record);
+        self::assertSame('alice', $record->owner);
+    }
+
+    public function testATaskCreatedWithoutAnOwnerHasNone(): void
+    {
+        $store = new InMemoryTaskStore();
+
+        self::assertNull($store->createTask('slow_compute', null, null, 1_000)->owner);
+    }
+
     public function testCreateTaskAssignsDistinctIds(): void
     {
         $store = $this->buildStore();

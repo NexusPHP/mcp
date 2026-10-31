@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Tests\Extension\Tasks\Server\Handler;
 
 use Amp\DeferredFuture;
 use Amp\NullCancellation;
+use Nexus\Mcp\Core\Auth\VerifiedAccessToken;
 use Nexus\Mcp\Core\Schema\ClientCapabilities;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
@@ -108,6 +109,21 @@ final class TaskBrokeringCallToolHandlerTest extends AbstractMcpTestCase
         $settled = $store->findTask($result->taskId);
         self::assertInstanceOf(TaskRecord::class, $settled);
         self::assertSame(TaskStatus::Completed, $settled->status);
+    }
+
+    public function testTheTaskIsBoundToTheAuthenticatedCaller(): void
+    {
+        [$broker, $store] = $this->buildBroker(
+            ['slow_compute' => new ToolTaskPolicy(support: TaskSupport::Optional)],
+            new CallToolResult(content: [new TextContent(text: 'done')]),
+        );
+
+        $result = $broker->handle($this->buildRequest('slow_compute'), $this->buildContext(declared: true, subject: 'alice'));
+
+        self::assertInstanceOf(CreateTaskResult::class, $result);
+        self::assertSame('["alice",null]', $store->findTask($result->taskId)?->owner);
+
+        delay(0);
     }
 
     public function testAResolvesInputFirstToolPassesThroughWithoutAContinuationToken(): void
@@ -253,15 +269,30 @@ final class TaskBrokeringCallToolHandlerTest extends AbstractMcpTestCase
         ]);
     }
 
-    private function buildContext(bool $declared, ?string $requestState = null, ?RequestStateSigner $signer = null, ?string $payload = null): ServerContext
-    {
+    /**
+     * @param null|non-empty-string $subject
+     */
+    private function buildContext(
+        bool $declared,
+        ?string $requestState = null,
+        ?RequestStateSigner $signer = null,
+        ?string $payload = null,
+        ?string $subject = null,
+    ): ServerContext {
         return new ServerContext(
             new RequestId(id: 7),
             new NullCancellation(),
             RequestMetaObjectFactory::create(
-                clientCapabilities: $declared ? new ClientCapabilities(extensions: [self::IDENTIFIER => []]) : new ClientCapabilities(),
+                clientCapabilities: $declared
+                    ? new ClientCapabilities(extensions: [self::IDENTIFIER => []])
+                    : new ClientCapabilities(),
             ),
             new RecordingSender(),
+            new ReceiveContext(authInfo: null === $subject ? null : new VerifiedAccessToken(
+                ['https://mcp.test/mcp'],
+                1_800_000_000,
+                subject: $subject,
+            )),
             requestState: $requestState,
             requestStateSigner: $signer,
             requestStatePayload: $payload,

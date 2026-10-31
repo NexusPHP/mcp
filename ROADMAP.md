@@ -27,6 +27,9 @@ follow-ups remain.
   capability or another extension, for `build()` to check whatever the enable order. Middleware has to
   wrap core and custom requests, responses and notifications in both directions, where
   `RequestHandlerDecoratorInterface` wraps specification requests on the server alone.
+- [ ] **Fold `OwnedTaskStoreInterface` into `TaskStoreInterface` on 2.x.** `createOwnedTask()` becomes
+  `createTask()` with an `owner` argument, and `TaskOwnership` stops testing for the sub-interface. It stays a
+  separate interface on 1.x, where adding a parameter to `TaskStoreInterface` would break its implementors.
 
 DPoP (SEP-1932) and workload identity federation (SEP-1933) are open proposals upstream and stay
 unmodelled until ratified.

@@ -121,6 +121,17 @@ ttl does: an overdue parked task is failed at the ceiling, which frees its recor
 task stays live until it is resumed or cancelled, so a client can fill the store with parked tasks and every
 later task-bound call is refused. Keep a finite ttl on a tool that returns `InputRequiredResult`.
 
+### Task ownership
+
+On an authenticated endpoint a task belongs to the caller that created it, identified by the token's `sub` and
+`client_id` claims. `tasks/get`, `tasks/update` and `tasks/cancel` answer `-32602` for a task that another caller
+created, the same as for an unknown `taskId`. A task created on an unprotected endpoint belongs to no caller and
+stays invisible to an authenticated one.
+
+A store records the owner by implementing `OwnedTaskStoreInterface`, which adds `createOwnedTask()` to
+`TaskStoreInterface` and sets `TaskRecord::$owner`. `InMemoryTaskStore` does. An authenticated `tools/call` that
+reaches a store without it fails, since the task could never be read back by its creator.
+
 The in-memory store confines tasks to the process. The record survives in whatever store you implement, but the
 in-process cancellation map does not, so cancellation is cooperative only within the serving process.
 

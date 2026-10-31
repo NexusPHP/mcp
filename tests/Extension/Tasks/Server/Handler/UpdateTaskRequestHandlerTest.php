@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Tests\Extension\Tasks\Server\Handler;
 
 use Amp\DeferredFuture;
 use Amp\NullCancellation;
+use Nexus\Mcp\Core\Auth\VerifiedAccessToken;
 use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequest;
@@ -26,6 +27,7 @@ use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestFormParams;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
+use Nexus\Mcp\Core\Transport\ReceiveContext;
 use Nexus\Mcp\Extension\Tasks\Schema\Enum\TaskStatus;
 use Nexus\Mcp\Extension\Tasks\Schema\Request\UpdateTaskRequest;
 use Nexus\Mcp\Extension\Tasks\Server\Exception\TaskLimitReachedException;
@@ -33,6 +35,7 @@ use Nexus\Mcp\Extension\Tasks\Server\Handler\UpdateTaskRequestHandler;
 use Nexus\Mcp\Extension\Tasks\Server\Store\InMemoryTaskStore;
 use Nexus\Mcp\Extension\Tasks\Server\Store\TaskRecord;
 use Nexus\Mcp\Extension\Tasks\Server\TaskCancellationRegistry;
+use Nexus\Mcp\Extension\Tasks\Server\TaskOwnership;
 use Nexus\Mcp\Extension\Tasks\Server\ToolTaskRunner;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
@@ -61,6 +64,25 @@ final class UpdateTaskRequestHandlerTest extends AbstractMcpTestCase
         $this->expectExceptionMessageIs('"params.taskId" does not name a known task.');
 
         $handler->handle($this->buildRequest('missing'), $this->buildContext());
+    }
+
+    public function testAnotherCallerCannotSupplyInputToTheTask(): void
+    {
+        $store = new InMemoryTaskStore();
+        $taskId = TaskOwnership::createTask($store, $this->buildContext('alice'), 'confirm_delete', null, null, 1_000)->taskId;
+        $store->trySetInputRequired($taskId, ['first' => $this->buildElicitRequest()], 'state-1');
+        $handler = new UpdateTaskRequestHandler($store, $this->buildUnboundRunner($store));
+
+        try {
+            $handler->handle($this->buildRequest($taskId, ['first' => ['action' => 'accept']]), $this->buildContext('bob'));
+            self::fail('Expected the update to be refused.');
+        } catch (InvalidParamsException $e) {
+            self::assertSame('"params.taskId" does not name a known task.', $e->getMessage());
+        }
+
+        $record = $store->findTask($taskId);
+        self::assertInstanceOf(TaskRecord::class, $record);
+        self::assertSame(['first'], array_keys($record->pendingInputRequests));
     }
 
     public function testATerminalTaskAcksWithoutARedispatch(): void
@@ -228,13 +250,21 @@ final class UpdateTaskRequestHandlerTest extends AbstractMcpTestCase
         ]);
     }
 
-    private function buildContext(): ServerContext
+    /**
+     * @param null|non-empty-string $subject
+     */
+    private function buildContext(?string $subject = null): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 7),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
             new RecordingSender(),
+            new ReceiveContext(authInfo: null === $subject ? null : new VerifiedAccessToken(
+                ['https://mcp.test/mcp'],
+                1_800_000_000,
+                subject: $subject,
+            )),
         );
     }
 

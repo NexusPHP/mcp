@@ -27,7 +27,7 @@ use Nexus\Mcp\Extension\Tasks\Server\Exception\InputRequestKeyReusedException;
 /**
  * In-memory implementation of `TaskStoreInterface`.
  */
-final class InMemoryTaskStore implements TaskStoreInterface
+final class InMemoryTaskStore implements OwnedTaskStoreInterface
 {
     public const int DEFAULT_MAX_RECORDS = 10_000;
 
@@ -56,6 +56,17 @@ final class InMemoryTaskStore implements TaskStoreInterface
     #[\Override]
     public function createTask(string $toolName, ?array $arguments, ?int $ttlMs, int $pollIntervalMs): TaskRecord
     {
+        return $this->createOwnedTask($toolName, $arguments, $ttlMs, $pollIntervalMs, null);
+    }
+
+    #[\Override]
+    public function createOwnedTask(
+        string $toolName,
+        ?array $arguments,
+        ?int $ttlMs,
+        int $pollIntervalMs,
+        ?string $owner,
+    ): TaskRecord {
         $instant = $this->clock->now();
         $this->reclaim($this->convertToMilliseconds($instant));
 
@@ -71,6 +82,7 @@ final class InMemoryTaskStore implements TaskStoreInterface
             ttlMs: $ttlMs,
             pollIntervalMs: $pollIntervalMs,
             arguments: $arguments,
+            owner: $owner,
         );
 
         $this->records[$taskId] = $record;
@@ -314,6 +326,7 @@ final class InMemoryTaskStore implements TaskStoreInterface
             requestState: \array_key_exists('requestState', $changes) ? $changes['requestState'] : $record->requestState,
             issuedInputKeys: $changes['issuedInputKeys'] ?? $record->issuedInputKeys,
             statusMessage: \array_key_exists('statusMessage', $changes) ? $changes['statusMessage'] : $record->statusMessage,
+            owner: $record->owner,
         );
 
         $this->records[$record->taskId] = $updated;

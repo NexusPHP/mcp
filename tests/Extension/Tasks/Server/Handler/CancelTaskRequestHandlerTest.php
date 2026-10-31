@@ -14,14 +14,17 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Extension\Tasks\Server\Handler;
 
 use Amp\NullCancellation;
+use Nexus\Mcp\Core\Auth\VerifiedAccessToken;
 use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Core\Transport\ReceiveContext;
 use Nexus\Mcp\Extension\Tasks\Schema\Enum\TaskStatus;
 use Nexus\Mcp\Extension\Tasks\Schema\Request\CancelTaskRequest;
 use Nexus\Mcp\Extension\Tasks\Server\Handler\CancelTaskRequestHandler;
 use Nexus\Mcp\Extension\Tasks\Server\Store\InMemoryTaskStore;
 use Nexus\Mcp\Extension\Tasks\Server\Store\TaskRecord;
 use Nexus\Mcp\Extension\Tasks\Server\TaskCancellationRegistry;
+use Nexus\Mcp\Extension\Tasks\Server\TaskOwnership;
 use Nexus\Mcp\Server\ServerContext;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
@@ -45,6 +48,22 @@ final class CancelTaskRequestHandlerTest extends AbstractMcpTestCase
         $this->expectExceptionMessageIs('"params.taskId" does not name a known task.');
 
         $handler->handle($this->buildRequest('missing'), $this->buildContext());
+    }
+
+    public function testAnotherCallerCannotCancelTheTask(): void
+    {
+        $store = new InMemoryTaskStore();
+        $taskId = TaskOwnership::createTask($store, $this->buildContext('alice'), 'slow_compute', null, null, 1_000)->taskId;
+        $handler = new CancelTaskRequestHandler($store, new TaskCancellationRegistry());
+
+        try {
+            $handler->handle($this->buildRequest($taskId), $this->buildContext('bob'));
+            self::fail('Expected the cancellation to be refused.');
+        } catch (InvalidParamsException $e) {
+            self::assertSame('"params.taskId" does not name a known task.', $e->getMessage());
+        }
+
+        self::assertSame(TaskStatus::Working, $store->findTask($taskId)?->status);
     }
 
     public function testCancelMarksTheRecordAndCancelsTheInFlightFiber(): void
@@ -89,13 +108,21 @@ final class CancelTaskRequestHandlerTest extends AbstractMcpTestCase
         ]);
     }
 
-    private function buildContext(): ServerContext
+    /**
+     * @param null|non-empty-string $subject
+     */
+    private function buildContext(?string $subject = null): ServerContext
     {
         return new ServerContext(
             new RequestId(id: 7),
             new NullCancellation(),
             RequestMetaObjectFactory::create(),
             new RecordingSender(),
+            new ReceiveContext(authInfo: null === $subject ? null : new VerifiedAccessToken(
+                ['https://mcp.test/mcp'],
+                1_800_000_000,
+                subject: $subject,
+            )),
         );
     }
 }

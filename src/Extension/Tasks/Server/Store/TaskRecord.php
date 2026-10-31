@@ -35,6 +35,7 @@ final readonly class TaskRecord
      * @param null|string                                $requestState         The continuation token carried by the parked result, or its verified payload when the server signs states
      * @param array<array-key, true>                     $issuedInputKeys      Every input-request key issued over the task's lifetime
      * @param null|non-empty-string                      $statusMessage
+     * @param null|non-empty-string                      $owner                The caller that created the task, `null` on an unprotected endpoint
      */
     public function __construct(
         public string $taskId,
@@ -52,6 +53,7 @@ final readonly class TaskRecord
         public ?string $requestState = null,
         public array $issuedInputKeys = [],
         public ?string $statusMessage = null,
+        public ?string $owner = null,
     ) {
     }
 }

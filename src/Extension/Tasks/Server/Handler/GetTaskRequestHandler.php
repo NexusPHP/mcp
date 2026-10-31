@@ -13,13 +13,13 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Extension\Tasks\Server\Handler;
 
-use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Handler\AbstractContext;
 use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Extension\Tasks\Schema\Request\GetTaskRequest;
 use Nexus\Mcp\Extension\Tasks\Schema\Result\GetTaskResult;
 use Nexus\Mcp\Extension\Tasks\Server\Store\TaskStoreInterface;
+use Nexus\Mcp\Extension\Tasks\Server\TaskOwnership;
 use Nexus\Mcp\Server\ServerContext;
 
 /**
@@ -37,12 +37,9 @@ final readonly class GetTaskRequestHandler implements RequestHandlerInterface
     public function handle(JsonRpcRequest $request, AbstractContext $context): GetTaskResult
     {
         \assert($request instanceof GetTaskRequest);
+        \assert($context instanceof ServerContext);
 
-        $record = $this->store->findTask($request->params->taskId);
-
-        if (null === $record) {
-            throw new InvalidParamsException($context->requestId, '"params.taskId" does not name a known task.');
-        }
+        $record = TaskOwnership::findTask($this->store, $context, $request->params->taskId);
 
         return new GetTaskResult(
             taskId: $record->taskId,
