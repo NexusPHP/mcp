@@ -18,6 +18,9 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Changed
 
+- A `@param` docblock type naming an imported class (`list<Suit>` under a `use` import) is resolved through the
+  file's `use` statements. Previously, the generated input schema fell back to the bare native type.
+  `ext-tokenizer` is now required.
 - `RequestStateSigner::deriveBinding()` binds the authenticated client as well as the subject, so a state minted
   for one client is refused for another. A state minted before the upgrade is refused once.
 

@@ -61,6 +61,13 @@ final class DocBlockTypeResolverTest extends AbstractMcpTestCase
         self::assertSame('A friendly label.', $tags['label']->description);
     }
 
+    public function testParamTagsOfAMethodAreParsedOnce(): void
+    {
+        $method = new \ReflectionMethod(SampleToolHandlers::class, 'collections');
+
+        self::assertSame($this->resolver->parseParamTags($method), $this->resolver->parseParamTags($method));
+    }
+
     public function testMethodWithoutDocCommentYieldsNoTags(): void
     {
         self::assertSame([], $this->resolver->parseParamTags(new \ReflectionMethod(SampleToolHandlers::class, 'scalars')));
