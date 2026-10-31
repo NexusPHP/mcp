@@ -566,10 +566,78 @@ final class ArgumentBinderTest extends AbstractMcpTestCase
         $this->bind('shapeWithEnumTail', ['values' => ['name' => 'n', 'extra' => 'zzz']]);
     }
 
-    public function testLeavesAnAmbiguousUnionAlone(): void
+    public function testHydratesTheUnionMemberThatMatchesTheValueKind(): void
     {
         self::assertSame(['a'], $this->bind('enumListOrString', ['colors' => 'a']));
-        self::assertSame([['a']], $this->bind('enumListOrString', ['colors' => ['a']]));
+        self::assertSame([[BackedStringEnum::A]], $this->bind('enumListOrString', ['colors' => ['a']]));
+        self::assertSame([BackedStringEnum::B], $this->bind('enumOrEnumList', ['color' => 'b']));
+        self::assertSame([[BackedStringEnum::B]], $this->bind('enumOrEnumList', ['color' => ['b']]));
+    }
+
+    public function testLeavesAUnionWithSeveralMembersOfTheValueKindAlone(): void
+    {
+        self::assertSame([['a']], $this->bind('enumListOrIntList', ['values' => ['a']]));
+        self::assertSame(
+            [['a']],
+            $this->bindAgainstSource('@param array|list<BackedStringEnum> $values', 'array $values', ['values' => ['a']]),
+        );
+        self::assertSame([['a' => 'b']], $this->bind('enumListOrShape', ['values' => ['a' => 'b']]));
+    }
+
+    public function testLeavesAUnionWithAnObjectAlternativeAlone(): void
+    {
+        self::assertSame(
+            [[['id' => 42]]],
+            $this->bindAgainstSource(
+                '@param list<list<BackedStringEnum>|object{id: int}> $values',
+                'array $values',
+                ['values' => [['id' => 42]]],
+            ),
+        );
+        self::assertSame(
+            [['id' => 42]],
+            $this->bindAgainstSource(
+                '@param list<BackedStringEnum>|object $values',
+                'array $values',
+                ['values' => ['id' => 42]],
+            ),
+        );
+    }
+
+    public function testRejectsAnArrayForTheOnlyNonNullMemberOfAUnion(): void
+    {
+        $this->expectException(InvalidParamsException::class);
+        $this->expectExceptionMessageIs('"colors.0" must be one of [\'a\', \'b\'], [\'a\'] given.');
+
+        $this->bind('listOfOptionalEnums', ['colors' => [['a']]]);
+    }
+
+    public function testHydratesTheArrayMemberOfAUnionHoldingALiteral(): void
+    {
+        self::assertSame(
+            [[BackedStringEnum::A]],
+            $this->bindAgainstSource(
+                '@param \'x\'|list<BackedStringEnum> $values',
+                'array|string $values',
+                ['values' => ['a']],
+            ),
+        );
+    }
+
+    public function testHydratesTheArrayMemberOfAUnionHoldingAShapeOrAnArrayType(): void
+    {
+        self::assertSame(
+            [[BackedStringEnum::A]],
+            $this->bindAgainstSource(
+                '@param BackedStringEnum[]|string $values',
+                'array|string $values',
+                ['values' => ['a']],
+            ),
+        );
+        self::assertSame(
+            [['suit' => BackedStringEnum::A]],
+            $this->bind('enumShapeOrString', ['values' => ['suit' => 'a']]),
+        );
     }
 
     public function testLeavesANonArrayValueForACollectionAlone(): void

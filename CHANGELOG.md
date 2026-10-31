@@ -21,6 +21,8 @@ in `0.x`, minor releases may include breaking changes.
   Previously, it threw at registration. A class that contains itself still throws.
 - The `@var` of a promoted constructor property types the matching parameter of an expanded class, and a `@param`
   takes precedence. Previously, the property docblock was ignored.
+- A `@param` union such as `list<Suit>|string` hydrates the enums of the member that matches the argument's kind.
+  Previously, the argument arrived as raw values.
 
 ### Changed
 

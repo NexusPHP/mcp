@@ -470,6 +470,38 @@ final class ReflectedHandlers
     }
 
     /**
+     * @param BackedStringEnum|list<BackedStringEnum> $color
+     */
+    public function enumOrEnumList(array|BackedStringEnum $color): mixed
+    {
+        return $color;
+    }
+
+    /**
+     * @param list<BackedStringEnum>|list<int> $values
+     */
+    public function enumListOrIntList(array $values): mixed
+    {
+        return $values;
+    }
+
+    /**
+     * @param array{a: string}|list<BackedStringEnum> $values
+     */
+    public function enumListOrShape(array $values): mixed
+    {
+        return $values;
+    }
+
+    /**
+     * @param array{suit: BackedStringEnum}|string $values
+     */
+    public function enumShapeOrString(array|string $values): mixed
+    {
+        return $values;
+    }
+
+    /**
      * @param list<BackedStringEnum> $colors
      *
      * @return null|list<BackedStringEnum>
