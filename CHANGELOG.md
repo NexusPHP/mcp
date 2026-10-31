@@ -13,6 +13,8 @@ in `0.x`, minor releases may include breaking changes.
 - `AuthorizationOptions::$skipOfflineAccessConsent` leaves `prompt=consent` out of an authorization request asking
   for `offline_access`, for authorization servers that refuse a forced consent screen.
 - `RequestStateSigner` takes a list of keys as a key ring, so its key rotates without failing a state in flight.
+- Input schemas generated from a parameter type cover `true`, `false`, float literals, unions of constrained members
+  such as `string|false` (as `anyOf`), quoted and integer shape keys, and optional tuple items.
 
 ### Changed
 
@@ -22,6 +24,8 @@ in `0.x`, minor releases may include breaking changes.
 ### Fixed
 
 - A redirect URI on a loopback host must use `http`, where any scheme was accepted.
+- The input schema for an unsealed shape (`array{a: int, ...<string, int>}`, `list{int, ...}`) allows the extra
+  entries, where it rejected them or ignored their type.
 
 ## [v1.4.0](https://github.com/NexusPHP/mcp/compare/v1.3.0...v1.4.0) - 2026-10-27
 

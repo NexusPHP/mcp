@@ -353,6 +353,121 @@ final class TypeNodeSchemaMapperTest extends AbstractMcpTestCase
             'array{string}',
             ['type' => 'array', 'prefixItems' => [['type' => 'string']], 'items' => false, 'minItems' => 1],
         ];
+
+        yield 'tuple with optional trailing item' => [
+            'list{int, 1?: string}',
+            ['type' => 'array', 'prefixItems' => [['type' => 'integer'], ['type' => 'string']], 'items' => false, 'minItems' => 1],
+        ];
+
+        yield 'tuple of only optional items' => [
+            'list{0?: int}',
+            ['type' => 'array', 'prefixItems' => [['type' => 'integer']], 'items' => false],
+        ];
+
+        yield 'tuple keyed by position' => [
+            'array{0: int, 1: string}',
+            ['type' => 'array', 'prefixItems' => [['type' => 'integer'], ['type' => 'string']], 'items' => false, 'minItems' => 2],
+        ];
+
+        yield 'unsealed tuple without a type' => [
+            'list{int, ...}',
+            ['type' => 'array', 'prefixItems' => [['type' => 'integer']], 'minItems' => 1],
+        ];
+
+        yield 'unsealed tuple with a type' => [
+            'list{int, string, ...<float>}',
+            ['type' => 'array', 'prefixItems' => [['type' => 'integer'], ['type' => 'string']], 'items' => ['type' => 'number'], 'minItems' => 2],
+        ];
+
+        yield 'unsealed array shape without a type' => [
+            'array{a: int, ...}',
+            ['type' => 'object', 'properties' => ['a' => ['type' => 'integer']], 'required' => ['a']],
+        ];
+
+        yield 'unsealed array shape with a type' => [
+            'array{a: int, ...<string, bool>}',
+            ['type' => 'object', 'properties' => ['a' => ['type' => 'integer']], 'required' => ['a'], 'additionalProperties' => ['type' => 'boolean']],
+        ];
+
+        yield 'unsealed array shape with a value type only' => [
+            'array{a: int, ...<mixed>}',
+            ['type' => 'object', 'properties' => ['a' => ['type' => 'integer']], 'required' => ['a'], 'additionalProperties' => true],
+        ];
+
+        yield 'quoted shape key' => [
+            'array{\'a-b\': int, "c": string}',
+            ['type' => 'object', 'properties' => ['a-b' => ['type' => 'integer'], 'c' => ['type' => 'string']], 'required' => ['a-b', 'c']],
+        ];
+
+        yield 'integer shape key off position' => [
+            'array{a: int, 3: string}',
+            ['type' => 'object', 'properties' => ['a' => ['type' => 'integer'], '3' => ['type' => 'string']], 'required' => ['a', '3']],
+        ];
+
+        yield 'true' => [
+            'true',
+            ['type' => 'boolean', 'enum' => [true]],
+        ];
+
+        yield 'false' => [
+            'false',
+            ['type' => 'boolean', 'enum' => [false]],
+        ];
+
+        yield 'nullable true' => [
+            'true|null',
+            ['type' => ['null', 'boolean'], 'enum' => [true, null]],
+        ];
+
+        yield 'string or false' => [
+            'string|false',
+            ['anyOf' => [['type' => 'string'], ['type' => 'boolean', 'enum' => [false]]]],
+        ];
+
+        yield 'nullable string or false' => [
+            'string|false|null',
+            ['anyOf' => [['type' => 'string'], ['type' => 'boolean', 'enum' => [false]], ['type' => 'null']]],
+        ];
+
+        yield 'true or false' => [
+            'true|false',
+            ['anyOf' => [['type' => 'boolean', 'enum' => [true]], ['type' => 'boolean', 'enum' => [false]]]],
+        ];
+
+        yield 'constrained and bare members' => [
+            'non-empty-string|int',
+            ['anyOf' => [['type' => 'string', 'minLength' => 1], ['type' => 'integer']]],
+        ];
+
+        yield 'scalar or array' => [
+            'int|string[]',
+            ['anyOf' => [['type' => 'integer'], ['type' => 'array', 'items' => ['type' => 'string']]]],
+        ];
+
+        yield 'unconstrained member in a union' => [
+            'int|mixed',
+            ['anyOf' => [['type' => 'integer'], true]],
+        ];
+
+        yield 'literal mixed with general type' => [
+            '\'a\'|int',
+            ['anyOf' => [['type' => 'string', 'enum' => ['a']], ['type' => 'integer']]],
+        ];
+
+        yield 'mixed literal types' => [
+            '\'a\'|1',
+            ['type' => ['integer', 'string'], 'enum' => ['a', 1]],
+        ];
+
+        yield 'float literal' => [
+            '1.5',
+            ['type' => 'number', 'enum' => [1.5]],
+        ];
+
+        yield 'integer and float literals' => [
+            '1|2.5',
+            ['type' => ['integer', 'number'], 'enum' => [1, 2.5]],
+        ];
     }
 
     #[DataProvider('provideRejectsTypeStringCases')]
@@ -384,28 +499,12 @@ final class TypeNodeSchemaMapperTest extends AbstractMcpTestCase
             'array<int, string, bool>',
         ];
 
-        yield 'mixed scalar and array union' => [
-            'int|string[]',
+        yield 'class constant' => [
+            'Foo::A',
         ];
 
-        yield 'mixed literal types' => [
-            '\'a\'|1',
-        ];
-
-        yield 'literal mixed with general type' => [
-            '\'a\'|int',
-        ];
-
-        yield 'float literal' => [
-            '1.5',
-        ];
-
-        yield 'bool literal union' => [
-            'true|false',
-        ];
-
-        yield 'non-identifier shape key' => [
-            'array{0: int}',
+        yield 'keyless item in a named shape' => [
+            'array{a: int, string}',
         ];
 
         yield 'non-array generic base' => [
@@ -432,12 +531,20 @@ final class TypeNodeSchemaMapperTest extends AbstractMcpTestCase
         $this->mapper->map(new UnionTypeNode([new IdentifierTypeNode('null'), new IdentifierTypeNode('null')]));
     }
 
-    public function testAMixedConstUnionNamesTheUnsupportedMember(): void
+    public function testAConstUnionWithAClassConstantNamesTheUnion(): void
     {
         $this->expectException(UnsupportedSchemaTypeException::class);
-        $this->expectExceptionMessageIs('Type "1.5" is not supported by the input schema generator.');
+        $this->expectExceptionMessageIs('Type "(1 | Foo::A)" is not supported by the input schema generator.');
 
-        $this->mapper->map($this->resolver->parseNativeType('int|1.5'));
+        $this->mapper->map($this->resolver->parseNativeType('1|Foo::A'));
+    }
+
+    public function testNullableAppendsNullToAnyOf(): void
+    {
+        self::assertSame(
+            ['anyOf' => [['type' => 'string'], ['type' => 'null']]],
+            $this->mapper->makeNullable(['anyOf' => [['type' => 'string']]]),
+        );
     }
 
     public function testNullableWidensScalarType(): void
@@ -500,6 +607,12 @@ final class TypeNodeSchemaMapperTest extends AbstractMcpTestCase
             $resolver->parseNativeType('int'),
             null,
             'int',
+        ];
+
+        yield 'native alternatives are not refined by different alternatives' => [
+            $resolver->parseNativeType('string|false'),
+            $resolver->parseNativeType('int|false'),
+            '(string | false)',
         ];
 
         yield 'docblock only' => [
