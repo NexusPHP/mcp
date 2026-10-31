@@ -180,6 +180,141 @@ final class SseFrameParserTest extends AbstractMcpTestCase
         }
     }
 
+    /**
+     * @param list<string> $chunks
+     */
+    #[DataProvider('provideTheFrameCapCountsACrlfWhereverItIsSplitCases')]
+    public function testTheFrameCapCountsACrlfWhereverItIsSplit(array $chunks): void
+    {
+        $parser = new SseFrameParser(maxFrameBytes: 11);
+        $frames = [];
+
+        foreach ($chunks as $chunk) {
+            array_push($frames, ...$parser->feed($chunk));
+        }
+
+        self::assertSame([['message', 'x']], $this->flatten($frames));
+    }
+
+    /**
+     * @param list<string> $chunks
+     */
+    #[DataProvider('provideTheFrameCapCountsACrlfWhereverItIsSplitCases')]
+    public function testTheFrameCapRejectsACrlfFrameOverTheLimitWhereverItIsSplit(array $chunks): void
+    {
+        $parser = new SseFrameParser(maxFrameBytes: 10);
+
+        $this->expectException(ResponseTooLargeException::class);
+        $this->expectExceptionMessageIs('The response exceeded the 10 byte limit the client accepts.');
+
+        foreach ($chunks as $chunk) {
+            $parser->feed($chunk);
+        }
+    }
+
+    /**
+     * @return iterable<string, array{list<string>}>
+     */
+    public static function provideTheFrameCapCountsACrlfWhereverItIsSplitCases(): iterable
+    {
+        yield 'unsplit' => [["data: x\r\n\r\n"]];
+
+        yield 'split after the first CR' => [["data: x\r", "\n\r\n"]];
+
+        yield 'split after the second CR' => [["data: x\r\n\r", "\n"]];
+
+        yield 'split after both CRs' => [["data: x\r", "\n\r", "\n"]];
+
+        yield 'one byte at a time' => [str_split("data: x\r\n\r\n")];
+    }
+
+    public function testTheFrameCapRestartsOnceTheLineFeedOfABoundaryIsCounted(): void
+    {
+        $parser = new SseFrameParser(maxFrameBytes: 11);
+
+        $parser->feed("data: x\r\r");
+        $parser->feed("\n");
+
+        self::assertSame([], $this->flatten($parser->feed(str_repeat('a', 11))));
+
+        $this->expectException(ResponseTooLargeException::class);
+        $this->expectExceptionMessageIs('The response exceeded the 11 byte limit the client accepts.');
+
+        $parser->feed('a');
+    }
+
+    public function testTheFrameCapRestartsWhenABoundaryCarriageReturnIsNotFollowedByALineFeed(): void
+    {
+        $parser = new SseFrameParser(maxFrameBytes: 11);
+
+        $parser->feed("data: x\r\r");
+
+        self::assertSame([], $this->flatten($parser->feed(str_repeat('a', 11))));
+
+        $this->expectException(ResponseTooLargeException::class);
+        $this->expectExceptionMessageIs('The response exceeded the 11 byte limit the client accepts.');
+
+        $parser->feed('a');
+    }
+
+    public function testAnEmptyChunkDoesNotRestartTheFrameCapBeforeTheLineFeedIsCounted(): void
+    {
+        $parser = new SseFrameParser(maxFrameBytes: 9);
+
+        $parser->feed("data: x\r\r");
+        $parser->feed('');
+
+        $this->expectException(ResponseTooLargeException::class);
+        $this->expectExceptionMessageIs('The response exceeded the 9 byte limit the client accepts.');
+
+        $parser->feed("\n");
+    }
+
+    public function testTheFrameCapRestartsAtEveryCarriageReturnBoundaryWithinAChunk(): void
+    {
+        $parser = new SseFrameParser(maxFrameBytes: 12);
+
+        self::assertSame(
+            [['message', 'aaaa'], ['message', 'bbbb']],
+            $this->flatten($parser->feed("data: aaaa\r\rdata: bbbb\r\r")),
+        );
+    }
+
+    public function testTheFrameCapRestartsAtZeroAfterABoundary(): void
+    {
+        $parser = new SseFrameParser(maxFrameBytes: 32);
+
+        self::assertSame([['message', 'a']], $this->flatten($parser->feed("data: a\n\n")));
+        self::assertSame([], $this->flatten($parser->feed(str_repeat('a', 32))));
+
+        $this->expectException(ResponseTooLargeException::class);
+        $this->expectExceptionMessageIs('The response exceeded the 32 byte limit the client accepts.');
+
+        $parser->feed('a');
+    }
+
+    public function testTheFrameCapIgnoresHowSeveralSmallFramesAreChunked(): void
+    {
+        $parser = new SseFrameParser(maxFrameBytes: 32);
+
+        self::assertSame(
+            [['message', 'a'], ['message', 'b'], ['message', 'c'], ['message', 'd']],
+            $this->flatten($parser->feed("data: a\n\ndata: b\n\ndata: c\n\ndata: d\n\n")),
+        );
+    }
+
+    public function testTheFrameCapKeepsTheLinesOfAFrameThatSpansChunks(): void
+    {
+        $parser = new SseFrameParser(maxFrameBytes: 32);
+
+        self::assertSame([['message', 'ok']], $this->flatten($parser->feed("data: ok\n\ndata: ".str_repeat('a', 15)."\n")));
+
+        $this->expectException(ResponseTooLargeException::class);
+        $this->expectExceptionMessageIs('The response exceeded the 32 byte limit the client accepts.');
+
+        $parser->feed('data: '.str_repeat('b', 20)."\n\n");
+    }
+
     public function testTheFrameCapCountsAcrossFieldLinesWithinOneFrame(): void
     {
         $parser = new SseFrameParser(maxFrameBytes: 32);

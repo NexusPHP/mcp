@@ -42,6 +42,11 @@ final class SseFrameParser
     private bool $afterCarriageReturn = false;
 
     /**
+     * Whether a blank line ended on a CR, so that its budget restarts once an LF opening the next chunk is counted.
+     */
+    private bool $boundaryAwaitsLineFeed = false;
+
+    /**
      * @var list<string>
      */
     private array $data = [];
@@ -62,35 +67,43 @@ final class SseFrameParser
      */
     public function feed(string $chunk): array
     {
-        $this->frameBytes += \strlen($chunk);
+        $completesCarriageReturn = $this->afterCarriageReturn && str_starts_with($chunk, "\n");
 
-        if ($this->frameBytes > $this->maxFrameBytes) {
-            throw new ResponseTooLargeException($this->maxFrameBytes);
-        }
-
-        if ($this->afterCarriageReturn && str_starts_with($chunk, "\n")) {
+        if ($completesCarriageReturn) {
             $chunk = substr($chunk, 1);
             $this->afterCarriageReturn = false;
+            $this->absorb(1);
+        }
+
+        if (($completesCarriageReturn || '' !== $chunk) && $this->boundaryAwaitsLineFeed) {
+            $this->frameBytes = 0;
+            $this->boundaryAwaitsLineFeed = false;
         }
 
         if ('' !== $chunk) {
             $this->afterCarriageReturn = str_ends_with($chunk, "\r");
         }
 
-        $pieces = preg_split('/\r\n|\n|\r/', $chunk);
-        \assert(\is_array($pieces));
+        preg_match_all('/([^\r\n]*)(\r\n|\n|\r)/', $chunk, $lines, \PREG_SET_ORDER);
 
-        $remainder = array_pop($pieces) ?? '';
+        $consumed = 0;
         $frames = [];
 
-        foreach ($pieces as $piece) {
-            $line = $this->pending.$piece;
+        foreach ($lines as [$terminated, $text, $terminator]) {
+            $consumed += \strlen($terminated);
+            $this->absorb(\strlen($terminated));
+
+            $line = $this->pending.$text;
             $this->pending = '';
             $frame = $this->consumeLine($line);
 
             // A blank line is a frame boundary whether or not it dispatched, so the budget restarts.
             if ('' === $line) {
-                $this->frameBytes = \strlen($remainder);
+                $this->boundaryAwaitsLineFeed = "\r" === $terminator && \strlen($chunk) === $consumed;
+
+                if (! $this->boundaryAwaitsLineFeed) {
+                    $this->frameBytes = 0;
+                }
             }
 
             if (null !== $frame) {
@@ -98,9 +111,23 @@ final class SseFrameParser
             }
         }
 
+        $remainder = substr($chunk, $consumed);
+        $this->absorb(\strlen($remainder));
         $this->pending .= $remainder;
 
         return $frames;
+    }
+
+    /**
+     * @throws ResponseTooLargeException
+     */
+    private function absorb(int $bytes): void
+    {
+        $this->frameBytes += $bytes;
+
+        if ($this->frameBytes > $this->maxFrameBytes) {
+            throw new ResponseTooLargeException($this->maxFrameBytes);
+        }
     }
 
     private function consumeLine(string $line): ?SseFrame
