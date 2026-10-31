@@ -213,32 +213,45 @@ final class RequestStateSignerTest extends AbstractMcpTestCase
         yield 'tool call by an authenticated caller' => [
             CallToolRequest::fromArray(['id' => 1, 'params' => ['_meta' => $meta, 'name' => 'deploy']]),
             $authenticated,
-            "alice\0app-1\0tools/call\0deploy\0",
+            '["alice","app-1","tools/call","deploy",""]',
         ];
 
         yield 'tool call with arguments, keys in any order' => [
             CallToolRequest::fromArray(['id' => 1, 'params' => ['_meta' => $meta, 'name' => 'deploy', 'arguments' => ['b' => 'two', 'a' => ['y' => [2, 1], 'x' => 1]]]]),
             $authenticated,
-            "alice\0app-1\0tools/call\0deploy\0".$digest,
+            \sprintf('["alice","app-1","tools/call","deploy","%s"]', $digest),
         ];
 
         yield 'prompt by an anonymous caller' => [
             GetPromptRequest::fromArray(['id' => 1, 'params' => ['_meta' => $meta, 'name' => 'review', 'arguments' => ['b' => 'two', 'a' => 'one']]]),
             new ReceiveContext(),
-            "\0\0prompts/get\0review\0".hash('sha256', '{"a":"one","b":"two"}'),
+            \sprintf('[null,null,"prompts/get","review","%s"]', hash('sha256', '{"a":"one","b":"two"}')),
         ];
 
         yield 'resource read' => [
             ReadResourceRequest::fromArray(['id' => 1, 'params' => ['_meta' => $meta, 'uri' => 'file:///a']]),
             $authenticated,
-            "alice\0app-1\0resources/read\0file:///a\0",
+            '["alice","app-1","resources/read","file:///a",""]',
         ];
 
         yield 'a request without a target' => [
             ListToolsRequest::fromArray(['id' => 1, 'params' => ['_meta' => $meta]]),
             $authenticated,
-            "alice\0app-1\0tools/list\0\0",
+            '["alice","app-1","tools/list","",""]',
         ];
+    }
+
+    public function testIdentitiesThatJoinToTheSameBytesBindDifferently(): void
+    {
+        $request = CallToolRequest::fromArray(['id' => 1, 'params' => ['_meta' => RequestMetaObjectFactory::shape(), 'name' => 'deploy']]);
+        $first = new ReceiveContext(authInfo: new VerifiedAccessToken(['https://mcp.example.com'], 2_000_000_000, [], subject: "alice\0app", clientId: 'client'));
+        $second = new ReceiveContext(authInfo: new VerifiedAccessToken(['https://mcp.example.com'], 2_000_000_000, [], subject: 'alice', clientId: "app\0client"));
+        $signer = new RequestStateSigner('secret');
+
+        $state = $signer->bindFor($request, $first)->sign('awaiting-confirmation');
+
+        self::assertSame('awaiting-confirmation', $signer->bindFor($request, $first)->verify($state));
+        self::assertNull($signer->bindFor($request, $second)->verify($state));
     }
 
     public function testDifferentArgumentsBindDifferently(): void
