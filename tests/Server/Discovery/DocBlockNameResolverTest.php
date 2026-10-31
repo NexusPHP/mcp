@@ -163,9 +163,11 @@ final class DocBlockNameResolverTest extends AbstractMcpTestCase
         $type = 'array{0: aFunction, 1: aConstant, 2: another, 3: third}';
 
         self::assertSame($type, $this->qualifyAgainstSource(
-            "use function %1\$s\\BackedIntEnum as aFunction;\n"
-            ."use const %1\$s\\BackedStringEnum as aConstant;\n"
-            .'use %1$s\{function PureEnum as another, const Coordinate as third};',
+            <<<'PHP'
+                use function %1$s\BackedIntEnum as aFunction;
+                use const %1$s\BackedStringEnum as aConstant;
+                use %1$s\{function PureEnum as another, const Coordinate as third};
+                PHP,
             $type,
         ));
     }
@@ -255,8 +257,9 @@ final class DocBlockNameResolverTest extends AbstractMcpTestCase
     public function testANamespaceOnTheLineOfTheMethodApplies(): void
     {
         $file = $this->writeSource(\sprintf(
-            '<?php namespace NamesFixture\Inline; use %s\BackedIntEnum as Inline; '
-            .'final class Holder { public function declare(): void {} }',
+            <<<'PHP'
+                <?php namespace NamesFixture\Inline; use %1$s\BackedIntEnum as Inline; final class Holder { public function declare(): void {} }
+                PHP,
             self::FIXTURES,
         ));
 
@@ -277,9 +280,14 @@ final class DocBlockNameResolverTest extends AbstractMcpTestCase
     public function testAnImportAfterAClassIsRead(): void
     {
         $file = $this->writeSource(\sprintf(
-            "<?php\nnamespace NamesFixture\\Trailing;\nfinal class First {}\n"
-            ."use %s\\BackedIntEnum as Late;\n"
-            ."final class Second { public function declare(): void {} }\n",
+            <<<'PHP'
+                <?php
+                namespace NamesFixture\Trailing;
+                final class First {}
+                use %1$s\BackedIntEnum as Late;
+                final class Second { public function declare(): void {} }
+
+                PHP,
             self::FIXTURES,
         ));
 
@@ -300,10 +308,14 @@ final class DocBlockNameResolverTest extends AbstractMcpTestCase
     public function testAnInterpolatedExpressionDoesNotUnbalanceTheNesting(): void
     {
         $file = $this->writeSource(\sprintf(
-            "<?php\nnamespace NamesFixture\\Interpolated;\n"
-            .'final class First { public function render(string $a): string { return "{$a}"; } }'."\n"
-            ."use %s\\BackedIntEnum as Late;\n"
-            ."final class Second { public function declare(): void {} }\n",
+            <<<'PHP'
+                <?php
+                namespace NamesFixture\Interpolated;
+                final class First { public function render(string $a): string { return "{$a}"; } }
+                use %1$s\BackedIntEnum as Late;
+                final class Second { public function declare(): void {} }
+
+                PHP,
             self::FIXTURES,
         ));
 
@@ -324,8 +336,13 @@ final class DocBlockNameResolverTest extends AbstractMcpTestCase
     public function testReadsEachSourceFileOnce(): void
     {
         $file = $this->writeSource(\sprintf(
-            "<?php\nnamespace NamesFixture\\Cached;\nuse %s\\BackedIntEnum as Cached;\n"
-            ."final class Holder { public function declare(): void {} }\n",
+            <<<'PHP'
+                <?php
+                namespace NamesFixture\Cached;
+                use %1$s\BackedIntEnum as Cached;
+                final class Holder { public function declare(): void {} }
+
+                PHP,
             self::FIXTURES,
         ));
 
@@ -338,7 +355,11 @@ final class DocBlockNameResolverTest extends AbstractMcpTestCase
             $second = (new DocBlockTypeResolver())->parseNativeType('list<Cached>');
 
             $resolver->qualify($first, $method);
-            file_put_contents($file, "<?php\nnamespace NamesFixture\\Cached;\n");
+            file_put_contents($file, <<<'PHP'
+                <?php
+                namespace NamesFixture\Cached;
+
+                PHP);
             $resolver->qualify($second, $method);
 
             self::assertSame(self::listOf('BackedIntEnum'), (string) $first);
@@ -375,7 +396,13 @@ final class DocBlockNameResolverTest extends AbstractMcpTestCase
     ): string {
         $class = 'Holder'.++self::$sourceCount;
         $file = $this->writeSource(\sprintf(
-            "<?php\n%s\n%s\nfinal class %s { %s }\n",
+            <<<'PHP'
+                <?php
+                %s
+                %s
+                final class %s { %s }
+
+                PHP,
             $namespaced ? 'namespace NamesFixture;' : '',
             \sprintf($imports, self::FIXTURES),
             $class,

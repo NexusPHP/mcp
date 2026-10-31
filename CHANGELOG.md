@@ -17,6 +17,8 @@ in `0.x`, minor releases may include breaking changes.
   such as `string|false` (as `anyOf`), quoted and integer shape keys, and optional tuple items.
 - An enum inside a `@param` collection, shape or tuple type (`list<Suit>`, `array{suit: Suit}`) reaches the handler
   as its case. Previously, it arrived as the raw value.
+- A constructor parameter typed as an instantiable class expands into a nested object in a tool's input schema.
+  Previously, it threw at registration. A class that contains itself still throws.
 
 ### Changed
 

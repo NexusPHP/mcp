@@ -19,8 +19,10 @@ use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\AbstractShape;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\BackedStringEnum;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\Coordinate;
+use Nexus\Mcp\Tests\Fixtures\Server\Discovery\MutualLeftDto;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\Place;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\SampleToolHandlers;
+use Nexus\Mcp\Tests\Fixtures\Server\Discovery\SelfReferencingDto;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\ShapeInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -365,12 +367,81 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
         ], $this->generate('noConstructorObject'));
     }
 
-    public function testNestedClassParameterThrows(): void
+    public function testNestedClassParameterIsExpanded(): void
+    {
+        self::assertSame([
+            'type' => 'object',
+            '$schema' => self::DIALECT,
+            'properties' => [
+                'place' => [
+                    'type' => 'object',
+                    'properties' => ['name' => ['type' => 'string'], 'at' => self::coordinateSchema()],
+                    'required' => ['name', 'at'],
+                ],
+            ],
+            'required' => ['place'],
+        ], $this->generate('nestedObject'));
+    }
+
+    public function testClassesNestTwoLevelsDeep(): void
+    {
+        self::assertSame([
+            'type' => 'object',
+            '$schema' => self::DIALECT,
+            'properties' => [
+                'deep' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'inner' => [
+                            'type' => 'object',
+                            'properties' => ['origin' => self::coordinateSchema()],
+                            'required' => ['origin'],
+                        ],
+                    ],
+                    'required' => ['inner'],
+                ],
+            ],
+            'required' => ['deep'],
+        ], $this->generate('deepObject'));
+    }
+
+    public function testNullableNestedClassParameterAdmitsNull(): void
+    {
+        self::assertSame([
+            'type' => 'object',
+            '$schema' => self::DIALECT,
+            'properties' => [
+                'box' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'origin' => ['type' => ['null', 'object']] + self::coordinateSchema() + ['default' => null],
+                    ],
+                ],
+            ],
+            'required' => ['box'],
+        ], $this->generate('optionalNested'));
+    }
+
+    public function testASelfReferencingClassThrows(): void
     {
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageMatches('/parameter "\$at".+Place::__construct/');
+        $this->expectExceptionMessageIs(\sprintf(
+            'Cannot generate the input schema for %s because it contains itself. Add #[InputSchema(...)] to describe it explicitly.',
+            SelfReferencingDto::class,
+        ));
 
-        $this->generate('nestedObject');
+        $this->generateUnderMemoryCeiling('selfReferencing');
+    }
+
+    public function testMutuallyReferencingClassesThrow(): void
+    {
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessageIs(\sprintf(
+            'Cannot generate the input schema for %s because it contains itself. Add #[InputSchema(...)] to describe it explicitly.',
+            MutualLeftDto::class,
+        ));
+
+        $this->generateUnderMemoryCeiling('mutuallyReferencing');
     }
 
     public function testAbstractClassParameterThrows(): void
@@ -428,6 +499,32 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
         );
     }
 
+    public function testResolveExpandableNativeClassReadsSelfAsTheDeclaringClass(): void
+    {
+        self::assertSame(
+            SelfReferencingDto::class,
+            InputSchemaGenerator::resolveExpandableNativeClass(
+                new \ReflectionParameter([SelfReferencingDto::class, '__construct'], 'next'),
+            ),
+        );
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function coordinateSchema(): array
+    {
+        return [
+            'type' => 'object',
+            'properties' => [
+                'latitude' => ['type' => 'number'],
+                'longitude' => ['type' => 'number'],
+                'label' => ['type' => 'string', 'enum' => ['a', 'b'], 'default' => 'a'],
+            ],
+            'required' => ['latitude', 'longitude'],
+        ];
+    }
+
     private function readParameterAt(string $method, int $position): \ReflectionParameter
     {
         $parameters = (new \ReflectionMethod(SampleToolHandlers::class, $method))->getParameters();
@@ -445,5 +542,22 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
     private function generate(string $method): array
     {
         return (new InputSchemaGenerator())->generate(new \ReflectionMethod(SampleToolHandlers::class, $method));
+    }
+
+    /**
+     * Ends a runaway recursion in a mutated generator with a fatal error instead of a timeout.
+     *
+     * @return array<string, mixed>
+     */
+    private function generateUnderMemoryCeiling(string $method): array
+    {
+        $previous = (string) \ini_get('memory_limit');
+        ini_set('memory_limit', (string) (memory_get_usage(true) + 64 * 1_024 * 1_024));
+
+        try {
+            return $this->generate($method);
+        } finally {
+            ini_set('memory_limit', $previous);
+        }
     }
 }

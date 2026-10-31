@@ -142,6 +142,22 @@ final class SampleToolHandlers
     {
     }
 
+    public function deepObject(DeepDto $deep): void
+    {
+    }
+
+    public function optionalNested(OptionalNestedDto $box): void
+    {
+    }
+
+    public function selfReferencing(SelfReferencingDto $node): void
+    {
+    }
+
+    public function mutuallyReferencing(MutualLeftDto $left): void
+    {
+    }
+
     public function noConstructorObject(EmptyDto $thing): void
     {
     }

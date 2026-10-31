@@ -102,9 +102,10 @@ throws `LogicException`.
 ### Object parameters
 
 A tool parameter typed as an instantiable class is expanded into an object schema built from that class's
-constructor parameters. The handler receives a constructed instance. Expansion goes one level. A constructor
-parameter that is itself a class (a nested object) is not expanded and throws `LogicException` at registration.
-The same holds for interfaces, abstract classes, and built-in classes such as `\DateTimeImmutable`.
+constructor parameters. The handler receives a constructed instance. A constructor parameter that is itself an
+instantiable class expands the same way, to any depth. A class that contains itself, directly or through another
+class, throws `LogicException` at registration. Describe it with `#[InputSchema(...)]`. Interfaces, abstract
+classes, and built-in classes such as `\DateTimeImmutable` are not expanded and throw.
 
 ```php
 final readonly class Coordinate
@@ -170,8 +171,8 @@ their normal last-call-wins behaviour. Only conflicting attributes are rejected.
   as strings. A prompt, resource, or resource-template parameter that a string cannot satisfy throws
   `LogicException` at registration.
 - Variadic parameters are accepted only on tools. On prompts and resources they throw `LogicException`.
-- Object (DTO) expansion is one level deep and tool-only. A constructor parameter typed as another class, a list
-  of objects, an interface, or an abstract class is not expanded and throws.
+- Object (DTO) expansion is tool-only. A list of objects, an interface, an abstract class, or a class that
+  contains itself is not expanded and throws.
 - There is no filesystem auto-discovery and no class-level handler backend. `register()` takes explicit source
   objects.
 - Only the per-feature listings are discoverable. Singleton infrastructure is registered through the builder's

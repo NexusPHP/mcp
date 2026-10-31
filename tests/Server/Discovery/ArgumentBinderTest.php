@@ -25,10 +25,14 @@ use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\BackedIntEnum;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\BackedStringEnum;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\Coordinate;
+use Nexus\Mcp\Tests\Fixtures\Server\Discovery\DeepDto;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\EmptyDto;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\NestedDto;
+use Nexus\Mcp\Tests\Fixtures\Server\Discovery\OpaqueDto;
+use Nexus\Mcp\Tests\Fixtures\Server\Discovery\OptionalNestedDto;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\PureEnum;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\ReflectedHandlers;
+use Nexus\Mcp\Tests\Fixtures\Server\Discovery\SelfReferencingDto;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\Waypoint;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
@@ -306,16 +310,92 @@ final class ArgumentBinderTest extends AbstractMcpTestCase
         $this->bind('withCoordinate', ['point' => 'scalar']);
     }
 
-    public function testRejectsADtoWithANestedObjectParameter(): void
+    public function testConstructsANestedObject(): void
+    {
+        $box = $this->bindFirst('withNested', ['box' => ['origin' => ['latitude' => 1.0, 'longitude' => 2.0]]]);
+
+        self::assertInstanceOf(NestedDto::class, $box);
+        self::assertSame(1.0, $box->origin->latitude);
+        self::assertSame(2.0, $box->origin->longitude);
+        self::assertSame(BackedStringEnum::A, $box->origin->label);
+    }
+
+    public function testConstructsObjectsTwoLevelsDeep(): void
+    {
+        $deep = $this->bindFirst(
+            'withDeep',
+            ['deep' => ['inner' => ['origin' => ['latitude' => 1.0, 'longitude' => 2.0, 'label' => 'b']]]],
+        );
+
+        self::assertInstanceOf(DeepDto::class, $deep);
+        self::assertSame(BackedStringEnum::B, $deep->inner->origin->label);
+    }
+
+    public function testConstructsAClassThatNestsItselfThroughSelf(): void
+    {
+        $node = $this->bindFirst('withSelfReferencing', ['node' => ['next' => ['next' => null]]]);
+
+        self::assertInstanceOf(SelfReferencingDto::class, $node);
+        self::assertInstanceOf(SelfReferencingDto::class, $node->next);
+        self::assertNull($node->next->next);
+    }
+
+    public function testBindsNullToANullableNestedObject(): void
+    {
+        $box = $this->bindFirst('withOptionalNested', ['box' => ['origin' => null]]);
+
+        self::assertInstanceOf(OptionalNestedDto::class, $box);
+        self::assertNull($box->origin);
+    }
+
+    public function testConstructsANullableNestedObjectFromAValueMap(): void
+    {
+        $box = $this->bindFirst(
+            'withOptionalNested',
+            ['box' => ['origin' => ['latitude' => 3.0, 'longitude' => 4.0]]],
+        );
+
+        self::assertInstanceOf(OptionalNestedDto::class, $box);
+        self::assertSame(3.0, $box->origin?->latitude);
+    }
+
+    public function testRejectsANestedObjectThatIsNotAnObject(): void
+    {
+        $this->expectException(InvalidParamsException::class);
+        $this->expectExceptionMessageIs('"box.origin" must be an object, string given.');
+
+        $this->bind('withNested', ['box' => ['origin' => 'here']]);
+    }
+
+    public function testRejectsANestedObjectMissingARequiredMember(): void
+    {
+        $this->expectException(InvalidParamsException::class);
+        $this->expectExceptionMessageIs('"box.origin" is missing the required "longitude" key.');
+
+        $this->bind('withNested', ['box' => ['origin' => ['latitude' => 1.0]]]);
+    }
+
+    public function testRejectsAnUnknownEnumMemberOfANestedObject(): void
+    {
+        $this->expectException(InvalidParamsException::class);
+        $this->expectExceptionMessageIs('"box.origin.label" must be one of [\'a\', \'b\'], \'zzz\' given.');
+
+        $this->bind(
+            'withNested',
+            ['box' => ['origin' => ['latitude' => 1.0, 'longitude' => 2.0, 'label' => 'zzz']]],
+        );
+    }
+
+    public function testRejectsADtoWithAParameterItCannotConstruct(): void
     {
         $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs(\sprintf(
-            '%s declares constructor parameter "$origin" of type "%s", which the binder cannot construct from a value map. Nested object expansion is not supported.',
-            NestedDto::class,
-            Coordinate::class,
+            '%s declares constructor parameter "$at" of type "%s", which the binder cannot construct from a value map.',
+            OpaqueDto::class,
+            \DateTimeImmutable::class,
         ));
 
-        $this->bind('withNested', ['box' => ['origin' => ['latitude' => 1.0, 'longitude' => 2.0]]]);
+        $this->bind('withOpaque', ['thing' => ['at' => '2026-01-01']]);
     }
 
     public function testDtoRejectsAMissingRequiredMember(): void
@@ -591,7 +671,17 @@ final class ArgumentBinderTest extends AbstractMcpTestCase
         self::assertIsString($file);
 
         file_put_contents($file, \sprintf(
-            "<?php\nuse %s;\nfinal class %s {\n/**\n * %s\n */\npublic function handle(%s) {}\n}\n",
+            <<<'PHP'
+                <?php
+                use %s;
+                final class %s {
+                    /**
+                     * %s
+                     */
+                    public function handle(%s) {}
+                }
+
+                PHP,
             BackedStringEnum::class,
             $class,
             $docblock,
@@ -605,6 +695,14 @@ final class ArgumentBinderTest extends AbstractMcpTestCase
         } finally {
             unlink($file);
         }
+    }
+
+    /**
+     * @param array<string, mixed> $values
+     */
+    private function bindFirst(string $method, array $values): mixed
+    {
+        return $this->bind($method, $values)[0] ?? null;
     }
 
     private function makeContext(): ServerContext

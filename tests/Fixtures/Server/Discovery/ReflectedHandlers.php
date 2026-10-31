@@ -134,9 +134,29 @@ final class ReflectedHandlers
         return $thing::class;
     }
 
+    public function withSelfReferencing(SelfReferencingDto $node): string
+    {
+        return null === $node->next ? 'leaf' : 'branch';
+    }
+
     public function withNested(NestedDto $box): string
     {
         return (string) $box->origin->latitude;
+    }
+
+    public function withDeep(DeepDto $deep): string
+    {
+        return (string) $deep->inner->origin->longitude;
+    }
+
+    public function withOptionalNested(OptionalNestedDto $box): string
+    {
+        return null === $box->origin ? 'none' : (string) $box->origin->latitude;
+    }
+
+    public function withOpaque(OpaqueDto $thing): string
+    {
+        return $thing->at->format('c');
     }
 
     public function toolResult(): CallToolResult
