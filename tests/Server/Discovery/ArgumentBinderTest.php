@@ -41,6 +41,7 @@ use PHPUnit\Framework\Attributes\Group;
 #[Group('server-tests')]
 final class ArgumentBinderTest extends AbstractMcpTestCase
 {
+    private static int $sourceCount = 0;
     private ArgumentBinder $binder;
 
     #[\Override]
@@ -325,6 +326,199 @@ final class ArgumentBinderTest extends AbstractMcpTestCase
         $this->bind('withCoordinate', ['point' => ['latitude' => 1.0]]);
     }
 
+    public function testHydratesEnumsInsideAGenericList(): void
+    {
+        self::assertSame(
+            [[BackedStringEnum::A, BackedStringEnum::B]],
+            $this->bind('listOfEnums', ['colors' => ['a', 'b']]),
+        );
+    }
+
+    public function testHydratesEnumsInsideAGenericMap(): void
+    {
+        self::assertSame(
+            [['x' => BackedStringEnum::A, 'y' => BackedStringEnum::B]],
+            $this->bind('mapOfEnums', ['colours' => ['x' => 'a', 'y' => 'b']]),
+        );
+    }
+
+    public function testHydratesEnumsInsideAnArrayTypeSuffix(): void
+    {
+        self::assertSame(
+            [[BackedStringEnum::B, BackedStringEnum::A]],
+            $this->bindAgainstSource('@param BackedStringEnum[] $colors', 'array $colors', ['colors' => ['b', 'a']]),
+        );
+    }
+
+    public function testHydratesEnumsInsideNestedLists(): void
+    {
+        self::assertSame(
+            [[[BackedStringEnum::A], [BackedStringEnum::B]]],
+            $this->bind('nestedEnums', ['rows' => [['a'], ['b']]]),
+        );
+    }
+
+    public function testHydratesEnumsInsideAUnionWithNull(): void
+    {
+        self::assertSame(
+            [[BackedStringEnum::A, null]],
+            $this->bind('listOfOptionalEnums', ['colors' => ['a', null]]),
+        );
+    }
+
+    public function testHydratesEnumsInsideANullableElement(): void
+    {
+        self::assertSame(
+            [[null, BackedStringEnum::B]],
+            $this->bind('listOfNullableEnums', ['colors' => [null, 'b']]),
+        );
+    }
+
+    public function testLeavesAnAmbiguousUnionElementAlone(): void
+    {
+        self::assertSame([['a', 3]], $this->bind('listOfEnumsOrInts', ['mixed' => ['a', 3]]));
+    }
+
+    public function testHydratesEnumsInsideAShape(): void
+    {
+        self::assertSame(
+            [['colour' => BackedStringEnum::B, 'size' => 2]],
+            $this->bind('shapeWithEnum', ['options' => ['colour' => 'b', 'size' => 2]]),
+        );
+    }
+
+    public function testSkipsAnAbsentShapeKey(): void
+    {
+        self::assertSame(
+            [['colour' => BackedStringEnum::A]],
+            $this->bind('shapeWithEnum', ['options' => ['colour' => 'a']]),
+        );
+    }
+
+    public function testHydratesEnumsInsideAPositionalShape(): void
+    {
+        self::assertSame(
+            [[BackedIntEnum::Two, 'x']],
+            $this->bind('tupleWithEnum', ['pair' => [2, 'x']]),
+        );
+    }
+
+    public function testHydratesEnumsInsideAKeylessTuple(): void
+    {
+        self::assertSame(
+            [[BackedIntEnum::One, 'x']],
+            $this->bind('listTupleWithEnum', ['pair' => [1, 'x']]),
+        );
+    }
+
+    public function testHydratesEnumsInsideAnUntypedParameter(): void
+    {
+        self::assertSame(
+            [[BackedStringEnum::A]],
+            $this->bindAgainstSource('@param list<BackedStringEnum> $colors', '$colors', ['colors' => ['a']]),
+        );
+    }
+
+    public function testLeavesAnUntypedParameterWithoutADocblockAlone(): void
+    {
+        self::assertSame([['a']], $this->bindAgainstSource('', '$anything', ['anything' => ['a']]));
+    }
+
+    public function testLeavesANonCollectionGenericAlone(): void
+    {
+        self::assertSame([3], $this->bindAgainstSource('@param int<1, 5> $level', '$level', ['level' => 3]));
+    }
+
+    public function testLeavesAGenericOverAnArrayValueAlone(): void
+    {
+        self::assertSame(
+            [['a']],
+            $this->bindAgainstSource('@param Generator<BackedStringEnum> $items', '$items', ['items' => ['a']]),
+        );
+    }
+
+    public function testHydratesDeclaredAndTailEnumsOfAShapeOnce(): void
+    {
+        self::assertSame(
+            [['first' => BackedStringEnum::A, 'second' => BackedStringEnum::B]],
+            $this->bind('shapeWithDeclaredAndTailEnums', ['values' => ['first' => 'a', 'second' => 'b']]),
+        );
+    }
+
+    public function testHydratesEnumsInTheTailOfAnUnsealedTuple(): void
+    {
+        self::assertSame(
+            [['x', BackedStringEnum::A, BackedStringEnum::B]],
+            $this->bind('tupleWithEnumTail', ['values' => ['x', 'a', 'b']]),
+        );
+    }
+
+    public function testHydratesEnumsInTheTailOfAnUnsealedShape(): void
+    {
+        self::assertSame(
+            [['name' => 'n', 'extra' => BackedStringEnum::B]],
+            $this->bind('shapeWithEnumTail', ['values' => ['name' => 'n', 'extra' => 'b']]),
+        );
+    }
+
+    public function testLeavesTheTailOfAnUntypedUnsealedShapeAlone(): void
+    {
+        self::assertSame(
+            [['name' => 'n', 'extra' => 'b']],
+            $this->bind('shapeWithOpenTail', ['values' => ['name' => 'n', 'extra' => 'b']]),
+        );
+    }
+
+    public function testRejectsAnUnknownEnumValueInTheTailOfAShape(): void
+    {
+        $this->expectException(InvalidParamsException::class);
+        $this->expectExceptionMessageIs('"values.extra" must be one of [\'a\', \'b\'], \'zzz\' given.');
+
+        $this->bind('shapeWithEnumTail', ['values' => ['name' => 'n', 'extra' => 'zzz']]);
+    }
+
+    public function testLeavesAnAmbiguousUnionAlone(): void
+    {
+        self::assertSame(['a'], $this->bind('enumListOrString', ['colors' => 'a']));
+        self::assertSame([['a']], $this->bind('enumListOrString', ['colors' => ['a']]));
+    }
+
+    public function testLeavesANonArrayValueForACollectionAlone(): void
+    {
+        self::assertSame(['oops'], $this->bind('listOfEnums', ['colors' => 'oops']));
+    }
+
+    public function testLeavesANonArrayValueForAShapeAlone(): void
+    {
+        self::assertSame(['oops'], $this->bind('shapeWithEnum', ['options' => 'oops']));
+    }
+
+    public function testBindsNullToANullableCollectionParameter(): void
+    {
+        self::assertSame([null], $this->bind('nullableListOfEnums', ['colors' => null]));
+    }
+
+    public function testHydratesAnEnumListBehindANullableParameter(): void
+    {
+        self::assertSame([[BackedStringEnum::B]], $this->bind('nullableListOfEnums', ['colors' => ['b']]));
+    }
+
+    public function testRejectsAnUnknownEnumValueInsideACollection(): void
+    {
+        $this->expectException(InvalidParamsException::class);
+        $this->expectExceptionMessageIs('"colors.1" must be one of [\'a\', \'b\'], \'zzz\' given.');
+
+        $this->bind('listOfEnums', ['colors' => ['a', 'zzz']]);
+    }
+
+    public function testRejectsAnUnknownEnumValueInsideAShape(): void
+    {
+        $this->expectException(InvalidParamsException::class);
+        $this->expectExceptionMessageIs('"options.colour" must be one of [\'a\', \'b\'], \'zzz\' given.');
+
+        $this->bind('shapeWithEnum', ['options' => ['colour' => 'zzz']]);
+    }
+
     public function testRejectsUnknownBackedEnumValue(): void
     {
         $this->expectException(InvalidParamsException::class);
@@ -383,6 +577,34 @@ final class ArgumentBinderTest extends AbstractMcpTestCase
             $values,
             $context ?? $this->makeContext(),
         );
+    }
+
+    /**
+     * @param array<array-key, mixed> $values
+     *
+     * @return list<mixed>
+     */
+    private function bindAgainstSource(string $docblock, string $parameter, array $values): array
+    {
+        $class = 'BinderSource'.++self::$sourceCount;
+        $file = tempnam(sys_get_temp_dir(), 'binder');
+        self::assertIsString($file);
+
+        file_put_contents($file, \sprintf(
+            "<?php\nuse %s;\nfinal class %s {\n/**\n * %s\n */\npublic function handle(%s) {}\n}\n",
+            BackedStringEnum::class,
+            $class,
+            $docblock,
+            $parameter,
+        ));
+
+        try {
+            require_once $file;
+
+            return $this->binder->bind(new \ReflectionMethod($class, 'handle'), $values, $this->makeContext());
+        } finally {
+            unlink($file);
+        }
     }
 
     private function makeContext(): ServerContext

@@ -20,6 +20,7 @@ use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\BackedIntEnum;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\BackedStringEnum;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\PureEnum;
+use PHPStan\PhpDocParser\Ast\Type\GenericTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\TypeNode;
 use PHPStan\PhpDocParser\Ast\Type\UnionTypeNode;
@@ -537,6 +538,42 @@ final class TypeNodeSchemaMapperTest extends AbstractMcpTestCase
         $this->expectExceptionMessageIs('Type "(1 | Foo::A)" is not supported by the input schema generator.');
 
         $this->mapper->map($this->resolver->parseNativeType('1|Foo::A'));
+    }
+
+    #[DataProvider('provideResolvesElementTypeCases')]
+    public function testResolvesElementType(string $type, string $expected): void
+    {
+        $node = $this->resolver->parseNativeType($type);
+
+        self::assertInstanceOf(GenericTypeNode::class, $node);
+        self::assertSame($expected, (string) $this->mapper->resolveElementType($node));
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function provideResolvesElementTypeCases(): iterable
+    {
+        yield 'list' => ['list<int>', 'int'];
+
+        yield 'array with a key type' => ['array<string, bool>', 'bool'];
+    }
+
+    public function testElementTypeOfAGenericWithoutArgumentsIsRejected(): void
+    {
+        $this->expectException(UnsupportedSchemaTypeException::class);
+
+        $this->mapper->resolveElementType(new GenericTypeNode(new IdentifierTypeNode('list'), [], []));
+    }
+
+    public function testElementTypeOfAGenericWithThreeArgumentsIsRejected(): void
+    {
+        $node = $this->resolver->parseNativeType('array<int, string, bool>');
+
+        self::assertInstanceOf(GenericTypeNode::class, $node);
+        $this->expectException(UnsupportedSchemaTypeException::class);
+
+        $this->mapper->resolveElementType($node);
     }
 
     public function testNullableAppendsNullToAnyOf(): void

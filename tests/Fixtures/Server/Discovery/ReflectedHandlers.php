@@ -308,6 +308,152 @@ final class ReflectedHandlers
         return $uri.'#'.$id;
     }
 
+    /**
+     * @param list<BackedStringEnum> $colors
+     */
+    public function listOfEnums(array $colors): string
+    {
+        return implode(',', array_map(static fn(BackedStringEnum $color): string => $color->value, $colors));
+    }
+
+    /**
+     * @param array<string, BackedStringEnum> $colours
+     *
+     * @return array<string, BackedStringEnum>
+     */
+    public function mapOfEnums(array $colours): array
+    {
+        return $colours;
+    }
+
+    /**
+     * @param array{first: BackedStringEnum, ...<string, BackedStringEnum>} $values
+     *
+     * @return array<string, BackedStringEnum>
+     */
+    public function shapeWithDeclaredAndTailEnums(array $values): array
+    {
+        return $values;
+    }
+
+    /**
+     * @param list<list<BackedStringEnum>> $rows
+     *
+     * @return list<list<BackedStringEnum>>
+     */
+    public function nestedEnums(array $rows): array
+    {
+        return $rows;
+    }
+
+    /**
+     * @param list<null|BackedStringEnum> $colors
+     *
+     * @return list<null|BackedStringEnum>
+     */
+    public function listOfOptionalEnums(array $colors): array
+    {
+        return $colors;
+    }
+
+    /**
+     * @param list<?BackedStringEnum> $colors
+     *
+     * @return list<null|BackedStringEnum>
+     */
+    public function listOfNullableEnums(array $colors): array
+    {
+        return $colors;
+    }
+
+    /**
+     * @param list<BackedStringEnum|int> $mixed
+     *
+     * @return list<BackedStringEnum|int>
+     */
+    public function listOfEnumsOrInts(array $mixed): array
+    {
+        return $mixed;
+    }
+
+    /**
+     * @param array{colour: BackedStringEnum, size?: int} $options
+     *
+     * @return array<string, mixed>
+     */
+    public function shapeWithEnum(array $options): array
+    {
+        return $options;
+    }
+
+    /**
+     * @param array{0: BackedIntEnum, 1: string} $pair
+     *
+     * @return array<int, mixed>
+     */
+    public function tupleWithEnum(array $pair): array
+    {
+        return $pair;
+    }
+
+    /**
+     * @param list{BackedIntEnum, string} $pair
+     *
+     * @return array<int, mixed>
+     */
+    public function listTupleWithEnum(array $pair): array
+    {
+        return $pair;
+    }
+
+    /**
+     * @param list{string, ...<BackedStringEnum>} $values
+     *
+     * @return list<BackedStringEnum|string>
+     */
+    public function tupleWithEnumTail(array $values): array
+    {
+        return $values;
+    }
+
+    /**
+     * @param array{name: string, ...<string, BackedStringEnum>} $values
+     *
+     * @return array<string, BackedStringEnum|string>
+     */
+    public function shapeWithEnumTail(array $values): array
+    {
+        return $values;
+    }
+
+    /**
+     * @param array{name: string, ...} $values
+     *
+     * @return array<string, mixed>
+     */
+    public function shapeWithOpenTail(array $values): array
+    {
+        return $values;
+    }
+
+    /**
+     * @param list<BackedStringEnum>|string $colors
+     */
+    public function enumListOrString(array|string $colors): mixed
+    {
+        return $colors;
+    }
+
+    /**
+     * @param list<BackedStringEnum> $colors
+     *
+     * @return null|list<BackedStringEnum>
+     */
+    public function nullableListOfEnums(?array $colors): ?array
+    {
+        return $colors;
+    }
+
     public function templatedResult(string $id): ReadResourceResult
     {
         return new ReadResourceResult(contents: [new TextResourceContents(uri: 'mem://users/'.$id, text: 'profile')], ttlMs: 0, cacheScope: CacheScope::Private);
