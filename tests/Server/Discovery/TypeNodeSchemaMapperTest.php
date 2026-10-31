@@ -285,6 +285,21 @@ final class TypeNodeSchemaMapperTest extends AbstractMcpTestCase
             ['type' => 'string', 'minLength' => 1],
         ];
 
+        yield 'non-falsy-string' => [
+            'non-falsy-string',
+            ['type' => 'string', 'minLength' => 1, 'not' => ['const' => '0']],
+        ];
+
+        yield 'truthy-string' => [
+            'truthy-string',
+            ['type' => 'string', 'minLength' => 1, 'not' => ['const' => '0']],
+        ];
+
+        yield 'numeric-string' => [
+            'numeric-string',
+            ['type' => 'string', 'pattern' => '^[ \t\n\r\v\f]*[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?[ \t\n\r\v\f]*$'],
+        ];
+
         yield 'positive-int' => [
             'positive-int',
             ['type' => 'integer', 'minimum' => 1],

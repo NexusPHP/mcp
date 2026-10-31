@@ -14,7 +14,8 @@ in `0.x`, minor releases may include breaking changes.
   for `offline_access`, for authorization servers that refuse a forced consent screen.
 - `RequestStateSigner` takes a list of keys as a key ring, so its key rotates without failing a state in flight.
 - Input schemas generated from a parameter type cover `true`, `false`, float literals, unions of constrained members
-  such as `string|false` (as `anyOf`), quoted and integer shape keys, and optional tuple items.
+  such as `string|false` (as `anyOf`), `non-falsy-string`, `numeric-string`, quoted and integer shape keys, and
+  optional tuple items.
 - An enum inside a `@param` collection, shape or tuple type (`list<Suit>`, `array{suit: Suit}`) reaches the handler
   as its case. Previously, it arrived as the raw value.
 - A constructor parameter typed as an instantiable class expands into a nested object in a tool's input schema.
