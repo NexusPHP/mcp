@@ -46,7 +46,14 @@ final class StringSchemaTest extends AbstractMcpTestCase
 
     public function testToArrayWithAllFields(): void
     {
-        $schema = new StringSchema(title: 'Email', description: 'Email address', minLength: 3, maxLength: 320, format: 'email', default: 'user@example.com');
+        $schema = new StringSchema(
+            title: 'Email',
+            description: 'Email address',
+            minLength: 3,
+            maxLength: 320,
+            format: 'email',
+            default: 'user@example.com',
+        );
 
         self::assertSame(
             [
@@ -90,7 +97,14 @@ final class StringSchemaTest extends AbstractMcpTestCase
 
     public function testFromArrayFullRoundTrip(): void
     {
-        $original = new StringSchema(title: 'Email', description: 'desc', minLength: 3, maxLength: 320, format: 'uri', default: 'http://example.com');
+        $original = new StringSchema(
+            title: 'Email',
+            description: 'desc',
+            minLength: 3,
+            maxLength: 320,
+            format: 'uri',
+            default: 'http://example.com',
+        );
 
         $rebuilt = StringSchema::fromArray($original->toArray());
 

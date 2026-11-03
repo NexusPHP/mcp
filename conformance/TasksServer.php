@@ -81,7 +81,13 @@ final class TasksServer
             return new CallToolResult(content: [new TextContent(text: sprintf('Left %s in place.', $filename))]);
         }
 
-        return self::ask('confirm_delete', sprintf('Delete %s?', $filename), 'confirm', new BooleanSchema(), $this->mint($context, 'confirm_delete'));
+        return self::ask(
+            'confirm_delete',
+            sprintf('Delete %s?', $filename),
+            'confirm',
+            new BooleanSchema(),
+            $this->mint($context, 'confirm_delete'),
+        );
     }
 
     #[AsTool(name: 'multi_input', description: 'Fans out two input requests at once.')]
@@ -124,6 +130,11 @@ final class TasksServer
             return new CallToolResult(content: [new TextContent(text: 'Hello, stranger!')]);
         }
 
-        return self::ask('task_user_name', 'What is your name?', 'name', state: $this->mint($context, 'task_user_name'));
+        return self::ask(
+            'task_user_name',
+            'What is your name?',
+            'name',
+            state: $this->mint($context, 'task_user_name'),
+        );
     }
 }

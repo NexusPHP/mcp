@@ -151,7 +151,10 @@ final class UiResourceCspTest extends AbstractMcpTestCase
     {
         yield 'non-list' => ['https://api.example.com', '"_meta.ui.csp.connectDomains" must be a list, string given.'];
 
-        yield 'map' => [['a' => 'https://api.example.com'], '"_meta.ui.csp.connectDomains" must be a list, array given.'];
+        yield 'map' => [
+            ['a' => 'https://api.example.com'],
+            '"_meta.ui.csp.connectDomains" must be a list, array given.',
+        ];
 
         yield 'int entry' => [[123], 'each "_meta.ui.csp.connectDomains" must be a non-empty string, int given.'];
     }

@@ -30,7 +30,10 @@ final class InsecureAuthorizationEndpointExceptionTest extends AbstractMcpTestCa
     {
         self::assertSame(
             'The registration endpoint must be served over HTTPS or from a loopback host, "http://auth.example.com/register" given.',
-            (new InsecureAuthorizationEndpointException('registration endpoint', 'http://auth.example.com/register'))->getMessage(),
+            (new InsecureAuthorizationEndpointException(
+                'registration endpoint',
+                'http://auth.example.com/register',
+            ))->getMessage(),
         );
     }
 }

@@ -102,8 +102,12 @@ final class OperationScopesTest extends AbstractMcpTestCase
      * @param array<array-key, mixed> $resources
      */
     #[DataProvider('provideAMalformedDeclarationIsRefusedCases')]
-    public function testAMalformedDeclarationIsRefused(array $tools, array $prompts, array $resources, string $expectedMessage): void
-    {
+    public function testAMalformedDeclarationIsRefused(
+        array $tools,
+        array $prompts,
+        array $resources,
+        string $expectedMessage,
+    ): void {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
@@ -117,47 +121,65 @@ final class OperationScopesTest extends AbstractMcpTestCase
     public static function provideAMalformedDeclarationIsRefusedCases(): iterable
     {
         yield 'a tool keyed by an empty name' => [
-            ['' => ['files:write']], [], [],
+            ['' => ['files:write']],
+            [],
+            [],
             'each operation scope tool key must be an int or non-empty string, \'\' given.',
         ];
 
         yield 'a prompt keyed by an empty name' => [
-            [], ['' => ['files:write']], [],
+            [],
+            ['' => ['files:write']],
+            [],
             'each operation scope prompt key must be an int or non-empty string, \'\' given.',
         ];
 
         yield 'a resource keyed by an empty name' => [
-            [], [], ['' => ['files:write']],
+            [],
+            [],
+            ['' => ['files:write']],
             'each operation scope resource key must be an int or non-empty string, \'\' given.',
         ];
 
         yield 'a tool entry that is not a list' => [
-            ['deploy' => ['a' => 'files:write']], [], [],
+            ['deploy' => ['a' => 'files:write']],
+            [],
+            [],
             'each operation scope tool entry must be a list of scopes, array given.',
         ];
 
         yield 'a prompt entry that is a string' => [
-            [], ['review' => 'files:write'], [],
+            [],
+            ['review' => 'files:write'],
+            [],
             'each operation scope prompt entry must be a list of scopes, string given.',
         ];
 
         yield 'a resource entry that is a string' => [
-            [], [], ['file:///a' => 'files:write'],
+            [],
+            [],
+            ['file:///a' => 'files:write'],
             'each operation scope resource entry must be a list of scopes, string given.',
         ];
 
         yield 'a scope with a space' => [
-            ['deploy' => ['files:read files:write']], [], [],
+            ['deploy' => ['files:read files:write']],
+            [],
+            [],
             'each operation scope must be an RFC 6749 scope-token, \'files:read files:write\' given.',
         ];
 
         yield 'an empty scope' => [
-            ['deploy' => ['']], [], [],
+            ['deploy' => ['']],
+            [],
+            [],
             'each operation scope must be an RFC 6749 scope-token, \'\' given.',
         ];
 
         yield 'a resource template with adjacent expressions' => [
-            [], [], ['file:///{a}{b}' => ['files:read']],
+            [],
+            [],
+            ['file:///{a}{b}' => ['files:read']],
             'Operation scope resource URI template must include literal text between adjacent expressions, got "file:///{a}{b}".',
         ];
     }

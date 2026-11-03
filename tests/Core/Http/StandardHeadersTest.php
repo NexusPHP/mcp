@@ -83,12 +83,20 @@ final class StandardHeadersTest extends AbstractMcpTestCase
         ];
 
         yield 'a stray malformed name on a method that defines none' => [
-            ['mcp-protocol-version' => '2026-07-28', 'mcp-method' => 'tools/list', 'mcp-name' => '=?base64?not-base64!?='],
+            [
+                'mcp-protocol-version' => '2026-07-28',
+                'mcp-method' => 'tools/list',
+                'mcp-name' => '=?base64?not-base64!?=',
+            ],
             self::makeBody('tools/list'),
         ];
 
         yield 'an encoded name matching a non-ASCII body value' => [
-            ['mcp-protocol-version' => '2026-07-28', 'mcp-method' => 'tools/call', 'mcp-name' => HeaderValueCodec::encode('wörld')],
+            [
+                'mcp-protocol-version' => '2026-07-28',
+                'mcp-method' => 'tools/call',
+                'mcp-name' => HeaderValueCodec::encode('wörld'),
+            ],
             self::makeBody('tools/call', ['name' => 'wörld']),
         ];
 

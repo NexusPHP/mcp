@@ -55,18 +55,19 @@ final readonly class InputRequiredResult extends Result implements ServerResult
         $inputRequests = [] === $inputRequests ? null : $inputRequests;
 
         if (null === $inputRequests && null === $requestState) {
-            throw new \InvalidArgumentException('"result" must carry at least one of "inputRequests" or "requestState".');
+            throw new \InvalidArgumentException(
+                '"result" must carry at least one of "inputRequests" or "requestState".',
+            );
         }
 
         if (null !== $inputRequests) {
-            Assert::that($inputRequests)
-                ->keys()
-                ->isIntOrNonEmptyString('each "result.inputRequests" key must be an int or non-empty string.')
-            ;
-            Assert::that($inputRequests)
-                ->values()
-                ->isInstanceOf(InputRequest::class, 'each "result.inputRequests" entry must be an InputRequest, {type} given.')
-            ;
+            Assert::that($inputRequests)->keys()->isIntOrNonEmptyString(
+                'each "result.inputRequests" key must be an int or non-empty string.',
+            );
+            Assert::that($inputRequests)->values()->isInstanceOf(
+                InputRequest::class,
+                'each "result.inputRequests" entry must be an InputRequest, {type} given.',
+            );
         }
 
         $this->inputRequests = $inputRequests;
@@ -85,8 +86,7 @@ final readonly class InputRequiredResult extends Result implements ServerResult
                 ->keys()->isIntOrNonEmptyString('each "result.inputRequests" key must be an int or non-empty string.')
             ;
             Assert::that($data['inputRequests'])
-                ->values()
-                ->isArray('each "result.inputRequests" entry must be an object, {type} given.')
+                ->values()->isArray('each "result.inputRequests" entry must be an object, {type} given.')
                 ->isMap('each "result.inputRequests" entry must be a string-keyed object.')
             ;
             $inputRequests = array_map(InputRequestDispatcher::decode(...), $data['inputRequests']);

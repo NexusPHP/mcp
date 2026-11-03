@@ -63,8 +63,7 @@ final readonly class ListPromptsResult extends PaginatedResult implements Server
         Assert::that($data)->hasOffset('prompts', '"result" is missing the required "prompts" key.');
         Assert::that($data['prompts'])
             ->isList('"result.prompts" must be a list, {type} given.')
-            ->values()
-            ->isArray('each "result.prompt" must be an object, {type} given.')
+            ->values()->isArray('each "result.prompt" must be an object, {type} given.')
             ->isMap('each "result.prompt" must be a string-keyed object.')
         ;
         $prompts = array_map(Prompt::fromArray(...), $data['prompts']);
@@ -74,7 +73,10 @@ final readonly class ListPromptsResult extends PaginatedResult implements Server
         Assert::that($ttlMs)->isInt('"result.ttlMs" must be an integer, {type} given.');
 
         Assert::that($data)->hasOffset('cacheScope', '"result" is missing the required "cacheScope" key.');
-        Assert::that($data['cacheScope'])->isOneOf(array_column(CacheScope::cases(), 'value'), '"result.cacheScope" must be one of {choices}, {value} given.');
+        Assert::that($data['cacheScope'])->isOneOf(
+            array_column(CacheScope::cases(), 'value'),
+            '"result.cacheScope" must be one of {choices}, {value} given.',
+        );
         $cacheScope = CacheScope::from($data['cacheScope']);
 
         $nextCursor = null;

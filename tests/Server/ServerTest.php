@@ -62,9 +62,16 @@ final class ServerTest extends AbstractMcpTestCase
         $subscriptions->closeAll();
         $server->listen(new RecordingTransport());
 
-        $entry = $subscriptions->open(new RequestId(id: 1), new SubscriptionFilter(toolsListChanged: true), new RecordingSender());
+        $entry = $subscriptions->open(
+            new RequestId(id: 1),
+            new SubscriptionFilter(toolsListChanged: true),
+            new RecordingSender(),
+        );
 
-        self::assertFalse($entry->closed->isComplete(), 'A store reused on a new transport must serve live streams again.');
+        self::assertFalse(
+            $entry->closed->isComplete(),
+            'A store reused on a new transport must serve live streams again.',
+        );
     }
 
     public function testRunStartsTheTransport(): void
@@ -502,13 +509,11 @@ final class ServerTest extends AbstractMcpTestCase
         $transport = new RecordingTransport();
         $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
-            ->replaceRequestHandler('server/discover', new ClosureRequestHandler(
-                static function ($request, AbstractContext $context): Result {
-                    delay(1.0, cancellation: $context->cancellation);
+            ->replaceRequestHandler('server/discover', new ClosureRequestHandler(static function ($request, AbstractContext $context): Result {
+                delay(1.0, cancellation: $context->cancellation);
 
-                    return new EmptyResult();
-                },
-            ))
+                return new EmptyResult();
+            }))
             ->build()
         ;
 
@@ -556,17 +561,15 @@ final class ServerTest extends AbstractMcpTestCase
     {
         return (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
-            ->replaceRequestHandler('server/discover', new ClosureRequestHandler(
-                static function ($request, AbstractContext $context) use (&$observed, $seconds): Result {
-                    try {
-                        delay($seconds, cancellation: $context->cancellation);
-                    } finally {
-                        $observed[] = $context->cancellation->isRequested();
-                    }
+            ->replaceRequestHandler('server/discover', new ClosureRequestHandler(static function ($request, AbstractContext $context) use (&$observed, $seconds): Result {
+                try {
+                    delay($seconds, cancellation: $context->cancellation);
+                } finally {
+                    $observed[] = $context->cancellation->isRequested();
+                }
 
-                    return new EmptyResult();
-                },
-            ))
+                return new EmptyResult();
+            }))
             ->build()
         ;
     }

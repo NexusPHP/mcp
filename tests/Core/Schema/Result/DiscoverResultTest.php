@@ -320,17 +320,35 @@ final class DiscoverResultTest extends AbstractMcpTestCase
         ];
 
         yield 'instructions not a string' => [
-            ['supportedVersions' => ['2026-07-28'], 'capabilities' => [], 'ttlMs' => 0, 'cacheScope' => 'private', 'instructions' => 1],
+            [
+                'supportedVersions' => ['2026-07-28'],
+                'capabilities' => [],
+                'ttlMs' => 0,
+                'cacheScope' => 'private',
+                'instructions' => 1,
+            ],
             '"result.instructions" must be a non-empty string, int given.',
         ];
 
         yield 'instructions empty' => [
-            ['supportedVersions' => ['2026-07-28'], 'capabilities' => [], 'ttlMs' => 0, 'cacheScope' => 'private', 'instructions' => ''],
+            [
+                'supportedVersions' => ['2026-07-28'],
+                'capabilities' => [],
+                'ttlMs' => 0,
+                'cacheScope' => 'private',
+                'instructions' => '',
+            ],
             '"result.instructions" must be a non-empty string, string given.',
         ];
 
         yield '_meta not an object' => [
-            ['supportedVersions' => ['2026-07-28'], 'capabilities' => [], 'ttlMs' => 0, 'cacheScope' => 'private', '_meta' => 'oops'],
+            [
+                'supportedVersions' => ['2026-07-28'],
+                'capabilities' => [],
+                'ttlMs' => 0,
+                'cacheScope' => 'private',
+                '_meta' => 'oops',
+            ],
             '"result._meta" must be an object, string given.',
         ];
     }

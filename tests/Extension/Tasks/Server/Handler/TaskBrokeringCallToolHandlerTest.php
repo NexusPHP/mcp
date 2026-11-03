@@ -78,7 +78,9 @@ final class TaskBrokeringCallToolHandlerTest extends AbstractMcpTestCase
 
     public function testARequiredToolRefusesANonDeclaringClient(): void
     {
-        [$broker] = $this->buildBroker(['failing_job' => new ToolTaskPolicy(support: TaskSupport::Required)], new CallToolResult(content: []));
+        [$broker] = $this->buildBroker(['failing_job' => new ToolTaskPolicy(
+            support: TaskSupport::Required,
+        )], new CallToolResult(content: []));
 
         $this->expectException(MissingRequiredClientCapabilityException::class);
         $this->expectExceptionMessageIs('This request requires client capabilities the client did not declare: extensions.io.modelcontextprotocol/tasks.');
@@ -118,7 +120,10 @@ final class TaskBrokeringCallToolHandlerTest extends AbstractMcpTestCase
             new CallToolResult(content: [new TextContent(text: 'done')]),
         );
 
-        $result = $broker->handle($this->buildRequest('slow_compute'), $this->buildContext(declared: true, subject: 'alice'));
+        $result = $broker->handle(
+            $this->buildRequest('slow_compute'),
+            $this->buildContext(declared: true, subject: 'alice'),
+        );
 
         self::assertInstanceOf(CreateTaskResult::class, $result);
         self::assertSame('["alice",null]', $store->findTask($result->taskId)?->owner);
@@ -155,7 +160,10 @@ final class TaskBrokeringCallToolHandlerTest extends AbstractMcpTestCase
             identifier: self::IDENTIFIER,
             store: $store,
             runner: $runner,
-            toolPolicies: ['confirm_delete' => new ToolTaskPolicy(support: TaskSupport::Optional, resolvesInputFirst: true)],
+            toolPolicies: ['confirm_delete' => new ToolTaskPolicy(
+                support: TaskSupport::Optional,
+                resolvesInputFirst: true,
+            )],
             defaultTtlMs: 300_000,
             defaultPollIntervalMs: 1_000,
         );
@@ -164,7 +172,12 @@ final class TaskBrokeringCallToolHandlerTest extends AbstractMcpTestCase
 
         $broker->handle(
             $request,
-            $this->buildContext(declared: true, requestState: $signer->sign('round-2'), signer: $signer, payload: 'round-2'),
+            $this->buildContext(
+                declared: true,
+                requestState: $signer->sign('round-2'),
+                signer: $signer,
+                payload: 'round-2',
+            ),
         );
         delay(0);
 
@@ -282,11 +295,9 @@ final class TaskBrokeringCallToolHandlerTest extends AbstractMcpTestCase
         return new ServerContext(
             new RequestId(id: 7),
             new NullCancellation(),
-            RequestMetaObjectFactory::create(
-                clientCapabilities: $declared
-                    ? new ClientCapabilities(extensions: [self::IDENTIFIER => []])
-                    : new ClientCapabilities(),
-            ),
+            RequestMetaObjectFactory::create(clientCapabilities: $declared
+                ? new ClientCapabilities(extensions: [self::IDENTIFIER => []])
+                : new ClientCapabilities()),
             new RecordingSender(),
             new ReceiveContext(authInfo: null === $subject ? null : new VerifiedAccessToken(
                 ['https://mcp.test/mcp'],

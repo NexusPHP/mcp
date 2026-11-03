@@ -87,20 +87,40 @@ final class Rfc3986UriValidatorTest extends AbstractMcpTestCase
 
         yield 'no scheme' => ['my-resource', 'resource "uri"', '/\Aresource "uri" must be a valid RFC 3986/'];
 
-        yield 'scheme starts with digit' => ['1http://example.com', 'resource "uri"', '/\Aresource "uri" must be a valid RFC 3986/'];
+        yield 'scheme starts with digit' => [
+            '1http://example.com',
+            'resource "uri"',
+            '/\Aresource "uri" must be a valid RFC 3986/',
+        ];
 
-        yield 'embedded space' => ['file:///path with space', 'resource "uri"', '/\Aresource "uri" must contain only ASCII printable/'];
+        yield 'embedded space' => [
+            'file:///path with space',
+            'resource "uri"',
+            '/\Aresource "uri" must contain only ASCII printable/',
+        ];
 
-        yield 'tab character' => ["file:///x\ty", 'resource "uri"', '/\Aresource "uri" must contain only ASCII printable/'];
+        yield 'tab character' => [
+            "file:///x\ty",
+            'resource "uri"',
+            '/\Aresource "uri" must contain only ASCII printable/',
+        ];
 
         yield 'newline' => ["file:///x\n", 'resource "uri"', '/\Aresource "uri" must contain only ASCII printable/'];
 
         yield 'null byte' => ["file:///x\0", 'resource "uri"', '/\Aresource "uri" must contain only ASCII printable/'];
 
-        yield 'non-ASCII path' => ['file:///résumé', 'resource "uri"', '/\Aresource "uri" must contain only ASCII printable/'];
+        yield 'non-ASCII path' => [
+            'file:///résumé',
+            'resource "uri"',
+            '/\Aresource "uri" must contain only ASCII printable/',
+        ];
 
         yield 'just a colon' => [':rest', 'resource "uri"', '/\Aresource "uri" must be a valid RFC 3986/'];
 
-        yield 'context prefix interpolated' => ['not-a-uri', 'resource contents "uri"', '/\Aresource contents "uri" must be a valid RFC 3986/'];
+        yield 'context prefix interpolated' => [
+            'not-a-uri',
+            'resource contents "uri"',
+            '/\Aresource contents "uri" must be a valid RFC 3986/',
+        ];
     }
 }

@@ -68,7 +68,8 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
- * Pins the exact JSON-RPC envelope shape written by every concrete request, notification, result response, and error response, two fixtures per class: `all-props.json` and `none.json`.
+ * Pins the exact JSON-RPC envelope shape written by every concrete request, notification, result response, and error
+ * response, two fixtures per class: `all-props.json` and `none.json`.
  *
  * @internal
  */
@@ -98,10 +99,14 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
             }
         }
 
-        self::assertSame([], $missing, \sprintf(
-            'Concrete Result subclasses without a result-response fixture set: %s. Add fixtures under envelope-shapes/{ResultShortName}/ and register in self::registry().',
-            implode(', ', $missing),
-        ));
+        self::assertSame(
+            [],
+            $missing,
+            \sprintf(
+                'Concrete Result subclasses without a result-response fixture set: %s. Add fixtures under envelope-shapes/{ResultShortName}/ and register in self::registry().',
+                implode(', ', $missing),
+            ),
+        );
     }
 
     /**
@@ -176,10 +181,14 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
             }
         }
 
-        self::assertSame([], $missing, \sprintf(
-            'Concrete Error subclasses without a JsonRpcErrorResponse fixture set: %s. Add fixtures under envelope-shapes/JsonRpcErrorResponse-{ShortName}/ and register in self::registry().',
-            implode(', ', $missing),
-        ));
+        self::assertSame(
+            [],
+            $missing,
+            \sprintf(
+                'Concrete Error subclasses without a JsonRpcErrorResponse fixture set: %s. Add fixtures under envelope-shapes/JsonRpcErrorResponse-{ShortName}/ and register in self::registry().',
+                implode(', ', $missing),
+            ),
+        );
     }
 
     #[\Override]
@@ -189,7 +198,8 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
     }
 
     /**
-     * Envelope fixture registry binding a fixture directory to its wrapper class, inner payload class, and optional `encodingPathsDiverge` flag.
+     * Envelope fixture registry binding a fixture directory to its wrapper class, inner payload class, and optional
+     * `encodingPathsDiverge` flag.
      *
      * @return iterable<string, array{wrapper: class-string, inner: null|class-string<Result>, encodingPathsDiverge?: bool}>
      */
@@ -198,13 +208,29 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
     {
         yield 'DiscoverRequest' => ['wrapper' => DiscoverRequest::class, 'inner' => null];
 
-        yield 'ReadResourceRequest' => ['wrapper' => ReadResourceRequest::class, 'inner' => null, 'encodingPathsDiverge' => true];
+        yield 'ReadResourceRequest' => [
+            'wrapper' => ReadResourceRequest::class,
+            'inner' => null,
+            'encodingPathsDiverge' => true,
+        ];
 
-        yield 'CompleteRequest' => ['wrapper' => CompleteRequest::class, 'inner' => null, 'encodingPathsDiverge' => true];
+        yield 'CompleteRequest' => [
+            'wrapper' => CompleteRequest::class,
+            'inner' => null,
+            'encodingPathsDiverge' => true,
+        ];
 
-        yield 'GetPromptRequest' => ['wrapper' => GetPromptRequest::class, 'inner' => null, 'encodingPathsDiverge' => true];
+        yield 'GetPromptRequest' => [
+            'wrapper' => GetPromptRequest::class,
+            'inner' => null,
+            'encodingPathsDiverge' => true,
+        ];
 
-        yield 'CallToolRequest' => ['wrapper' => CallToolRequest::class, 'inner' => null, 'encodingPathsDiverge' => true];
+        yield 'CallToolRequest' => [
+            'wrapper' => CallToolRequest::class,
+            'inner' => null,
+            'encodingPathsDiverge' => true,
+        ];
 
         yield 'ListPromptsRequest' => ['wrapper' => ListPromptsRequest::class, 'inner' => null];
 
@@ -214,11 +240,19 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
         yield 'ListToolsRequest' => ['wrapper' => ListToolsRequest::class, 'inner' => null];
 
-        yield 'SubscriptionsListenRequest' => ['wrapper' => SubscriptionsListenRequest::class, 'inner' => null, 'encodingPathsDiverge' => true];
+        yield 'SubscriptionsListenRequest' => [
+            'wrapper' => SubscriptionsListenRequest::class,
+            'inner' => null,
+            'encodingPathsDiverge' => true,
+        ];
 
         yield 'GetTaskRequest' => ['wrapper' => GetTaskRequest::class, 'inner' => null];
 
-        yield 'UpdateTaskRequest' => ['wrapper' => UpdateTaskRequest::class, 'inner' => null, 'encodingPathsDiverge' => true];
+        yield 'UpdateTaskRequest' => [
+            'wrapper' => UpdateTaskRequest::class,
+            'inner' => null,
+            'encodingPathsDiverge' => true,
+        ];
 
         yield 'CancelTaskRequest' => ['wrapper' => CancelTaskRequest::class, 'inner' => null];
 
@@ -234,47 +268,122 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
         yield 'PromptListChangedNotification' => ['wrapper' => PromptListChangedNotification::class, 'inner' => null];
 
-        yield 'ResourceListChangedNotification' => ['wrapper' => ResourceListChangedNotification::class, 'inner' => null];
+        yield 'ResourceListChangedNotification' => [
+            'wrapper' => ResourceListChangedNotification::class,
+            'inner' => null,
+        ];
 
         yield 'ResourceUpdatedNotification' => ['wrapper' => ResourceUpdatedNotification::class, 'inner' => null];
 
         yield 'ToolListChangedNotification' => ['wrapper' => ToolListChangedNotification::class, 'inner' => null];
 
-        yield 'SubscriptionsAcknowledgedNotification' => ['wrapper' => SubscriptionsAcknowledgedNotification::class, 'inner' => null, 'encodingPathsDiverge' => true];
+        yield 'SubscriptionsAcknowledgedNotification' => [
+            'wrapper' => SubscriptionsAcknowledgedNotification::class,
+            'inner' => null,
+            'encodingPathsDiverge' => true,
+        ];
 
-        yield 'CallToolResult' => ['wrapper' => CallToolResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
+        yield 'CallToolResult' => [
+            'wrapper' => CallToolResultResponse::class,
+            'encodingPathsDiverge' => true,
+            'inner' => null,
+        ];
 
-        yield 'CompleteResult' => ['wrapper' => CompleteResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
+        yield 'CompleteResult' => [
+            'wrapper' => CompleteResultResponse::class,
+            'encodingPathsDiverge' => true,
+            'inner' => null,
+        ];
 
-        yield 'DiscoverResult' => ['wrapper' => DiscoverResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
+        yield 'DiscoverResult' => [
+            'wrapper' => DiscoverResultResponse::class,
+            'encodingPathsDiverge' => true,
+            'inner' => null,
+        ];
 
-        yield 'EmptyResult' => ['wrapper' => GenericResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => EmptyResult::class];
+        yield 'EmptyResult' => [
+            'wrapper' => GenericResultResponse::class,
+            'encodingPathsDiverge' => true,
+            'inner' => EmptyResult::class,
+        ];
 
-        yield 'GetPromptResult' => ['wrapper' => GetPromptResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
+        yield 'GetPromptResult' => [
+            'wrapper' => GetPromptResultResponse::class,
+            'encodingPathsDiverge' => true,
+            'inner' => null,
+        ];
 
-        yield 'InputRequiredResult' => ['wrapper' => CallToolResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
+        yield 'InputRequiredResult' => [
+            'wrapper' => CallToolResultResponse::class,
+            'encodingPathsDiverge' => true,
+            'inner' => null,
+        ];
 
-        yield 'ListPromptsResult' => ['wrapper' => ListPromptsResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
+        yield 'ListPromptsResult' => [
+            'wrapper' => ListPromptsResultResponse::class,
+            'encodingPathsDiverge' => true,
+            'inner' => null,
+        ];
 
-        yield 'ListResourcesResult' => ['wrapper' => ListResourcesResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
+        yield 'ListResourcesResult' => [
+            'wrapper' => ListResourcesResultResponse::class,
+            'encodingPathsDiverge' => true,
+            'inner' => null,
+        ];
 
-        yield 'ListResourceTemplatesResult' => ['wrapper' => ListResourceTemplatesResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
+        yield 'ListResourceTemplatesResult' => [
+            'wrapper' => ListResourceTemplatesResultResponse::class,
+            'encodingPathsDiverge' => true,
+            'inner' => null,
+        ];
 
-        yield 'ListToolsResult' => ['wrapper' => ListToolsResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
+        yield 'ListToolsResult' => [
+            'wrapper' => ListToolsResultResponse::class,
+            'encodingPathsDiverge' => true,
+            'inner' => null,
+        ];
 
-        yield 'ReadResourceResult' => ['wrapper' => ReadResourceResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
+        yield 'ReadResourceResult' => [
+            'wrapper' => ReadResourceResultResponse::class,
+            'encodingPathsDiverge' => true,
+            'inner' => null,
+        ];
 
-        yield 'SubscriptionsListenResult' => ['wrapper' => SubscriptionsListenResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
+        yield 'SubscriptionsListenResult' => [
+            'wrapper' => SubscriptionsListenResultResponse::class,
+            'encodingPathsDiverge' => true,
+            'inner' => null,
+        ];
 
-        yield 'CreateTaskResult' => ['wrapper' => GenericResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => CreateTaskResult::class];
+        yield 'CreateTaskResult' => [
+            'wrapper' => GenericResultResponse::class,
+            'encodingPathsDiverge' => true,
+            'inner' => CreateTaskResult::class,
+        ];
 
-        yield 'GetTaskResult' => ['wrapper' => GenericResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => GetTaskResult::class];
+        yield 'GetTaskResult' => [
+            'wrapper' => GenericResultResponse::class,
+            'encodingPathsDiverge' => true,
+            'inner' => GetTaskResult::class,
+        ];
 
-        yield 'ListSkillsResult' => ['wrapper' => ListSkillsResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
+        yield 'ListSkillsResult' => [
+            'wrapper' => ListSkillsResultResponse::class,
+            'encodingPathsDiverge' => true,
+            'inner' => null,
+        ];
 
-        yield 'GetSkillResult' => ['wrapper' => GetSkillResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
+        yield 'GetSkillResult' => [
+            'wrapper' => GetSkillResultResponse::class,
+            'encodingPathsDiverge' => true,
+            'inner' => null,
+        ];
 
-        yield 'ReadResourceDirectoryResult' => ['wrapper' => ReadResourceDirectoryResultResponse::class, 'encodingPathsDiverge' => true, 'inner' => null];
+        yield 'ReadResourceDirectoryResult' => [
+            'wrapper' => ReadResourceDirectoryResultResponse::class,
+            'encodingPathsDiverge' => true,
+            'inner' => null,
+        ];
 
         yield 'JsonRpcErrorResponse-HeaderMismatchError' => ['wrapper' => JsonRpcErrorResponse::class, 'inner' => null];
 
@@ -286,13 +395,23 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
 
         yield 'JsonRpcErrorResponse-MethodNotFoundError' => ['wrapper' => JsonRpcErrorResponse::class, 'inner' => null];
 
-        yield 'JsonRpcErrorResponse-MissingRequiredClientCapabilityError' => ['wrapper' => JsonRpcErrorResponse::class, 'inner' => null, 'encodingPathsDiverge' => true];
+        yield 'JsonRpcErrorResponse-MissingRequiredClientCapabilityError' => [
+            'wrapper' => JsonRpcErrorResponse::class,
+            'inner' => null,
+            'encodingPathsDiverge' => true,
+        ];
 
         yield 'JsonRpcErrorResponse-ParseError' => ['wrapper' => JsonRpcErrorResponse::class, 'inner' => null];
 
-        yield 'JsonRpcErrorResponse-UnknownProtocolError' => ['wrapper' => JsonRpcErrorResponse::class, 'inner' => null];
+        yield 'JsonRpcErrorResponse-UnknownProtocolError' => [
+            'wrapper' => JsonRpcErrorResponse::class,
+            'inner' => null,
+        ];
 
-        yield 'JsonRpcErrorResponse-UnsupportedProtocolVersionError' => ['wrapper' => JsonRpcErrorResponse::class, 'inner' => null];
+        yield 'JsonRpcErrorResponse-UnsupportedProtocolVersionError' => [
+            'wrapper' => JsonRpcErrorResponse::class,
+            'inner' => null,
+        ];
     }
 
     /**
@@ -341,7 +460,10 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
         $registered = [];
 
         foreach (self::registry() as $dir => $entry) {
-            if (is_subclass_of($entry['wrapper'], JsonRpcResultResponse::class) || JsonRpcErrorResponse::class === $entry['wrapper']) {
+            if (
+                is_subclass_of($entry['wrapper'], JsonRpcResultResponse::class)
+                || JsonRpcErrorResponse::class === $entry['wrapper']
+            ) {
                 continue;
             }
 
@@ -358,10 +480,14 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
             }
         }
 
-        self::assertSame([], $missing, \sprintf(
-            'Concrete %s without envelope fixtures: %s. Add fixtures under envelope-shapes/{ShortName}/ and register in self::registry().',
-            $label,
-            implode(', ', $missing),
-        ));
+        self::assertSame(
+            [],
+            $missing,
+            \sprintf(
+                'Concrete %s without envelope fixtures: %s. Add fixtures under envelope-shapes/{ShortName}/ and register in self::registry().',
+                $label,
+                implode(', ', $missing),
+            ),
+        );
     }
 }

@@ -41,7 +41,10 @@ final class GetPromptRequestTest extends AbstractMcpTestCase
 
     public function testToArray(): void
     {
-        $request = new GetPromptRequest(id: new RequestId(id: 1), params: new GetPromptRequestParams(name: 'code-review', meta: RequestMetaObjectFactory::create()));
+        $request = new GetPromptRequest(
+            id: new RequestId(id: 1),
+            params: new GetPromptRequestParams(name: 'code-review', meta: RequestMetaObjectFactory::create()),
+        );
 
         self::assertSame(
             [
@@ -58,7 +61,11 @@ final class GetPromptRequestTest extends AbstractMcpTestCase
     {
         $original = new GetPromptRequest(
             id: new RequestId(id: 'req-1'),
-            params: new GetPromptRequestParams(name: 'code-review', meta: RequestMetaObjectFactory::create(), arguments: ['topic' => 'auth']),
+            params: new GetPromptRequestParams(
+                name: 'code-review',
+                meta: RequestMetaObjectFactory::create(),
+                arguments: ['topic' => 'auth'],
+            ),
         );
 
         $rebuilt = GetPromptRequest::fromArray($original->toArray());

@@ -56,7 +56,14 @@ final class GetTaskRequestHandlerTest extends AbstractMcpTestCase
     public function testAnotherCallersTaskIsInvalidParams(): void
     {
         $store = new InMemoryTaskStore();
-        $taskId = TaskOwnership::createTask($store, $this->buildContext('alice'), 'slow_compute', null, null, 1_000)->taskId;
+        $taskId = TaskOwnership::createTask(
+            $store,
+            $this->buildContext('alice'),
+            'slow_compute',
+            null,
+            null,
+            1_000,
+        )->taskId;
         $handler = new GetTaskRequestHandler($store);
 
         $this->expectException(InvalidParamsException::class);
@@ -68,7 +75,14 @@ final class GetTaskRequestHandlerTest extends AbstractMcpTestCase
     public function testACallerWithoutTheToolsScopeCannotReadTheTask(): void
     {
         $store = new InMemoryTaskStore();
-        $taskId = TaskOwnership::createTask($store, $this->buildContext('alice', ['delete:admin']), 'delete', null, null, 1_000)->taskId;
+        $taskId = TaskOwnership::createTask(
+            $store,
+            $this->buildContext('alice', ['delete:admin']),
+            'delete',
+            null,
+            null,
+            1_000,
+        )->taskId;
         $handler = new GetTaskRequestHandler($store, new OperationScopes(tools: ['delete' => ['delete:admin']]));
 
         $this->expectException(InvalidParamsException::class);

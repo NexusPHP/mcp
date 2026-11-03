@@ -70,7 +70,10 @@ final readonly class CreateTaskResult extends Result implements ServerResult, Ta
         Assert::that($taskId)->isNonEmptyString('"result.taskId" must be a non-empty string, {type} given.');
 
         Assert::that($data)->hasOffset('status', '"result" is missing the required "status" key.');
-        Assert::that($data['status'])->isOneOf(array_column(TaskStatus::cases(), 'value'), '"result.status" must be one of {choices}, {value} given.');
+        Assert::that($data['status'])->isOneOf(
+            array_column(TaskStatus::cases(), 'value'),
+            '"result.status" must be one of {choices}, {value} given.',
+        );
         $status = TaskStatus::from($data['status']);
 
         Assert::that($data)->hasOffset('createdAt', '"result" is missing the required "createdAt" key.');
@@ -79,24 +82,32 @@ final readonly class CreateTaskResult extends Result implements ServerResult, Ta
 
         Assert::that($data)->hasOffset('lastUpdatedAt', '"result" is missing the required "lastUpdatedAt" key.');
         $lastUpdatedAt = $data['lastUpdatedAt'];
-        Assert::that($lastUpdatedAt)->isNonEmptyString('"result.lastUpdatedAt" must be a non-empty string, {type} given.');
+        Assert::that($lastUpdatedAt)->isNonEmptyString(
+            '"result.lastUpdatedAt" must be a non-empty string, {type} given.',
+        );
 
         Assert::that($data)->hasOffset('ttlMs', '"result" is missing the required "ttlMs" key.');
         $ttlMs = $data['ttlMs'];
-        Assert::that($ttlMs)->nullOr()->isPositiveInt('"result.ttlMs" must be null or a positive integer, {value} given.');
+        Assert::that($ttlMs)->nullOr()->isPositiveInt(
+            '"result.ttlMs" must be null or a positive integer, {value} given.',
+        );
 
         $statusMessage = null;
 
         if (\array_key_exists('statusMessage', $data)) {
             $statusMessage = $data['statusMessage'];
-            Assert::that($statusMessage)->isNonEmptyString('"result.statusMessage" must be a non-empty string, {type} given.');
+            Assert::that($statusMessage)->isNonEmptyString(
+                '"result.statusMessage" must be a non-empty string, {type} given.',
+            );
         }
 
         $pollIntervalMs = null;
 
         if (\array_key_exists('pollIntervalMs', $data)) {
             $pollIntervalMs = $data['pollIntervalMs'];
-            Assert::that($pollIntervalMs)->isPositiveInt('"result.pollIntervalMs" must be a positive integer, {value} given.');
+            Assert::that($pollIntervalMs)->isPositiveInt(
+                '"result.pollIntervalMs" must be a positive integer, {value} given.',
+            );
         }
 
         $meta = new GenericResultMetaObject();

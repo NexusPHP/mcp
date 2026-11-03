@@ -60,9 +60,9 @@ final class ErrorFactory
      */
     private static function requireData(mixed $data, ProtocolErrorCode $code, string $keys): mixed
     {
-        Assert::that($data)
-            ->not()->isNull(\sprintf('error "data" is required for code %d and must carry %s.', $code->value, $keys))
-        ;
+        Assert::that($data)->not()->isNull(
+            \sprintf('error "data" is required for code %d and must carry %s.', $code->value, $keys),
+        );
 
         return $data;
     }

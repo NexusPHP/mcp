@@ -204,7 +204,10 @@ final class ClientTest extends AbstractMcpTestCase
     public function testSendRequestBeforeConnectThrowsLogicException(): void
     {
         $client = (new ClientBuilder())->setClientInfo('demo', '1.0.0')->build();
-        $request = new ListToolsRequest(id: new RequestId(id: 1), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()));
+        $request = new ListToolsRequest(
+            id: new RequestId(id: 1),
+            params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()),
+        );
 
         $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs('Client is not connected. Call connect() first.');
@@ -218,7 +221,10 @@ final class ClientTest extends AbstractMcpTestCase
         $transport = new RecordingTransport();
         $client->connect($transport);
 
-        $request = new ListToolsRequest(id: new RequestId(id: 1), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()));
+        $request = new ListToolsRequest(
+            id: new RequestId(id: 1),
+            params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()),
+        );
 
         $deferredCall = async(static fn() => $client->sendRequest($request, ListToolsResultResponse::class));
 
@@ -227,7 +233,11 @@ final class ClientTest extends AbstractMcpTestCase
         self::assertCount(1, $transport->sent);
         self::assertSame($request, $transport->sent[0]['message']);
 
-        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => 1, 'result' => ['tools' => [], 'ttlMs' => 0, 'cacheScope' => 'private']]);
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'result' => ['tools' => [], 'ttlMs' => 0, 'cacheScope' => 'private'],
+        ]);
 
         $response = $deferredCall->await();
 
@@ -242,7 +252,10 @@ final class ClientTest extends AbstractMcpTestCase
         $transport = new RecordingTransport();
         $client->connect($transport);
 
-        $request = new ListToolsRequest(id: new RequestId(id: 1), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()));
+        $request = new ListToolsRequest(
+            id: new RequestId(id: 1),
+            params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()),
+        );
         $call = async(static fn() => $client->sendRequest($request, ListToolsResultResponse::class));
         $transport->nextSend()->await();
 
@@ -263,7 +276,10 @@ final class ClientTest extends AbstractMcpTestCase
         $transport->sendError = new TransportAlreadyClosedException(operation: 'send-request');
         $client->connect($transport);
 
-        $request = new ListToolsRequest(id: new RequestId(id: 1), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()));
+        $request = new ListToolsRequest(
+            id: new RequestId(id: 1),
+            params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()),
+        );
 
         try {
             $client->sendRequest($request, ListToolsResultResponse::class);
@@ -343,7 +359,11 @@ final class ClientTest extends AbstractMcpTestCase
             self::assertSame($error, $e);
         }
 
-        self::assertCount(1, $logger->recordsMatching(LogLevel::ERROR, 'Transport error.'), 'The fault is still logged.');
+        self::assertCount(
+            1,
+            $logger->recordsMatching(LogLevel::ERROR, 'Transport error.'),
+            'The fault is still logged.',
+        );
     }
 
     public function testAFailedExchangeLeavesOtherRequestsPending(): void
@@ -355,7 +375,10 @@ final class ClientTest extends AbstractMcpTestCase
         $deferred = async(static fn(): DiscoverResult => $client->discover());
         $transport->nextSend()->await();
 
-        $transport->emitError(new OutboundRequestFailedException(new RequestId(id: 99), new \RuntimeException('connection refused')));
+        $transport->emitError(new OutboundRequestFailedException(
+            new RequestId(id: 99),
+            new \RuntimeException('connection refused'),
+        ));
 
         self::assertCount(1, $transport->sent);
         $sentRequest = $transport->sent[0]['message'];
@@ -389,7 +412,10 @@ final class ClientTest extends AbstractMcpTestCase
     public function testATimedOutRequestReleasesItsCorrelationSlot(): void
     {
         $logger = new ArrayLogger();
-        $client = (new ClientBuilder())->setLogger($logger)->setClientInfo('demo', '1.0.0')->setRequestTimeout(0.05)->build();
+        $client = (new ClientBuilder())->setLogger($logger)->setClientInfo(
+            'demo',
+            '1.0.0',
+        )->setRequestTimeout(0.05)->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
 
@@ -431,7 +457,10 @@ final class ClientTest extends AbstractMcpTestCase
     public function testATimeoutIsReportedEvenWhenTheCancellationCannotBeSent(): void
     {
         $logger = new ArrayLogger();
-        $client = (new ClientBuilder())->setLogger($logger)->setClientInfo('demo', '1.0.0')->setRequestTimeout(0.05)->build();
+        $client = (new ClientBuilder())->setLogger($logger)->setClientInfo(
+            'demo',
+            '1.0.0',
+        )->setRequestTimeout(0.05)->build();
         $transport = new RecordingTransport();
         $client->connect($transport);
 
@@ -450,7 +479,10 @@ final class ClientTest extends AbstractMcpTestCase
             self::assertSame(1, $e->requestId->id);
         }
 
-        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Could not tell the server that request {id} was abandoned.');
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Could not tell the server that request {id} was abandoned.',
+        );
         self::assertCount(1, $matches);
         self::assertSame(1, $matches[0]['context']['id'] ?? null);
     }
@@ -477,13 +509,20 @@ final class ClientTest extends AbstractMcpTestCase
         $transport = new RecordingTransport();
         $client->connect($transport);
 
-        $request = new ListToolsRequest(id: new RequestId(id: 1), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()));
+        $request = new ListToolsRequest(
+            id: new RequestId(id: 1),
+            params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()),
+        );
 
         $this->expectException(RequestTimeoutException::class);
         $this->expectExceptionMessageIs('Request 1 went unanswered for 0.05 seconds.');
 
         $this->awaitPastDeadline(
-            static fn(): JsonRpcResultResponse => $client->sendRequest($request, ListToolsResultResponse::class, timeout: 0.05),
+            static fn(): JsonRpcResultResponse => $client->sendRequest(
+                $request,
+                ListToolsResultResponse::class,
+                timeout: 0.05,
+            ),
             0.05,
         );
     }
@@ -499,13 +538,20 @@ final class ClientTest extends AbstractMcpTestCase
         $transport = new RecordingTransport();
         $client->connect($transport);
 
-        $request = new ListToolsRequest(id: new RequestId(id: 1), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()));
+        $request = new ListToolsRequest(
+            id: new RequestId(id: 1),
+            params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()),
+        );
 
         $this->expectException(RequestTimeoutException::class);
         $this->expectExceptionMessageIs('Request 1 went unanswered for 0.2 seconds.');
 
         $this->awaitPastDeadline(
-            static fn(): JsonRpcResultResponse => $client->sendRequest($request, ListToolsResultResponse::class, timeout: 0.2),
+            static fn(): JsonRpcResultResponse => $client->sendRequest(
+                $request,
+                ListToolsResultResponse::class,
+                timeout: 0.2,
+            ),
             0.2,
         );
     }
@@ -536,7 +582,11 @@ final class ClientTest extends AbstractMcpTestCase
             $fault = $e;
         }
 
-        self::assertInstanceOf(\InvalidArgumentException::class, $fault, 'The params constructor rejects an empty tool name.');
+        self::assertInstanceOf(
+            \InvalidArgumentException::class,
+            $fault,
+            'The params constructor rejects an empty tool name.',
+        );
 
         self::assertSame([], array_values(array_diff(EventLoop::getIdentifiers(), $quiescent)));
     }
@@ -548,7 +598,11 @@ final class ClientTest extends AbstractMcpTestCase
         $client->connect($transport);
         $this->discover($client, $transport);
 
-        $deferred = async(static fn(): CallToolResult|InputRequiredResult => $client->callTool('slow', null, static function (): void {}));
+        $deferred = async(static fn(): CallToolResult|InputRequiredResult => $client->callTool(
+            'slow',
+            null,
+            static function (): void {},
+        ));
         $transport->nextSend()->await();
 
         self::assertCount(2, $transport->sent);
@@ -584,7 +638,11 @@ final class ClientTest extends AbstractMcpTestCase
         $client->connect($transport);
         $this->discover($client, $transport);
 
-        $deferred = async(static fn(): CallToolResult|InputRequiredResult => $client->callTool('endless', null, static function (): void {}));
+        $deferred = async(static fn(): CallToolResult|InputRequiredResult => $client->callTool(
+            'endless',
+            null,
+            static function (): void {},
+        ));
         $transport->nextSend()->await();
 
         self::assertCount(2, $transport->sent);
@@ -746,7 +804,10 @@ final class ClientTest extends AbstractMcpTestCase
         $first = $transport->sent[0]['message'];
         self::assertInstanceOf(DiscoverRequest::class, $first);
 
-        $transport->emitMessage($this->buildUnsupportedVersionResponse($first->id->id, [ProtocolVersion::LATEST_VERSION]));
+        $transport->emitMessage($this->buildUnsupportedVersionResponse(
+            $first->id->id,
+            [ProtocolVersion::LATEST_VERSION],
+        ));
         $transport->nextSend()->await();
 
         self::assertCount(2, $transport->sent);
@@ -842,13 +903,19 @@ final class ClientTest extends AbstractMcpTestCase
         $first = $transport->sent[0]['message'];
         self::assertInstanceOf(DiscoverRequest::class, $first);
 
-        $transport->emitMessage($this->buildUnsupportedVersionResponse($first->id->id, [ProtocolVersion::LATEST_VERSION]));
+        $transport->emitMessage($this->buildUnsupportedVersionResponse(
+            $first->id->id,
+            [ProtocolVersion::LATEST_VERSION],
+        ));
         $transport->nextSend()->await();
         self::assertCount(2, $transport->sent);
         $retry = $transport->sent[1]['message'];
         self::assertInstanceOf(DiscoverRequest::class, $retry);
 
-        $transport->emitMessage($this->buildUnsupportedVersionResponse($retry->id->id, [ProtocolVersion::LATEST_VERSION]));
+        $transport->emitMessage($this->buildUnsupportedVersionResponse(
+            $retry->id->id,
+            [ProtocolVersion::LATEST_VERSION],
+        ));
 
         try {
             $deferred->await();
@@ -1549,7 +1616,10 @@ final class ClientTest extends AbstractMcpTestCase
         self::assertCount(1, $result->tools);
         self::assertSame('good', $result->tools[0]->name);
 
-        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Excluding tool {tool} from the listing: its "x-mcp-header" declarations are invalid.');
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Excluding tool {tool} from the listing: its "x-mcp-header" declarations are invalid.',
+        );
         self::assertCount(1, $matches);
         self::assertSame('bad', $matches[0]['context']['tool'] ?? null);
         self::assertIsString($matches[0]['context']['reason'] ?? null);
@@ -1571,7 +1641,10 @@ final class ClientTest extends AbstractMcpTestCase
             ],
         ]);
 
-        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Excluding tool {tool} from the listing: its "x-mcp-header" declarations are invalid.');
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Excluding tool {tool} from the listing: its "x-mcp-header" declarations are invalid.',
+        );
         self::assertCount(1, $matches);
         self::assertSame(str_repeat('t', 77).'...', $matches[0]['context']['tool'] ?? null);
 
@@ -1602,7 +1675,10 @@ final class ClientTest extends AbstractMcpTestCase
             ],
         ]);
 
-        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Excluding tool {tool} from the listing: its "x-mcp-header" declarations are invalid.');
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Excluding tool {tool} from the listing: its "x-mcp-header" declarations are invalid.',
+        );
         self::assertCount(1, $matches);
 
         $reason = \sprintf(
@@ -1622,7 +1698,13 @@ final class ClientTest extends AbstractMcpTestCase
         $result = $this->listToolsWithDeclarations($client, $transport);
 
         self::assertCount(2, $result->tools);
-        self::assertSame([], $logger->recordsMatching(LogLevel::WARNING, 'Excluding tool {tool} from the listing: its "x-mcp-header" declarations are invalid.'));
+        self::assertSame(
+            [],
+            $logger->recordsMatching(
+                LogLevel::WARNING,
+                'Excluding tool {tool} from the listing: its "x-mcp-header" declarations are invalid.',
+            ),
+        );
     }
 
     public function testCallToolMirrorsAnnotatedArgumentsIntoHeaders(): void
@@ -1757,7 +1839,11 @@ final class ClientTest extends AbstractMcpTestCase
             self::assertSame('Boom', $e->getMessage());
         }
 
-        self::assertSame(1, $this->countRequests($transport, CallToolRequest::class), 'Only a header mismatch triggers a retry.');
+        self::assertSame(
+            1,
+            $this->countRequests($transport, CallToolRequest::class),
+            'Only a header mismatch triggers a retry.',
+        );
     }
 
     public function testCallToolRetriesOnlyOnceOnARepeatedHeaderMismatch(): void
@@ -1790,7 +1876,11 @@ final class ClientTest extends AbstractMcpTestCase
             self::assertSame('Header mismatch', $e->getMessage());
         }
 
-        self::assertSame(2, $this->countRequests($transport, CallToolRequest::class), 'One call plus exactly one retry.');
+        self::assertSame(
+            2,
+            $this->countRequests($transport, CallToolRequest::class),
+            'One call plus exactly one retry.',
+        );
     }
 
     public function testHeaderMismatchRefreshStopsAtThePageHoldingTheTool(): void
@@ -1817,7 +1907,11 @@ final class ClientTest extends AbstractMcpTestCase
         $this->settleToolCall($transport);
         $call->await();
 
-        self::assertSame(2, $this->countRequests($transport, ListToolsRequest::class), 'The opening listing plus one refresh page.');
+        self::assertSame(
+            2,
+            $this->countRequests($transport, ListToolsRequest::class),
+            'The opening listing plus one refresh page.',
+        );
     }
 
     public function testHeaderMismatchRefreshStopsWhenTheServerRepeatsACursor(): void
@@ -1844,14 +1938,21 @@ final class ClientTest extends AbstractMcpTestCase
             ]);
         }
 
-        self::assertSame(3, $this->countRequests($transport, ListToolsRequest::class), 'The opening listing plus two refresh pages.');
+        self::assertSame(
+            3,
+            $this->countRequests($transport, ListToolsRequest::class),
+            'The opening listing plus two refresh pages.',
+        );
 
         $transport->nextSend()->await();
         self::assertSame([], $this->readLastContext($transport)->headers);
         $this->settleToolCall($transport, awaitSend: false);
         $call->await();
 
-        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Server sent cursor {cursor} again while re-listing tool {tool}, first seen on page {page}, so the refresh stopped.');
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Server sent cursor {cursor} again while re-listing tool {tool}, first seen on page {page}, so the refresh stopped.',
+        );
         self::assertCount(1, $matches);
         self::assertSame(['cursor' => 'stuck', 'tool' => 'good', 'page' => 1], $matches[0]['context']);
     }
@@ -1884,7 +1985,10 @@ final class ClientTest extends AbstractMcpTestCase
         $this->settleToolCall($transport, awaitSend: false);
         $call->await();
 
-        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Server sent cursor {cursor} again while re-listing tool {tool}, first seen on page {page}, so the refresh stopped.');
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Server sent cursor {cursor} again while re-listing tool {tool}, first seen on page {page}, so the refresh stopped.',
+        );
         self::assertCount(1, $matches);
         self::assertSame(str_repeat('c', 77).'...', $matches[0]['context']['cursor'] ?? null);
     }
@@ -1913,14 +2017,21 @@ final class ClientTest extends AbstractMcpTestCase
             ]);
         }
 
-        self::assertSame(101, $this->countRequests($transport, ListToolsRequest::class), 'The opening listing plus the 100-page ceiling.');
+        self::assertSame(
+            101,
+            $this->countRequests($transport, ListToolsRequest::class),
+            'The opening listing plus the 100-page ceiling.',
+        );
 
         $transport->nextSend()->await();
         self::assertSame([], $this->readLastContext($transport)->headers);
         $this->settleToolCall($transport, awaitSend: false);
         $call->await();
 
-        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Re-listing tool {tool} passed {pages} pages without reaching it, so the refresh stopped.');
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Re-listing tool {tool} passed {pages} pages without reaching it, so the refresh stopped.',
+        );
         self::assertCount(1, $matches);
         self::assertSame(['tool' => 'good', 'pages' => 100], $matches[0]['context']);
     }
@@ -1966,7 +2077,11 @@ final class ClientTest extends AbstractMcpTestCase
         $transport->emitMessage([
             'jsonrpc' => '2.0',
             'id' => $this->readLastRequestId($transport),
-            'result' => ['tools' => [$this->buildToolListedUnder('good', 'Zone')], 'ttlMs' => 0, 'cacheScope' => 'private'],
+            'result' => [
+                'tools' => [$this->buildToolListedUnder('good', 'Zone')],
+                'ttlMs' => 0,
+                'cacheScope' => 'private',
+            ],
         ]);
 
         $transport->nextSend()->await();
@@ -1974,7 +2089,11 @@ final class ClientTest extends AbstractMcpTestCase
         $this->settleToolCall($transport, awaitSend: false);
         $call->await();
 
-        self::assertSame(3, $this->countRequests($transport, ListToolsRequest::class), 'The opening listing plus both refresh pages.');
+        self::assertSame(
+            3,
+            $this->countRequests($transport, ListToolsRequest::class),
+            'The opening listing plus both refresh pages.',
+        );
     }
 
     public function testReconnectingDiscardsTheCachedBindings(): void
@@ -2008,7 +2127,11 @@ final class ClientTest extends AbstractMcpTestCase
 
         $this->callToolAndSettle($client, $transport, ['region' => 'us-west1']);
 
-        self::assertSame([], $this->readLastContext($transport)->headers, 'The declarations no longer hold, so nothing may be mirrored.');
+        self::assertSame(
+            [],
+            $this->readLastContext($transport)->headers,
+            'The declarations no longer hold, so nothing may be mirrored.',
+        );
     }
 
     public function testCallToolSendsNoHeadersOnATransportThatDoesNotMirror(): void
@@ -2059,9 +2182,7 @@ final class ClientTest extends AbstractMcpTestCase
         $this->discover($client, $transport, capabilities: []);
 
         $this->expectException(ServerCapabilityNotSupportedException::class);
-        $this->expectExceptionMessageIs(
-            'Request method "tests/test-request" requires a server capability that was not advertised by server/discover. Check getServerCapabilities() before calling.',
-        );
+        $this->expectExceptionMessageIs('Request method "tests/test-request" requires a server capability that was not advertised by server/discover. Check getServerCapabilities() before calling.');
 
         $client->sendRequest(new TestRequest(new RequestId(id: 51)), GenericResultResponse::class);
     }
@@ -2080,7 +2201,10 @@ final class ClientTest extends AbstractMcpTestCase
         $client->connect($transport);
         $this->discover($client, $transport, capabilities: ['extensions' => ['com.example/feature' => []]]);
 
-        $deferred = async(static fn() => $client->sendRequest(new TestRequest(new RequestId(id: 52)), GenericResultResponse::class));
+        $deferred = async(static fn() => $client->sendRequest(
+            new TestRequest(new RequestId(id: 52)),
+            GenericResultResponse::class,
+        ));
         $transport->nextSend()->await();
         $transport->emitMessage(['jsonrpc' => '2.0', 'id' => 52, 'result' => []]);
 
@@ -2095,7 +2219,9 @@ final class ClientTest extends AbstractMcpTestCase
                 identifier: 'com.example/feature',
                 requests: [TestRequest::class],
                 requestHandlers: [TestRequest::getMethod() => new ClosureRequestHandler(
-                    static fn(): EmptyResult => throw new \RuntimeException('The gate must reject before the handler runs.'),
+                    static fn(): EmptyResult => throw new \RuntimeException(
+                        'The gate must reject before the handler runs.',
+                    ),
                 )],
             ))
             ->build()
@@ -2126,7 +2252,9 @@ final class ClientTest extends AbstractMcpTestCase
             ->enableExtension(new StubClientExtension(
                 identifier: 'com.example/feature',
                 requests: [TestRequest::class],
-                requestHandlers: [TestRequest::getMethod() => new ClosureRequestHandler(static fn(): EmptyResult => $marker)],
+                requestHandlers: [TestRequest::getMethod() => new ClosureRequestHandler(
+                    static fn(): EmptyResult => $marker,
+                )],
             ))
             ->build()
         ;
@@ -2161,7 +2289,10 @@ final class ClientTest extends AbstractMcpTestCase
         $transport = new RecordingTransport();
         $client->connect($transport);
 
-        $deferred = async(static fn() => $client->sendRequest(new TestRequest(new RequestId(id: 53)), GenericResultResponse::class));
+        $deferred = async(static fn() => $client->sendRequest(
+            new TestRequest(new RequestId(id: 53)),
+            GenericResultResponse::class,
+        ));
         $transport->nextSend()->await();
         $transport->emitMessage(['jsonrpc' => '2.0', 'id' => 53, 'result' => []]);
 
@@ -2237,7 +2368,9 @@ final class ClientTest extends AbstractMcpTestCase
         $client->connect($transport);
 
         $seen = [];
-        $stream = $client->listen(new SubscriptionFilter(toolsListChanged: true), static function () use (&$seen): void {
+        $stream = $client->listen(new SubscriptionFilter(
+            toolsListChanged: true,
+        ), static function () use (&$seen): void {
             $seen[] = true;
         });
 
@@ -2293,7 +2426,11 @@ final class ClientTest extends AbstractMcpTestCase
 
         self::assertSame('pipe is gone', $propagated);
 
-        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => 7, 'error' => ['code' => -32_603, 'message' => 'too late']]);
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => 7,
+            'error' => ['code' => -32_603, 'message' => 'too late'],
+        ]);
 
         $transport->emitMessage([
             'jsonrpc' => '2.0',
@@ -2302,7 +2439,10 @@ final class ClientTest extends AbstractMcpTestCase
         ]);
         EventLoop::run();
 
-        self::assertCount(1, $logger->recordsMatching(LogLevel::WARNING, 'Discarding orphan error response for unknown request id.'));
+        self::assertCount(
+            1,
+            $logger->recordsMatching(LogLevel::WARNING, 'Discarding orphan error response for unknown request id.'),
+        );
         self::assertSame([], $seen);
     }
 
@@ -2321,10 +2461,17 @@ final class ClientTest extends AbstractMcpTestCase
         $stream = $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
         $stream->close();
 
-        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => 7, 'error' => ['code' => -32_603, 'message' => 'too late']]);
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => 7,
+            'error' => ['code' => -32_603, 'message' => 'too late'],
+        ]);
         EventLoop::run();
 
-        self::assertCount(1, $logger->recordsMatching(LogLevel::WARNING, 'Discarding orphan error response for unknown request id.'));
+        self::assertCount(
+            1,
+            $logger->recordsMatching(LogLevel::WARNING, 'Discarding orphan error response for unknown request id.'),
+        );
     }
 
     public function testARefusedSubscriptionDoesNotCrashTheLoopWhenNobodyAwaits(): void
@@ -2338,7 +2485,11 @@ final class ClientTest extends AbstractMcpTestCase
         $client->connect($transport);
 
         $stream = $client->listen(new SubscriptionFilter(toolsListChanged: true), static function (): void {});
-        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => 7, 'error' => ['code' => -32_603, 'message' => 'no subscriptions here']]);
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => 7,
+            'error' => ['code' => -32_603, 'message' => 'no subscriptions here'],
+        ]);
         EventLoop::run();
 
         unset($stream);
@@ -2398,7 +2549,10 @@ final class ClientTest extends AbstractMcpTestCase
 
         $stream->close();
 
-        $matches = $logger->recordsMatching(LogLevel::DEBUG, 'Could not tell the server that subscription {id} was closed.');
+        $matches = $logger->recordsMatching(
+            LogLevel::DEBUG,
+            'Could not tell the server that subscription {id} was closed.',
+        );
         self::assertCount(1, $matches);
         self::assertSame(7, $matches[0]['context']['id'] ?? null);
         self::assertInstanceOf(TransportAlreadyClosedException::class, $matches[0]['context']['exception'] ?? null);
@@ -2534,7 +2688,9 @@ final class ClientTest extends AbstractMcpTestCase
         $client->connect($transport);
 
         $seen = [];
-        $stream = $client->listen(new SubscriptionFilter(toolsListChanged: true), static function () use (&$seen): void {
+        $stream = $client->listen(new SubscriptionFilter(
+            toolsListChanged: true,
+        ), static function () use (&$seen): void {
             $seen[] = true;
         });
 
@@ -2570,7 +2726,9 @@ final class ClientTest extends AbstractMcpTestCase
         $this->readSupervisedPeer($spawned, 1)->emitMessage([
             'jsonrpc' => '2.0',
             'id' => $stream->subscriptionId->id,
-            'result' => ['_meta' => [SubscriptionsListenResultMetaObject::SUBSCRIPTION_ID_KEY => $stream->subscriptionId->id]],
+            'result' => ['_meta' => [
+                SubscriptionsListenResultMetaObject::SUBSCRIPTION_ID_KEY => $stream->subscriptionId->id,
+            ]],
         ]);
         EventLoop::run();
 
@@ -2652,7 +2810,8 @@ final class ClientTest extends AbstractMcpTestCase
 
         $settled = async(static fn(): mixed => $stream->await());
 
-        // Referenced loop work, so a stream that never settles reads as still pending rather than as an in-memory fixture's dry-loop error.
+        // Referenced loop work, so a stream that never settles reads as still pending rather than as an in-memory
+        // fixture's dry-loop error.
         delay(0.05);
 
         self::assertTrue($settled->isComplete(), 'A close no replacement follows must end the stream.');
@@ -2775,7 +2934,11 @@ final class ClientTest extends AbstractMcpTestCase
         $this->readSupervisedPeer($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
-        self::assertSame([], $this->readSupervisedPeer($spawned, 1)->sent, 'A stream the server refused is not the supervisor\'s to retry.');
+        self::assertSame(
+            [],
+            $this->readSupervisedPeer($spawned, 1)->sent,
+            'A stream the server refused is not the supervisor\'s to retry.',
+        );
 
         $transport->close();
     }
@@ -2908,7 +3071,10 @@ final class ClientTest extends AbstractMcpTestCase
         yield 'resources/read' => [static fn(Client $c): mixed => $c->readResource('file:///x'), 'resources/read'];
 
         yield 'completion/complete' => [
-            static fn(Client $c): mixed => $c->complete(new PromptReference(name: 'demo'), ['name' => 'arg', 'value' => 'v']),
+            static fn(Client $c): mixed => $c->complete(
+                new PromptReference(name: 'demo'),
+                ['name' => 'arg', 'value' => 'v'],
+            ),
             'completion/complete',
         ];
     }
@@ -3032,7 +3198,11 @@ final class ClientTest extends AbstractMcpTestCase
 
         async(static function () use ($second): void {
             delay(0.001);
-            $second->emitMessage(['jsonrpc' => '2.0', 'id' => 1, 'result' => ['tools' => [], 'ttlMs' => 0, 'cacheScope' => 'private']]);
+            $second->emitMessage([
+                'jsonrpc' => '2.0',
+                'id' => 1,
+                'result' => ['tools' => [], 'ttlMs' => 0, 'cacheScope' => 'private'],
+            ]);
         });
 
         $result = $client->listTools();
@@ -3148,8 +3318,15 @@ final class ClientTest extends AbstractMcpTestCase
         $client->connect($transport);
 
         $context = new SendContext(relatedRequestId: new RequestId(id: 'parent-call'));
-        $request = new ListToolsRequest(id: new RequestId(id: 7), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()));
-        $call = async(static fn(): JsonRpcResultResponse => $client->sendRequest($request, ListToolsResultResponse::class, $context));
+        $request = new ListToolsRequest(
+            id: new RequestId(id: 7),
+            params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()),
+        );
+        $call = async(static fn(): JsonRpcResultResponse => $client->sendRequest(
+            $request,
+            ListToolsResultResponse::class,
+            $context,
+        ));
         delay(0.001);
 
         $this->readSupervisedPeer($spawned, 0)->emitUnexpectedExit();
@@ -3215,7 +3392,10 @@ final class ClientTest extends AbstractMcpTestCase
         $this->readSupervisedPeer($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
-        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Could not send request {id} again to the replacement peer.');
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Could not send request {id} again to the replacement peer.',
+        );
         self::assertCount(2, $matches);
         self::assertSame([1, 2], [$matches[0]['context']['id'] ?? null, $matches[1]['context']['id'] ?? null]);
 
@@ -3324,7 +3504,11 @@ final class ClientTest extends AbstractMcpTestCase
         $this->readSupervisedPeer($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
-        self::assertSame([], $this->readSupervisedPeer($spawned, 1)->sent, 'A stream the caller retired is not the supervisor\'s to restore.');
+        self::assertSame(
+            [],
+            $this->readSupervisedPeer($spawned, 1)->sent,
+            'A stream the caller retired is not the supervisor\'s to restore.',
+        );
 
         $transport->close();
     }
@@ -3352,11 +3536,18 @@ final class ClientTest extends AbstractMcpTestCase
         $this->readSupervisedPeer($spawned, 0)->emitUnexpectedExit();
         EventLoop::run();
 
-        $matches = $logger->recordsMatching(LogLevel::ERROR, 'Could not re-open subscription {id} against the replacement peer.');
+        $matches = $logger->recordsMatching(
+            LogLevel::ERROR,
+            'Could not re-open subscription {id} against the replacement peer.',
+        );
         self::assertCount(1, $matches);
         self::assertSame(7, $matches[0]['context']['id'] ?? null);
 
-        $this->readSupervisedPeer($spawned, 1)->emitMessage(['jsonrpc' => '2.0', 'method' => 'notifications/tools/list_changed', 'params' => []]);
+        $this->readSupervisedPeer($spawned, 1)->emitMessage([
+            'jsonrpc' => '2.0',
+            'method' => 'notifications/tools/list_changed',
+            'params' => [],
+        ]);
         $this->readSupervisedPeer($spawned, 1)->emitUnexpectedExit();
         EventLoop::run();
 
@@ -3404,7 +3595,11 @@ final class ClientTest extends AbstractMcpTestCase
         $live->emitMessage($this->buildCancellationOf(7));
         delay(0.01);
 
-        self::assertSame(['handled'], $seen, 'The retiring transport must not dispose the live connection\'s listeners.');
+        self::assertSame(
+            ['handled'],
+            $seen,
+            'The retiring transport must not dispose the live connection\'s listeners.',
+        );
     }
 
     public function testANotificationFromADetachedTransportDoesNotReachALiveHandler(): void
@@ -3412,11 +3607,9 @@ final class ClientTest extends AbstractMcpTestCase
         $seen = [];
         $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
-            ->addNotificationHandler(CancelledNotification::class, new ClosureNotificationHandler(
-                static function () use (&$seen): void {
-                    $seen[] = 'handled';
-                },
-            ))
+            ->addNotificationHandler(CancelledNotification::class, new ClosureNotificationHandler(static function () use (&$seen): void {
+                $seen[] = 'handled';
+            }))
             ->build()
         ;
 
@@ -3484,8 +3677,11 @@ final class ClientTest extends AbstractMcpTestCase
      *
      * @return array<string, mixed>
      */
-    private function buildUnsupportedVersionResponse(int|string $id, array $supported, string $message = 'Unsupported protocol version'): array
-    {
+    private function buildUnsupportedVersionResponse(
+        int|string $id,
+        array $supported,
+        string $message = 'Unsupported protocol version',
+    ): array {
         return [
             'jsonrpc' => '2.0',
             'id' => $id,
@@ -3498,7 +3694,8 @@ final class ClientTest extends AbstractMcpTestCase
     }
 
     /**
-     * Runs a call that its deadline is expected to abandon, keeping the loop busy past it since these in-memory fixtures hold no I/O to reach one.
+     * Runs a call that its deadline is expected to abandon, keeping the loop busy past it since these in-memory
+     * fixtures hold no I/O to reach one.
      *
      * @template TReturn
      *
@@ -3527,8 +3724,10 @@ final class ClientTest extends AbstractMcpTestCase
         return $client;
     }
 
-    private function listToolsWithDeclarations(Client $client, MirroringRecordingTransport|RecordingTransport $transport): ListToolsResult
-    {
+    private function listToolsWithDeclarations(
+        Client $client,
+        MirroringRecordingTransport|RecordingTransport $transport,
+    ): ListToolsResult {
         return $this->driveToolListing($client, $transport, [
             [
                 'name' => 'bad',
@@ -3553,8 +3752,11 @@ final class ClientTest extends AbstractMcpTestCase
     /**
      * @param list<array<string, mixed>> $tools
      */
-    private function driveToolListing(Client $client, MirroringRecordingTransport|RecordingTransport $transport, array $tools): ListToolsResult
-    {
+    private function driveToolListing(
+        Client $client,
+        MirroringRecordingTransport|RecordingTransport $transport,
+        array $tools,
+    ): ListToolsResult {
         $deferred = async(static fn(): ListToolsResult => $client->listTools());
         $transport->nextSend()->await();
 
@@ -3573,8 +3775,11 @@ final class ClientTest extends AbstractMcpTestCase
     /**
      * @param array<string, mixed> $arguments
      */
-    private function callToolAndSettle(Client $client, MirroringRecordingTransport|RecordingTransport $transport, array $arguments): void
-    {
+    private function callToolAndSettle(
+        Client $client,
+        MirroringRecordingTransport|RecordingTransport $transport,
+        array $arguments,
+    ): void {
         $deferred = async(static fn() => $client->callTool('good', $arguments));
         $transport->nextSend()->await();
 
@@ -3606,8 +3811,10 @@ final class ClientTest extends AbstractMcpTestCase
         ]);
     }
 
-    private function settleToolCall(MirroringRecordingTransport|RecordingTransport $transport, bool $awaitSend = true): void
-    {
+    private function settleToolCall(
+        MirroringRecordingTransport|RecordingTransport $transport,
+        bool $awaitSend = true,
+    ): void {
         if ($awaitSend) {
             $transport->nextSend()->await();
         }
@@ -3705,11 +3912,9 @@ final class ClientTest extends AbstractMcpTestCase
     {
         return (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
-            ->addNotificationHandler(CancelledNotification::class, new ClosureNotificationHandler(
-                static function () use (&$seen): void {
-                    $seen[] = 'handled';
-                },
-            ))
+            ->addNotificationHandler(CancelledNotification::class, new ClosureNotificationHandler(static function () use (&$seen): void {
+                $seen[] = 'handled';
+            }))
             ->build()
         ;
     }

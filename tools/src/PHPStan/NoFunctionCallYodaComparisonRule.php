@@ -78,7 +78,11 @@ final class NoFunctionCallYodaComparisonRule implements Rule
 
     private function isLiteral(Node\Expr $expr): bool
     {
-        if ($expr instanceof Node\Scalar\String_ || $expr instanceof Node\Scalar\Int_ || $expr instanceof Node\Scalar\Float_) {
+        if (
+            $expr instanceof Node\Scalar\String_
+            || $expr instanceof Node\Scalar\Int_
+            || $expr instanceof Node\Scalar\Float_
+        ) {
             return true;
         }
 

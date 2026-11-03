@@ -203,7 +203,7 @@ against the spec, which is a sharper test of the generator than the SDK's own un
 
 ### The client side
 
-[`client.php`](client.php) is a scenario-name to closure registry, because in client mode the
+[`ConformanceClient.php`](ConformanceClient.php) is a scenario-name registry that [`client.php`](client.php) runs, because in client mode the
 referee names the behaviour it wants through `MCP_CONFORMANCE_SCENARIO`. On an unknown name it
 prints every registered scenario before exiting, which is what makes a name mismatch diagnosable
 instead of a silent failure. There is no attribute-discovery equivalent by design: a client has no

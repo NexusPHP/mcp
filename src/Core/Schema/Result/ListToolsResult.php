@@ -63,8 +63,7 @@ final readonly class ListToolsResult extends PaginatedResult implements ServerRe
         Assert::that($data)->hasOffset('tools', '"result" is missing the required "tools" key.');
         Assert::that($data['tools'])
             ->isList('"result.tools" must be a list, {type} given.')
-            ->values()
-            ->isArray('each "result.tool" must be an object, {type} given.')
+            ->values()->isArray('each "result.tool" must be an object, {type} given.')
             ->isMap('each "result.tool" must be a string-keyed object.')
         ;
         $tools = array_map(Tool::fromArray(...), $data['tools']);
@@ -74,7 +73,10 @@ final readonly class ListToolsResult extends PaginatedResult implements ServerRe
         Assert::that($ttlMs)->isInt('"result.ttlMs" must be an integer, {type} given.');
 
         Assert::that($data)->hasOffset('cacheScope', '"result" is missing the required "cacheScope" key.');
-        Assert::that($data['cacheScope'])->isOneOf(array_column(CacheScope::cases(), 'value'), '"result.cacheScope" must be one of {choices}, {value} given.');
+        Assert::that($data['cacheScope'])->isOneOf(
+            array_column(CacheScope::cases(), 'value'),
+            '"result.cacheScope" must be one of {choices}, {value} given.',
+        );
         $cacheScope = CacheScope::from($data['cacheScope']);
 
         $nextCursor = null;

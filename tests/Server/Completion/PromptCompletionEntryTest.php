@@ -30,7 +30,9 @@ final class PromptCompletionEntryTest extends AbstractMcpTestCase
 {
     public function testStoresItsFields(): void
     {
-        $provider = new ClosureCompletionProvider(static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]));
+        $provider = new ClosureCompletionProvider(
+            static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]),
+        );
 
         $entry = new PromptCompletionEntry('compose', 'tone', $provider);
 

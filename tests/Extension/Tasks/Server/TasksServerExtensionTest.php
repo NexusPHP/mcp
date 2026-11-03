@@ -127,16 +127,19 @@ final class TasksServerExtensionTest extends AbstractMcpTestCase
         $result = $broker->handle(
             CallToolRequest::fromArray([
                 'id' => 7,
-                'params' => ['_meta' => RequestMetaObjectFactory::shape(
-                    clientCapabilities: new ClientCapabilities(extensions: [Tasks::IDENTIFIER => []]),
-                ), 'name' => 'slow_compute'],
+                'params' => [
+                    '_meta' => RequestMetaObjectFactory::shape(clientCapabilities: new ClientCapabilities(
+                        extensions: [Tasks::IDENTIFIER => []],
+                    )),
+                    'name' => 'slow_compute',
+                ],
             ]),
             new ServerContext(
                 new RequestId(id: 7),
                 new NullCancellation(),
-                RequestMetaObjectFactory::create(
-                    clientCapabilities: new ClientCapabilities(extensions: [Tasks::IDENTIFIER => []]),
-                ),
+                RequestMetaObjectFactory::create(clientCapabilities: new ClientCapabilities(
+                    extensions: [Tasks::IDENTIFIER => []],
+                )),
                 new RecordingSender(),
             ),
         );
@@ -172,16 +175,19 @@ final class TasksServerExtensionTest extends AbstractMcpTestCase
         }));
         $request = CallToolRequest::fromArray([
             'id' => 7,
-            'params' => ['_meta' => RequestMetaObjectFactory::shape(
-                clientCapabilities: new ClientCapabilities(extensions: [Tasks::IDENTIFIER => []]),
-            ), 'name' => 'slow_compute'],
+            'params' => [
+                '_meta' => RequestMetaObjectFactory::shape(clientCapabilities: new ClientCapabilities(
+                    extensions: [Tasks::IDENTIFIER => []],
+                )),
+                'name' => 'slow_compute',
+            ],
         ]);
         $context = new ServerContext(
             new RequestId(id: 7),
             new NullCancellation(),
-            RequestMetaObjectFactory::create(
-                clientCapabilities: new ClientCapabilities(extensions: [Tasks::IDENTIFIER => []]),
-            ),
+            RequestMetaObjectFactory::create(clientCapabilities: new ClientCapabilities(
+                extensions: [Tasks::IDENTIFIER => []],
+            )),
             new RecordingSender(),
         );
 
@@ -204,7 +210,9 @@ final class TasksServerExtensionTest extends AbstractMcpTestCase
             ->setServerInfo('demo', '1.0.0')
             ->addTool(
                 new Tool(name: 'slow_compute', inputSchema: ['type' => 'object']),
-                static fn(?array $args, $ctx): CallToolResult => new CallToolResult(content: [new TextContent(text: 'done')]),
+                static fn(?array $args, $ctx): CallToolResult => new CallToolResult(
+                    content: [new TextContent(text: 'done')],
+                ),
             )
             ->enableExtension(new TasksServerExtension(
                 toolPolicies: ['slow_compute' => new ToolTaskPolicy(support: TaskSupport::Optional)],

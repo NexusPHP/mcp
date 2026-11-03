@@ -39,7 +39,9 @@ final class ListResourcesResultTest extends AbstractMcpTestCase
 {
     public function testConstructionDefaults(): void
     {
-        $result = new ListResourcesResult(resources: [new Resource(name: 'r', uri: 'file:///x')], ttlMs: 0, cacheScope: CacheScope::Private);
+        $result = new ListResourcesResult(resources: [
+            new Resource(name: 'r', uri: 'file:///x'),
+        ], ttlMs: 0, cacheScope: CacheScope::Private);
 
         self::assertCount(1, $result->resources);
         self::assertSame(0, $result->ttlMs);

@@ -35,13 +35,11 @@ final class ClosureCompletionProviderTest extends AbstractMcpTestCase
     public function testDelegatesAllThreeInputsToTheClosure(): void
     {
         $captured = [];
-        $provider = new ClosureCompletionProvider(
-            static function (string $value, ?array $contextArguments, ServerContext $context) use (&$captured): CompleteResult {
-                $captured = [$value, $contextArguments, $context];
+        $provider = new ClosureCompletionProvider(static function (string $value, ?array $contextArguments, ServerContext $context) use (&$captured): CompleteResult {
+            $captured = [$value, $contextArguments, $context];
 
-                return new CompleteResult(completion: ['values' => ['wrapped-'.$value]]);
-            },
-        );
+            return new CompleteResult(completion: ['values' => ['wrapped-'.$value]]);
+        });
 
         $context = new ServerContext(
             new RequestId(id: 3),

@@ -79,7 +79,11 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $dispatcher = $this->buildDispatcher($outbound, logger: $logger);
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 7, 'result' => ['content' => []]], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 7,
+            'result' => ['content' => []],
+        ], $transport, new ReceiveContext());
 
         $dispatcher->flushPending();
 
@@ -88,7 +92,10 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         self::assertInstanceOf(JsonRpcResultResponse::class, $response);
         self::assertSame(7, $response->id->id);
         self::assertInstanceOf(CallToolResult::class, $response->result);
-        self::assertSame([], $logger->recordsMatching(LogLevel::WARNING, 'Discarding orphan success response for unknown request id.'));
+        self::assertSame(
+            [],
+            $logger->recordsMatching(LogLevel::WARNING, 'Discarding orphan success response for unknown request id.'),
+        );
     }
 
     public function testErrorResponseRejectsTheRegisteredFutureWithRemoteCallFailedException(): void
@@ -150,7 +157,10 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
 
         $dispatcher->flushPending();
 
-        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Discarding orphan success response for unknown request id.');
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Discarding orphan success response for unknown request id.',
+        );
         self::assertCount(1, $matches);
         self::assertSame(['id' => 999], $matches[0]['context']);
     }
@@ -170,7 +180,10 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
 
         $dispatcher->flushPending();
 
-        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Discarding orphan error response for unknown request id.');
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Discarding orphan error response for unknown request id.',
+        );
         self::assertCount(1, $matches);
         self::assertSame(['id' => 999, 'error' => 'oops'], $matches[0]['context']);
     }
@@ -190,7 +203,10 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
 
         $dispatcher->flushPending();
 
-        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Discarding error response with null id. No correlation to an outbound request is possible.');
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Discarding error response with null id. No correlation to an outbound request is possible.',
+        );
         self::assertCount(1, $matches);
         self::assertSame(['error' => 'parse error'], $matches[0]['context']);
     }
@@ -210,7 +226,10 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
 
         $dispatcher->flushPending();
 
-        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Discarding orphan error response for unknown request id.');
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Discarding orphan error response for unknown request id.',
+        );
         self::assertCount(1, $matches);
         self::assertSame(
             [
@@ -236,7 +255,10 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
 
         $dispatcher->flushPending();
 
-        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Discarding error response with null id. No correlation to an outbound request is possible.');
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Discarding error response with null id. No correlation to an outbound request is possible.',
+        );
         self::assertCount(1, $matches);
         self::assertSame(['error' => 'parse\\x1b]0;forged\\x07'], $matches[0]['context']);
     }
@@ -256,7 +278,10 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
 
         $dispatcher->flushPending();
 
-        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Discarding orphan success response for unknown request id.');
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Discarding orphan success response for unknown request id.',
+        );
         self::assertCount(1, $matches);
         self::assertSame(['id' => 'req\\x1b]0;forged\\x07'], $matches[0]['context']);
     }
@@ -268,7 +293,11 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $dispatcher = $this->buildDispatcher($outbound);
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'result' => 'not-an-object'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'result' => 'not-an-object',
+        ], $transport, new ReceiveContext());
 
         $dispatcher->flushPending();
 
@@ -299,10 +328,16 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
             $future->await();
             self::fail('Future should have been rejected.');
         } catch (InvalidRequestException $e) {
-            self::assertSame('Invalid error response: error "data" is required for code -32021 and must carry "requiredCapabilities".', $e->getMessage());
+            self::assertSame(
+                'Invalid error response: error "data" is required for code -32021 and must carry "requiredCapabilities".',
+                $e->getMessage(),
+            );
         }
 
-        self::assertSame([], $logger->recordsMatching(LogLevel::WARNING, 'Discarding malformed response envelope from peer.'));
+        self::assertSame(
+            [],
+            $logger->recordsMatching(LogLevel::WARNING, 'Discarding malformed response envelope from peer.'),
+        );
     }
 
     public function testAnIdCarryingEnvelopeNamingBothAMethodAndAResultIsAnsweredNotCorrelated(): void
@@ -325,7 +360,10 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
         self::assertSame(9, $message->id?->id);
         self::assertSame(ProtocolErrorCode::InvalidRequest->value, $message->error->code);
-        self::assertSame([], $logger->recordsMatching(LogLevel::WARNING, 'Discarding malformed response envelope from peer.'));
+        self::assertSame(
+            [],
+            $logger->recordsMatching(LogLevel::WARNING, 'Discarding malformed response envelope from peer.'),
+        );
     }
 
     public function testAnAmbiguousEnvelopeSettlesTheOutboundRequestItNames(): void
@@ -350,7 +388,10 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
             $future->await();
             self::fail('Future should have been rejected.');
         } catch (InvalidRequestException $e) {
-            self::assertSame('JSON-RPC envelope must not carry a "method" together with a "result" or an "error".', $e->getMessage());
+            self::assertSame(
+                'JSON-RPC envelope must not carry a "method" together with a "result" or an "error".',
+                $e->getMessage(),
+            );
         }
     }
 
@@ -370,7 +411,10 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
 
         $dispatcher->flushPending();
 
-        self::assertFalse($future->isComplete(), 'Inbound request ids and outbound request ids are separate namespaces.');
+        self::assertFalse(
+            $future->isComplete(),
+            'Inbound request ids and outbound request ids are separate namespaces.',
+        );
         self::assertCount(1, $transport->sent);
     }
 
@@ -389,7 +433,10 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $message = $transport->sent[0]['message'];
         self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
         self::assertSame(5, $message->id?->id);
-        self::assertSame([], $logger->recordsMatching(LogLevel::WARNING, 'Discarding malformed response envelope from peer.'));
+        self::assertSame(
+            [],
+            $logger->recordsMatching(LogLevel::WARNING, 'Discarding malformed response envelope from peer.'),
+        );
     }
 
     public function testMalformedResponseEnvelopeIsLoggedAndDropped(): void
@@ -421,7 +468,11 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $dispatcher->flushPending();
 
         self::assertSame([], $transport->sent);
-        self::assertSame([], $logger->messagesAtLevel(LogLevel::INFO), 'Response envelopes must not fall through into the notification-parse path.');
+        self::assertSame(
+            [],
+            $logger->messagesAtLevel(LogLevel::INFO),
+            'Response envelopes must not fall through into the notification-parse path.',
+        );
     }
 
     public function testHandlerThrowingExceptionStillReleasesTheInboundRequestId(): void
@@ -431,23 +482,29 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $dispatcher = $this->buildDispatcher(
             $outbound,
             requestHandlers: [
-                'tests/test-request' => new ClosureRequestHandler(
-                    static function () use (&$attempts): EmptyResult {
-                        if (1 === ++$attempts) {
-                            throw new \RuntimeException('first attempt fails');
-                        }
+                'tests/test-request' => new ClosureRequestHandler(static function () use (&$attempts): EmptyResult {
+                    if (1 === ++$attempts) {
+                        throw new \RuntimeException('first attempt fails');
+                    }
 
-                        return new EmptyResult();
-                    },
-                ),
+                    return new EmptyResult();
+                }),
             ],
         );
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
         $dispatcher->flushPending();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
         $dispatcher->flushPending();
 
         self::assertSame(2, $attempts);
@@ -462,14 +519,19 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $dispatcher = $this->buildDispatcher(
             $outbound,
             requestHandlers: [
-                'tests/test-request' => new ClosureRequestHandler(
-                    static fn() => throw new MethodNotFoundException('tools/call', new RequestId(id: 'exception-pinned-id')),
-                ),
+                'tests/test-request' => new ClosureRequestHandler(static fn() => throw new MethodNotFoundException(
+                    'tools/call',
+                    new RequestId(id: 'exception-pinned-id'),
+                )),
             ],
         );
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 42, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 42,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
         $dispatcher->flushPending();
 
         self::assertCount(1, $transport->sent);
@@ -487,11 +549,17 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $outbound = new PendingOutboundRequests();
         $dispatcher = $this->buildDispatcher(
             $outbound,
-            requestHandlers: ['tests/test-request' => new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult())],
+            requestHandlers: ['tests/test-request' => new ClosureRequestHandler(
+                static fn(): EmptyResult => new EmptyResult(),
+            )],
         );
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
 
         $dispatcher->flushPending();
 
@@ -508,12 +576,10 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $dispatcher = $this->buildDispatcher(
             $outbound,
             requestHandlers: [
-                'server/discover' => new ClosureRequestHandler(
-                    static fn(): Result => InputRequiredResult::fromArray([
-                        'resultType' => 'input_required',
-                        'requestState' => 'tok',
-                    ]),
-                ),
+                'server/discover' => new ClosureRequestHandler(static fn(): Result => InputRequiredResult::fromArray([
+                    'resultType' => 'input_required',
+                    'requestState' => 'tok',
+                ])),
             ],
             logger: $logger,
         );
@@ -537,7 +603,10 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $logged = $matches[0]['context']['exception'] ?? null;
         self::assertInstanceOf(\InvalidArgumentException::class, $logged);
         self::assertSame(
-            \sprintf('Handler for "server/discover" returned %s, which is not a valid result for that method.', InputRequiredResult::class),
+            \sprintf(
+                'Handler for "server/discover" returned %s, which is not a valid result for that method.',
+                InputRequiredResult::class,
+            ),
             $logged->getMessage(),
         );
     }
@@ -550,16 +619,14 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $dispatcher = $this->buildDispatcher(
             $outbound,
             requestHandlers: [
-                'tests/test-request' => new ClosureRequestHandler(
-                    static function ($req, $ctx) use (&$handled, &$captured): EmptyResult {
-                        self::assertInstanceOf(ClientContext::class, $ctx);
+                'tests/test-request' => new ClosureRequestHandler(static function ($req, $ctx) use (&$handled, &$captured): EmptyResult {
+                    self::assertInstanceOf(ClientContext::class, $ctx);
 
-                        $handled = true;
-                        $captured = $ctx->progressToken;
+                    $handled = true;
+                    $captured = $ctx->progressToken;
 
-                        return new EmptyResult();
-                    },
-                ),
+                    return new EmptyResult();
+                }),
             ],
         );
         $transport = new RecordingTransport();
@@ -585,7 +652,11 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $dispatcher = $this->buildDispatcher($outbound);
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
 
         $dispatcher->flushPending();
 
@@ -654,12 +725,22 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $outbound = new PendingOutboundRequests();
         $dispatcher = $this->buildDispatcher(
             $outbound,
-            requestHandlers: ['tests/test-request' => new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult())],
+            requestHandlers: ['tests/test-request' => new ClosureRequestHandler(
+                static fn(): EmptyResult => new EmptyResult(),
+            )],
         );
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
 
         $dispatcher->flushPending();
 
@@ -684,10 +765,22 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         );
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
         delay(0.01);
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
 
         $dispatcher->flushPending();
 
@@ -721,7 +814,10 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         self::assertSame(ProtocolErrorCode::InvalidRequest->value, $message->error->code);
         self::assertStringContainsString('"notifications/cancelled"', $message->error->message);
 
-        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Rejecting envelope whose method was sent under the wrong JSON-RPC shape.');
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Rejecting envelope whose method was sent under the wrong JSON-RPC shape.',
+        );
         self::assertCount(1, $matches);
         self::assertInstanceOf(MethodMisroutedException::class, $matches[0]['context']['exception'] ?? null);
     }
@@ -738,9 +834,16 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
 
         $dispatcher->flushPending();
 
-        self::assertSame([], $transport->sent, 'An envelope carrying no id is a notification whatever method it names, and §4.1 forbids answering it.');
+        self::assertSame(
+            [],
+            $transport->sent,
+            'An envelope carrying no id is a notification whatever method it names, and §4.1 forbids answering it.',
+        );
 
-        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Rejecting envelope whose method was sent under the wrong JSON-RPC shape.');
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Rejecting envelope whose method was sent under the wrong JSON-RPC shape.',
+        );
         self::assertCount(1, $matches);
         self::assertInstanceOf(AbstractJsonRpcProtocolException::class, $matches[0]['context']['exception'] ?? null);
     }
@@ -776,7 +879,10 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $dispatcher->flushPending();
 
         self::assertSame([], $transport->sent, 'Notifications must not produce responses, even when malformed.');
-        $matches = $logger->recordsMatching(LogLevel::INFO, 'Dropping malformed notification (JSON-RPC 2.0 §4.1 forbids responses to notifications).');
+        $matches = $logger->recordsMatching(
+            LogLevel::INFO,
+            'Dropping malformed notification (JSON-RPC 2.0 §4.1 forbids responses to notifications).',
+        );
         self::assertCount(1, $matches);
         self::assertInstanceOf(AbstractJsonRpcProtocolException::class, $matches[0]['context']['exception'] ?? null);
     }
@@ -805,13 +911,23 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $outbound = new PendingOutboundRequests();
         $dispatcher = $this->buildDispatcher(
             $outbound,
-            requestHandlers: ['tests/test-request' => new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult())],
+            requestHandlers: ['tests/test-request' => new ClosureRequestHandler(
+                static fn(): EmptyResult => new EmptyResult(),
+            )],
         );
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
         $dispatcher->flushPending();
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
         $dispatcher->flushPending();
 
         self::assertCount(2, $transport->sent);
@@ -832,7 +948,11 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         );
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
         $dispatcher->flushPending();
 
         self::assertCount(1, $transport->sent);
@@ -856,7 +976,11 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         );
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
         $dispatcher->flushPending();
 
         self::assertCount(1, $transport->sent);
@@ -885,7 +1009,11 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         );
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
         $dispatcher->flushPending();
 
         self::assertSame([], $transport->sent, 'A closed transport must not receive an InternalError follow-up.');
@@ -911,7 +1039,11 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $transport = new RecordingTransport();
         $transport->sendError = new TransportAlreadyClosedException('send');
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
         $dispatcher->flushPending();
 
         self::assertSame([], $logger->messagesAtLevel(LogLevel::ERROR));
@@ -927,11 +1059,17 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $transport->sendError = new \RuntimeException('write failed');
         $dispatcher = $this->buildDispatcher(
             $outbound,
-            requestHandlers: ['tests/test-request' => new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult())],
+            requestHandlers: ['tests/test-request' => new ClosureRequestHandler(
+                static fn(): EmptyResult => new EmptyResult(),
+            )],
             logger: $logger,
         );
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
         $dispatcher->flushPending();
 
         $matches = $logger->recordsMatching(LogLevel::ERROR, 'Failed to deliver response to transport.');
@@ -948,11 +1086,17 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $transport->sendError = new TransportAlreadyClosedException('send');
         $dispatcher = $this->buildDispatcher(
             $outbound,
-            requestHandlers: ['tests/test-request' => new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult())],
+            requestHandlers: ['tests/test-request' => new ClosureRequestHandler(
+                static fn(): EmptyResult => new EmptyResult(),
+            )],
             logger: $logger,
         );
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
         $dispatcher->flushPending();
 
         self::assertSame([], $logger->messagesAtLevel(LogLevel::ERROR));
@@ -973,7 +1117,11 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         );
         $transport = new RecordingTransport();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 42, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 42,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
         $dispatcher->flushPending();
 
         self::assertCount(1, $transport->sent);
@@ -991,19 +1139,21 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $dispatcher = $this->buildDispatcher(
             $outbound,
             requestHandlers: [
-                'tests/test-request' => new ClosureRequestHandler(
-                    static function ($req, $ctx) use (&$captured): EmptyResult {
-                        self::assertInstanceOf(ClientContext::class, $ctx);
+                'tests/test-request' => new ClosureRequestHandler(static function ($req, $ctx) use (&$captured): EmptyResult {
+                    self::assertInstanceOf(ClientContext::class, $ctx);
 
-                        $captured['requestId'] = $ctx->requestId->id;
+                    $captured['requestId'] = $ctx->requestId->id;
 
-                        return new EmptyResult();
-                    },
-                ),
+                    return new EmptyResult();
+                }),
             ],
         );
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 99, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 99,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
         $dispatcher->flushPending();
 
         self::assertSame(99, $captured['requestId']);
@@ -1025,10 +1175,16 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $transport = new RecordingTransport();
         $dispatcher = $this->buildDispatcher(
             $outbound,
-            requestHandlers: ['tests/test-request' => new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult())],
+            requestHandlers: ['tests/test-request' => new ClosureRequestHandler(
+                static fn(): EmptyResult => new EmptyResult(),
+            )],
         );
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
 
         $dispatcher->flushPending();
 
@@ -1071,21 +1227,23 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $dispatcher = $this->buildDispatcher(
             new PendingOutboundRequests(),
             requestHandlers: [
-                'tests/test-request' => new ClosureRequestHandler(
-                    static function ($request, AbstractContext $context) use (&$seen): Result {
-                        try {
-                            delay(1.0, cancellation: $context->cancellation);
-                        } catch (CancelledException) {
-                            $seen[] = 'cancelled';
-                        }
+                'tests/test-request' => new ClosureRequestHandler(static function ($request, AbstractContext $context) use (&$seen): Result {
+                    try {
+                        delay(1.0, cancellation: $context->cancellation);
+                    } catch (CancelledException) {
+                        $seen[] = 'cancelled';
+                    }
 
-                        return new EmptyResult();
-                    },
-                ),
+                    return new EmptyResult();
+                }),
             ],
         );
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
         $dispatcher->cancelRequest(new RequestId(id: 1));
         $dispatcher->flushPending();
 
@@ -1099,23 +1257,32 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $dispatcher = $this->buildDispatcher(
             new PendingOutboundRequests(),
             requestHandlers: [
-                'tests/test-request' => new ClosureRequestHandler(
-                    static function ($request, AbstractContext $context): Result {
-                        delay(1.0, cancellation: $context->cancellation);
+                'tests/test-request' => new ClosureRequestHandler(static function ($request, AbstractContext $context): Result {
+                    delay(1.0, cancellation: $context->cancellation);
 
-                        return new EmptyResult();
-                    },
-                ),
+                    return new EmptyResult();
+                }),
             ],
             logger: $logger,
         );
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
         $dispatcher->cancelRequest(new RequestId(id: 1));
         $dispatcher->flushPending();
 
-        self::assertSame([], $transport->sent, 'The spec forbids answering a request once its cancellation was requested.');
-        $matches = $logger->recordsMatching(LogLevel::DEBUG, 'Dropping the response to a request whose handler the cancellation interrupted.');
+        self::assertSame(
+            [],
+            $transport->sent,
+            'The spec forbids answering a request once its cancellation was requested.',
+        );
+        $matches = $logger->recordsMatching(
+            LogLevel::DEBUG,
+            'Dropping the response to a request whose handler the cancellation interrupted.',
+        );
         self::assertCount(1, $matches);
         self::assertSame(['method' => 'tests/test-request'], $matches[0]['context']);
     }
@@ -1127,21 +1294,23 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $dispatcher = $this->buildDispatcher(
             new PendingOutboundRequests(),
             requestHandlers: [
-                'tests/test-request' => new ClosureRequestHandler(
-                    static function ($request, AbstractContext $context): Result {
-                        try {
-                            delay(1.0, cancellation: $context->cancellation);
-                        } catch (CancelledException) {
-                        }
+                'tests/test-request' => new ClosureRequestHandler(static function ($request, AbstractContext $context): Result {
+                    try {
+                        delay(1.0, cancellation: $context->cancellation);
+                    } catch (CancelledException) {
+                    }
 
-                        return new EmptyResult();
-                    },
-                ),
+                    return new EmptyResult();
+                }),
             ],
             logger: $logger,
         );
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
         $dispatcher->cancelRequest(new RequestId(id: 1));
         $dispatcher->flushPending();
 
@@ -1174,7 +1343,9 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         );
 
         $seen = [];
-        $listeners->register($this->buildSubscription(new RequestId(id: 7), static function (JsonRpcNotification $notification) use (&$seen): void {
+        $listeners->register($this->buildSubscription(new RequestId(
+            id: 7,
+        ), static function (JsonRpcNotification $notification) use (&$seen): void {
             $seen[] = $notification::getMethod();
         }));
 
@@ -1224,7 +1395,9 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
             subscriptions: $listeners,
         );
 
-        $listeners->register($this->buildSubscription(new RequestId(id: 7), static function (JsonRpcNotification $notification): void {
+        $listeners->register($this->buildSubscription(new RequestId(
+            id: 7,
+        ), static function (JsonRpcNotification $notification): void {
             throw new \RuntimeException('listener blew up');
         }));
 
@@ -1289,9 +1462,16 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
 
         $dispatcher->flushPending();
 
-        $matches = $logger->recordsMatching(LogLevel::INFO, 'Dropping malformed notification (JSON-RPC 2.0 §4.1 forbids responses to notifications).');
+        $matches = $logger->recordsMatching(
+            LogLevel::INFO,
+            'Dropping malformed notification (JSON-RPC 2.0 §4.1 forbids responses to notifications).',
+        );
         self::assertCount(1, $matches);
-        self::assertSame(['exception'], array_keys($matches[0]['context']), 'The peer envelope must not ride the log record.');
+        self::assertSame(
+            ['exception'],
+            array_keys($matches[0]['context']),
+            'The peer envelope must not ride the log record.',
+        );
     }
 
     public function testInboundRequestPastTheInFlightCapIsShedAsOverloaded(): void
@@ -1300,8 +1480,16 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $transport = new RecordingTransport();
         $dispatcher = $this->buildDispatcher(new PendingOutboundRequests(), logger: $logger, maxInFlight: 1);
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 2, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 2,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
 
         $dispatcher->flushPending();
 
@@ -1335,8 +1523,15 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
             maxInFlight: 1,
         );
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'method' => 'notifications/tools/list_changed'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'method' => 'notifications/tools/list_changed',
+        ], $transport, new ReceiveContext());
 
         $dispatcher->flushPending();
 
@@ -1364,7 +1559,11 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
             maxInFlight: 1,
         );
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
         $dispatcher->dispatch(
             ['jsonrpc' => '2.0', 'method' => 'notifications/cancelled', 'params' => ['requestId' => 1]],
             $transport,
@@ -1373,7 +1572,10 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
 
         $dispatcher->flushPending();
 
-        self::assertTrue($cancelled, 'The one notification that frees a slot must not be shed by the cap it would relieve.');
+        self::assertTrue(
+            $cancelled,
+            'The one notification that frees a slot must not be shed by the cap it would relieve.',
+        );
     }
 
     public function testACancellationNamingNothingInFlightIsShedAtTheCap(): void
@@ -1392,7 +1594,11 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
             maxInFlight: 1,
         );
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
         $dispatcher->dispatch(
             ['jsonrpc' => '2.0', 'method' => 'notifications/cancelled', 'params' => ['requestId' => 99]],
             $transport,
@@ -1424,7 +1630,11 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
             maxInFlight: 1,
         );
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
         $cancellation = ['jsonrpc' => '2.0', 'method' => 'notifications/cancelled', 'params' => ['requestId' => 1]];
         $dispatcher->dispatch($cancellation, $transport, new ReceiveContext());
         $dispatcher->dispatch($cancellation, $transport, new ReceiveContext());
@@ -1442,18 +1652,22 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $transport = new RecordingTransport();
         $dispatcher = $this->buildDispatcher(
             new PendingOutboundRequests(),
-            requestHandlers: ['tests/test-request' => new ClosureRequestHandler(
-                static function ($request, AbstractContext $context) use ($parked, &$observed): Result {
-                    $observed = $context->cancellation;
-                    $parked->getFuture()->await();
+            requestHandlers: ['tests/test-request' => new ClosureRequestHandler(static function ($request, AbstractContext $context) use ($parked, &$observed): Result {
+                $observed = $context->cancellation;
+                $parked->getFuture()->await();
 
-                    return new EmptyResult();
-                },
+                return new EmptyResult();
+            })],
+            notificationHandlers: ['notifications/cancelled' => new ClosureNotificationHandler(
+                static function (): void {},
             )],
-            notificationHandlers: ['notifications/cancelled' => new ClosureNotificationHandler(static function (): void {})],
         );
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
         delay(0.0);
         $dispatcher->dispatch(
             ['jsonrpc' => '2.0', 'method' => 'notifications/cancelled', 'params' => ['requestId' => 1]],
@@ -1464,7 +1678,10 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
 
         self::assertInstanceOf(Cancellation::class, $observed);
 
-        self::assertFalse($observed->isRequested(), 'Below the cap the registered handler owns the cancel, and this one declined it.');
+        self::assertFalse(
+            $observed->isRequested(),
+            'Below the cap the registered handler owns the cancel, and this one declined it.',
+        );
 
         $parked->complete(null);
         $dispatcher->flushPending();
@@ -1478,19 +1695,23 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $transport = new RecordingTransport();
         $dispatcher = $this->buildDispatcher(
             new PendingOutboundRequests(),
-            requestHandlers: ['tests/test-request' => new ClosureRequestHandler(
-                static function ($request, AbstractContext $context) use ($parked, &$observed): Result {
-                    $observed = $context->cancellation;
-                    $parked->getFuture()->await();
+            requestHandlers: ['tests/test-request' => new ClosureRequestHandler(static function ($request, AbstractContext $context) use ($parked, &$observed): Result {
+                $observed = $context->cancellation;
+                $parked->getFuture()->await();
 
-                    return new EmptyResult();
-                },
+                return new EmptyResult();
+            })],
+            notificationHandlers: ['notifications/cancelled' => new ClosureNotificationHandler(
+                static function (): void {},
             )],
-            notificationHandlers: ['notifications/cancelled' => new ClosureNotificationHandler(static function (): void {})],
             maxInFlight: 1,
         );
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
         delay(0.0);
         $dispatcher->dispatch(
             ['jsonrpc' => '2.0', 'method' => 'notifications/cancelled', 'params' => ['requestId' => 1]],
@@ -1519,10 +1740,17 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
             maxInFlight: 1,
         );
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
 
         for ($i = 0; $i < 3; ++$i) {
-            $dispatcher->dispatch(['jsonrpc' => '2.0', 'method' => 'notifications/tools/list_changed'], $transport, new ReceiveContext());
+            $dispatcher->dispatch([
+                'jsonrpc' => '2.0',
+                'method' => 'notifications/tools/list_changed',
+            ], $transport, new ReceiveContext());
         }
 
         $dispatcher->flushPending();
@@ -1539,16 +1767,27 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $listeners = new SubscriptionRegistry();
         $logger = new ArrayLogger();
         $transport = new RecordingTransport();
-        $dispatcher = $this->buildDispatcher(new PendingOutboundRequests(), logger: $logger, subscriptions: $listeners, maxInFlight: 1);
+        $dispatcher = $this->buildDispatcher(
+            new PendingOutboundRequests(),
+            logger: $logger,
+            subscriptions: $listeners,
+            maxInFlight: 1,
+        );
 
         /** @var DeferredFuture<SubscriptionsListenResult> $outcome */
         $outcome = new DeferredFuture();
         $seen = [];
-        $listeners->register($this->buildSubscription(new RequestId(id: 7), static function (JsonRpcNotification $notification) use (&$seen): void {
+        $listeners->register($this->buildSubscription(new RequestId(
+            id: 7,
+        ), static function (JsonRpcNotification $notification) use (&$seen): void {
             $seen[] = $notification::getMethod();
         }, $outcome));
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
         $dispatcher->dispatch([
             'jsonrpc' => '2.0',
             'method' => 'notifications/tools/list_changed',
@@ -1564,14 +1803,20 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
             'Ended subscription {subscriptionId} after shedding one of its deliveries at the in-flight dispatch cap.',
         );
         self::assertCount(1, $matches);
-        self::assertSame(['subscriptionId' => 7, 'method' => 'notifications/tools/list_changed'], $matches[0]['context']);
+        self::assertSame([
+            'subscriptionId' => 7,
+            'method' => 'notifications/tools/list_changed',
+        ], $matches[0]['context']);
 
         try {
             $outcome->getFuture()->await();
             self::fail('The stream outcome must fail so an awaiting caller learns the loss.');
         } catch (SubscriptionDeliveryDroppedException $e) {
             self::assertSame(7, $e->subscriptionId->id);
-            self::assertSame('Subscription 7 was ended because a delivery was shed at the client\'s in-flight dispatch cap.', $e->getMessage());
+            self::assertSame(
+                'Subscription 7 was ended because a delivery was shed at the client\'s in-flight dispatch cap.',
+                $e->getMessage(),
+            );
         }
     }
 
@@ -1580,14 +1825,23 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         $listeners = new SubscriptionRegistry();
         $logger = new ArrayLogger();
         $transport = new RecordingTransport();
-        $dispatcher = $this->buildDispatcher(new PendingOutboundRequests(), logger: $logger, subscriptions: $listeners, maxInFlight: 1);
+        $dispatcher = $this->buildDispatcher(
+            new PendingOutboundRequests(),
+            logger: $logger,
+            subscriptions: $listeners,
+            maxInFlight: 1,
+        );
 
         /** @var DeferredFuture<SubscriptionsListenResult> $outcome */
         $outcome = new DeferredFuture();
         $outcome->getFuture()->ignore();
         $listeners->register($this->buildSubscription(new RequestId(id: 7), static function (): void {}, $outcome));
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
 
         $delivery = [
             'jsonrpc' => '2.0',
@@ -1634,8 +1888,11 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
      * @param \Closure(JsonRpcNotification<non-empty-string>): void $onNotification
      * @param null|DeferredFuture<SubscriptionsListenResult>        $outcome
      */
-    private function buildSubscription(RequestId $id, \Closure $onNotification, ?DeferredFuture $outcome = null): OpenSubscription
-    {
+    private function buildSubscription(
+        RequestId $id,
+        \Closure $onNotification,
+        ?DeferredFuture $outcome = null,
+    ): OpenSubscription {
         if (null === $outcome) {
             /** @var DeferredFuture<SubscriptionsListenResult> $outcome */
             $outcome = new DeferredFuture();

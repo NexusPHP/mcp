@@ -90,7 +90,10 @@ final readonly class SkillStore implements SkillStoreInterface
 
         foreach ($skills as $skill) {
             $entry = $skill->entry;
-            Assert::that($entries)->not()->hasOffset($entry->uri, \sprintf('Skill "%s" is registered more than once.', $entry->uri));
+            Assert::that($entries)->not()->hasOffset(
+                $entry->uri,
+                \sprintf('Skill "%s" is registered more than once.', $entry->uri),
+            );
 
             $entries[$entry->uri] = $entry;
             $bytes = 0;
@@ -111,7 +114,11 @@ final readonly class SkillStore implements SkillStoreInterface
 
                 foreach ($segments as $segment) {
                     $directoryUri = $parentUri.'/'.$segment;
-                    $directories[$parentUri][$directoryUri] = $this->describe($segment, $directoryUri, Skills::DIRECTORY_MIME_TYPE);
+                    $directories[$parentUri][$directoryUri] = $this->describe(
+                        $segment,
+                        $directoryUri,
+                        Skills::DIRECTORY_MIME_TYPE,
+                    );
                     $parentUri = $directoryUri;
                 }
 
@@ -181,7 +188,10 @@ final readonly class SkillStore implements SkillStoreInterface
     #[\Override]
     public function readFile(string $uri, ServerContext $context): ?ReadResourceResult
     {
-        $file = $this->files[$uri] ?? (str_starts_with($uri, Skills::URI_PREFIX) ? $this->provider?->findFile($uri, $context) : null);
+        $file = $this->files[$uri] ?? (str_starts_with(
+            $uri,
+            Skills::URI_PREFIX,
+        ) ? $this->provider?->findFile($uri, $context) : null);
 
         if (null === $file) {
             return null;

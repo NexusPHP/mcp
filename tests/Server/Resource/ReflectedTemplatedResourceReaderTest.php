@@ -75,7 +75,10 @@ final class ReflectedTemplatedResourceReaderTest extends AbstractMcpTestCase
      */
     private function read(string $method, string $uri, array $bindings): ReadResourceResult
     {
-        $reader = new ReflectedTemplatedResourceReader(new ReflectedHandlers(), new \ReflectionMethod(ReflectedHandlers::class, $method));
+        $reader = new ReflectedTemplatedResourceReader(
+            new ReflectedHandlers(),
+            new \ReflectionMethod(ReflectedHandlers::class, $method),
+        );
 
         $result = $reader->read($uri, $bindings, $this->makeContext());
 

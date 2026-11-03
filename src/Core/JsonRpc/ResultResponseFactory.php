@@ -60,30 +60,74 @@ final class ResultResponseFactory
 {
     /**
      * @param JsonRpcRequest<non-empty-string> $request
+     *
+     * @throws \InvalidArgumentException
      */
     public static function wrap(JsonRpcRequest $request, Result $result): JsonRpcResultResponse
     {
         $id = $request->id;
 
-        return match (true) {
-            $request instanceof CallToolRequest && ($result instanceof CallToolResult || $result instanceof InputRequiredResult) => new CallToolResultResponse(id: $id, result: $result),
-            $request instanceof GetPromptRequest && ($result instanceof GetPromptResult || $result instanceof InputRequiredResult) => new GetPromptResultResponse(id: $id, result: $result),
-            $request instanceof ReadResourceRequest && ($result instanceof ReadResourceResult || $result instanceof InputRequiredResult) => new ReadResourceResultResponse(id: $id, result: $result),
-            $request instanceof CompleteRequest && $result instanceof CompleteResult => new CompleteResultResponse(id: $id, result: $result),
-            $request instanceof DiscoverRequest && $result instanceof DiscoverResult => new DiscoverResultResponse(id: $id, result: $result),
-            $request instanceof ListPromptsRequest && $result instanceof ListPromptsResult => new ListPromptsResultResponse(id: $id, result: $result),
-            $request instanceof ListResourcesRequest && $result instanceof ListResourcesResult => new ListResourcesResultResponse(id: $id, result: $result),
-            $request instanceof ListResourceTemplatesRequest && $result instanceof ListResourceTemplatesResult => new ListResourceTemplatesResultResponse(id: $id, result: $result),
-            $request instanceof ListToolsRequest && $result instanceof ListToolsResult => new ListToolsResultResponse(id: $id, result: $result),
-            $request instanceof SubscriptionsListenRequest && $result instanceof SubscriptionsListenResult => new SubscriptionsListenResultResponse(id: $id, result: $result),
-            $request instanceof CallToolRequest && $result instanceof TaskHandleResult,
-            ! \array_key_exists($request::getMethod(), JsonRpcMethodRegistry::requests()),
-            $result instanceof EmptyResult => new GenericResultResponse(id: $id, result: $result),
-            default => throw new \InvalidArgumentException(\sprintf(
-                'Handler for "%s" returned %s, which is not a valid result for that method.',
-                $request::getMethod(),
-                $result::class,
-            )),
-        };
+        if (
+            $request instanceof CallToolRequest
+            && ($result instanceof CallToolResult || $result instanceof InputRequiredResult)
+        ) {
+            return new CallToolResultResponse(id: $id, result: $result);
+        }
+
+        if (
+            $request instanceof GetPromptRequest
+            && ($result instanceof GetPromptResult || $result instanceof InputRequiredResult)
+        ) {
+            return new GetPromptResultResponse(id: $id, result: $result);
+        }
+
+        if (
+            $request instanceof ReadResourceRequest
+            && ($result instanceof ReadResourceResult || $result instanceof InputRequiredResult)
+        ) {
+            return new ReadResourceResultResponse(id: $id, result: $result);
+        }
+
+        if ($request instanceof CompleteRequest && $result instanceof CompleteResult) {
+            return new CompleteResultResponse(id: $id, result: $result);
+        }
+
+        if ($request instanceof DiscoverRequest && $result instanceof DiscoverResult) {
+            return new DiscoverResultResponse(id: $id, result: $result);
+        }
+
+        if ($request instanceof ListPromptsRequest && $result instanceof ListPromptsResult) {
+            return new ListPromptsResultResponse(id: $id, result: $result);
+        }
+
+        if ($request instanceof ListResourcesRequest && $result instanceof ListResourcesResult) {
+            return new ListResourcesResultResponse(id: $id, result: $result);
+        }
+
+        if ($request instanceof ListResourceTemplatesRequest && $result instanceof ListResourceTemplatesResult) {
+            return new ListResourceTemplatesResultResponse(id: $id, result: $result);
+        }
+
+        if ($request instanceof ListToolsRequest && $result instanceof ListToolsResult) {
+            return new ListToolsResultResponse(id: $id, result: $result);
+        }
+
+        if ($request instanceof SubscriptionsListenRequest && $result instanceof SubscriptionsListenResult) {
+            return new SubscriptionsListenResultResponse(id: $id, result: $result);
+        }
+
+        if (
+            ($request instanceof CallToolRequest && $result instanceof TaskHandleResult)
+            || ! \array_key_exists($request::getMethod(), JsonRpcMethodRegistry::requests())
+            || $result instanceof EmptyResult
+        ) {
+            return new GenericResultResponse(id: $id, result: $result);
+        }
+
+        throw new \InvalidArgumentException(\sprintf(
+            'Handler for "%s" returned %s, which is not a valid result for that method.',
+            $request::getMethod(),
+            $result::class,
+        ));
     }
 }

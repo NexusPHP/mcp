@@ -31,7 +31,18 @@ final class DiscoverResultResponseTest extends AbstractMcpTestCase
 {
     public function testRoundTripsTheTypedResult(): void
     {
-        $envelope = ['jsonrpc' => '2.0', 'id' => 1, 'result' => ['_meta' => ['io.modelcontextprotocol/serverInfo' => ['name' => 'test-server', 'version' => '1.0.0']], 'resultType' => 'complete', 'supportedVersions' => ['2026-07-28'], 'capabilities' => [], 'ttlMs' => 0, 'cacheScope' => 'private']];
+        $envelope = [
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'result' => [
+                '_meta' => ['io.modelcontextprotocol/serverInfo' => ['name' => 'test-server', 'version' => '1.0.0']],
+                'resultType' => 'complete',
+                'supportedVersions' => ['2026-07-28'],
+                'capabilities' => [],
+                'ttlMs' => 0,
+                'cacheScope' => 'private',
+            ],
+        ];
 
         $response = DiscoverResultResponse::fromArray($envelope);
 

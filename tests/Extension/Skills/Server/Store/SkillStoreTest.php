@@ -148,7 +148,10 @@ final class SkillStoreTest extends AbstractMcpTestCase
 
     public function testGetFallsBackToTheProviderForAnUnlistedSkill(): void
     {
-        $entry = new Skill('skill://reports/q3/SKILL.md', ['name' => 'q3', 'description' => 'Quarterly report.'], 'dynamic');
+        $entry = new Skill('skill://reports/q3/SKILL.md', [
+            'name' => 'q3',
+            'description' => 'Quarterly report.',
+        ], 'dynamic');
         $provider = new ArraySkillProvider(skills: [$entry->uri => $entry]);
         $store = new SkillStore([self::loadSkill('refunds')], $provider);
 
@@ -186,11 +189,41 @@ final class SkillStoreTest extends AbstractMcpTestCase
 
         self::assertSame(
             [
-                ['git-workflow', self::GIT.'/SKILL.md', 'Follow the team\'s Git conventions for branching and commits.', 'text/markdown', self::sizeOf('git-workflow/SKILL.md')],
-                ['GUIDE.md', self::GIT.'/references/GUIDE.md', null, 'text/markdown', self::sizeOf('git-workflow/references/GUIDE.md')],
-                ['sync.sh', self::GIT.'/scripts/sync.sh', null, 'application/x-sh', self::sizeOf('git-workflow/scripts/sync.sh')],
-                ['message.md', self::GIT.'/templates/commit/message.md', null, 'text/markdown', self::sizeOf('git-workflow/templates/commit/message.md')],
-                ['refunds', 'skill://refunds/SKILL.md', 'Process customer refund requests per company policy.', 'text/markdown', self::sizeOf('refunds/SKILL.md')],
+                [
+                    'git-workflow',
+                    self::GIT.'/SKILL.md',
+                    'Follow the team\'s Git conventions for branching and commits.',
+                    'text/markdown',
+                    self::sizeOf('git-workflow/SKILL.md'),
+                ],
+                [
+                    'GUIDE.md',
+                    self::GIT.'/references/GUIDE.md',
+                    null,
+                    'text/markdown',
+                    self::sizeOf('git-workflow/references/GUIDE.md'),
+                ],
+                [
+                    'sync.sh',
+                    self::GIT.'/scripts/sync.sh',
+                    null,
+                    'application/x-sh',
+                    self::sizeOf('git-workflow/scripts/sync.sh'),
+                ],
+                [
+                    'message.md',
+                    self::GIT.'/templates/commit/message.md',
+                    null,
+                    'text/markdown',
+                    self::sizeOf('git-workflow/templates/commit/message.md'),
+                ],
+                [
+                    'refunds',
+                    'skill://refunds/SKILL.md',
+                    'Process customer refund requests per company policy.',
+                    'text/markdown',
+                    self::sizeOf('refunds/SKILL.md'),
+                ],
             ],
             self::summarise($result->resources),
         );
@@ -223,7 +256,10 @@ final class SkillStoreTest extends AbstractMcpTestCase
         self::assertCount(1, $result->contents);
         self::assertInstanceOf(TextResourceContents::class, $result->contents[0]);
         self::assertSame(self::GIT.'/references/GUIDE.md', $result->contents[0]->uri);
-        self::assertSame(file_get_contents(self::FIXTURES.'/git-workflow/references/GUIDE.md'), $result->contents[0]->text);
+        self::assertSame(
+            file_get_contents(self::FIXTURES.'/git-workflow/references/GUIDE.md'),
+            $result->contents[0]->text,
+        );
         self::assertSame('text/markdown', $result->contents[0]->mimeType);
         self::assertSame(0, $result->ttlMs);
         self::assertSame(CacheScope::Private, $result->cacheScope);
@@ -249,8 +285,13 @@ final class SkillStoreTest extends AbstractMcpTestCase
     {
         $provider = new ArraySkillProvider();
 
-        self::assertNull((new SkillStore([self::loadSkill('refunds')]))->readFile('skill://refunds/missing.md', self::buildContext()));
-        self::assertNull((new SkillStore(provider: $provider))->readFile('skill://reports/q3/missing.md', self::buildContext()));
+        self::assertNull((new SkillStore(
+            [self::loadSkill('refunds')],
+        ))->readFile('skill://refunds/missing.md', self::buildContext()));
+        self::assertNull((new SkillStore(provider: $provider))->readFile(
+            'skill://reports/q3/missing.md',
+            self::buildContext(),
+        ));
         self::assertSame([['findFile', 'skill://reports/q3/missing.md']], $provider->lookups);
     }
 
@@ -271,7 +312,13 @@ final class SkillStoreTest extends AbstractMcpTestCase
 
         self::assertSame(
             [
-                ['git-workflow', self::GIT.'/SKILL.md', 'Follow the team\'s Git conventions for branching and commits.', 'text/markdown', self::sizeOf('git-workflow/SKILL.md')],
+                [
+                    'git-workflow',
+                    self::GIT.'/SKILL.md',
+                    'Follow the team\'s Git conventions for branching and commits.',
+                    'text/markdown',
+                    self::sizeOf('git-workflow/SKILL.md'),
+                ],
                 ['references', self::GIT.'/references', null, Skills::DIRECTORY_MIME_TYPE, null],
                 ['scripts', self::GIT.'/scripts', null, Skills::DIRECTORY_MIME_TYPE, null],
                 ['templates', self::GIT.'/templates', null, Skills::DIRECTORY_MIME_TYPE, null],
@@ -291,7 +338,13 @@ final class SkillStoreTest extends AbstractMcpTestCase
             self::summarise($store->readDirectory(self::GIT.'/templates', null, $context)->resources),
         );
         self::assertSame(
-            [['message.md', self::GIT.'/templates/commit/message.md', null, 'text/markdown', self::sizeOf('git-workflow/templates/commit/message.md')]],
+            [[
+                'message.md',
+                self::GIT.'/templates/commit/message.md',
+                null,
+                'text/markdown',
+                self::sizeOf('git-workflow/templates/commit/message.md'),
+            ]],
             self::summarise($store->readDirectory(self::GIT.'/templates/commit', null, $context)->resources),
         );
     }
@@ -305,11 +358,17 @@ final class SkillStoreTest extends AbstractMcpTestCase
 
         self::assertSame(
             ['walk', 'docs'],
-            array_column(self::summarise($store->readDirectory('skill://walk', null, self::buildContext())->resources), 0),
+            array_column(
+                self::summarise($store->readDirectory('skill://walk', null, self::buildContext())->resources),
+                0,
+            ),
         );
         self::assertSame(
             ['a.md', 'b.md'],
-            array_column(self::summarise($store->readDirectory('skill://walk/docs', null, self::buildContext())->resources), 0),
+            array_column(
+                self::summarise($store->readDirectory('skill://walk/docs', null, self::buildContext())->resources),
+                0,
+            ),
         );
     }
 
@@ -327,7 +386,11 @@ final class SkillStoreTest extends AbstractMcpTestCase
         );
         self::assertSame(
             [['tone & voice.md', 'skill://release-notes/style%20guide/tone%20%26%20voice.md']],
-            self::listNamesAndUris($store->readDirectory('skill://release-notes/style%20guide', null, $context)->resources),
+            self::listNamesAndUris($store->readDirectory(
+                'skill://release-notes/style%20guide',
+                null,
+                $context,
+            )->resources),
         );
     }
 
@@ -361,14 +424,20 @@ final class SkillStoreTest extends AbstractMcpTestCase
         self::assertSame([$children[0]], $first->resources);
         self::assertSame('skill://reports/q3/chart.png', $first->nextCursor?->cursor);
         self::assertSame([$children[1]], $second->resources);
-        self::assertSame([['findDirectory', 'skill://reports/q3'], ['findDirectory', 'skill://reports/q3']], $provider->lookups);
+        self::assertSame([
+            ['findDirectory', 'skill://reports/q3'],
+            ['findDirectory', 'skill://reports/q3'],
+        ], $provider->lookups);
     }
 
     public function testReadDirectoryDoesNotConsultTheProviderForAListedDirectory(): void
     {
         $provider = new ArraySkillProvider();
 
-        (new SkillStore([self::loadSkill('refunds')], $provider))->readDirectory('skill://refunds', null, self::buildContext());
+        (new SkillStore(
+            [self::loadSkill('refunds')],
+            $provider,
+        ))->readDirectory('skill://refunds', null, self::buildContext());
 
         self::assertSame([], $provider->lookups);
     }
@@ -536,7 +605,11 @@ final class SkillStoreTest extends AbstractMcpTestCase
             [[
                 'level' => LogLevel::WARNING,
                 'message' => self::LIMITS_WARNING,
-                'context' => ['uri' => 'skill://big/SKILL.md', 'files' => 513, 'bytes' => (int) filesize($manifest) + 512],
+                'context' => [
+                    'uri' => 'skill://big/SKILL.md',
+                    'files' => 513,
+                    'bytes' => (int) filesize($manifest) + 512,
+                ],
             ]],
             $logger->records,
         );
@@ -556,7 +629,10 @@ final class SkillStoreTest extends AbstractMcpTestCase
     public function testASkillOverTheByteLimitRaisesAWarning(): void
     {
         $manifest = $this->directory->writeManifest('big');
-        $this->directory->write('pad.bin', str_repeat('x', Skills::MAX_BYTES_PER_SKILL - (int) filesize($manifest) + 1));
+        $this->directory->write(
+            'pad.bin',
+            str_repeat('x', Skills::MAX_BYTES_PER_SKILL - (int) filesize($manifest) + 1),
+        );
 
         $logger = new ArrayLogger();
         new SkillStore([new DirectorySkill('big', $this->directory->path)], logger: $logger);
@@ -565,7 +641,11 @@ final class SkillStoreTest extends AbstractMcpTestCase
             [[
                 'level' => LogLevel::WARNING,
                 'message' => self::LIMITS_WARNING,
-                'context' => ['uri' => 'skill://big/SKILL.md', 'files' => 2, 'bytes' => Skills::MAX_BYTES_PER_SKILL + 1],
+                'context' => [
+                    'uri' => 'skill://big/SKILL.md',
+                    'files' => 2,
+                    'bytes' => Skills::MAX_BYTES_PER_SKILL + 1,
+                ],
             ]],
             $logger->records,
         );
@@ -592,7 +672,13 @@ final class SkillStoreTest extends AbstractMcpTestCase
     private static function summarise(array $resources): array
     {
         return array_map(
-            static fn(Resource $resource): array => [$resource->name, $resource->uri, $resource->description, $resource->mimeType, $resource->size],
+            static fn(Resource $resource): array => [
+                $resource->name,
+                $resource->uri,
+                $resource->description,
+                $resource->mimeType,
+                $resource->size,
+            ],
             $resources,
         );
     }

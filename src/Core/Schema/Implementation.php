@@ -50,8 +50,7 @@ final readonly class Implementation extends BaseMetadata implements Arrayable, I
         Assert::that($version)->isNonEmptyString('"version" must be a non-empty string.');
         Assert::that($description)->nullOr()->isNonEmptyString('"description" must be a non-empty string or null.');
         Assert::that($websiteUrl)
-            ->nullOr()
-            ->isNonEmptyString('"websiteUrl" must be a non-empty string or null.')
+            ->nullOr()->isNonEmptyString('"websiteUrl" must be a non-empty string or null.')
             ->matchesRegularExpression('/\Ahttps?:\/\/\S+\z/', '"websiteUrl" must be an HTTP or HTTPS URL.')
         ;
 
@@ -75,18 +74,21 @@ final readonly class Implementation extends BaseMetadata implements Arrayable, I
         Assert::that($title)->nullOr()->isNonEmptyString('"title" must be a non-empty string or null, {type} given.');
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isNonEmptyString('"description" must be a non-empty string or null, {type} given.');
+        Assert::that($description)->nullOr()->isNonEmptyString(
+            '"description" must be a non-empty string or null, {type} given.',
+        );
 
         $websiteUrl = $data['websiteUrl'] ?? null;
-        Assert::that($websiteUrl)->nullOr()->isNonEmptyString('"websiteUrl" must be a non-empty string or null, {type} given.');
+        Assert::that($websiteUrl)->nullOr()->isNonEmptyString(
+            '"websiteUrl" must be a non-empty string or null, {type} given.',
+        );
 
         $icons = null;
 
         if (isset($data['icons'])) {
             Assert::that($data['icons'])
                 ->isList('"icons" must be a list, {type} given.')
-                ->values()
-                ->isArray('each implementation "icons" must be an object, {type} given.')
+                ->values()->isArray('each implementation "icons" must be an object, {type} given.')
                 ->isMap('each implementation "icons" must be a string-keyed object.')
             ;
             $icons = array_map(Icon::fromArray(...), $data['icons']);

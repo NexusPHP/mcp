@@ -110,7 +110,10 @@ final class ListToolsResultTest extends AbstractMcpTestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $result = new ListToolsResult(tools: [new Tool(name: 'read-file', inputSchema: ['type' => 'object'])], ttlMs: 0, cacheScope: CacheScope::Private);
+        $result = new ListToolsResult(tools: [new Tool(
+            name: 'read-file',
+            inputSchema: ['type' => 'object'],
+        )], ttlMs: 0, cacheScope: CacheScope::Private);
 
         self::assertSame($result->toArray(), $result->jsonSerialize());
     }

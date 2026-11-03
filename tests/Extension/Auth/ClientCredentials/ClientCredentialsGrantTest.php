@@ -75,7 +75,14 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
         $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse());
         $grant = new ClientCredentialsGrant(new ClientSecretCredential('the-client', 'the-secret'));
 
-        $token = $grant->grant($this->buildContext($http, $this->buildMetadata(), new ScopeSet(['files:read', 'files:write'])), new NullCancellation());
+        $token = $grant->grant(
+            $this->buildContext(
+                $http,
+                $this->buildMetadata(),
+                new ScopeSet(['files:read', 'files:write']),
+            ),
+            new NullCancellation(),
+        );
 
         self::assertSame(['files:read', 'files:write'], $token->scopes);
         self::assertSame([
@@ -88,7 +95,11 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
     public function testGrantSignsAndPresentsAClientAssertion(): void
     {
         $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse());
-        $grant = new ClientCredentialsGrant(new PrivateKeyJwtCredential('the-client', $this->generatePrivateKey(), 'ES256'));
+        $grant = new ClientCredentialsGrant(new PrivateKeyJwtCredential(
+            'the-client',
+            $this->generatePrivateKey(),
+            'ES256',
+        ));
 
         $token = $grant->grant(
             $this->buildContext($http, $this->buildMetadata(methods: ['private_key_jwt'], algorithms: ['ES256'])),
@@ -107,7 +118,10 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
         );
         self::assertSame('client_credentials', $form['grant_type'] ?? null);
         self::assertSame(self::RESOURCE, $form['resource'] ?? null);
-        self::assertSame('urn:ietf:params:oauth:client-assertion-type:jwt-bearer', $form['client_assertion_type'] ?? null);
+        self::assertSame(
+            'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+            $form['client_assertion_type'] ?? null,
+        );
         self::assertSame(self::ISSUER, $this->readClaims($form['client_assertion'] ?? '')['aud'] ?? null);
     }
 
@@ -118,28 +132,51 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not advertise the "client_secret_basic" token endpoint authentication method.');
 
-        $grant->grant($this->buildContext(new RecordingHttpClient(), $this->buildMetadata(methods: null)), new NullCancellation());
+        $grant->grant(
+            $this->buildContext(new RecordingHttpClient(), $this->buildMetadata(methods: null)),
+            new NullCancellation(),
+        );
     }
 
     public function testAMethodListWithoutTheConfiguredMethodIsRefused(): void
     {
-        $grant = new ClientCredentialsGrant(new PrivateKeyJwtCredential('the-client', $this->generatePrivateKey(), 'ES256'));
+        $grant = new ClientCredentialsGrant(new PrivateKeyJwtCredential(
+            'the-client',
+            $this->generatePrivateKey(),
+            'ES256',
+        ));
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not advertise the "private_key_jwt" token endpoint authentication method.');
 
-        $grant->grant($this->buildContext(new RecordingHttpClient(), $this->buildMetadata(methods: ['client_secret_basic'])), new NullCancellation());
+        $grant->grant(
+            $this->buildContext(
+                new RecordingHttpClient(),
+                $this->buildMetadata(methods: ['client_secret_basic']),
+            ),
+            new NullCancellation(),
+        );
     }
 
     public function testAnAlgorithmListWithoutTheConfiguredAlgorithmIsRefused(): void
     {
-        $grant = new ClientCredentialsGrant(new PrivateKeyJwtCredential('the-client', $this->generatePrivateKey(), 'ES256'));
+        $grant = new ClientCredentialsGrant(new PrivateKeyJwtCredential(
+            'the-client',
+            $this->generatePrivateKey(),
+            'ES256',
+        ));
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not advertise the "ES256" client assertion signing algorithm.');
 
         $grant->grant(
-            $this->buildContext(new RecordingHttpClient(), $this->buildMetadata(methods: ['private_key_jwt'], algorithms: ['RS256'])),
+            $this->buildContext(
+                new RecordingHttpClient(),
+                $this->buildMetadata(
+                    methods: ['private_key_jwt'],
+                    algorithms: ['RS256'],
+                ),
+            ),
             new NullCancellation(),
         );
     }
@@ -193,7 +230,10 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
         );
 
         try {
-            $grant->grant($this->buildContext($http, $this->buildMetadata(), options: $options), new NullCancellation());
+            $grant->grant(
+                $this->buildContext($http, $this->buildMetadata(), options: $options),
+                new NullCancellation(),
+            );
             self::fail('The grant should have been refused.');
         } catch (RuntimeException $e) {
             self::assertSame(
@@ -207,7 +247,11 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
     public function testACredentialRegisteredWithAnotherAuthorizationServerIsRefused(): void
     {
         $http = new RecordingHttpClient();
-        $grant = new ClientCredentialsGrant(new ClientSecretCredential('the-client', 'the-secret', 'https://login.example.com'));
+        $grant = new ClientCredentialsGrant(new ClientSecretCredential(
+            'the-client',
+            'the-secret',
+            'https://login.example.com',
+        ));
 
         try {
             $grant->grant($this->buildContext($http, $this->buildMetadata()), new NullCancellation());
@@ -233,7 +277,9 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
 
     public function testItRenewsByAFreshGrant(): void
     {
-        self::assertTrue((new ClientCredentialsGrant(new ClientSecretCredential('the-client', 'the-secret')))->renewsByFreshGrant());
+        self::assertTrue((new ClientCredentialsGrant(
+            new ClientSecretCredential('the-client', 'the-secret'),
+        ))->renewsByFreshGrant());
     }
 
     /**
@@ -282,7 +328,12 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
     {
         $key = openssl_pkey_new(['curve_name' => 'prime256v1', 'private_key_type' => \OPENSSL_KEYTYPE_EC]);
 
-        if (false === $key || ! openssl_pkey_export($key, $privatePem) || ! \is_string($privatePem) || '' === $privatePem) {
+        if (
+            false === $key
+            || ! openssl_pkey_export($key, $privatePem)
+            || ! \is_string($privatePem)
+            || '' === $privatePem
+        ) {
             self::fail('The EC key could not be generated.');
         }
 

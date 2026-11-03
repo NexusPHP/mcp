@@ -37,7 +37,10 @@ final class PkceNotSupportedExceptionTest extends AbstractMcpTestCase
     public function testBoundsAndEscapesAHostileIssuer(): void
     {
         self::assertSame(
-            \sprintf('The authorization server "%s..." does not advertise the S256 code challenge method, so authorization cannot proceed.', str_repeat('i', 253)),
+            \sprintf(
+                'The authorization server "%s..." does not advertise the S256 code challenge method, so authorization cannot proceed.',
+                str_repeat('i', 253),
+            ),
             (new PkceNotSupportedException(str_repeat('i', 300)."\x1b"))->getMessage(),
         );
     }

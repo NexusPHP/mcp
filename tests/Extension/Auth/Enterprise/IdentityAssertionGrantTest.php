@@ -64,7 +64,10 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
         $logger = new ArrayLogger();
         $grant = new IdentityAssertionGrant(self::IDP_ENDPOINT, $this->buildProvider(), 'the-idp-client');
 
-        $token = $grant->grant($this->buildContext($http, $this->buildMetadata(), $this->buildPreRegisteredOptions(), logger: $logger), new NullCancellation());
+        $token = $grant->grant(
+            $this->buildContext($http, $this->buildMetadata(), $this->buildPreRegisteredOptions(), logger: $logger),
+            new NullCancellation(),
+        );
 
         self::assertSame('the-access-token', $token->value);
         self::assertSame(self::ISSUER, $token->issuer);
@@ -90,7 +93,10 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
             'resource' => self::RESOURCE,
         ], $this->readForm($redemption));
 
-        $records = $logger->recordsMatching(LogLevel::INFO, 'The authorization server {issuer} publishes no authorization grant profiles, so ID-JAG support is taken on trust.');
+        $records = $logger->recordsMatching(
+            LogLevel::INFO,
+            'The authorization server {issuer} publishes no authorization grant profiles, so ID-JAG support is taken on trust.',
+        );
         self::assertCount(1, $records);
         self::assertSame(['issuer' => self::ISSUER], $records[0]['context']);
     }
@@ -104,7 +110,12 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
         $grant = new IdentityAssertionGrant(self::IDP_ENDPOINT, $this->buildProvider());
 
         $token = $grant->grant(
-            $this->buildContext($http, $this->buildMetadata(), $this->buildPreRegisteredOptions(), new ScopeSet(['files:read'])),
+            $this->buildContext(
+                $http,
+                $this->buildMetadata(),
+                $this->buildPreRegisteredOptions(),
+                new ScopeSet(['files:read']),
+            ),
             new NullCancellation(),
         );
 
@@ -120,7 +131,11 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
         $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not advertise the "urn:ietf:params:oauth:grant-type:jwt-bearer" grant type.');
 
         $grant->grant(
-            $this->buildContext(new RecordingHttpClient(), $this->buildMetadata(grantTypes: ['client_credentials']), $this->buildPreRegisteredOptions()),
+            $this->buildContext(
+                new RecordingHttpClient(),
+                $this->buildMetadata(grantTypes: ['client_credentials']),
+                $this->buildPreRegisteredOptions(),
+            ),
             new NullCancellation(),
         );
     }
@@ -133,7 +148,11 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
         $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not advertise the "urn:ietf:params:oauth:grant-profile:id-jag" authorization grant profile.');
 
         $grant->grant(
-            $this->buildContext(new RecordingHttpClient(), $this->buildMetadata(profiles: ['urn:example:other-profile']), $this->buildPreRegisteredOptions()),
+            $this->buildContext(
+                new RecordingHttpClient(),
+                $this->buildMetadata(profiles: ['urn:example:other-profile']),
+                $this->buildPreRegisteredOptions(),
+            ),
             new NullCancellation(),
         );
     }
@@ -148,7 +167,14 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
         $grant = new IdentityAssertionGrant(self::IDP_ENDPOINT, $this->buildProvider());
 
         $token = $grant->grant(
-            $this->buildContext($http, $this->buildMetadata(profiles: ['urn:ietf:params:oauth:grant-profile:id-jag']), $this->buildPreRegisteredOptions(), logger: $logger),
+            $this->buildContext(
+                $http,
+                $this->buildMetadata(profiles: [
+                    'urn:ietf:params:oauth:grant-profile:id-jag',
+                ]),
+                $this->buildPreRegisteredOptions(),
+                logger: $logger,
+            ),
             new NullCancellation(),
         );
 
@@ -162,7 +188,10 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
         $grant = new IdentityAssertionGrant(self::IDP_ENDPOINT, $this->buildProvider());
 
         try {
-            $grant->grant($this->buildContext($http, $this->buildMetadata(), new AuthorizationOptions('Example MCP Client')), new NullCancellation());
+            $grant->grant(
+                $this->buildContext($http, $this->buildMetadata(), new AuthorizationOptions('Example MCP Client')),
+                new NullCancellation(),
+            );
             self::fail('The grant should have been refused.');
         } catch (RuntimeException $e) {
             self::assertSame(
@@ -195,7 +224,11 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
         $grant = new IdentityAssertionGrant(self::IDP_ENDPOINT, $this->buildProvider());
 
         $token = $grant->grant(
-            $this->buildContext($http, $this->buildMetadata(clientIdMetadataDocumentSupported: true), $this->buildCimdOptions()),
+            $this->buildContext(
+                $http,
+                $this->buildMetadata(clientIdMetadataDocumentSupported: true),
+                $this->buildCimdOptions(),
+            ),
             new NullCancellation(),
         );
 
@@ -213,7 +246,10 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
 
     public function testItRenewsByAFreshGrant(): void
     {
-        self::assertTrue((new IdentityAssertionGrant(self::IDP_ENDPOINT, $this->buildProvider()))->renewsByFreshGrant());
+        self::assertTrue((new IdentityAssertionGrant(
+            self::IDP_ENDPOINT,
+            $this->buildProvider(),
+        ))->renewsByFreshGrant());
     }
 
     public function testAnEmptyIdpTokenEndpointIsRefused(): void
@@ -272,13 +308,21 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
     {
         return new AuthorizationOptions(
             'Example MCP Client',
-            preRegistered: new ClientRegistration('the-client', null, 'the-secret', TokenEndpointAuthMethod::ClientSecretBasic),
+            preRegistered: new ClientRegistration(
+                'the-client',
+                null,
+                'the-secret',
+                TokenEndpointAuthMethod::ClientSecretBasic,
+            ),
         );
     }
 
     private function buildCimdOptions(): AuthorizationOptions
     {
-        return new AuthorizationOptions('Example MCP Client', clientIdMetadataDocumentUrl: 'https://app.example.com/client.json');
+        return new AuthorizationOptions(
+            'Example MCP Client',
+            clientIdMetadataDocumentUrl: 'https://app.example.com/client.json',
+        );
     }
 
     /**

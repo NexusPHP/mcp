@@ -123,9 +123,7 @@ final class ReflectedCompletionProviderTest extends AbstractMcpTestCase
         };
 
         $this->expectException(UnsupportedReturnValueException::class);
-        $this->expectExceptionMessageMatches(
-            '/^class@anonymous.*::complete\(\) must return a Nexus\\\Mcp\\\Core\\\Schema\\\Result\\\CompleteResult or a list of strings, int given\.$/',
-        );
+        $this->expectExceptionMessageMatches('/^class@anonymous.*::complete\(\) must return a Nexus\\\Mcp\\\Core\\\Schema\\\Result\\\CompleteResult or a list of strings, int given\.$/');
 
         $this->buildProvider($source)->complete('eu', null, $this->makeContext());
     }
@@ -143,9 +141,7 @@ final class ReflectedCompletionProviderTest extends AbstractMcpTestCase
         };
 
         $this->expectException(UnsupportedReturnValueException::class);
-        $this->expectExceptionMessageMatches(
-            '/^class@anonymous.*::complete\(\) must return a Nexus\\\Mcp\\\Core\\\Schema\\\Result\\\CompleteResult or a list of strings, array given\.$/',
-        );
+        $this->expectExceptionMessageMatches('/^class@anonymous.*::complete\(\) must return a Nexus\\\Mcp\\\Core\\\Schema\\\Result\\\CompleteResult or a list of strings, array given\.$/');
 
         $this->buildProvider($source)->complete('eu', null, $this->makeContext());
     }
@@ -163,9 +159,7 @@ final class ReflectedCompletionProviderTest extends AbstractMcpTestCase
         };
 
         $this->expectException(UnsupportedReturnValueException::class);
-        $this->expectExceptionMessageMatches(
-            '/^class@anonymous.*::complete\(\) must return a Nexus\\\Mcp\\\Core\\\Schema\\\Result\\\CompleteResult or a list of strings, array given\.$/',
-        );
+        $this->expectExceptionMessageMatches('/^class@anonymous.*::complete\(\) must return a Nexus\\\Mcp\\\Core\\\Schema\\\Result\\\CompleteResult or a list of strings, array given\.$/');
 
         $this->buildProvider($source)->complete('eu', null, $this->makeContext());
     }

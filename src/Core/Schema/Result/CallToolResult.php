@@ -65,12 +65,14 @@ final readonly class CallToolResult extends Result implements ServerResult
         Assert::that($data)->hasOffset('content', '"result" is missing the required "content" key.');
         Assert::that($data['content'])
             ->isList('"result.content" must be a list, {type} given.')
-            ->values()
-            ->isArray('each "result.content" must be an object, {type} given.')
+            ->values()->isArray('each "result.content" must be an object, {type} given.')
             ->isMap('each "result.content" must be a string-keyed object.')
         ;
         $content = array_map(
-            static fn(array $block): AudioContent|EmbeddedResource|ImageContent|ResourceLink|TextContent => ContentBlockDispatcher::fromArray($block, 'CallToolResult content'),
+            static fn(array $block): AudioContent|EmbeddedResource|ImageContent|ResourceLink|TextContent => ContentBlockDispatcher::fromArray(
+                $block,
+                'CallToolResult content',
+            ),
             $data['content'],
         );
 

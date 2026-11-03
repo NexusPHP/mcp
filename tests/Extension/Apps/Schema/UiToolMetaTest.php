@@ -116,12 +116,24 @@ final class UiToolMetaTest extends AbstractMcpTestCase
      */
     public static function provideFromArrayRejectsMalformedInputCases(): iterable
     {
-        yield 'resourceUri int' => [123, 'resourceUri', '"_meta.ui.resourceUri" must be a non-empty string or null, int given.'];
+        yield 'resourceUri int' => [
+            123,
+            'resourceUri',
+            '"_meta.ui.resourceUri" must be a non-empty string or null, int given.',
+        ];
 
-        yield 'resourceUri empty' => ['', 'resourceUri', '"_meta.ui.resourceUri" must be a non-empty string or null, string given.'];
+        yield 'resourceUri empty' => [
+            '',
+            'resourceUri',
+            '"_meta.ui.resourceUri" must be a non-empty string or null, string given.',
+        ];
 
         yield 'visibility non-list' => ['model', 'visibility', '"_meta.ui.visibility" must be a list, string given.'];
 
-        yield 'visibility unknown value' => [['nope'], 'visibility', 'each "_meta.ui.visibility" must be one of [\'model\', \'app\'], \'nope\' given.'];
+        yield 'visibility unknown value' => [
+            ['nope'],
+            'visibility',
+            'each "_meta.ui.visibility" must be one of [\'model\', \'app\'], \'nope\' given.',
+        ];
     }
 }

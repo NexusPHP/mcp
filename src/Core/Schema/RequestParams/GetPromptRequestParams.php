@@ -49,7 +49,9 @@ final readonly class GetPromptRequestParams extends InputResponseRequestParams
         Assert::that($name)->isNonEmptyString('"params.name" must be a non-empty string, {type} given.');
 
         if (null !== $arguments) {
-            Assert::that($arguments)->values()->isString('"params.arguments" values must all be strings, {type} given.');
+            Assert::that($arguments)->values()->isString(
+                '"params.arguments" values must all be strings, {type} given.',
+            );
         }
 
         parent::__construct(inputResponses: $inputResponses, requestState: $requestState, meta: $meta);
@@ -80,8 +82,7 @@ final readonly class GetPromptRequestParams extends InputResponseRequestParams
                 ->keys()->isIntOrNonEmptyString('each "params.inputResponses" key must be an int or non-empty string.')
             ;
             Assert::that($data['inputResponses'])
-                ->values()
-                ->isArray('each "params.inputResponses" entry must be an object, {type} given.')
+                ->values()->isArray('each "params.inputResponses" entry must be an object, {type} given.')
                 ->isMap('each "params.inputResponses" entry must be a string-keyed object.')
             ;
             $inputResponses = array_map(ElicitResult::fromArray(...), $data['inputResponses']);

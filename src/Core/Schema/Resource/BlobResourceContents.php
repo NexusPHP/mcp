@@ -52,7 +52,9 @@ final readonly class BlobResourceContents extends ResourceContents
         Assert::that($blob)->isString('blob resource contents "blob" must be a string, {type} given.');
 
         $mimeType = $data['mimeType'] ?? null;
-        Assert::that($mimeType)->nullOr()->isNonEmptyString('blob resource contents "mimeType" must be a non-empty string or null, {type} given.');
+        Assert::that($mimeType)->nullOr()->isNonEmptyString(
+            'blob resource contents "mimeType" must be a non-empty string or null, {type} given.',
+        );
 
         $meta = new PayloadMetaObject();
 

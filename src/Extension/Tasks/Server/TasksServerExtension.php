@@ -95,8 +95,16 @@ final readonly class TasksServerExtension implements RequestHandlerDecoratorInte
     {
         return [
             GetTaskRequest::getMethod() => new GetTaskRequestHandler($this->store, $this->operationScopes),
-            UpdateTaskRequest::getMethod() => new UpdateTaskRequestHandler($this->store, $this->runner, $this->operationScopes),
-            CancelTaskRequest::getMethod() => new CancelTaskRequestHandler($this->store, $this->cancellations, $this->operationScopes),
+            UpdateTaskRequest::getMethod() => new UpdateTaskRequestHandler(
+                $this->store,
+                $this->runner,
+                $this->operationScopes,
+            ),
+            CancelTaskRequest::getMethod() => new CancelTaskRequestHandler(
+                $this->store,
+                $this->cancellations,
+                $this->operationScopes,
+            ),
         ];
     }
 

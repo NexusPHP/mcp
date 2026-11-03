@@ -35,13 +35,18 @@ final class SubscriptionsAcknowledgedNotificationTest extends AbstractMcpTestCas
 {
     public function testMethod(): void
     {
-        self::assertSame('notifications/subscriptions/acknowledged', SubscriptionsAcknowledgedNotification::getMethod());
+        self::assertSame(
+            'notifications/subscriptions/acknowledged',
+            SubscriptionsAcknowledgedNotification::getMethod(),
+        );
     }
 
     public function testToArray(): void
     {
         $notification = new SubscriptionsAcknowledgedNotification(
-            params: new SubscriptionsAcknowledgedNotificationParams(notifications: new SubscriptionFilter(toolsListChanged: true)),
+            params: new SubscriptionsAcknowledgedNotificationParams(
+                notifications: new SubscriptionFilter(toolsListChanged: true),
+            ),
         );
 
         self::assertSame(
@@ -57,7 +62,9 @@ final class SubscriptionsAcknowledgedNotificationTest extends AbstractMcpTestCas
     public function testJsonSerializeMatchesToArrayWhenFilterNonEmpty(): void
     {
         $notification = new SubscriptionsAcknowledgedNotification(
-            params: new SubscriptionsAcknowledgedNotificationParams(notifications: new SubscriptionFilter(toolsListChanged: true)),
+            params: new SubscriptionsAcknowledgedNotificationParams(
+                notifications: new SubscriptionFilter(toolsListChanged: true),
+            ),
         );
 
         self::assertSame($notification->toArray(), $notification->jsonSerialize());

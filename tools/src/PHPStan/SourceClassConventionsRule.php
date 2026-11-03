@@ -162,13 +162,19 @@ final class SourceClassConventionsRule implements Rule
         if ($reflection->isInterface()) {
             return str_ends_with($name, 'Interface')
                 ? []
-                : [$this->buildNamingError('Interface "%s" outside src/Core/Schema/ must use the *Interface suffix.', $class)];
+                : [$this->buildNamingError(
+                    'Interface "%s" outside src/Core/Schema/ must use the *Interface suffix.',
+                    $class,
+                )];
         }
 
         if ($reflection->isAbstract()) {
             return str_starts_with($name, 'Abstract')
                 ? []
-                : [$this->buildNamingError('Abstract class "%s" outside src/Core/Schema/ must use the Abstract* prefix.', $class)];
+                : [$this->buildNamingError(
+                    'Abstract class "%s" outside src/Core/Schema/ must use the Abstract* prefix.',
+                    $class,
+                )];
         }
 
         if ($reflection->isFinal()) {

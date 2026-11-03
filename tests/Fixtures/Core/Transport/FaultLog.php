@@ -38,6 +38,8 @@ final class FaultLog
 
     public function readFault(int $index = 0): \Throwable
     {
-        return $this->faults[$index] ?? throw new \OutOfBoundsException(\sprintf('No fault was recorded at index %d.', $index));
+        return $this->faults[$index] ?? throw new \OutOfBoundsException(
+            \sprintf('No fault was recorded at index %d.', $index),
+        );
     }
 }

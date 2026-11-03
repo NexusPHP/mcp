@@ -144,7 +144,11 @@ final class ReadResourceRequestParamsTest extends AbstractMcpTestCase
 
     public function testToArrayOmitsEmptyInputResponses(): void
     {
-        $params = new ReadResourceRequestParams(uri: 'file:///x', meta: RequestMetaObjectFactory::create(), inputResponses: []);
+        $params = new ReadResourceRequestParams(
+            uri: 'file:///x',
+            meta: RequestMetaObjectFactory::create(),
+            inputResponses: [],
+        );
 
         self::assertNull($params->inputResponses);
         self::assertSame(

@@ -33,7 +33,9 @@ final class SubscriptionsAcknowledgedNotificationParamsTest extends AbstractMcpT
 {
     public function testConstructionMinimal(): void
     {
-        $params = new SubscriptionsAcknowledgedNotificationParams(notifications: new SubscriptionFilter(toolsListChanged: true));
+        $params = new SubscriptionsAcknowledgedNotificationParams(
+            notifications: new SubscriptionFilter(toolsListChanged: true),
+        );
 
         self::assertTrue($params->notifications->toolsListChanged);
         self::assertSame([], $params->meta->toArray());
@@ -41,7 +43,9 @@ final class SubscriptionsAcknowledgedNotificationParamsTest extends AbstractMcpT
 
     public function testToArrayMinimal(): void
     {
-        $params = new SubscriptionsAcknowledgedNotificationParams(notifications: new SubscriptionFilter(toolsListChanged: true));
+        $params = new SubscriptionsAcknowledgedNotificationParams(
+            notifications: new SubscriptionFilter(toolsListChanged: true),
+        );
 
         self::assertSame(['notifications' => ['toolsListChanged' => true]], $params->toArray());
     }

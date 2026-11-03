@@ -31,7 +31,16 @@ final class ListResourcesResultResponseTest extends AbstractMcpTestCase
 {
     public function testRoundTripsTheTypedResult(): void
     {
-        $envelope = ['jsonrpc' => '2.0', 'id' => 1, 'result' => ['resultType' => 'complete', 'resources' => [['name' => 'sample', 'uri' => 'file:///tmp/sample']], 'ttlMs' => 0, 'cacheScope' => 'private']];
+        $envelope = [
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'result' => [
+                'resultType' => 'complete',
+                'resources' => [['name' => 'sample', 'uri' => 'file:///tmp/sample']],
+                'ttlMs' => 0,
+                'cacheScope' => 'private',
+            ],
+        ];
 
         $response = ListResourcesResultResponse::fromArray($envelope);
 

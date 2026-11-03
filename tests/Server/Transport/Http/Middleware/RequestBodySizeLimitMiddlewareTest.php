@@ -100,7 +100,10 @@ final class RequestBodySizeLimitMiddlewareTest extends AbstractMcpTestCase
         $handler = $this->buildRecordingHandler();
         $content = str_repeat('a', 1_024);
 
-        $response = $this->buildMiddleware(1_024)->process($this->buildRequestWithBody(new CountingStream($content)), $handler);
+        $response = $this->buildMiddleware(1_024)->process(
+            $this->buildRequestWithBody(new CountingStream($content)),
+            $handler,
+        );
 
         self::assertTrue($handler->called);
         self::assertSame(200, $response->getStatusCode());

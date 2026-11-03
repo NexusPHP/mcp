@@ -34,7 +34,9 @@ final class ReflectedResourceResultTest extends AbstractMcpTestCase
 {
     public function testReturnsReadResourceResultUnchanged(): void
     {
-        $expected = new ReadResourceResult(contents: [new TextResourceContents(uri: 'mem://x', text: 'body')], ttlMs: 0, cacheScope: CacheScope::Private);
+        $expected = new ReadResourceResult(contents: [
+            new TextResourceContents(uri: 'mem://x', text: 'body'),
+        ], ttlMs: 0, cacheScope: CacheScope::Private);
 
         self::assertSame($expected, $this->adapt($expected));
     }
@@ -66,7 +68,10 @@ final class ReflectedResourceResultTest extends AbstractMcpTestCase
 
     public function testReturnsResourceContentsList(): void
     {
-        $list = [new TextResourceContents(uri: 'mem://t', text: 't'), new BlobResourceContents(uri: 'mem://b', blob: 'YmJi')];
+        $list = [
+            new TextResourceContents(uri: 'mem://t', text: 't'),
+            new BlobResourceContents(uri: 'mem://b', blob: 'YmJi'),
+        ];
 
         $result = $this->adapt($list);
 
@@ -109,7 +114,11 @@ final class ReflectedResourceResultTest extends AbstractMcpTestCase
      */
     private function adapt(mixed $result, string $uri = 'mem://resource'): ReadResourceResult
     {
-        $adapted = ReflectedResourceResult::adapt($result, $uri, new \ReflectionMethod(ReflectedHandlers::class, 'resourceResult'));
+        $adapted = ReflectedResourceResult::adapt(
+            $result,
+            $uri,
+            new \ReflectionMethod(ReflectedHandlers::class, 'resourceResult'),
+        );
 
         self::assertInstanceOf(ReadResourceResult::class, $adapted);
 

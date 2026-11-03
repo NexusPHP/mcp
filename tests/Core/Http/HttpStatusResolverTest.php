@@ -48,9 +48,17 @@ final class HttpStatusResolverTest extends AbstractMcpTestCase
 
         yield 'pre-dispatch header mismatch' => [ProtocolErrorCode::HeaderMismatch->value, false, 400];
 
-        yield 'pre-dispatch missing required client capability' => [ProtocolErrorCode::MissingRequiredClientCapability->value, false, 400];
+        yield 'pre-dispatch missing required client capability' => [
+            ProtocolErrorCode::MissingRequiredClientCapability->value,
+            false,
+            400,
+        ];
 
-        yield 'pre-dispatch unsupported protocol version' => [ProtocolErrorCode::UnsupportedProtocolVersion->value, false, 400];
+        yield 'pre-dispatch unsupported protocol version' => [
+            ProtocolErrorCode::UnsupportedProtocolVersion->value,
+            false,
+            400,
+        ];
 
         yield 'pre-dispatch internal error defaults to 400' => [ProtocolErrorCode::InternalError->value, false, 400];
 
@@ -68,6 +76,10 @@ final class HttpStatusResolverTest extends AbstractMcpTestCase
 
         yield 'handler error ignores a parse-error code' => [ProtocolErrorCode::ParseError->value, true, 200];
 
-        yield 'handler error keeps 400 for a missing client capability' => [ProtocolErrorCode::MissingRequiredClientCapability->value, true, 400];
+        yield 'handler error keeps 400 for a missing client capability' => [
+            ProtocolErrorCode::MissingRequiredClientCapability->value,
+            true,
+            400,
+        ];
     }
 }

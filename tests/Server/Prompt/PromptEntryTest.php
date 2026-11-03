@@ -32,9 +32,7 @@ final class PromptEntryTest extends AbstractMcpTestCase
     public function testExposesPromptAndRenderer(): void
     {
         $prompt = new Prompt(name: 'greeting');
-        $renderer = new ClosurePromptRenderer(
-            static fn(): GetPromptResult => new GetPromptResult(messages: []),
-        );
+        $renderer = new ClosurePromptRenderer(static fn(): GetPromptResult => new GetPromptResult(messages: []));
 
         $entry = new PromptEntry($prompt, $renderer);
 

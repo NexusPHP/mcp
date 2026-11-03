@@ -60,11 +60,13 @@ final readonly class ListResourceTemplatesResult extends PaginatedResult impleme
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('resourceTemplates', '"result" is missing the required "resourceTemplates" key.');
+        Assert::that($data)->hasOffset(
+            'resourceTemplates',
+            '"result" is missing the required "resourceTemplates" key.',
+        );
         Assert::that($data['resourceTemplates'])
             ->isList('"result.resourceTemplates" must be a list, {type} given.')
-            ->values()
-            ->isArray('each "result.resourceTemplate" must be an object, {type} given.')
+            ->values()->isArray('each "result.resourceTemplate" must be an object, {type} given.')
             ->isMap('each "result.resourceTemplate" must be a string-keyed object.')
         ;
         $resourceTemplates = array_map(ResourceTemplate::fromArray(...), $data['resourceTemplates']);
@@ -74,7 +76,10 @@ final readonly class ListResourceTemplatesResult extends PaginatedResult impleme
         Assert::that($ttlMs)->isInt('"result.ttlMs" must be an integer, {type} given.');
 
         Assert::that($data)->hasOffset('cacheScope', '"result" is missing the required "cacheScope" key.');
-        Assert::that($data['cacheScope'])->isOneOf(array_column(CacheScope::cases(), 'value'), '"result.cacheScope" must be one of {choices}, {value} given.');
+        Assert::that($data['cacheScope'])->isOneOf(
+            array_column(CacheScope::cases(), 'value'),
+            '"result.cacheScope" must be one of {choices}, {value} given.',
+        );
         $cacheScope = CacheScope::from($data['cacheScope']);
 
         $nextCursor = null;

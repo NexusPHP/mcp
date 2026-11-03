@@ -85,7 +85,12 @@ final class ClientAssertionSignerTest extends AbstractMcpTestCase
     {
         $key = openssl_pkey_new(['curve_name' => 'prime256v1', 'private_key_type' => \OPENSSL_KEYTYPE_EC]);
 
-        if (false === $key || ! openssl_pkey_export($key, $privatePem) || ! \is_string($privatePem) || '' === $privatePem) {
+        if (
+            false === $key
+            || ! openssl_pkey_export($key, $privatePem)
+            || ! \is_string($privatePem)
+            || '' === $privatePem
+        ) {
             self::fail('The EC key pair could not be generated.');
         }
 

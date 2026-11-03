@@ -144,10 +144,18 @@ final class UiResourceMetaTest extends AbstractMcpTestCase
 
         yield 'permissions non-array' => [true, 'permissions', '"_meta.ui.permissions" must be an array, bool given.'];
 
-        yield 'permissions int-keyed' => [['camera'], 'permissions', '"_meta.ui.permissions" must be a string-keyed object.'];
+        yield 'permissions int-keyed' => [
+            ['camera'],
+            'permissions',
+            '"_meta.ui.permissions" must be a string-keyed object.',
+        ];
 
         yield 'domain non-string' => [123, 'domain', '"_meta.ui.domain" must be a non-empty string or null.'];
 
-        yield 'prefersBorder non-bool' => ['yes', 'prefersBorder', '"_meta.ui.prefersBorder" must be a bool or null, string given.'];
+        yield 'prefersBorder non-bool' => [
+            'yes',
+            'prefersBorder',
+            '"_meta.ui.prefersBorder" must be a bool or null, string given.',
+        ];
     }
 }

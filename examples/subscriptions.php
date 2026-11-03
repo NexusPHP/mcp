@@ -81,11 +81,12 @@ try {
     delay(0.1);
 
     fwrite(\STDOUT, "\n=== the server grows a tool at runtime ===\n");
+    $closure = static fn(?array $args, ServerContext $context): CallToolResult => new CallToolResult(content: [
+        new TextContent(text: 'echo'),
+    ]);
     $toolStore->addTool(
         new Tool(name: 'echo', inputSchema: ['type' => 'object'], description: 'Echoes its input.'),
-        new ClosureToolExecutor(static fn(?array $args, ServerContext $context): CallToolResult => new CallToolResult(content: [
-            new TextContent(text: 'echo'),
-        ])),
+        new ClosureToolExecutor($closure),
     );
 
     // Announcements coalesce per event-loop tick, so give the loop one between mutations.

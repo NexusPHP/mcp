@@ -72,7 +72,11 @@ final class ImageContentTest extends AbstractMcpTestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $content = new ImageContent(data: 'aGVsbG8=', mimeType: 'image/png', meta: new PayloadMetaObject(extras: ['k' => 'v']));
+        $content = new ImageContent(
+            data: 'aGVsbG8=',
+            mimeType: 'image/png',
+            meta: new PayloadMetaObject(extras: ['k' => 'v']),
+        );
 
         self::assertSame($content->toArray(), $content->jsonSerialize());
     }

@@ -82,7 +82,9 @@ final class RequestMetaObjectTest extends AbstractMcpTestCase
             [
                 RequestMetaObject::PROTOCOL_VERSION_KEY => '2026-07-28',
                 RequestMetaObject::CLIENT_INFO_KEY => ['name' => 'client', 'version' => '1.0.0'],
-                RequestMetaObject::CLIENT_CAPABILITIES_KEY => ['experimental' => ['acme.experimental' => ['enabled' => true]]],
+                RequestMetaObject::CLIENT_CAPABILITIES_KEY => ['experimental' => [
+                    'acme.experimental' => ['enabled' => true],
+                ]],
             ],
             $meta->toArray(),
         );
@@ -103,7 +105,9 @@ final class RequestMetaObjectTest extends AbstractMcpTestCase
             [
                 RequestMetaObject::PROTOCOL_VERSION_KEY => '2026-07-28',
                 RequestMetaObject::CLIENT_INFO_KEY => ['name' => 'client', 'version' => '1.0.0'],
-                RequestMetaObject::CLIENT_CAPABILITIES_KEY => ['experimental' => ['acme.experimental' => ['enabled' => true]]],
+                RequestMetaObject::CLIENT_CAPABILITIES_KEY => ['experimental' => [
+                    'acme.experimental' => ['enabled' => true],
+                ]],
                 RequestMetaObject::LOG_LEVEL_KEY => 'warning',
                 'progressToken' => 42,
                 'vendor' => 'x',
@@ -131,7 +135,9 @@ final class RequestMetaObjectTest extends AbstractMcpTestCase
         $meta = RequestMetaObject::fromArray([
             RequestMetaObject::PROTOCOL_VERSION_KEY => '2026-07-28',
             RequestMetaObject::CLIENT_INFO_KEY => ['name' => 'client', 'version' => '1.0.0'],
-            RequestMetaObject::CLIENT_CAPABILITIES_KEY => ['experimental' => ['acme.experimental' => ['enabled' => true]]],
+            RequestMetaObject::CLIENT_CAPABILITIES_KEY => ['experimental' => [
+                'acme.experimental' => ['enabled' => true],
+            ]],
             RequestMetaObject::LOG_LEVEL_KEY => 'info',
             'progressToken' => 'tok-1',
             'vendor' => 'x',

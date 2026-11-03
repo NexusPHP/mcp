@@ -44,11 +44,16 @@ final readonly class ResourceTemplateReference implements Arrayable
     {
         Assert::that($data)->hasOffset('type', 'resource template reference is missing the required "type" key.');
         $type = $data['type'];
-        Assert::that($type)->isIdentical(self::TYPE, 'resource template reference "type" must be {other}, {value} given.');
+        Assert::that($type)->isIdentical(
+            self::TYPE,
+            'resource template reference "type" must be {other}, {value} given.',
+        );
 
         Assert::that($data)->hasOffset('uri', 'resource template reference is missing the required "uri" key.');
         $uri = $data['uri'];
-        Assert::that($uri)->isNonEmptyString('resource template reference "uri" must be a non-empty string, {type} given.');
+        Assert::that($uri)->isNonEmptyString(
+            'resource template reference "uri" must be a non-empty string, {type} given.',
+        );
 
         return new self(uri: $uri);
     }

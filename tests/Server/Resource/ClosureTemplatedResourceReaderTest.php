@@ -37,7 +37,9 @@ final class ClosureTemplatedResourceReaderTest extends AbstractMcpTestCase
     public function testForwardsUriBindingsAndContextToClosureAndReturnsItsResult(): void
     {
         $captured = ['uri' => null, 'bindings' => null, 'context' => null];
-        $expected = new ReadResourceResult(contents: [new TextResourceContents(uri: 'file:///etc', text: 'ok')], ttlMs: 0, cacheScope: CacheScope::Private);
+        $expected = new ReadResourceResult(contents: [
+            new TextResourceContents(uri: 'file:///etc', text: 'ok'),
+        ], ttlMs: 0, cacheScope: CacheScope::Private);
         $context = new ServerContext(
             new RequestId(id: 42),
             new NullCancellation(),
@@ -45,15 +47,13 @@ final class ClosureTemplatedResourceReaderTest extends AbstractMcpTestCase
             new RecordingSender(),
         );
 
-        $reader = new ClosureTemplatedResourceReader(
-            static function (string $uri, array $bindings, ServerContext $ctx) use (&$captured, $expected): ReadResourceResult {
-                $captured['uri'] = $uri;
-                $captured['bindings'] = $bindings;
-                $captured['context'] = $ctx;
+        $reader = new ClosureTemplatedResourceReader(static function (string $uri, array $bindings, ServerContext $ctx) use (&$captured, $expected): ReadResourceResult {
+            $captured['uri'] = $uri;
+            $captured['bindings'] = $bindings;
+            $captured['context'] = $ctx;
 
-                return $expected;
-            },
-        );
+            return $expected;
+        });
 
         $result = $reader->read('file:///etc', ['path' => 'etc'], $context);
 

@@ -44,8 +44,7 @@ final readonly class Icon implements Arrayable
     ) {
         Rfc3986UriValidator::validate($src, '"icons.src"');
         Assert::that($mimeType)
-            ->nullOr()
-            ->isNonEmptyString('"icons.mimeType" must be a non-empty string or null.')
+            ->nullOr()->isNonEmptyString('"icons.mimeType" must be a non-empty string or null.')
             ->matchesRegularExpression(
                 '/\A[a-zA-Z][a-zA-Z!#$&^_.+-]*\/[a-zA-Z0-9][a-zA-Z0-9!#$&^_.+-]*\z/',
                 '"icons.mimeType" must be a valid MIME type in the format "type/subtype".',
@@ -55,9 +54,11 @@ final readonly class Icon implements Arrayable
         if (null !== $sizes) {
             Assert::that($sizes)
                 ->isList('"icons.sizes" must be a list of strings or null, {type} given.')
-                ->values()
-                ->isNonEmptyString('each "icons.sizes" must be a non-empty string.')
-                ->matchesRegularExpression('/\A(\d+x\d+|any)\z/', 'each "icons.sizes" must be in the format "WIDTHxHEIGHT" or "any".')
+                ->values()->isNonEmptyString('each "icons.sizes" must be a non-empty string.')
+                ->matchesRegularExpression(
+                    '/\A(\d+x\d+|any)\z/',
+                    'each "icons.sizes" must be in the format "WIDTHxHEIGHT" or "any".',
+                )
             ;
         }
 
@@ -73,7 +74,9 @@ final readonly class Icon implements Arrayable
         Assert::that($src)->isNonEmptyString('"icons.src" must be a non-empty string, {type} given.');
 
         $mimeType = $data['mimeType'] ?? null;
-        Assert::that($mimeType)->nullOr()->isNonEmptyString('"icons.mimeType" must be a non-empty string or null, {type} given.');
+        Assert::that($mimeType)->nullOr()->isNonEmptyString(
+            '"icons.mimeType" must be a non-empty string or null, {type} given.',
+        );
 
         $sizes = null;
 

@@ -53,9 +53,14 @@ final class IconTest extends AbstractMcpTestCase
 
     public function testIconCanBeCreatedWithDataUriWithPadding(): void
     {
-        $icon = new Icon(src: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmc+PC9zdmc+==');
+        $icon = new Icon(
+            src: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmc+PC9zdmc+==',
+        );
 
-        self::assertSame('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmc+PC9zdmc+==', $icon->src);
+        self::assertSame(
+            'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmc+PC9zdmc+==',
+            $icon->src,
+        );
     }
 
     public function testIconCanBeCreatedWithAllParameters(): void
@@ -99,9 +104,15 @@ final class IconTest extends AbstractMcpTestCase
     {
         yield 'empty string' => ['', '"icons.src" must be a non-empty string.'];
 
-        yield 'relative path' => ['/path/to/icon.png', '"icons.src" must be a valid RFC 3986 absolute URI, \'/path/to/icon.png\' given.'];
+        yield 'relative path' => [
+            '/path/to/icon.png',
+            '"icons.src" must be a valid RFC 3986 absolute URI, \'/path/to/icon.png\' given.',
+        ];
 
-        yield 'embedded whitespace' => ['https://example.com/icon a.png', '"icons.src" must contain only ASCII printable characters (no whitespace or control characters), \'https://example.com/icon a.png\' given.'];
+        yield 'embedded whitespace' => [
+            'https://example.com/icon a.png',
+            '"icons.src" must contain only ASCII printable characters (no whitespace or control characters), \'https://example.com/icon a.png\' given.',
+        ];
     }
 
     /**
@@ -124,7 +135,9 @@ final class IconTest extends AbstractMcpTestCase
 
         yield 'data URI without base64' => ['data:image/png,notbase64'];
 
-        yield 'data URI with a charset parameter before base64' => ['data:image/svg+xml;charset=utf-8;base64,PHN2Zz48L3N2Zz4='];
+        yield 'data URI with a charset parameter before base64' => [
+            'data:image/svg+xml;charset=utf-8;base64,PHN2Zz48L3N2Zz4=',
+        ];
 
         yield 'minimal data URI' => ['data:;base64,aWNvbg=='];
     }
@@ -179,11 +192,17 @@ final class IconTest extends AbstractMcpTestCase
     {
         yield 'empty string' => ['', '"icons.mimeType" must be a non-empty string or null.'];
 
-        yield 'missing subtype' => ['image', '"icons.mimeType" must be a valid MIME type in the format "type/subtype".'];
+        yield 'missing subtype' => [
+            'image',
+            '"icons.mimeType" must be a valid MIME type in the format "type/subtype".',
+        ];
 
         yield 'missing type' => ['/png', '"icons.mimeType" must be a valid MIME type in the format "type/subtype".'];
 
-        yield 'type with number' => ['image2/png', '"icons.mimeType" must be a valid MIME type in the format "type/subtype".'];
+        yield 'type with number' => [
+            'image2/png',
+            '"icons.mimeType" must be a valid MIME type in the format "type/subtype".',
+        ];
     }
 
     /**
@@ -235,7 +254,10 @@ final class IconTest extends AbstractMcpTestCase
 
         yield 'wrong separator' => [['32*32'], 'each "icons.sizes" must be in the format "WIDTHxHEIGHT" or "any".'];
 
-        yield 'non-numeric dimensions' => [['widthxheight'], 'each "icons.sizes" must be in the format "WIDTHxHEIGHT" or "any".'];
+        yield 'non-numeric dimensions' => [
+            ['widthxheight'],
+            'each "icons.sizes" must be in the format "WIDTHxHEIGHT" or "any".',
+        ];
     }
 
     /**
@@ -287,7 +309,10 @@ final class IconTest extends AbstractMcpTestCase
 
     public function testIconCanBeCreatedFromArrayWithTheLightTheme(): void
     {
-        self::assertSame('light', Icon::fromArray(['src' => 'https://example.com/icon.png', 'theme' => 'light'])->theme);
+        self::assertSame('light', Icon::fromArray([
+            'src' => 'https://example.com/icon.png',
+            'theme' => 'light',
+        ])->theme);
     }
 
     public function testIconCanBeCreatedFromArrayWithOnlySrc(): void

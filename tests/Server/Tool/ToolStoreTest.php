@@ -121,7 +121,10 @@ final class ToolStoreTest extends AbstractMcpTestCase
 
     public function testAnAllDigitNameIsServedDespiteBecomingAnIntegerKey(): void
     {
-        $store = new ToolStore(['123' => new ToolEntry($this->makeTool('123'), $this->makeExecutor()), 'beta' => new ToolEntry($this->makeTool('beta'), $this->makeExecutor())], pageSize: 1);
+        $store = new ToolStore([
+            '123' => new ToolEntry($this->makeTool('123'), $this->makeExecutor()),
+            'beta' => new ToolEntry($this->makeTool('beta'), $this->makeExecutor()),
+        ], pageSize: 1);
 
         $first = $store->list(null);
         self::assertNotNull($first->nextCursor);
@@ -143,7 +146,11 @@ final class ToolStoreTest extends AbstractMcpTestCase
             'alpha' => new ToolEntry(
                 $this->makeTool('alpha'),
                 new ClosureToolExecutor(static function (?array $arguments, ServerContext $context) use ($alphaResult, &$captured): CallToolResult {
-                    $captured[] = ['name' => 'alpha', 'arguments' => $arguments, 'requestId' => $context->requestId->id];
+                    $captured[] = [
+                        'name' => 'alpha',
+                        'arguments' => $arguments,
+                        'requestId' => $context->requestId->id,
+                    ];
 
                     return $alphaResult;
                 }),
@@ -419,7 +426,11 @@ final class ToolStoreTest extends AbstractMcpTestCase
 
     public function testCallSkipsOutputValidationForErrorResults(): void
     {
-        $result = new CallToolResult(content: [new TextContent(text: 'boom')], structuredContent: ['n' => 'oops'], isError: true);
+        $result = new CallToolResult(
+            content: [new TextContent(text: 'boom')],
+            structuredContent: ['n' => 'oops'],
+            isError: true,
+        );
         $store = new ToolStore([
             'report' => new ToolEntry($this->makeToolWithOutputSchema('report'), $this->makeExecutorReturning($result)),
         ]);
@@ -458,7 +469,11 @@ final class ToolStoreTest extends AbstractMcpTestCase
         $result = new CallToolResult(content: [], structuredContent: []);
         $store = new ToolStore([
             'report' => new ToolEntry(
-                new Tool(name: 'report', inputSchema: ['type' => 'object'], outputSchema: ['type' => ['object', 'null']]),
+                new Tool(
+                    name: 'report',
+                    inputSchema: ['type' => 'object'],
+                    outputSchema: ['type' => ['object', 'null']],
+                ),
                 $this->makeExecutorReturning($result),
             ),
         ]);
@@ -472,7 +487,9 @@ final class ToolStoreTest extends AbstractMcpTestCase
         $store = new ToolStore([
             'report' => new ToolEntry(
                 $this->makeToolWithOutputSchema('report'),
-                new ClosureToolExecutor(static fn(?array $arguments, ServerContext $context): InputRequiredResult => $asked),
+                new ClosureToolExecutor(
+                    static fn(?array $arguments, ServerContext $context): InputRequiredResult => $asked,
+                ),
             ),
         ]);
 
@@ -500,7 +517,14 @@ final class ToolStoreTest extends AbstractMcpTestCase
         $changes = 0;
         $store->onListChanged(static function () use (&$changes): void { ++$changes; });
 
-        $store->addTool(new Tool(name: 'alpha', title: 'Renamed', inputSchema: ['type' => 'object']), $this->makeExecutor());
+        $store->addTool(
+            new Tool(
+                name: 'alpha',
+                title: 'Renamed',
+                inputSchema: ['type' => 'object'],
+            ),
+            $this->makeExecutor(),
+        );
 
         $tools = $store->list(null)->tools;
         self::assertCount(1, $tools);
@@ -562,7 +586,12 @@ final class ToolStoreTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('tool "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.');
 
-        new ToolStore(['Project Files' => new ToolEntry(new Tool(name: 'Project Files', inputSchema: ['type' => 'object']), new ClosureToolExecutor(static fn(?array $a, ServerContext $c): CallToolResult => new CallToolResult(content: [])))]);
+        new ToolStore(['Project Files' => new ToolEntry(
+            new Tool(name: 'Project Files', inputSchema: ['type' => 'object']),
+            new ClosureToolExecutor(
+                static fn(?array $a, ServerContext $c): CallToolResult => new CallToolResult(content: []),
+            ),
+        )]);
     }
 
     public function testAddRefusesAnUnconventionalName(): void
@@ -570,7 +599,12 @@ final class ToolStoreTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('tool "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.');
 
-        (new ToolStore())->addTool(new Tool(name: 'Project Files', inputSchema: ['type' => 'object']), new ClosureToolExecutor(static fn(?array $a, ServerContext $c): CallToolResult => new CallToolResult(content: [])));
+        (new ToolStore())->addTool(
+            new Tool(name: 'Project Files', inputSchema: ['type' => 'object']),
+            new ClosureToolExecutor(
+                static fn(?array $a, ServerContext $c): CallToolResult => new CallToolResult(content: []),
+            ),
+        );
     }
 
     public function testConstructorRefusesANonConservativeIconSrc(): void
@@ -578,7 +612,16 @@ final class ToolStoreTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('tool "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.');
 
-        new ToolStore(['t' => new ToolEntry(new Tool(name: 't', inputSchema: ['type' => 'object'], icons: [new Icon(src: 'ftp://example.com/icon.png')]), new ClosureToolExecutor(static fn(?array $a, ServerContext $c): CallToolResult => new CallToolResult(content: [])))]);
+        new ToolStore(['t' => new ToolEntry(
+            new Tool(
+                name: 't',
+                inputSchema: ['type' => 'object'],
+                icons: [new Icon(src: 'ftp://example.com/icon.png')],
+            ),
+            new ClosureToolExecutor(
+                static fn(?array $a, ServerContext $c): CallToolResult => new CallToolResult(content: []),
+            ),
+        )]);
     }
 
     public function testAddRefusesANonConservativeIconSrc(): void
@@ -586,7 +629,16 @@ final class ToolStoreTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('tool "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.');
 
-        (new ToolStore())->addTool(new Tool(name: 't', inputSchema: ['type' => 'object'], icons: [new Icon(src: 'ftp://example.com/icon.png')]), new ClosureToolExecutor(static fn(?array $a, ServerContext $c): CallToolResult => new CallToolResult(content: [])));
+        (new ToolStore())->addTool(
+            new Tool(
+                name: 't',
+                inputSchema: ['type' => 'object'],
+                icons: [new Icon(src: 'ftp://example.com/icon.png')],
+            ),
+            new ClosureToolExecutor(
+                static fn(?array $a, ServerContext $c): CallToolResult => new CallToolResult(content: []),
+            ),
+        );
     }
 
     public function testCallValidatesAnArgumentNameThatIsAllDigits(): void
@@ -621,7 +673,9 @@ final class ToolStoreTest extends AbstractMcpTestCase
                 'name' => 'digit-only',
                 'inputSchema' => ['type' => 'object', 'properties' => ['0' => ['type' => 'string']]],
             ]),
-            new ClosureToolExecutor(static fn(): CallToolResult => new CallToolResult(content: [new TextContent(text: 'ok')])),
+            new ClosureToolExecutor(
+                static fn(): CallToolResult => new CallToolResult(content: [new TextContent(text: 'ok')]),
+            ),
         );
 
         $result = $store->call('digit-only', ['a' => 'b'], $this->makeContext());
@@ -641,7 +695,9 @@ final class ToolStoreTest extends AbstractMcpTestCase
                     'required' => ['0'],
                 ],
             ]),
-            new ClosureToolExecutor(static fn(): CallToolResult => new CallToolResult(content: [new TextContent(text: 'ok')])),
+            new ClosureToolExecutor(
+                static fn(): CallToolResult => new CallToolResult(content: [new TextContent(text: 'ok')]),
+            ),
         );
 
         $this->expectException(InvalidParamsException::class);

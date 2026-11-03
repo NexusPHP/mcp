@@ -180,12 +180,11 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
             ClientNotification::class,
             ClientResult::class,
         ];
+        $filter = static fn(string $class, string $basename): bool => ! \in_array($class, $exclusions, true)
+            && \is_array(self::$latestSchema[$basename] ?? null)
+            && \array_key_exists('description', self::$latestSchema[$basename]);
 
-        yield from self::getProtocolSchemasForTesting(
-            static fn(string $class, string $basename): bool => ! \in_array($class, $exclusions, true)
-                && \is_array(self::$latestSchema[$basename] ?? null)
-                && \array_key_exists('description', self::$latestSchema[$basename]),
-        );
+        yield from self::getProtocolSchemasForTesting($filter);
     }
 
     /**
@@ -195,7 +194,11 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
     public function testSchemaTypeMatchesProperties(string $schema, string $schemaClass): void
     {
         $type = $this->getSchemaProperty($schema, 'type');
-        self::assertThat($type, self::logicalOr(self::isArray(), self::isString()), \sprintf('Type for schema "%s" is neither string nor array.', $schema));
+        self::assertThat(
+            $type,
+            self::logicalOr(self::isArray(), self::isString()),
+            \sprintf('Type for schema "%s" is neither string nor array.', $schema),
+        );
         \assert(\is_string($type) || \is_array($type));
 
         $reflection = new \ReflectionClass($schemaClass);
@@ -214,13 +217,17 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
             );
             sort($propertyTypes);
 
-            self::assertSame($type, $propertyTypes, \sprintf(
-                'Schema key "%s"\'s type ("%s") does not match property types in class "%s" ("%s").',
-                $schema,
-                implode('", "', $type),
-                $schemaClass,
-                implode('", "', $propertyTypes),
-            ));
+            self::assertSame(
+                $type,
+                $propertyTypes,
+                \sprintf(
+                    'Schema key "%s"\'s type ("%s") does not match property types in class "%s" ("%s").',
+                    $schema,
+                    implode('", "', $type),
+                    $schemaClass,
+                    implode('", "', $propertyTypes),
+                ),
+            );
         } elseif ('object' === $type) {
             self::assertArrayHasKey($schema, self::$latestSchema);
             $schemaDef = self::$latestSchema[$schema];
@@ -245,7 +252,9 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
             $shape = $this->extractArrayableShape($reflection);
 
             if (null !== $shape) {
-                foreach ($this->diffShapeAgainstSpec($shape, $specRequiredKeys, $specOptionalKeys, $schema) as $finding) {
+                $shapeFindings = $this->diffShapeAgainstSpec($shape, $specRequiredKeys, $specOptionalKeys, $schema);
+
+                foreach ($shapeFindings as $finding) {
                     $findings[] = \sprintf('[array shape] %s', $finding);
                 }
             }
@@ -259,16 +268,27 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
                 }
             }
 
-            foreach ($this->diffPropertiesAgainstSpec($reflection, $specRequiredKeys, $specOptionalKeys, $typedSpecProperties) as $finding) {
+            $propertyFindings = $this->diffPropertiesAgainstSpec(
+                $reflection,
+                $specRequiredKeys,
+                $specOptionalKeys,
+                $typedSpecProperties,
+            );
+
+            foreach ($propertyFindings as $finding) {
                 $findings[] = \sprintf('[property] %s', $finding);
             }
 
-            self::assertSame([], $findings, \sprintf(
-                "Schema class \"%s\" diverges from spec's \"%s\":\n  * %s",
-                $schemaClass,
-                $schema,
-                implode("\n  * ", $findings),
-            ));
+            self::assertSame(
+                [],
+                $findings,
+                \sprintf(
+                    "Schema class \"%s\" diverges from spec's \"%s\":\n  * %s",
+                    $schemaClass,
+                    $schema,
+                    implode("\n  * ", $findings),
+                ),
+            );
         } else {
             self::assertCount(1, $properties);
             self::assertInstanceOf(\ReflectionNamedType::class, $properties[0]->getType());
@@ -276,13 +296,17 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
             $type = $this->normaliseJsonType($type);
             $propertyType = $properties[0]->getType()->getName();
 
-            self::assertSame($type, $propertyType, \sprintf(
-                'Schema key "%s"\'s type ("%s") does not match property type in class "%s" ("%s").',
-                $schema,
+            self::assertSame(
                 $type,
-                $schemaClass,
                 $propertyType,
-            ));
+                \sprintf(
+                    'Schema key "%s"\'s type ("%s") does not match property type in class "%s" ("%s").',
+                    $schema,
+                    $type,
+                    $schemaClass,
+                    $propertyType,
+                ),
+            );
         }
     }
 
@@ -291,19 +315,25 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
      */
     public static function provideSchemaTypeMatchesPropertiesCases(): iterable
     {
-        yield from self::getProtocolSchemasForTesting(
-            static function (string $class, string $basename): bool {
-                $definition = self::$latestSchema[$basename] ?? null;
+        yield from self::getProtocolSchemasForTesting(static function (string $class, string $basename): bool {
+            $definition = self::$latestSchema[$basename] ?? null;
 
-                if (! \is_array($definition) || ! \array_key_exists('type', $definition) || enum_exists($class) || interface_exists($class)) {
-                    return false;
-                }
+            if (
+                ! \is_array($definition)
+                || ! \array_key_exists('type', $definition)
+                || enum_exists($class)
+                || interface_exists($class)
+            ) {
+                return false;
+            }
 
-                $properties = $definition['properties'] ?? [];
+            $properties = $definition['properties'] ?? [];
 
-                return ! (is_subclass_of($class, Error::class) && \is_array($properties) && \array_key_exists('error', $properties));
-            },
-        );
+            return ! (is_subclass_of(
+                $class,
+                Error::class,
+            ) && \is_array($properties) && \array_key_exists('error', $properties));
+        });
     }
 
     /**
@@ -314,7 +344,11 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
     {
         $enum = $this->getSchemaProperty($schema, 'enum');
         self::assertIsArray($enum, \sprintf('Enum for schema "%s" is not an array.', $schema));
-        self::assertSame($enum, array_filter($enum, is_string(...)), \sprintf('Enum for schema "%s" contains non-string values.', $schema));
+        self::assertSame(
+            $enum,
+            array_filter($enum, is_string(...)),
+            \sprintf('Enum for schema "%s" contains non-string values.', $schema),
+        );
 
         $reflection = new \ReflectionEnum($schemaClass);
         self::assertTrue($reflection->isBacked(), \sprintf('Enum class "%s" is not a backed enum.', $schemaClass));
@@ -325,13 +359,17 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
         );
         sort($caseValues);
 
-        self::assertSame($enum, $caseValues, \sprintf(
-            'Schema key "%s"\'s enum values ("%s") do not match case values in enum class "%s" ("%s").',
-            $schema,
-            implode('", "', $enum),
-            $schemaClass,
-            implode('", "', $caseValues),
-        ));
+        self::assertSame(
+            $enum,
+            $caseValues,
+            \sprintf(
+                'Schema key "%s"\'s enum values ("%s") do not match case values in enum class "%s" ("%s").',
+                $schema,
+                implode('", "', $enum),
+                $schemaClass,
+                implode('", "', $caseValues),
+            ),
+        );
     }
 
     /**
@@ -358,12 +396,16 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
             self::assertArrayHasKey(2, $parts);
 
             $package = $parts[2];
-            self::assertSame('Core', $package, \sprintf(
-                'Protocol schema "%s" (class: %s) must be defined in Core, not %s.',
-                $schema,
-                $schemaClass,
+            self::assertSame(
+                'Core',
                 $package,
-            ));
+                \sprintf(
+                    'Protocol schema "%s" (class: %s) must be defined in Core, not %s.',
+                    $schema,
+                    $schemaClass,
+                    $package,
+                ),
+            );
         }
     }
 
@@ -378,20 +420,24 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
         self::assertIsString($docComment, \sprintf('Schema class "%s" does not have a PHPDoc comment.', $schemaClass));
 
         $pattern = '/^\s*\*\s*@see\s+'.preg_quote($expectedUrl, '/').'\s*$/m';
-        self::assertMatchesRegularExpression($pattern, $docComment, \sprintf(
-            'Schema class "%s" must declare "@see %s" in its PHPDoc.',
-            $schemaClass,
-            $expectedUrl,
-        ));
+        self::assertMatchesRegularExpression(
+            $pattern,
+            $docComment,
+            \sprintf('Schema class "%s" must declare "@see %s" in its PHPDoc.', $schemaClass, $expectedUrl),
+        );
 
         preg_match_all('/^\s*\*\s*(@\S+)/m', $docComment, $tagMatches);
         $tags = $tagMatches[1];
         self::assertNotSame([], $tags, \sprintf('Schema class "%s" docblock has no recognisable tags.', $schemaClass));
-        self::assertSame('@see', end($tags), \sprintf(
-            'Schema class "%s": "@see" must be the last tag in the docblock, but the last tag is "%s".',
-            $schemaClass,
+        self::assertSame(
+            '@see',
             end($tags),
-        ));
+            \sprintf(
+                'Schema class "%s": "@see" must be the last tag in the docblock, but the last tag is "%s".',
+                $schemaClass,
+                end($tags),
+            ),
+        );
 
         if (parse_url($expectedUrl, \PHP_URL_HOST) !== 'modelcontextprotocol.io') {
             return;
@@ -403,24 +449,32 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
         $pageUrl = false === $hash ? $expectedUrl : substr($expectedUrl, 0, $hash);
         $fragment = false === $hash ? null : substr($expectedUrl, $hash + 1);
 
-        self::assertArrayHasKey($pageUrl, $snapshot, \sprintf(
-            'Schema class "%s" references docs page "%s", but that page is not in the spec anchor snapshot. Add the page to McpAnchorSnapshot::SPEC_PAGES and run `composer spec:snapshot-anchors`.',
-            $schemaClass,
+        self::assertArrayHasKey(
             $pageUrl,
-        ));
+            $snapshot,
+            \sprintf(
+                'Schema class "%s" references docs page "%s", but that page is not in the spec anchor snapshot. Add the page to McpAnchorSnapshot::SPEC_PAGES and run `composer spec:snapshot-anchors`.',
+                $schemaClass,
+                $pageUrl,
+            ),
+        );
 
         if (null === $fragment) {
             return;
         }
 
-        self::assertContains($fragment, $snapshot[$pageUrl], \sprintf(
-            'Schema class "%s" references "%s#%s", but the snapshot of "%s" has no anchor "%s". Either fix the URL or refresh the snapshot via `composer spec:snapshot-anchors`.',
-            $schemaClass,
-            $pageUrl,
+        self::assertContains(
             $fragment,
-            $pageUrl,
-            $fragment,
-        ));
+            $snapshot[$pageUrl],
+            \sprintf(
+                'Schema class "%s" references "%s#%s", but the snapshot of "%s" has no anchor "%s". Either fix the URL or refresh the snapshot via `composer spec:snapshot-anchors`.',
+                $schemaClass,
+                $pageUrl,
+                $fragment,
+                $pageUrl,
+                $fragment,
+            ),
+        );
     }
 
     /**
@@ -456,10 +510,14 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
             $accounted,
         ));
 
-        self::assertSame([], $unaccounted, \sprintf(
-            'Schema classes without a 1:1 spec def must be listed in either NON_SCHEMA_ANCHOR_SEE_URLS (with the spec URL their @see should reference) or SEE_ANNOTATION_EXEMPT (PHP-only infrastructure). Unaccounted: %s.',
-            implode(', ', $unaccounted),
-        ));
+        self::assertSame(
+            [],
+            $unaccounted,
+            \sprintf(
+                'Schema classes without a 1:1 spec def must be listed in either NON_SCHEMA_ANCHOR_SEE_URLS (with the spec URL their @see should reference) or SEE_ANNOTATION_EXEMPT (PHP-only infrastructure). Unaccounted: %s.',
+                implode(', ', $unaccounted),
+            ),
+        );
     }
 
     public function testEveryParamsDefCarryingAContinuationFieldImplementsTheCarrier(): void
@@ -486,11 +544,15 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
             }
         }
 
-        self::assertSame([], $missing, \sprintf(
-            'Params classes for spec defs carrying "inputResponses" or "requestState" must implement "%s", since PHP cannot inherit the spec\'s second base. Missing: %s.',
-            InputResponseCarrierInterface::class,
-            implode(', ', $missing),
-        ));
+        self::assertSame(
+            [],
+            $missing,
+            \sprintf(
+                'Params classes for spec defs carrying "inputResponses" or "requestState" must implement "%s", since PHP cannot inherit the spec\'s second base. Missing: %s.',
+                InputResponseCarrierInterface::class,
+                implode(', ', $missing),
+            ),
+        );
     }
 
     public function testNonSchemaAnchorSeeUrlsIsSortedByKey(): void
@@ -515,7 +577,10 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
             self::assertDoesNotMatchRegularExpression(
                 '/^\s*\*\s*@see\s+/m',
                 $docComment,
-                \sprintf('Schema class "%s" is in SEE_ANNOTATION_EXEMPT but declares an @see tag. Remove the tag or move the class out of the exemption list.', $schemaClass),
+                \sprintf(
+                    'Schema class "%s" is in SEE_ANNOTATION_EXEMPT but declares an @see tag. Remove the tag or move the class out of the exemption list.',
+                    $schemaClass,
+                ),
             );
         }
     }
@@ -527,10 +592,13 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
 
         foreach (self::DEPRECATED_OMITTED_PROPERTIES as $schema => $keys) {
             $schemaDef = self::$latestSchema[$schema] ?? null;
-            self::assertIsArray($schemaDef, \sprintf(
-                'Deprecated schema "%s" is no longer in the spec. Remove its DEPRECATED_OMITTED_PROPERTIES entry.',
-                $schema,
-            ));
+            self::assertIsArray(
+                $schemaDef,
+                \sprintf(
+                    'Deprecated schema "%s" is no longer in the spec. Remove its DEPRECATED_OMITTED_PROPERTIES entry.',
+                    $schema,
+                ),
+            );
 
             $properties = $schemaDef['properties'] ?? [];
             self::assertIsArray($properties);
@@ -548,27 +616,38 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
                 : array_map(static fn(\ReflectionParameter $param) => $param->getName(), $constructor->getParameters());
 
             foreach ($keys as $key) {
-                self::assertArrayHasKey($key, $properties, \sprintf(
-                    'Deprecated property "%s.%s" is gone from the spec. Remove the DEPRECATED_OMITTED_PROPERTIES entry.',
-                    $schema,
+                self::assertArrayHasKey(
                     $key,
-                ));
+                    $properties,
+                    \sprintf(
+                        'Deprecated property "%s.%s" is gone from the spec. Remove the DEPRECATED_OMITTED_PROPERTIES entry.',
+                        $schema,
+                        $key,
+                    ),
+                );
 
-                self::assertNotContains($key, $required, \sprintf(
-                    'Deprecated property "%s.%s" is now required and can no longer be omitted. The SDK must implement it.',
-                    $schema,
+                self::assertNotContains(
                     $key,
-                ));
+                    $required,
+                    \sprintf(
+                        'Deprecated property "%s.%s" is now required and can no longer be omitted. The SDK must implement it.',
+                        $schema,
+                        $key,
+                    ),
+                );
 
                 $phpName = $this->convertSpecKeyToPhpName($key);
                 $modelled = \in_array($phpName, $ctorParams, true)
                     || ($reflection->hasProperty($phpName) && $reflection->getProperty($phpName)->isPublic());
 
-                self::assertFalse($modelled, \sprintf(
-                    'Deprecated property "%s.%s" now has a PHP representation. Remove its DEPRECATED_OMITTED_PROPERTIES entry so conformance enforces it.',
-                    $schema,
-                    $key,
-                ));
+                self::assertFalse(
+                    $modelled,
+                    \sprintf(
+                        'Deprecated property "%s.%s" now has a PHP representation. Remove its DEPRECATED_OMITTED_PROPERTIES entry so conformance enforces it.',
+                        $schema,
+                        $key,
+                    ),
+                );
             }
         }
     }
@@ -578,8 +657,12 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
      * @param class-string $unionInterface
      */
     #[DataProvider('provideSchemaUnionMemberImplementsMarkerCases')]
-    public function testSchemaUnionMemberImplementsMarker(string $union, string $member, string $unionInterface, string $memberClass): void
-    {
+    public function testSchemaUnionMemberImplementsMarker(
+        string $union,
+        string $member,
+        string $unionInterface,
+        string $memberClass,
+    ): void {
         self::assertTrue(
             is_subclass_of($memberClass, $unionInterface),
             \sprintf(
@@ -620,8 +703,12 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
      * @param class-string $implementer
      */
     #[DataProvider('provideSchemaUnionMarkerImplementersAreInUnionCases')]
-    public function testSchemaUnionMarkerImplementersAreInUnion(string $union, string $unionInterface, string $implementer, string $implementerBasename): void
-    {
+    public function testSchemaUnionMarkerImplementersAreInUnion(
+        string $union,
+        string $unionInterface,
+        string $implementer,
+        string $implementerBasename,
+    ): void {
         $unionData = self::getSpecUnions()[$union] ?? null;
         self::assertIsArray($unionData);
 
@@ -640,13 +727,16 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
             }
         }
 
-        self::assertTrue($licensed, \sprintf(
-            'Class "%s" implements marker "%s" but basename "%s" is not in spec union "%s".',
-            $implementer,
-            $unionInterface,
-            $implementerBasename,
-            $union,
-        ));
+        self::assertTrue(
+            $licensed,
+            \sprintf(
+                'Class "%s" implements marker "%s" but basename "%s" is not in spec union "%s".',
+                $implementer,
+                $unionInterface,
+                $implementerBasename,
+                $union,
+            ),
+        );
     }
 
     /**
@@ -677,7 +767,11 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
                     continue;
                 }
 
-                yield \sprintf('%s implements %s', $candidate, $union) => [$union, $unionInterface, $candidate, $basename];
+                yield \sprintf(
+                    '%s implements %s',
+                    $candidate,
+                    $union,
+                ) => [$union, $unionInterface, $candidate, $basename];
             }
         }
     }
@@ -924,26 +1018,54 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
 
         foreach (array_diff($shape['required'], $specRequired) as $key) {
             if (\in_array($key, $specOptional, true)) {
-                $findings[] = \sprintf('"%s" is declared as required (no "?") but spec "%s" marks it optional. Use "%s?:" instead.', $key, $schema, $key);
+                $findings[] = \sprintf(
+                    '"%s" is declared as required (no "?") but spec "%s" marks it optional. Use "%s?:" instead.',
+                    $key,
+                    $schema,
+                    $key,
+                );
             } else {
-                $findings[] = \sprintf('"%s" is declared as required but spec "%s" does not list it. Remove it from the shape.', $key, $schema);
+                $findings[] = \sprintf(
+                    '"%s" is declared as required but spec "%s" does not list it. Remove it from the shape.',
+                    $key,
+                    $schema,
+                );
             }
         }
 
         foreach (array_diff($shape['optional'], $specOptional) as $key) {
             if (\in_array($key, $specRequired, true)) {
-                $findings[] = \sprintf('"%s" is declared as optional ("%s?:") but spec "%s" marks it required. Drop the "?".', $key, $key, $schema);
+                $findings[] = \sprintf(
+                    '"%s" is declared as optional ("%s?:") but spec "%s" marks it required. Drop the "?".',
+                    $key,
+                    $key,
+                    $schema,
+                );
             } else {
-                $findings[] = \sprintf('"%s" is declared as optional but spec "%s" does not list it. Remove it from the shape.', $key, $schema);
+                $findings[] = \sprintf(
+                    '"%s" is declared as optional but spec "%s" does not list it. Remove it from the shape.',
+                    $key,
+                    $schema,
+                );
             }
         }
 
         foreach (array_diff($specRequired, $shape['required'], $shape['optional']) as $key) {
-            $findings[] = \sprintf('"%s" is required by spec "%s" but is missing from the shape. Add "%s:".', $key, $schema, $key);
+            $findings[] = \sprintf(
+                '"%s" is required by spec "%s" but is missing from the shape. Add "%s:".',
+                $key,
+                $schema,
+                $key,
+            );
         }
 
         foreach (array_diff($specOptional, $shape['optional'], $shape['required']) as $key) {
-            $findings[] = \sprintf('"%s" is optional in spec "%s" but is missing from the shape. Add "%s?:".', $key, $schema, $key);
+            $findings[] = \sprintf(
+                '"%s" is optional in spec "%s" but is missing from the shape. Add "%s?:".',
+                $key,
+                $schema,
+                $key,
+            );
         }
 
         sort($findings);
@@ -1152,7 +1274,13 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
             throw new \RuntimeException('Latest schema is not generated yet.');
         }
 
-        $emptySchema = ['processed_schema' => [], 'internal_schema' => [], 'deprecated_schema' => [], 'inlined_schema' => [], 'unprocessed_schema' => []];
+        $emptySchema = [
+            'processed_schema' => [],
+            'internal_schema' => [],
+            'deprecated_schema' => [],
+            'inlined_schema' => [],
+            'unprocessed_schema' => [],
+        ];
 
         if ($emptySchema !== self::$sortedSchema && getenv('MCP_FETCH_LATEST_SCHEMA') === false) {
             return;
@@ -1163,9 +1291,20 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
 
     private function getSchemaProperty(string $schema, string $property): mixed
     {
-        self::assertArrayHasKey($schema, self::$latestSchema, \sprintf('Schema key "%s" is missing in the latest schema definitions.', $schema));
-        self::assertIsArray(self::$latestSchema[$schema], \sprintf('Schema definition for "%s" is not an array.', $schema));
-        self::assertArrayHasKey($property, self::$latestSchema[$schema], \sprintf('Schema definition for "%s" does not have "%s".', $schema, $property));
+        self::assertArrayHasKey(
+            $schema,
+            self::$latestSchema,
+            \sprintf('Schema key "%s" is missing in the latest schema definitions.', $schema),
+        );
+        self::assertIsArray(
+            self::$latestSchema[$schema],
+            \sprintf('Schema definition for "%s" is not an array.', $schema),
+        );
+        self::assertArrayHasKey(
+            $property,
+            self::$latestSchema[$schema],
+            \sprintf('Schema definition for "%s" does not have "%s".', $schema, $property),
+        );
 
         return self::$latestSchema[$schema][$property];
     }
@@ -1201,7 +1340,11 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
             $anyOf = $def['anyOf'];
 
             foreach ($anyOf as $entry) {
-                if (! \is_array($entry) || ! \is_string($entry['$ref'] ?? null) || ! str_starts_with($entry['$ref'], $prefix)) {
+                if (
+                    ! \is_array($entry)
+                    || ! \is_string($entry['$ref'] ?? null)
+                    || ! str_starts_with($entry['$ref'], $prefix)
+                ) {
                     continue;
                 }
 

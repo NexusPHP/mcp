@@ -48,7 +48,10 @@ final class ListPromptsRequestHandlerTest extends AbstractMcpTestCase
         $handler = new ListPromptsRequestHandler($store);
 
         $result = $handler->handle(
-            new ListPromptsRequest(id: new RequestId(id: 1), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create())),
+            new ListPromptsRequest(
+                id: new RequestId(id: 1),
+                params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()),
+            ),
             $this->makeContext(),
         );
 
@@ -70,7 +73,13 @@ final class ListPromptsRequestHandlerTest extends AbstractMcpTestCase
         $handler = new ListPromptsRequestHandler($store);
 
         $result = $handler->handle(
-            new ListPromptsRequest(id: new RequestId(id: 2), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create(), cursor: new Cursor(cursor: 'b'))),
+            new ListPromptsRequest(
+                id: new RequestId(id: 2),
+                params: new PaginatedRequestParams(
+                    meta: RequestMetaObjectFactory::create(),
+                    cursor: new Cursor(cursor: 'b'),
+                ),
+            ),
             $this->makeContext(),
         );
 

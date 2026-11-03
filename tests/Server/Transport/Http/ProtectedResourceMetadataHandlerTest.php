@@ -71,9 +71,10 @@ final class ProtectedResourceMetadataHandlerTest extends AbstractMcpTestCase
             new Psr17Factory(),
         );
 
-        $response = $handler->handle(
-            (new Psr17Factory())->createServerRequest('GET', 'https://mcp.test/.well-known/oauth-protected-resource'),
-        );
+        $response = $handler->handle((new Psr17Factory())->createServerRequest(
+            'GET',
+            'https://mcp.test/.well-known/oauth-protected-resource',
+        ));
 
         self::assertSame('https://mcp.test', $this->readDocument($response)['resource'] ?? null);
     }
@@ -88,7 +89,10 @@ final class ProtectedResourceMetadataHandlerTest extends AbstractMcpTestCase
     #[DataProvider('provideARequestThatIsNotAGetIsRefusedCases')]
     public function testARequestThatIsNotAGetIsRefused(string $method): void
     {
-        $response = $this->buildHandler()->handle((new Psr17Factory())->createServerRequest($method, self::METADATA_URL));
+        $response = $this->buildHandler()->handle((new Psr17Factory())->createServerRequest(
+            $method,
+            self::METADATA_URL,
+        ));
 
         self::assertSame(405, $response->getStatusCode());
         self::assertSame('GET', $response->getHeaderLine('Allow'));
@@ -109,9 +113,10 @@ final class ProtectedResourceMetadataHandlerTest extends AbstractMcpTestCase
 
     public function testTheRootWellKnownPathIsServedForAPathBearingResource(): void
     {
-        $response = $this->buildHandler()->handle(
-            (new Psr17Factory())->createServerRequest('GET', 'https://mcp.test/.well-known/oauth-protected-resource'),
-        );
+        $response = $this->buildHandler()->handle((new Psr17Factory())->createServerRequest(
+            'GET',
+            'https://mcp.test/.well-known/oauth-protected-resource',
+        ));
 
         self::assertSame(200, $response->getStatusCode());
     }
@@ -184,8 +189,10 @@ final class ProtectedResourceMetadataHandlerTest extends AbstractMcpTestCase
      * @param list<non-empty-string> $scopesSupported
      * @param null|non-empty-string  $resourceName
      */
-    private function buildHandler(array $scopesSupported = [], ?string $resourceName = null): ProtectedResourceMetadataHandler
-    {
+    private function buildHandler(
+        array $scopesSupported = [],
+        ?string $resourceName = null,
+    ): ProtectedResourceMetadataHandler {
         $factory = new Psr17Factory();
 
         return new ProtectedResourceMetadataHandler(

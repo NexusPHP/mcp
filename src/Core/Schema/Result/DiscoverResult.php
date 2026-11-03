@@ -55,7 +55,9 @@ final readonly class DiscoverResult extends CacheableResult implements ServerRes
             ->isList('"result.supportedVersions" must be a list, non-list array given.')
             ->values()->isNonEmptyString('each "result.supportedVersions" must be a non-empty string.')
         ;
-        Assert::that($instructions)->nullOr()->isNonEmptyString('"result.instructions" must be a non-empty string or null.');
+        Assert::that($instructions)->nullOr()->isNonEmptyString(
+            '"result.instructions" must be a non-empty string or null.',
+        );
 
         parent::__construct(ttlMs: $ttlMs, cacheScope: $cacheScope, meta: $meta);
     }
@@ -63,7 +65,10 @@ final readonly class DiscoverResult extends CacheableResult implements ServerRes
     #[\Override]
     public static function fromArray(array $data): static
     {
-        Assert::that($data)->hasOffset('supportedVersions', '"result" is missing the required "supportedVersions" key.');
+        Assert::that($data)->hasOffset(
+            'supportedVersions',
+            '"result" is missing the required "supportedVersions" key.',
+        );
         Assert::that($data['supportedVersions'])
             ->isList('"result.supportedVersions" must be a list, {type} given.')
             ->values()->isNonEmptyString('each "result.supportedVersions" must be a non-empty string, {type} given.')
@@ -82,7 +87,10 @@ final readonly class DiscoverResult extends CacheableResult implements ServerRes
         Assert::that($ttlMs)->isInt('"result.ttlMs" must be an integer, {type} given.');
 
         Assert::that($data)->hasOffset('cacheScope', '"result" is missing the required "cacheScope" key.');
-        Assert::that($data['cacheScope'])->isOneOf(array_column(CacheScope::cases(), 'value'), '"result.cacheScope" must be one of {choices}, {value} given.');
+        Assert::that($data['cacheScope'])->isOneOf(
+            array_column(CacheScope::cases(), 'value'),
+            '"result.cacheScope" must be one of {choices}, {value} given.',
+        );
         $cacheScope = CacheScope::from($data['cacheScope']);
 
         $instructions = null;

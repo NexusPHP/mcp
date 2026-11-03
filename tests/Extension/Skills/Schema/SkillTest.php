@@ -46,7 +46,11 @@ final class SkillTest extends AbstractMcpTestCase
 
     public function testASkillAtTheTopOfTheNamespaceTakesItsNameFromTheAuthority(): void
     {
-        $entry = new Skill('skill://git-workflow/SKILL.md', ['name' => 'git-workflow', 'description' => 'd'], 'dynamic');
+        $entry = new Skill(
+            'skill://git-workflow/SKILL.md',
+            ['name' => 'git-workflow', 'description' => 'd'],
+            'dynamic',
+        );
 
         self::assertSame('skill://git-workflow/SKILL.md', $entry->uri);
     }
@@ -56,7 +60,11 @@ final class SkillTest extends AbstractMcpTestCase
         $entry = new Skill(self::URI, self::FRONTMATTER, 'dynamic');
 
         self::assertSame('dynamic', $entry->resources);
-        self::assertSame(['uri' => self::URI, 'frontmatter' => self::FRONTMATTER, 'resources' => 'dynamic'], $entry->toArray());
+        self::assertSame([
+            'uri' => self::URI,
+            'frontmatter' => self::FRONTMATTER,
+            'resources' => 'dynamic',
+        ], $entry->toArray());
     }
 
     public function testToArrayAndJsonSerializeAgree(): void
@@ -94,7 +102,11 @@ final class SkillTest extends AbstractMcpTestCase
             ],
         ]];
 
-        yield 'dynamic resources' => [['uri' => self::URI, 'frontmatter' => self::FRONTMATTER, 'resources' => 'dynamic']];
+        yield 'dynamic resources' => [[
+            'uri' => self::URI,
+            'frontmatter' => self::FRONTMATTER,
+            'resources' => 'dynamic',
+        ]];
 
         yield 'a manifest with _meta' => [[
             'uri' => self::URI,
@@ -116,8 +128,12 @@ final class SkillTest extends AbstractMcpTestCase
      * @param array<mixed, mixed>|string $resources
      */
     #[DataProvider('provideConstructionRejectsAnInvalidEntryCases')]
-    public function testConstructionRejectsAnInvalidEntry(string $uri, array $frontmatter, array|string $resources, string $expectedMessage): void
-    {
+    public function testConstructionRejectsAnInvalidEntry(
+        string $uri,
+        array $frontmatter,
+        array|string $resources,
+        string $expectedMessage,
+    ): void {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
@@ -135,64 +151,130 @@ final class SkillTest extends AbstractMcpTestCase
         yield 'an empty uri' => ['', self::FRONTMATTER, 'dynamic', 'skill "uri" must be a non-empty string.'];
 
         yield 'a uri naming another file' => [
-            'skill://acme/billing/refunds/README.md', self::FRONTMATTER, 'dynamic',
+            'skill://acme/billing/refunds/README.md',
+            self::FRONTMATTER,
+            'dynamic',
             'skill "uri" must name a "SKILL.md", \'skill://acme/billing/refunds/README.md\' given.',
         ];
 
         yield 'a uri naming a file merely ending in the manifest name' => [
-            'skill://acme/billing/refunds/NOT-SKILL.md', self::FRONTMATTER, 'dynamic',
+            'skill://acme/billing/refunds/NOT-SKILL.md',
+            self::FRONTMATTER,
+            'dynamic',
             'skill "uri" must name a "SKILL.md", \'skill://acme/billing/refunds/NOT-SKILL.md\' given.',
         ];
 
-        yield 'a uri that is only the manifest name' => ['/SKILL.md', self::FRONTMATTER, 'dynamic', 'skill "uri" must name a skill directory before "SKILL.md".'];
+        yield 'a uri that is only the manifest name' => [
+            '/SKILL.md',
+            self::FRONTMATTER,
+            'dynamic',
+            'skill "uri" must name a skill directory before "SKILL.md".',
+        ];
 
-        yield 'frontmatter that is a list' => [self::URI, ['refunds', 'Process refunds.'], 'dynamic', 'skill "frontmatter" must be a string-keyed object.'];
+        yield 'frontmatter that is a list' => [
+            self::URI,
+            ['refunds', 'Process refunds.'],
+            'dynamic',
+            'skill "frontmatter" must be a string-keyed object.',
+        ];
 
-        yield 'frontmatter without a name' => [self::URI, ['description' => 'd'], 'dynamic', 'skill "frontmatter" must carry a "name".'];
+        yield 'frontmatter without a name' => [
+            self::URI,
+            ['description' => 'd'],
+            'dynamic',
+            'skill "frontmatter" must carry a "name".',
+        ];
 
-        yield 'frontmatter with an empty name' => [self::URI, ['name' => '', 'description' => 'd'], 'dynamic', 'skill "frontmatter.name" must be a non-empty string.'];
+        yield 'frontmatter with an empty name' => [
+            self::URI,
+            ['name' => '', 'description' => 'd'],
+            'dynamic',
+            'skill "frontmatter.name" must be a non-empty string.',
+        ];
 
-        yield 'frontmatter without a description' => [self::URI, ['name' => 'refunds'], 'dynamic', 'skill "frontmatter" must carry a "description".'];
+        yield 'frontmatter without a description' => [
+            self::URI,
+            ['name' => 'refunds'],
+            'dynamic',
+            'skill "frontmatter" must carry a "description".',
+        ];
 
-        yield 'frontmatter with a description that is not text' => [self::URI, ['name' => 'refunds', 'description' => 7], 'dynamic', 'skill "frontmatter.description" must be a non-empty string.'];
+        yield 'frontmatter with a description that is not text' => [
+            self::URI,
+            ['name' => 'refunds', 'description' => 7],
+            'dynamic',
+            'skill "frontmatter.description" must be a non-empty string.',
+        ];
 
         yield 'a name that is not the final segment' => [
-            self::URI, ['name' => 'billing', 'description' => 'd'], 'dynamic',
+            self::URI,
+            ['name' => 'billing', 'description' => 'd'],
+            'dynamic',
             'skill "uri" must end its skill path in the "frontmatter.name" \'billing\', \'refunds\' given.',
         ];
 
         yield 'a name that only ends the final segment' => [
-            self::URI, ['name' => 'funds', 'description' => 'd'], 'dynamic',
+            self::URI,
+            ['name' => 'funds', 'description' => 'd'],
+            'dynamic',
             'skill "uri" must end its skill path in the "frontmatter.name" \'funds\', \'refunds\' given.',
         ];
 
-        yield 'resources keyed like a map' => [self::URI, self::FRONTMATTER, ['manifest' => $manifest], 'skill "resources" must be a list or "dynamic".'];
+        yield 'resources keyed like a map' => [
+            self::URI,
+            self::FRONTMATTER,
+            ['manifest' => $manifest],
+            'skill "resources" must be a list or "dynamic".',
+        ];
 
-        yield 'resources another word' => [self::URI, self::FRONTMATTER, 'static', 'skill "resources" must be a list or "dynamic".'];
+        yield 'resources another word' => [
+            self::URI,
+            self::FRONTMATTER,
+            'static',
+            'skill "resources" must be a list or "dynamic".',
+        ];
 
-        yield 'an empty manifest' => [self::URI, self::FRONTMATTER, [], 'skill "resources" must list the "SKILL.md" named by the "uri".'];
+        yield 'an empty manifest' => [
+            self::URI,
+            self::FRONTMATTER,
+            [],
+            'skill "resources" must list the "SKILL.md" named by the "uri".',
+        ];
 
         yield 'a manifest without the SKILL.md' => [
-            self::URI, self::FRONTMATTER, [new SkillResource('skill://acme/billing/refunds/examples/email.md', self::DIGEST, 5)],
+            self::URI,
+            self::FRONTMATTER,
+            [new SkillResource('skill://acme/billing/refunds/examples/email.md', self::DIGEST, 5)],
             'skill "resources" must list the "SKILL.md" named by the "uri".',
         ];
 
         yield 'a file outside the skill directory' => [
-            self::URI, self::FRONTMATTER, [$manifest, new SkillResource('skill://acme/billing/other/a.md', self::DIGEST, 5)],
+            self::URI,
+            self::FRONTMATTER,
+            [$manifest, new SkillResource('skill://acme/billing/other/a.md', self::DIGEST, 5)],
             'each skill "resources" entry must name a file under "skill://acme/billing/refunds".',
         ];
 
         yield 'a file in a directory merely starting with the skill directory' => [
-            self::URI, self::FRONTMATTER, [$manifest, new SkillResource('skill://acme/billing/refunds-old/a.md', self::DIGEST, 5)],
+            self::URI,
+            self::FRONTMATTER,
+            [$manifest, new SkillResource('skill://acme/billing/refunds-old/a.md', self::DIGEST, 5)],
             'each skill "resources" entry must name a file under "skill://acme/billing/refunds".',
         ];
 
         yield 'the skill directory itself' => [
-            self::URI, self::FRONTMATTER, [$manifest, new SkillResource('skill://acme/billing/refunds', self::DIGEST, 5)],
+            self::URI,
+            self::FRONTMATTER,
+            [$manifest, new SkillResource('skill://acme/billing/refunds', self::DIGEST, 5)],
             'each skill "resources" entry must name a file under "skill://acme/billing/refunds".',
         ];
 
-        yield 'a file listed twice' => [self::URI, self::FRONTMATTER, [$manifest, $manifest], 'each skill "resources" entry must name its file once.'];
+        yield 'a file listed twice' => [
+            self::URI,
+            self::FRONTMATTER,
+            [$manifest, $manifest],
+            'each skill "resources" entry must name its file once.',
+        ];
     }
 
     public function testResourcesMustBeSkillResources(): void
@@ -220,15 +302,30 @@ final class SkillTest extends AbstractMcpTestCase
      */
     public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
-        yield 'missing uri' => [['frontmatter' => self::FRONTMATTER, 'resources' => 'dynamic'], 'skill is missing the required "uri" key.'];
+        yield 'missing uri' => [
+            ['frontmatter' => self::FRONTMATTER, 'resources' => 'dynamic'],
+            'skill is missing the required "uri" key.',
+        ];
 
-        yield 'uri not a string' => [['uri' => 7, 'frontmatter' => self::FRONTMATTER, 'resources' => 'dynamic'], 'skill "uri" must be a non-empty string, int given.'];
+        yield 'uri not a string' => [
+            ['uri' => 7, 'frontmatter' => self::FRONTMATTER, 'resources' => 'dynamic'],
+            'skill "uri" must be a non-empty string, int given.',
+        ];
 
-        yield 'missing frontmatter' => [['uri' => self::URI, 'resources' => 'dynamic'], 'skill is missing the required "frontmatter" key.'];
+        yield 'missing frontmatter' => [
+            ['uri' => self::URI, 'resources' => 'dynamic'],
+            'skill is missing the required "frontmatter" key.',
+        ];
 
-        yield 'frontmatter not an object' => [['uri' => self::URI, 'frontmatter' => 'refunds', 'resources' => 'dynamic'], 'skill "frontmatter" must be an object, string given.'];
+        yield 'frontmatter not an object' => [
+            ['uri' => self::URI, 'frontmatter' => 'refunds', 'resources' => 'dynamic'],
+            'skill "frontmatter" must be an object, string given.',
+        ];
 
-        yield 'frontmatter a list' => [['uri' => self::URI, 'frontmatter' => ['refunds'], 'resources' => 'dynamic'], 'skill "frontmatter" must be a string-keyed object.'];
+        yield 'frontmatter a list' => [
+            ['uri' => self::URI, 'frontmatter' => ['refunds'], 'resources' => 'dynamic'],
+            'skill "frontmatter" must be a string-keyed object.',
+        ];
 
         yield 'frontmatter without a name' => [
             ['uri' => self::URI, 'frontmatter' => ['description' => 'd'], 'resources' => 'dynamic'],
@@ -250,17 +347,35 @@ final class SkillTest extends AbstractMcpTestCase
             'skill "frontmatter.description" must be a non-empty string, string given.',
         ];
 
-        yield 'missing resources' => [['uri' => self::URI, 'frontmatter' => self::FRONTMATTER], 'skill is missing the required "resources" key.'];
+        yield 'missing resources' => [
+            ['uri' => self::URI, 'frontmatter' => self::FRONTMATTER],
+            'skill is missing the required "resources" key.',
+        ];
 
-        yield 'resources another word' => [['uri' => self::URI, 'frontmatter' => self::FRONTMATTER, 'resources' => 'static'], 'skill "resources" must be a list or "dynamic", string given.'];
+        yield 'resources another word' => [
+            ['uri' => self::URI, 'frontmatter' => self::FRONTMATTER, 'resources' => 'static'],
+            'skill "resources" must be a list or "dynamic", string given.',
+        ];
 
-        yield 'resources null' => [['uri' => self::URI, 'frontmatter' => self::FRONTMATTER, 'resources' => null], 'skill "resources" must be a list or "dynamic", null given.'];
+        yield 'resources null' => [
+            ['uri' => self::URI, 'frontmatter' => self::FRONTMATTER, 'resources' => null],
+            'skill "resources" must be a list or "dynamic", null given.',
+        ];
 
-        yield 'resources a map' => [['uri' => self::URI, 'frontmatter' => self::FRONTMATTER, 'resources' => ['a' => []]], 'skill "resources" must be a list or "dynamic", array given.'];
+        yield 'resources a map' => [
+            ['uri' => self::URI, 'frontmatter' => self::FRONTMATTER, 'resources' => ['a' => []]],
+            'skill "resources" must be a list or "dynamic", array given.',
+        ];
 
-        yield 'a resource that is not an object' => [['uri' => self::URI, 'frontmatter' => self::FRONTMATTER, 'resources' => ['x']], 'each skill "resources" entry must be an object, string given.'];
+        yield 'a resource that is not an object' => [
+            ['uri' => self::URI, 'frontmatter' => self::FRONTMATTER, 'resources' => ['x']],
+            'each skill "resources" entry must be an object, string given.',
+        ];
 
-        yield 'a resource that is a list' => [['uri' => self::URI, 'frontmatter' => self::FRONTMATTER, 'resources' => [['x']]], 'each skill "resources" entry must be a string-keyed object.'];
+        yield 'a resource that is a list' => [
+            ['uri' => self::URI, 'frontmatter' => self::FRONTMATTER, 'resources' => [['x']]],
+            'each skill "resources" entry must be a string-keyed object.',
+        ];
 
         yield '_meta not an object' => [
             ['uri' => self::URI, 'frontmatter' => self::FRONTMATTER, 'resources' => 'dynamic', '_meta' => 'oops'],

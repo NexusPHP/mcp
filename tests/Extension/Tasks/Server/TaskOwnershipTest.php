@@ -41,7 +41,14 @@ final class TaskOwnershipTest extends AbstractMcpTestCase
 {
     public function testAnUnprotectedCallerCreatesAnUnownedTask(): void
     {
-        $record = TaskOwnership::createTask(new InMemoryTaskStore(), $this->buildContext(), 'slow_compute', null, null, 1_000);
+        $record = TaskOwnership::createTask(
+            new InMemoryTaskStore(),
+            $this->buildContext(),
+            'slow_compute',
+            null,
+            null,
+            1_000,
+        );
 
         self::assertNull($record->owner);
     }
@@ -52,7 +59,10 @@ final class TaskOwnershipTest extends AbstractMcpTestCase
         $store = self::createStub(TaskStoreInterface::class);
         $store->method('createTask')->willReturn($record);
 
-        self::assertSame($record, TaskOwnership::createTask($store, $this->buildContext(), 'slow_compute', null, null, 1_000));
+        self::assertSame(
+            $record,
+            TaskOwnership::createTask($store, $this->buildContext(), 'slow_compute', null, null, 1_000),
+        );
     }
 
     public function testAnAuthenticatedCallerCreatesATaskThatItOwns(): void
@@ -114,11 +124,16 @@ final class TaskOwnershipTest extends AbstractMcpTestCase
         $store = self::createStub(TaskStoreInterface::class);
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageMatches(
-            '/^.+ must implement Nexus\\\\Mcp\\\\Extension\\\\Tasks\\\\Server\\\\Store\\\\OwnedTaskStoreInterface to serve authenticated requests\.$/',
-        );
+        $this->expectExceptionMessageMatches('/^.+ must implement Nexus\\\\Mcp\\\\Extension\\\\Tasks\\\\Server\\\\Store\\\\OwnedTaskStoreInterface to serve authenticated requests\.$/');
 
-        TaskOwnership::createTask($store, $this->buildContext($this->buildToken('alice', 'client-1')), 'slow_compute', null, null, 1_000);
+        TaskOwnership::createTask(
+            $store,
+            $this->buildContext($this->buildToken('alice', 'client-1')),
+            'slow_compute',
+            null,
+            null,
+            1_000,
+        );
     }
 
     /**
@@ -146,7 +161,12 @@ final class TaskOwnershipTest extends AbstractMcpTestCase
             $this->expectExceptionMessageIs('"params.taskId" does not name a known task.');
         }
 
-        TaskOwnership::findTask($store, $this->buildContext($this->buildToken('alice', 'client-1', $held)), $taskId, $scopes);
+        TaskOwnership::findTask(
+            $store,
+            $this->buildContext($this->buildToken('alice', 'client-1', $held)),
+            $taskId,
+            $scopes,
+        );
     }
 
     /**
@@ -179,7 +199,12 @@ final class TaskOwnershipTest extends AbstractMcpTestCase
         $this->expectException(InvalidParamsException::class);
         $this->expectExceptionMessageIs('"params.taskId" does not name a known task.');
 
-        TaskOwnership::findTask($store, $this->buildContext(), $taskId, new OperationScopes(tools: ['delete' => ['delete:admin']]));
+        TaskOwnership::findTask(
+            $store,
+            $this->buildContext(),
+            $taskId,
+            new OperationScopes(tools: ['delete' => ['delete:admin']]),
+        );
     }
 
     public function testTheOwnerFindsItsTask(): void
@@ -200,10 +225,19 @@ final class TaskOwnershipTest extends AbstractMcpTestCase
     }
 
     #[DataProvider('provideAnotherCallerCannotFindTheTaskCases')]
-    public function testAnotherCallerCannotFindTheTask(?VerifiedAccessToken $creator, ?VerifiedAccessToken $reader): void
-    {
+    public function testAnotherCallerCannotFindTheTask(
+        ?VerifiedAccessToken $creator,
+        ?VerifiedAccessToken $reader,
+    ): void {
         $store = new InMemoryTaskStore();
-        $taskId = TaskOwnership::createTask($store, $this->buildContext($creator), 'slow_compute', null, null, 1_000)->taskId;
+        $taskId = TaskOwnership::createTask(
+            $store,
+            $this->buildContext($creator),
+            'slow_compute',
+            null,
+            null,
+            1_000,
+        )->taskId;
 
         $this->expectException(InvalidParamsException::class);
         $this->expectExceptionMessageIs('"params.taskId" does not name a known task.');
@@ -216,15 +250,30 @@ final class TaskOwnershipTest extends AbstractMcpTestCase
      */
     public static function provideAnotherCallerCannotFindTheTaskCases(): iterable
     {
-        yield 'another subject' => [new VerifiedAccessToken(['a'], 1_800_000_000, subject: 'alice', clientId: 'c'), new VerifiedAccessToken(['a'], 1_800_000_000, subject: 'bob', clientId: 'c')];
+        yield 'another subject' => [
+            new VerifiedAccessToken(['a'], 1_800_000_000, subject: 'alice', clientId: 'c'),
+            new VerifiedAccessToken(['a'], 1_800_000_000, subject: 'bob', clientId: 'c'),
+        ];
 
-        yield 'another client' => [new VerifiedAccessToken(['a'], 1_800_000_000, subject: 'alice', clientId: 'c1'), new VerifiedAccessToken(['a'], 1_800_000_000, subject: 'alice', clientId: 'c2')];
+        yield 'another client' => [
+            new VerifiedAccessToken(['a'], 1_800_000_000, subject: 'alice', clientId: 'c1'),
+            new VerifiedAccessToken(['a'], 1_800_000_000, subject: 'alice', clientId: 'c2'),
+        ];
 
-        yield 'colliding when joined' => [new VerifiedAccessToken(['a'], 1_800_000_000, subject: 'a:b', clientId: 'c'), new VerifiedAccessToken(['a'], 1_800_000_000, subject: 'a', clientId: 'b:c')];
+        yield 'colliding when joined' => [
+            new VerifiedAccessToken(['a'], 1_800_000_000, subject: 'a:b', clientId: 'c'),
+            new VerifiedAccessToken(['a'], 1_800_000_000, subject: 'a', clientId: 'b:c'),
+        ];
 
-        yield 'unprotected reading an owned task' => [new VerifiedAccessToken(['a'], 1_800_000_000, subject: 'alice', clientId: 'c'), null];
+        yield 'unprotected reading an owned task' => [
+            new VerifiedAccessToken(['a'], 1_800_000_000, subject: 'alice', clientId: 'c'),
+            null,
+        ];
 
-        yield 'authenticated reading an unowned task' => [null, new VerifiedAccessToken(['a'], 1_800_000_000, subject: 'alice', clientId: 'c')];
+        yield 'authenticated reading an unowned task' => [
+            null,
+            new VerifiedAccessToken(['a'], 1_800_000_000, subject: 'alice', clientId: 'c'),
+        ];
     }
 
     public function testAnUnknownTaskIsNotFound(): void
@@ -242,7 +291,13 @@ final class TaskOwnershipTest extends AbstractMcpTestCase
      */
     private function buildToken(?string $subject, ?string $clientId, array $scopes = []): VerifiedAccessToken
     {
-        return new VerifiedAccessToken(['https://mcp.test/mcp'], 1_800_000_000, $scopes, subject: $subject, clientId: $clientId);
+        return new VerifiedAccessToken(
+            ['https://mcp.test/mcp'],
+            1_800_000_000,
+            $scopes,
+            subject: $subject,
+            clientId: $clientId,
+        );
     }
 
     private function buildContext(?VerifiedAccessToken $token = null): ServerContext

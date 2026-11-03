@@ -52,7 +52,10 @@ final class TaskClientTest extends AbstractMcpTestCase
     {
         [$tasks, $transport] = $this->buildTaskClient();
 
-        $call = async(static fn(): CallToolResult|CreateTaskResult|InputRequiredResult => $tasks->callToolAsTask('slow_compute', ['seconds' => 2]));
+        $call = async(static fn(): CallToolResult|CreateTaskResult|InputRequiredResult => $tasks->callToolAsTask(
+            'slow_compute',
+            ['seconds' => 2],
+        ));
         $transport->nextSend()->await();
 
         self::assertArrayHasKey(0, $transport->sent);
@@ -82,7 +85,10 @@ final class TaskClientTest extends AbstractMcpTestCase
 
         $call = async(static fn(): CallToolResult|CreateTaskResult|InputRequiredResult => $tasks->callToolAsTask(
             'test_tool_with_task',
-            inputResponses: ['task_user_name' => new ElicitResult(action: ElicitAction::Accept, content: ['name' => 'Alice'])],
+            inputResponses: ['task_user_name' => new ElicitResult(
+                action: ElicitAction::Accept,
+                content: ['name' => 'Alice'],
+            )],
             requestState: 'token-1',
         ));
         $call->ignore();
@@ -92,7 +98,10 @@ final class TaskClientTest extends AbstractMcpTestCase
         $sent = $transport->sent[0]['message'];
         self::assertInstanceOf(JsonRpcRequest::class, $sent);
         $encoded = json_encode($sent, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES);
-        self::assertStringContainsString('"inputResponses":{"task_user_name":{"action":"accept","content":{"name":"Alice"}}}', $encoded);
+        self::assertStringContainsString(
+            '"inputResponses":{"task_user_name":{"action":"accept","content":{"name":"Alice"}}}',
+            $encoded,
+        );
         self::assertStringContainsString('"requestState":"token-1"', $encoded);
 
         $transport->emitMessage([
@@ -110,7 +119,10 @@ final class TaskClientTest extends AbstractMcpTestCase
         $handle = CreateTaskResult::fromArray($this->buildTaskPayload('working'));
         $cancellation = new DeferredCancellation();
 
-        $await = async(static fn(): GetTaskResult => $tasks->awaitTask($handle, cancellation: $cancellation->getCancellation()));
+        $await = async(static fn(): GetTaskResult => $tasks->awaitTask(
+            $handle,
+            cancellation: $cancellation->getCancellation(),
+        ));
         $await->ignore();
 
         $this->respondToNextTasksGet($transport, $this->buildTaskPayload('working'), 0);
@@ -155,7 +167,9 @@ final class TaskClientTest extends AbstractMcpTestCase
         $transport->emitMessage([
             'jsonrpc' => '2.0',
             'id' => $sent->id->id,
-            'result' => $this->buildTaskPayload('completed', ['result' => ['resultType' => 'complete', 'content' => []]]),
+            'result' => $this->buildTaskPayload('completed', [
+                'result' => ['resultType' => 'complete', 'content' => []],
+            ]),
         ]);
 
         $state = $call->await();
@@ -200,7 +214,14 @@ final class TaskClientTest extends AbstractMcpTestCase
         $await = async(static fn(): GetTaskResult => $tasks->awaitTask($handle));
 
         $this->respondToNextTasksGet($transport, $this->buildTaskPayload('working'), 0);
-        $this->respondToNextTasksGet($transport, $this->buildTaskPayload('completed', ['result' => ['resultType' => 'complete', 'content' => []]]), 1);
+        $this->respondToNextTasksGet(
+            $transport,
+            $this->buildTaskPayload(
+                'completed',
+                ['result' => ['resultType' => 'complete', 'content' => []]],
+            ),
+            1,
+        );
 
         $state = $await->await();
 
@@ -222,25 +243,40 @@ final class TaskClientTest extends AbstractMcpTestCase
         };
         $await = async(static fn(): GetTaskResult => $tasks->awaitTask($handle, $resolver));
 
-        $this->respondToNextTasksGet($transport, $this->buildTaskPayload('input_required', ['inputRequests' => [
-            'confirm' => [
-                'method' => 'elicitation/create',
-                'params' => [
-                    'mode' => 'form',
-                    'message' => 'Confirm?',
-                    'requestedSchema' => ['type' => 'object', 'properties' => ['name' => ['type' => 'string']]],
+        $this->respondToNextTasksGet(
+            $transport,
+            $this->buildTaskPayload('input_required', ['inputRequests' => [
+                'confirm' => [
+                    'method' => 'elicitation/create',
+                    'params' => [
+                        'mode' => 'form',
+                        'message' => 'Confirm?',
+                        'requestedSchema' => ['type' => 'object', 'properties' => ['name' => ['type' => 'string']]],
+                    ],
                 ],
-            ],
-        ]]), 0);
+            ]]),
+            0,
+        );
 
         $this->awaitSendCount($transport, 2);
         self::assertArrayHasKey(1, $transport->sent);
         $update = $transport->sent[1]['message'];
         self::assertInstanceOf(JsonRpcRequest::class, $update);
         self::assertSame('tasks/update', $update::getMethod());
-        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => $update->id->id, 'result' => ['resultType' => 'complete']]);
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => $update->id->id,
+            'result' => ['resultType' => 'complete'],
+        ]);
 
-        $this->respondToNextTasksGet($transport, $this->buildTaskPayload('completed', ['result' => ['resultType' => 'complete', 'content' => []]]), 2);
+        $this->respondToNextTasksGet(
+            $transport,
+            $this->buildTaskPayload(
+                'completed',
+                ['result' => ['resultType' => 'complete', 'content' => []]],
+            ),
+            2,
+        );
 
         $state = $await->await();
 
@@ -265,7 +301,14 @@ final class TaskClientTest extends AbstractMcpTestCase
         unset($first['pollIntervalMs']);
         $this->respondToNextTasksGet($transport, $first, 0);
         $this->respondToNextTasksGet($transport, $this->buildTaskPayload('working'), 1);
-        $this->respondToNextTasksGet($transport, $this->buildTaskPayload('completed', ['result' => ['resultType' => 'complete', 'content' => []]]), 2);
+        $this->respondToNextTasksGet(
+            $transport,
+            $this->buildTaskPayload(
+                'completed',
+                ['result' => ['resultType' => 'complete', 'content' => []]],
+            ),
+            2,
+        );
 
         $await->await();
 
@@ -284,11 +327,22 @@ final class TaskClientTest extends AbstractMcpTestCase
 
         $this->respondToNextTasksGet($transport, $this->buildTaskPayload('working', ['pollIntervalMs' => 50]), 0);
         $this->respondToNextTasksGet($transport, $this->buildTaskPayload('working', ['pollIntervalMs' => 49]), 1);
-        $this->respondToNextTasksGet($transport, $this->buildTaskPayload('completed', ['result' => ['resultType' => 'complete', 'content' => []]]), 2);
+        $this->respondToNextTasksGet(
+            $transport,
+            $this->buildTaskPayload(
+                'completed',
+                ['result' => ['resultType' => 'complete', 'content' => []]],
+            ),
+            2,
+        );
 
         $await->await();
 
-        self::assertSame([0.05, 0.05], $delay->sleeps, 'An interval at the floor passes, one under it is raised to the floor.');
+        self::assertSame(
+            [0.05, 0.05],
+            $delay->sleeps,
+            'An interval at the floor passes, one under it is raised to the floor.',
+        );
     }
 
     public function testAwaitTaskHoldsAnAbsurdSuggestedIntervalToTheCeiling(): void
@@ -296,13 +350,30 @@ final class TaskClientTest extends AbstractMcpTestCase
         $delay = new RecordingDelay();
         [$tasks, $transport] = $this->buildTaskClient(delay: $delay);
 
-        $handle = CreateTaskResult::fromArray([...$this->buildTaskPayload('working'), 'pollIntervalMs' => \PHP_INT_MAX]);
+        $handle = CreateTaskResult::fromArray([
+            ...$this->buildTaskPayload('working'),
+            'pollIntervalMs' => \PHP_INT_MAX,
+        ]);
 
         $await = async(static fn(): GetTaskResult => $tasks->awaitTask($handle));
         $await->ignore();
 
-        $this->respondToNextTasksGet($transport, $this->buildTaskPayload('working', ['pollIntervalMs' => \PHP_INT_MAX]), 0);
-        $this->respondToNextTasksGet($transport, $this->buildTaskPayload('completed', ['result' => ['resultType' => 'complete', 'content' => []]]), 1);
+        $this->respondToNextTasksGet(
+            $transport,
+            $this->buildTaskPayload(
+                'working',
+                ['pollIntervalMs' => \PHP_INT_MAX],
+            ),
+            0,
+        );
+        $this->respondToNextTasksGet(
+            $transport,
+            $this->buildTaskPayload(
+                'completed',
+                ['result' => ['resultType' => 'complete', 'content' => []]],
+            ),
+            1,
+        );
 
         $await->await();
 
@@ -342,7 +413,10 @@ final class TaskClientTest extends AbstractMcpTestCase
             $tasks->awaitTask($handle);
             self::fail('Expected the default stall ceiling to trip.');
         } catch (StalledTaskException $e) {
-            self::assertSame('Task "task-1" stayed input_required for 60 polls without new input requests.', $e->getMessage());
+            self::assertSame(
+                'Task "task-1" stayed input_required for 60 polls without new input requests.',
+                $e->getMessage(),
+            );
             self::assertCount(60, $transport->sent);
         } finally {
             $stopped[0] = true;
@@ -361,7 +435,10 @@ final class TaskClientTest extends AbstractMcpTestCase
             $tasks->awaitTask($handle, static fn(array $requests): array => []);
             self::fail('Expected the stall ceiling to trip on an unproductive resolver.');
         } catch (StalledTaskException $e) {
-            self::assertSame('Task "task-1" stayed input_required for 2 polls without new input requests.', $e->getMessage());
+            self::assertSame(
+                'Task "task-1" stayed input_required for 2 polls without new input requests.',
+                $e->getMessage(),
+            );
             self::assertCount(2, $transport->sent);
         } finally {
             $stopped[0] = true;
@@ -382,7 +459,10 @@ final class TaskClientTest extends AbstractMcpTestCase
             ]);
             self::fail('Expected the stall ceiling to trip after the answered round.');
         } catch (StalledTaskException $e) {
-            self::assertSame('Task "task-1" stayed input_required for 1 polls without new input requests.', $e->getMessage());
+            self::assertSame(
+                'Task "task-1" stayed input_required for 1 polls without new input requests.',
+                $e->getMessage(),
+            );
             self::assertCount(3, $transport->sent);
         } finally {
             $stopped[0] = true;
@@ -411,31 +491,61 @@ final class TaskClientTest extends AbstractMcpTestCase
         $await = async(static fn(): GetTaskResult => $tasks->awaitTask($handle, $resolver));
         $await->ignore();
 
-        $this->respondToNextTasksGet($transport, $this->buildTaskPayload('input_required', ['inputRequests' => $this->buildInputRequestsPayload()]), 0);
+        $this->respondToNextTasksGet(
+            $transport,
+            $this->buildTaskPayload(
+                'input_required',
+                ['inputRequests' => $this->buildInputRequestsPayload()],
+            ),
+            0,
+        );
         $this->awaitSendCount($transport, 2);
         self::assertArrayHasKey(1, $transport->sent);
         $update = $transport->sent[1]['message'];
         self::assertInstanceOf(JsonRpcRequest::class, $update);
         self::assertSame('tasks/update', $update::getMethod());
-        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => $update->id->id, 'result' => ['resultType' => 'complete']]);
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => $update->id->id,
+            'result' => ['resultType' => 'complete'],
+        ]);
 
-        $this->respondToNextTasksGet($transport, $this->buildTaskPayload('input_required', ['inputRequests' => [
-            ...$this->buildInputRequestsPayload(),
-            ...$this->buildInputRequestsPayload('extra'),
-        ]]), 2);
+        $this->respondToNextTasksGet(
+            $transport,
+            $this->buildTaskPayload('input_required', ['inputRequests' => [
+                ...$this->buildInputRequestsPayload(),
+                ...$this->buildInputRequestsPayload('extra'),
+            ]]),
+            2,
+        );
         $this->awaitSendCount($transport, 4);
         self::assertArrayHasKey(3, $transport->sent);
         $update = $transport->sent[3]['message'];
         self::assertInstanceOf(JsonRpcRequest::class, $update);
         self::assertSame('tasks/update', $update::getMethod());
-        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => $update->id->id, 'result' => ['resultType' => 'complete']]);
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => $update->id->id,
+            'result' => ['resultType' => 'complete'],
+        ]);
 
-        $this->respondToNextTasksGet($transport, $this->buildTaskPayload('input_required', ['inputRequests' => [
-            ...$this->buildInputRequestsPayload(),
-            ...$this->buildInputRequestsPayload('extra'),
-        ]]), 4);
+        $this->respondToNextTasksGet(
+            $transport,
+            $this->buildTaskPayload('input_required', ['inputRequests' => [
+                ...$this->buildInputRequestsPayload(),
+                ...$this->buildInputRequestsPayload('extra'),
+            ]]),
+            4,
+        );
 
-        $this->respondToNextTasksGet($transport, $this->buildTaskPayload('completed', ['result' => ['resultType' => 'complete', 'content' => []]]), 5);
+        $this->respondToNextTasksGet(
+            $transport,
+            $this->buildTaskPayload(
+                'completed',
+                ['result' => ['resultType' => 'complete', 'content' => []]],
+            ),
+            5,
+        );
 
         $await->await();
 
@@ -456,7 +566,10 @@ final class TaskClientTest extends AbstractMcpTestCase
             ]);
             self::fail('Expected the stall ceiling to trip on answers outside the offered set.');
         } catch (StalledTaskException $e) {
-            self::assertSame('Task "task-1" stayed input_required for 2 polls without new input requests.', $e->getMessage());
+            self::assertSame(
+                'Task "task-1" stayed input_required for 2 polls without new input requests.',
+                $e->getMessage(),
+            );
             self::assertCount(2, $transport->sent);
         } finally {
             $stopped[0] = true;
@@ -474,7 +587,14 @@ final class TaskClientTest extends AbstractMcpTestCase
         ]));
         $await->ignore();
 
-        $this->respondToNextTasksGet($transport, $this->buildTaskPayload('input_required', ['inputRequests' => $this->buildInputRequestsPayload()]), 0);
+        $this->respondToNextTasksGet(
+            $transport,
+            $this->buildTaskPayload(
+                'input_required',
+                ['inputRequests' => $this->buildInputRequestsPayload()],
+            ),
+            0,
+        );
         $this->awaitSendCount($transport, 2);
         self::assertArrayHasKey(1, $transport->sent);
         $update = $transport->sent[1]['message'];
@@ -484,9 +604,20 @@ final class TaskClientTest extends AbstractMcpTestCase
         self::assertInstanceOf(UpdateTaskRequestParams::class, $update->params);
 
         self::assertSame(['confirm'], array_keys($update->params->inputResponses));
-        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => $update->id->id, 'result' => ['resultType' => 'complete']]);
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => $update->id->id,
+            'result' => ['resultType' => 'complete'],
+        ]);
 
-        $this->respondToNextTasksGet($transport, $this->buildTaskPayload('completed', ['result' => ['resultType' => 'complete', 'content' => []]]), 2);
+        $this->respondToNextTasksGet(
+            $transport,
+            $this->buildTaskPayload(
+                'completed',
+                ['result' => ['resultType' => 'complete', 'content' => []]],
+            ),
+            2,
+        );
 
         $state = $await->await();
         self::assertInstanceOf(GetTaskResult::class, $state);
@@ -514,23 +645,52 @@ final class TaskClientTest extends AbstractMcpTestCase
         $await = async(static fn(): GetTaskResult => $tasks->awaitTask($handle, $resolver));
         $await->ignore();
 
-        $this->respondToNextTasksGet($transport, $this->buildTaskPayload('input_required', ['inputRequests' => $this->buildInputRequestsPayload()]), 0);
+        $this->respondToNextTasksGet(
+            $transport,
+            $this->buildTaskPayload(
+                'input_required',
+                ['inputRequests' => $this->buildInputRequestsPayload()],
+            ),
+            0,
+        );
         $this->awaitSendCount($transport, 2);
         self::assertArrayHasKey(1, $transport->sent);
         $update = $transport->sent[1]['message'];
         self::assertInstanceOf(JsonRpcRequest::class, $update);
-        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => $update->id->id, 'result' => ['resultType' => 'complete']]);
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => $update->id->id,
+            'result' => ['resultType' => 'complete'],
+        ]);
 
         $this->respondToNextTasksGet($transport, $this->buildTaskPayload('working'), 2);
-        $this->respondToNextTasksGet($transport, $this->buildTaskPayload('input_required', ['inputRequests' => $this->buildInputRequestsPayload()]), 3);
+        $this->respondToNextTasksGet(
+            $transport,
+            $this->buildTaskPayload(
+                'input_required',
+                ['inputRequests' => $this->buildInputRequestsPayload()],
+            ),
+            3,
+        );
         $this->awaitSendCount($transport, 5);
         self::assertArrayHasKey(4, $transport->sent);
         $update = $transport->sent[4]['message'];
         self::assertInstanceOf(JsonRpcRequest::class, $update);
         self::assertSame('tasks/update', $update::getMethod());
-        $transport->emitMessage(['jsonrpc' => '2.0', 'id' => $update->id->id, 'result' => ['resultType' => 'complete']]);
+        $transport->emitMessage([
+            'jsonrpc' => '2.0',
+            'id' => $update->id->id,
+            'result' => ['resultType' => 'complete'],
+        ]);
 
-        $this->respondToNextTasksGet($transport, $this->buildTaskPayload('completed', ['result' => ['resultType' => 'complete', 'content' => []]]), 5);
+        $this->respondToNextTasksGet(
+            $transport,
+            $this->buildTaskPayload(
+                'completed',
+                ['result' => ['resultType' => 'complete', 'content' => []]],
+            ),
+            5,
+        );
 
         $await->await();
 
@@ -545,10 +705,31 @@ final class TaskClientTest extends AbstractMcpTestCase
         $await = async(static fn(): GetTaskResult => $tasks->awaitTask($handle));
         $await->ignore();
 
-        $this->respondToNextTasksGet($transport, $this->buildTaskPayload('input_required', ['inputRequests' => $this->buildInputRequestsPayload()]), 0);
+        $this->respondToNextTasksGet(
+            $transport,
+            $this->buildTaskPayload(
+                'input_required',
+                ['inputRequests' => $this->buildInputRequestsPayload()],
+            ),
+            0,
+        );
         $this->respondToNextTasksGet($transport, $this->buildTaskPayload('working'), 1);
-        $this->respondToNextTasksGet($transport, $this->buildTaskPayload('input_required', ['inputRequests' => $this->buildInputRequestsPayload()]), 2);
-        $this->respondToNextTasksGet($transport, $this->buildTaskPayload('input_required', ['inputRequests' => $this->buildInputRequestsPayload()]), 3);
+        $this->respondToNextTasksGet(
+            $transport,
+            $this->buildTaskPayload(
+                'input_required',
+                ['inputRequests' => $this->buildInputRequestsPayload()],
+            ),
+            2,
+        );
+        $this->respondToNextTasksGet(
+            $transport,
+            $this->buildTaskPayload(
+                'input_required',
+                ['inputRequests' => $this->buildInputRequestsPayload()],
+            ),
+            3,
+        );
 
         $this->expectException(StalledTaskException::class);
         $this->expectExceptionMessageIs('Task "task-1" stayed input_required for 2 polls without new input requests.');
@@ -567,7 +748,14 @@ final class TaskClientTest extends AbstractMcpTestCase
 
         $this->respondToNextTasksGet($transport, $this->buildTaskPayload('working', ['pollIntervalMs' => 1]), 0);
         $this->respondToNextTasksGet($transport, $this->buildTaskPayload('working', ['pollIntervalMs' => 1]), 1);
-        $this->respondToNextTasksGet($transport, $this->buildTaskPayload('completed', ['result' => ['resultType' => 'complete', 'content' => []], 'pollIntervalMs' => 1]), 2);
+        $this->respondToNextTasksGet(
+            $transport,
+            $this->buildTaskPayload('completed', [
+                'result' => ['resultType' => 'complete', 'content' => []],
+                'pollIntervalMs' => 1,
+            ]),
+            2,
+        );
 
         $await->await();
 
@@ -582,26 +770,34 @@ final class TaskClientTest extends AbstractMcpTestCase
         $await = async(static fn(): GetTaskResult => $tasks->awaitTask($handle));
         $await->ignore();
 
-        $this->respondToNextTasksGet($transport, $this->buildTaskPayload('input_required', ['inputRequests' => [
-            'confirm' => [
-                'method' => 'elicitation/create',
-                'params' => [
-                    'mode' => 'form',
-                    'message' => 'Confirm?',
-                    'requestedSchema' => ['type' => 'object', 'properties' => ['name' => ['type' => 'string']]],
+        $this->respondToNextTasksGet(
+            $transport,
+            $this->buildTaskPayload('input_required', ['inputRequests' => [
+                'confirm' => [
+                    'method' => 'elicitation/create',
+                    'params' => [
+                        'mode' => 'form',
+                        'message' => 'Confirm?',
+                        'requestedSchema' => ['type' => 'object', 'properties' => ['name' => ['type' => 'string']]],
+                    ],
                 ],
-            ],
-        ]]), 0);
-        $this->respondToNextTasksGet($transport, $this->buildTaskPayload('input_required', ['inputRequests' => [
-            'confirm' => [
-                'method' => 'elicitation/create',
-                'params' => [
-                    'mode' => 'form',
-                    'message' => 'Confirm?',
-                    'requestedSchema' => ['type' => 'object', 'properties' => ['name' => ['type' => 'string']]],
+            ]]),
+            0,
+        );
+        $this->respondToNextTasksGet(
+            $transport,
+            $this->buildTaskPayload('input_required', ['inputRequests' => [
+                'confirm' => [
+                    'method' => 'elicitation/create',
+                    'params' => [
+                        'mode' => 'form',
+                        'message' => 'Confirm?',
+                        'requestedSchema' => ['type' => 'object', 'properties' => ['name' => ['type' => 'string']]],
+                    ],
                 ],
-            ],
-        ]]), 1);
+            ]]),
+            1,
+        );
 
         $this->expectException(StalledTaskException::class);
         $this->expectExceptionMessageIs('Task "task-1" stayed input_required for 2 polls without new input requests.');
@@ -615,8 +811,11 @@ final class TaskClientTest extends AbstractMcpTestCase
      *
      * @return array{TaskClient, RecordingTransport}
      */
-    private function buildTaskClient(?int $stallCeiling = null, ?CancellableDelayInterface $delay = null, ?int $minPollIntervalMs = null): array
-    {
+    private function buildTaskClient(
+        ?int $stallCeiling = null,
+        ?CancellableDelayInterface $delay = null,
+        ?int $minPollIntervalMs = null,
+    ): array {
         $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setRequestTimeout(0.5)
@@ -695,7 +894,9 @@ final class TaskClientTest extends AbstractMcpTestCase
                     'id' => $sent->id->id,
                     'result' => 'tasks/update' === $method
                         ? ['resultType' => 'complete']
-                        : $this->buildTaskPayload('input_required', ['inputRequests' => $this->buildInputRequestsPayload()]),
+                        : $this->buildTaskPayload('input_required', [
+                            'inputRequests' => $this->buildInputRequestsPayload(),
+                        ]),
                 ]);
                 ++$index;
             }

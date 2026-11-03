@@ -30,7 +30,10 @@ final class StalledTaskExceptionTest extends AbstractMcpTestCase
     {
         $exception = new StalledTaskException('task-1', 60);
 
-        self::assertSame('Task "task-1" stayed input_required for 60 polls without new input requests.', $exception->getMessage());
+        self::assertSame(
+            'Task "task-1" stayed input_required for 60 polls without new input requests.',
+            $exception->getMessage(),
+        );
     }
 
     public function testBoundsAndEscapesAHostileTaskId(): void
@@ -38,7 +41,10 @@ final class StalledTaskExceptionTest extends AbstractMcpTestCase
         $exception = new StalledTaskException(str_repeat('t', 200)."\x1b", 60);
 
         self::assertSame(
-            \sprintf('Task "%s..." stayed input_required for 60 polls without new input requests.', str_repeat('t', 77)),
+            \sprintf(
+                'Task "%s..." stayed input_required for 60 polls without new input requests.',
+                str_repeat('t', 77),
+            ),
             $exception->getMessage(),
         );
     }

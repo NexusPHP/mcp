@@ -54,7 +54,10 @@ final class ResourceIdentifierTest extends AbstractMcpTestCase
 
         yield 'a bare root path is dropped' => ['https://mcp.example.com/', 'https://mcp.example.com'];
 
-        yield 'a trailing slash below the root is kept' => ['https://mcp.example.com/mcp/', 'https://mcp.example.com/mcp/'];
+        yield 'a trailing slash below the root is kept' => [
+            'https://mcp.example.com/mcp/',
+            'https://mcp.example.com/mcp/',
+        ];
 
         yield 'a query is kept' => ['https://mcp.example.com/mcp?tenant=a', 'https://mcp.example.com/mcp?tenant=a'];
 
@@ -64,9 +67,15 @@ final class ResourceIdentifierTest extends AbstractMcpTestCase
 
         yield 'the default HTTP port is elided' => ['http://mcp.example.com:80/mcp', 'http://mcp.example.com/mcp'];
 
-        yield 'a non-default port is kept for HTTP' => ['http://mcp.example.com:8080/mcp', 'http://mcp.example.com:8080/mcp'];
+        yield 'a non-default port is kept for HTTP' => [
+            'http://mcp.example.com:8080/mcp',
+            'http://mcp.example.com:8080/mcp',
+        ];
 
-        yield 'a port is kept for a scheme with no default' => ['ftp://mcp.example.com:21/mcp', 'ftp://mcp.example.com:21/mcp'];
+        yield 'a port is kept for a scheme with no default' => [
+            'ftp://mcp.example.com:21/mcp',
+            'ftp://mcp.example.com:21/mcp',
+        ];
     }
 
     #[DataProvider('provideRejectedUrisCases')]
@@ -107,7 +116,10 @@ final class ResourceIdentifierTest extends AbstractMcpTestCase
     #[DataProvider('provideMatchesAudienceCases')]
     public function testMatchesAudience(array $audience, bool $expected): void
     {
-        self::assertSame($expected, (new ResourceIdentifier('https://mcp.example.com/mcp'))->matchesAudience($audience));
+        self::assertSame(
+            $expected,
+            (new ResourceIdentifier('https://mcp.example.com/mcp'))->matchesAudience($audience),
+        );
     }
 
     /**
@@ -119,7 +131,10 @@ final class ResourceIdentifierTest extends AbstractMcpTestCase
 
         yield 'an exact match is accepted' => [['https://mcp.example.com/mcp'], true];
 
-        yield 'a match among several is accepted' => [['https://other.example.com', 'https://mcp.example.com/mcp'], true];
+        yield 'a match among several is accepted' => [
+            ['https://other.example.com', 'https://mcp.example.com/mcp'],
+            true,
+        ];
 
         yield 'an uppercase host still names the resource' => [['https://MCP.Example.COM/mcp'], true];
 
@@ -131,9 +146,15 @@ final class ResourceIdentifierTest extends AbstractMcpTestCase
 
         yield 'an unparsable audience value is rejected' => [['not-a-uri'], false];
 
-        yield 'an audience smuggling the resource into userinfo is rejected' => [['https://mcp.example.com/mcp@attacker.example/mcp'], false];
+        yield 'an audience smuggling the resource into userinfo is rejected' => [
+            ['https://mcp.example.com/mcp@attacker.example/mcp'],
+            false,
+        ];
 
-        yield 'an audience naming this resource in userinfo is rejected' => [['https://evil.example.net@mcp.example.com/mcp'], false];
+        yield 'an audience naming this resource in userinfo is rejected' => [
+            ['https://evil.example.net@mcp.example.com/mcp'],
+            false,
+        ];
 
         yield 'the explicit default port still names the resource' => [['https://mcp.example.com:443/mcp'], true];
 
@@ -211,19 +232,43 @@ final class ResourceIdentifierTest extends AbstractMcpTestCase
 
         yield 'userinfo is never trusted' => [$resource, 'https://evil@mcp.example.com/tenant-a/mcp', false];
 
-        yield 'a trailing-slash resource covers its subtree' => ['https://mcp.example.com/mcp/', 'https://mcp.example.com/mcp/tools', true];
+        yield 'a trailing-slash resource covers its subtree' => [
+            'https://mcp.example.com/mcp/',
+            'https://mcp.example.com/mcp/tools',
+            true,
+        ];
 
-        yield 'a trailing-slash resource covers its slashless self' => ['https://mcp.example.com/mcp/', 'https://mcp.example.com/mcp', true];
+        yield 'a trailing-slash resource covers its slashless self' => [
+            'https://mcp.example.com/mcp/',
+            'https://mcp.example.com/mcp',
+            true,
+        ];
 
-        yield 'a root resource covers every path on its origin' => ['https://mcp.example.com', 'https://mcp.example.com/anything/at/all', true];
+        yield 'a root resource covers every path on its origin' => [
+            'https://mcp.example.com',
+            'https://mcp.example.com/anything/at/all',
+            true,
+        ];
 
         yield 'a root resource covers the bare origin' => ['https://mcp.example.com', 'https://mcp.example.com', true];
 
-        yield 'a root resource does not cover another origin' => ['https://mcp.example.com', 'https://other.example.com/x', false];
+        yield 'a root resource does not cover another origin' => [
+            'https://mcp.example.com',
+            'https://other.example.com/x',
+            false,
+        ];
 
-        yield 'a percent-encoded dot-segment traversal' => [$resource, 'https://mcp.example.com/tenant-a/mcp/%2e%2e/tenant-b/mcp', false];
+        yield 'a percent-encoded dot-segment traversal' => [
+            $resource,
+            'https://mcp.example.com/tenant-a/mcp/%2e%2e/tenant-b/mcp',
+            false,
+        ];
 
-        yield 'an uppercase percent-encoded traversal' => [$resource, 'https://mcp.example.com/tenant-a/mcp/%2E%2E/tenant-b/mcp', false];
+        yield 'an uppercase percent-encoded traversal' => [
+            $resource,
+            'https://mcp.example.com/tenant-a/mcp/%2E%2E/tenant-b/mcp',
+            false,
+        ];
 
         yield 'a literal dot-dot segment' => [$resource, 'https://mcp.example.com/tenant-a/mcp/../tenant-b/mcp', false];
 
@@ -233,7 +278,11 @@ final class ResourceIdentifierTest extends AbstractMcpTestCase
 
         yield 'a percent-encoded slash' => [$resource, 'https://mcp.example.com/tenant-a/mcp%2ftools', false];
 
-        yield 'a percent-encoded backslash' => [$resource, 'https://mcp.example.com/tenant-a/mcp/%5c../tenant-b', false];
+        yield 'a percent-encoded backslash' => [
+            $resource,
+            'https://mcp.example.com/tenant-a/mcp/%5c../tenant-b',
+            false,
+        ];
 
         yield 'a literal backslash' => [$resource, 'https://mcp.example.com/tenant-a/mcp/\..\tenant-b', false];
     }

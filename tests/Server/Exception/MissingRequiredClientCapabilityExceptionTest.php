@@ -37,7 +37,10 @@ final class MissingRequiredClientCapabilityExceptionTest extends AbstractMcpTest
     {
         $e = new MissingRequiredClientCapabilityException(new ClientCapabilities(elicitation: []));
 
-        self::assertSame('This request requires client capabilities the client did not declare: elicitation.', $e->getMessage());
+        self::assertSame(
+            'This request requires client capabilities the client did not declare: elicitation.',
+            $e->getMessage(),
+        );
         self::assertNull($e->requestId);
     }
 
@@ -127,6 +130,9 @@ final class MissingRequiredClientCapabilityExceptionTest extends AbstractMcpTest
 
         $response = ResponseSender::buildErrorResponse($exception, new RequestId(id: 7));
 
-        self::assertStringContainsString('"requiredCapabilities":{"elicitation":{}}', json_encode($response, \JSON_THROW_ON_ERROR));
+        self::assertStringContainsString(
+            '"requiredCapabilities":{"elicitation":{}}',
+            json_encode($response, \JSON_THROW_ON_ERROR),
+        );
     }
 }

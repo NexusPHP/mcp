@@ -99,7 +99,10 @@ final class DataProviderConventionsRule implements Rule
 
         $docComment = $method->getDocComment()?->getText();
 
-        if (null === $docComment || preg_match('/@return iterable<(?:class-)?string(?:<\S+>)?, array\{/', $docComment) !== 1) {
+        if (
+            null === $docComment
+            || preg_match('/@return iterable<(?:class-)?string(?:<\S+>)?, array\{/', $docComment) !== 1
+        ) {
             return [
                 RuleErrorBuilder::message(\sprintf(
                     'Data provider "%s()" must carry a `@return` naming the case key and argument shape, e.g. `iterable<string, array{string}>`.',

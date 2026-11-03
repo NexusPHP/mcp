@@ -34,8 +34,12 @@ final readonly class ResponseSender
     {
     }
 
-    public function send(TransportInterface $transport, JsonRpcMessage $message, string $method, ?SendContext $context = null): void
-    {
+    public function send(
+        TransportInterface $transport,
+        JsonRpcMessage $message,
+        string $method,
+        ?SendContext $context = null,
+    ): void {
         try {
             $transport->send($message, $context);
         } catch (TransportAlreadyClosedException $e) {

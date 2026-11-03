@@ -32,7 +32,10 @@ final class UnsupportedProtocolVersionErrorTest extends AbstractMcpTestCase
 {
     public function testHasCodeAndDefaultMessageAndTypedData(): void
     {
-        $error = new UnsupportedProtocolVersionError(requested: '2099-01-01', supported: ['DRAFT-2026-v1', '2025-11-25']);
+        $error = new UnsupportedProtocolVersionError(
+            requested: '2099-01-01',
+            supported: ['DRAFT-2026-v1', '2025-11-25'],
+        );
 
         self::assertSame(-32_022, $error->code);
         self::assertSame(ProtocolErrorCode::UnsupportedProtocolVersion->value, $error->code);

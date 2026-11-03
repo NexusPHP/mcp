@@ -61,7 +61,10 @@ final readonly class MissingRequiredClientCapabilityError extends Error
             ->isMap('error "data" must be a string-keyed object.')
         ;
 
-        Assert::that($payload)->hasOffset('requiredCapabilities', 'error "data" is missing the required "requiredCapabilities" key.');
+        Assert::that($payload)->hasOffset(
+            'requiredCapabilities',
+            'error "data" is missing the required "requiredCapabilities" key.',
+        );
         Assert::that($payload['requiredCapabilities'])
             ->isArray('error "data.requiredCapabilities" must be an object, {type} given.')
             ->isMap('error "data.requiredCapabilities" must be a string-keyed object.')

@@ -38,7 +38,10 @@ final class Iso8601DateTimeValidator
     public static function parse(string $value, string $context): \DateTimeImmutable
     {
         if (preg_match(self::RFC3339_PATTERN, $value, $matches) !== 1) {
-            throw new \InvalidArgumentException(\sprintf('%s must be an RFC 3339 datetime: "YYYY-MM-DDThh:mm:ss", an optional "." fraction, then "Z" or "+hh:mm"/"-hh:mm".', $context));
+            throw new \InvalidArgumentException(\sprintf(
+                '%s must be an RFC 3339 datetime: "YYYY-MM-DDThh:mm:ss", an optional "." fraction, then "Z" or "+hh:mm"/"-hh:mm".',
+                $context,
+            ));
         }
 
         $secfrac = $matches['secfrac'];

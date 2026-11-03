@@ -33,7 +33,9 @@ final readonly class SkillFile
         public ?string $mimeType = null,
     ) {
         Assert::that($uri)->isNonEmptyString('skill file "uri" must be a non-empty string.');
-        Assert::that($mimeType)->nullOr()->isNonEmptyString('skill file "mimeType" must be a non-empty string or null.');
+        Assert::that($mimeType)->nullOr()->isNonEmptyString(
+            'skill file "mimeType" must be a non-empty string or null.',
+        );
     }
 
     /**
@@ -45,6 +47,10 @@ final readonly class SkillFile
             return new TextResourceContents(uri: $this->uri, text: $this->contents, mimeType: $this->mimeType);
         }
 
-        return new BlobResourceContents(uri: $this->uri, blob: base64_encode($this->contents), mimeType: $this->mimeType);
+        return new BlobResourceContents(
+            uri: $this->uri,
+            blob: base64_encode($this->contents),
+            mimeType: $this->mimeType,
+        );
     }
 }

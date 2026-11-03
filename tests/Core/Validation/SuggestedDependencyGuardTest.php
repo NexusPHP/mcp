@@ -38,9 +38,7 @@ final class SuggestedDependencyGuardTest extends AbstractMcpTestCase
     public function testAMissingPackageNamesTheConsumerAndTheInstallCommand(): void
     {
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageIs(
-            'Nexus\Mcp\Tests\Fixtures\Core\Validation\StubPackageBackedConsumer requires the suggested "acme/jwt" package. Install it with "composer require acme/jwt:^1.0".',
-        );
+        $this->expectExceptionMessageIs('Nexus\Mcp\Tests\Fixtures\Core\Validation\StubPackageBackedConsumer requires the suggested "acme/jwt" package. Install it with "composer require acme/jwt:^1.0".');
 
         SuggestedDependencyGuard::verify(StubPackageBackedConsumer::class, 'Acme\Jwt\DoesNotExist', 'acme/jwt', '^1.0');
     }
@@ -48,9 +46,7 @@ final class SuggestedDependencyGuardTest extends AbstractMcpTestCase
     public function testAMissingPackageWithoutAConstraintIsInstalledByNameAlone(): void
     {
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageIs(
-            'Nexus\Mcp\Tests\Fixtures\Core\Validation\StubPackageBackedConsumer requires the suggested "acme/jwt" package. Install it with "composer require acme/jwt".',
-        );
+        $this->expectExceptionMessageIs('Nexus\Mcp\Tests\Fixtures\Core\Validation\StubPackageBackedConsumer requires the suggested "acme/jwt" package. Install it with "composer require acme/jwt".');
 
         SuggestedDependencyGuard::verify(StubPackageBackedConsumer::class, 'Acme\Jwt\DoesNotExist', 'acme/jwt');
     }
@@ -65,9 +61,7 @@ final class SuggestedDependencyGuardTest extends AbstractMcpTestCase
     public function testAMissingExtensionNamesTheConsumerAndTheExtension(): void
     {
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageIs(
-            'Nexus\Mcp\Tests\Fixtures\Core\Validation\StubPackageBackedConsumer requires the "acme_ext" PHP extension. Enable it in php.ini or install a build that bundles it.',
-        );
+        $this->expectExceptionMessageIs('Nexus\Mcp\Tests\Fixtures\Core\Validation\StubPackageBackedConsumer requires the "acme_ext" PHP extension. Enable it in php.ini or install a build that bundles it.');
 
         SuggestedDependencyGuard::verifyExtension(StubPackageBackedConsumer::class, 'acme_ext');
     }

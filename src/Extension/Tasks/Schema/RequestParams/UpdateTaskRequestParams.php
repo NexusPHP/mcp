@@ -42,7 +42,9 @@ final readonly class UpdateTaskRequestParams extends RequestParams
         public array $inputResponses,
         RequestMetaObject $meta,
     ) {
-        Assert::that($inputResponses)->keys()->isIntOrNonEmptyString('each "params.inputResponses" key must be an int or non-empty string.');
+        Assert::that($inputResponses)->keys()->isIntOrNonEmptyString(
+            'each "params.inputResponses" key must be an int or non-empty string.',
+        );
 
         foreach ($inputResponses as $response) {
             if (! $response instanceof InputResponse) {
@@ -69,8 +71,7 @@ final readonly class UpdateTaskRequestParams extends RequestParams
             ->keys()->isIntOrNonEmptyString('each "params.inputResponses" key must be an int or non-empty string.')
         ;
         Assert::that($data['inputResponses'])
-            ->values()
-            ->isArray('each "params.inputResponses" entry must be an object, {type} given.')
+            ->values()->isArray('each "params.inputResponses" entry must be an object, {type} given.')
             ->isMap('each "params.inputResponses" entry must be a string-keyed object.')
         ;
         $inputResponses = array_map(
@@ -101,7 +102,9 @@ final readonly class UpdateTaskRequestParams extends RequestParams
             '_meta' => $this->meta->toArray(),
             'taskId' => $this->taskId,
             'inputResponses' => array_map(
-                static fn(array|InputResponse $response): array => $response instanceof InputResponse ? $response->toArray() : $response,
+                static fn(array|InputResponse $response): array => $response instanceof InputResponse
+                    ? $response->toArray()
+                    : $response,
                 $this->inputResponses,
             ),
         ];
@@ -112,7 +115,9 @@ final readonly class UpdateTaskRequestParams extends RequestParams
     {
         $data = parent::jsonSerialize();
         $data['inputResponses'] = array_map(
-            static fn(array|InputResponse $response): array|\stdClass => $response instanceof InputResponse ? $response->jsonSerialize() : $response,
+            static fn(array|InputResponse $response): array|\stdClass => $response instanceof InputResponse
+                ? $response->jsonSerialize()
+                : $response,
             $this->inputResponses,
         );
 

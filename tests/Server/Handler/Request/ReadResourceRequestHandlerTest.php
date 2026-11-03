@@ -56,7 +56,10 @@ final class ReadResourceRequestHandlerTest extends AbstractMcpTestCase
         $handler = new ReadResourceRequestHandler($store);
 
         $handler->handle(
-            new ReadResourceRequest(id: new RequestId(id: 42), params: new ReadResourceRequestParams(uri: 'file:///a', meta: RequestMetaObjectFactory::create())),
+            new ReadResourceRequest(
+                id: new RequestId(id: 42),
+                params: new ReadResourceRequestParams(uri: 'file:///a', meta: RequestMetaObjectFactory::create()),
+            ),
             $this->makeContext(),
         );
 
@@ -69,13 +72,18 @@ final class ReadResourceRequestHandlerTest extends AbstractMcpTestCase
         $store = new ResourceStore([
             'file:///a' => new ResourceEntry(
                 new Resource(name: 'a', uri: 'file:///a'),
-                new ClosureResourceReader(static fn(string $uri, ServerContext $context): ReadResourceResult => $expected),
+                new ClosureResourceReader(
+                    static fn(string $uri, ServerContext $context): ReadResourceResult => $expected,
+                ),
             ),
         ]);
         $handler = new ReadResourceRequestHandler($store);
 
         $result = $handler->handle(
-            new ReadResourceRequest(id: new RequestId(id: 1), params: new ReadResourceRequestParams(uri: 'file:///a', meta: RequestMetaObjectFactory::create())),
+            new ReadResourceRequest(
+                id: new RequestId(id: 1),
+                params: new ReadResourceRequestParams(uri: 'file:///a', meta: RequestMetaObjectFactory::create()),
+            ),
             $this->makeContext(),
         );
 
@@ -90,7 +98,10 @@ final class ReadResourceRequestHandlerTest extends AbstractMcpTestCase
         $this->expectExceptionMessageMatches('/^No resource registered under URI "file:\\/\\/\\/missing"\.$/');
 
         $handler->handle(
-            new ReadResourceRequest(id: new RequestId(id: 1), params: new ReadResourceRequestParams(uri: 'file:///missing', meta: RequestMetaObjectFactory::create())),
+            new ReadResourceRequest(
+                id: new RequestId(id: 1),
+                params: new ReadResourceRequestParams(uri: 'file:///missing', meta: RequestMetaObjectFactory::create()),
+            ),
             $this->makeContext(),
         );
     }

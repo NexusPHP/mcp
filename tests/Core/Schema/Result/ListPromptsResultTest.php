@@ -39,7 +39,9 @@ final class ListPromptsResultTest extends AbstractMcpTestCase
 {
     public function testConstructionDefaults(): void
     {
-        $result = new ListPromptsResult(prompts: [new Prompt(name: 'code-review')], ttlMs: 0, cacheScope: CacheScope::Private);
+        $result = new ListPromptsResult(prompts: [
+            new Prompt(name: 'code-review'),
+        ], ttlMs: 0, cacheScope: CacheScope::Private);
 
         self::assertCount(1, $result->prompts);
         self::assertSame(0, $result->ttlMs);

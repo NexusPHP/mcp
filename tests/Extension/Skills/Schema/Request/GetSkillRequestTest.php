@@ -43,7 +43,10 @@ final class GetSkillRequestTest extends AbstractMcpTestCase
     {
         $request = new GetSkillRequest(
             id: new RequestId(id: 1),
-            params: new GetSkillRequestParams(uri: 'skill://git-workflow/SKILL.md', meta: RequestMetaObjectFactory::create()),
+            params: new GetSkillRequestParams(
+                uri: 'skill://git-workflow/SKILL.md',
+                meta: RequestMetaObjectFactory::create(),
+            ),
         );
 
         self::assertSame(
@@ -61,7 +64,10 @@ final class GetSkillRequestTest extends AbstractMcpTestCase
     {
         $original = new GetSkillRequest(
             id: new RequestId(id: 'req-1'),
-            params: new GetSkillRequestParams(uri: 'skill://git-workflow/SKILL.md', meta: RequestMetaObjectFactory::create()),
+            params: new GetSkillRequestParams(
+                uri: 'skill://git-workflow/SKILL.md',
+                meta: RequestMetaObjectFactory::create(),
+            ),
         );
 
         self::assertSame($original->toArray(), GetSkillRequest::fromArray($original->toArray())->toArray());
@@ -86,7 +92,10 @@ final class GetSkillRequestTest extends AbstractMcpTestCase
     {
         yield 'missing id' => [['params' => []], 'missing the required "id" key.'];
 
-        yield 'id not int or string' => [['id' => [], 'params' => []], '"id" must be an int or non-empty string, array given.'];
+        yield 'id not int or string' => [
+            ['id' => [], 'params' => []],
+            '"id" must be an int or non-empty string, array given.',
+        ];
 
         yield 'missing params' => [['id' => 1], 'missing the required "params" key.'];
 

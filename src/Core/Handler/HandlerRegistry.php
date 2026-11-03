@@ -32,17 +32,13 @@ final readonly class HandlerRegistry
         string $handlerInterface,
         string $label,
     ) {
-        Assert::that($handlers)
-            ->keys()
-            ->isNonEmptyString(\sprintf('%s registry key must be a non-empty string.', $label))
-        ;
-        Assert::that($handlers)
-            ->values()
-            ->isInstanceOf(
-                $handlerInterface,
-                \sprintf('%s registry value must implement {class}.', $label),
-            )
-        ;
+        Assert::that($handlers)->keys()->isNonEmptyString(
+            \sprintf('%s registry key must be a non-empty string.', $label),
+        );
+        Assert::that($handlers)->values()->isInstanceOf(
+            $handlerInterface,
+            \sprintf('%s registry value must implement {class}.', $label),
+        );
     }
 
     /**

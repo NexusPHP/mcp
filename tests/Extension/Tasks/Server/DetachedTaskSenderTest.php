@@ -41,7 +41,10 @@ final class DetachedTaskSenderTest extends AbstractMcpTestCase
 
         $sender->sendNotification(new TestNotification(params: new EmptyNotificationParams()));
 
-        $records = $logger->recordsMatching(LogLevel::DEBUG, 'Dropping a {method} notification from a detached task fiber.');
+        $records = $logger->recordsMatching(
+            LogLevel::DEBUG,
+            'Dropping a {method} notification from a detached task fiber.',
+        );
         self::assertCount(1, $records);
         self::assertSame(['method' => TestNotification::getMethod()], $records[0]['context']);
     }
@@ -53,6 +56,9 @@ final class DetachedTaskSenderTest extends AbstractMcpTestCase
         $this->expectException(OutboundRequestsNotSupportedException::class);
         $this->expectExceptionMessageIs('Outbound server-to-client requests are not implemented yet.');
 
-        $sender->sendRequest(TestClientRequest::fromArray(['id' => 7, 'params' => ['_meta' => RequestMetaObjectFactory::shape()]]));
+        $sender->sendRequest(TestClientRequest::fromArray([
+            'id' => 7,
+            'params' => ['_meta' => RequestMetaObjectFactory::shape()],
+        ]));
     }
 }

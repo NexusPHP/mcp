@@ -72,7 +72,10 @@ final class JsonRpcMessageParser
     {
         $this->assertJsonRpcVersion($message);
 
-        if (\array_key_exists('method', $message) && (\array_key_exists('error', $message) || \array_key_exists('result', $message))) {
+        if (
+            \array_key_exists('method', $message)
+            && (\array_key_exists('error', $message) || \array_key_exists('result', $message))
+        ) {
             throw new InvalidRequestException(
                 EnvelopeRequestId::recover($message),
                 'JSON-RPC envelope must not carry a "method" together with a "result" or an "error".',
@@ -93,10 +96,15 @@ final class JsonRpcMessageParser
         if (\array_key_exists('result', $message)) {
             try {
                 Assert::that($message)->hasOffset('id', 'missing the required "id" key.');
-                Assert::that($message['id'])->isIntOrNonEmptyString('"id" must be an int or non-empty string, {type} given.');
+                Assert::that($message['id'])->isIntOrNonEmptyString(
+                    '"id" must be an int or non-empty string, {type} given.',
+                );
                 $id = new RequestId(id: $message['id']);
             } catch (\InvalidArgumentException $e) {
-                throw new InvalidRequestException(null, \sprintf('Invalid success response: %s', SafeDisplay::sanitiseCause($e->getMessage())));
+                throw new InvalidRequestException(
+                    null,
+                    \sprintf('Invalid success response: %s', SafeDisplay::sanitiseCause($e->getMessage())),
+                );
             }
 
             if (null === $response) {
@@ -106,27 +114,44 @@ final class JsonRpcMessageParser
             try {
                 return $response::fromArray($message);
             } catch (\InvalidArgumentException $e) {
-                throw new InvalidRequestException($id, \sprintf('Invalid success response: %s', SafeDisplay::sanitiseCause($e->getMessage())));
+                throw new InvalidRequestException(
+                    $id,
+                    \sprintf('Invalid success response: %s', SafeDisplay::sanitiseCause($e->getMessage())),
+                );
             }
         }
 
         try {
-            Assert::that($message)->hasOffset('method', 'JSON-RPC envelope must carry a "method" (request or notification), an "error" (error response), or a "result" (success response).');
-            Assert::that($message['method'])->isNonEmptyString('JSON-RPC envelope "method" must be a non-empty string, {type} given.');
+            Assert::that($message)->hasOffset(
+                'method',
+                'JSON-RPC envelope must carry a "method" (request or notification), an "error" (error response), or a "result" (success response).',
+            );
+            Assert::that($message['method'])->isNonEmptyString(
+                'JSON-RPC envelope "method" must be a non-empty string, {type} given.',
+            );
         } catch (\InvalidArgumentException $e) {
-            throw new InvalidRequestException(EnvelopeRequestId::recover($message), SafeDisplay::sanitiseCause($e->getMessage()));
+            throw new InvalidRequestException(
+                EnvelopeRequestId::recover($message),
+                SafeDisplay::sanitiseCause($e->getMessage()),
+            );
         }
 
         $method = $message['method'];
 
         if (\array_key_exists('id', $message)) {
             try {
-                Assert::that($message['id'])->isIntOrNonEmptyString('"id" must be an int or non-empty string, {type} given.');
+                Assert::that($message['id'])->isIntOrNonEmptyString(
+                    '"id" must be an int or non-empty string, {type} given.',
+                );
                 $id = new RequestId(id: $message['id']);
             } catch (\InvalidArgumentException $e) {
                 throw new InvalidRequestException(
                     null,
-                    \sprintf('Invalid "%s" request: %s', SafeDisplay::sanitise($method), SafeDisplay::sanitiseCause($e->getMessage())),
+                    \sprintf(
+                        'Invalid "%s" request: %s',
+                        SafeDisplay::sanitise($method),
+                        SafeDisplay::sanitiseCause($e->getMessage()),
+                    ),
                 );
             }
 
@@ -150,7 +175,11 @@ final class JsonRpcMessageParser
             } catch (\InvalidArgumentException $e) {
                 throw new InvalidParamsException(
                     $id,
-                    \sprintf('Invalid "%s" request: %s', SafeDisplay::sanitise($method), SafeDisplay::sanitiseCause($e->getMessage())),
+                    \sprintf(
+                        'Invalid "%s" request: %s',
+                        SafeDisplay::sanitise($method),
+                        SafeDisplay::sanitiseCause($e->getMessage()),
+                    ),
                 );
             }
         }
@@ -174,7 +203,11 @@ final class JsonRpcMessageParser
         } catch (\InvalidArgumentException $e) {
             throw new InvalidParamsException(
                 null,
-                \sprintf('Invalid "%s" notification: %s', SafeDisplay::sanitise($method), SafeDisplay::sanitiseCause($e->getMessage())),
+                \sprintf(
+                    'Invalid "%s" notification: %s',
+                    SafeDisplay::sanitise($method),
+                    SafeDisplay::sanitiseCause($e->getMessage()),
+                ),
             );
         }
     }

@@ -91,11 +91,23 @@ final class UiResourcePermissionsTest extends AbstractMcpTestCase
     {
         yield 'camera false' => [false, 'camera', '"_meta.ui.permissions.camera" must be an object, bool given.'];
 
-        yield 'microphone null' => [null, 'microphone', '"_meta.ui.permissions.microphone" must be an object, null given.'];
+        yield 'microphone null' => [
+            null,
+            'microphone',
+            '"_meta.ui.permissions.microphone" must be an object, null given.',
+        ];
 
-        yield 'geolocation string' => ['granted', 'geolocation', '"_meta.ui.permissions.geolocation" must be an object, string given.'];
+        yield 'geolocation string' => [
+            'granted',
+            'geolocation',
+            '"_meta.ui.permissions.geolocation" must be an object, string given.',
+        ];
 
-        yield 'clipboardWrite int' => [1, 'clipboardWrite', '"_meta.ui.permissions.clipboardWrite" must be an object, int given.'];
+        yield 'clipboardWrite int' => [
+            1,
+            'clipboardWrite',
+            '"_meta.ui.permissions.clipboardWrite" must be an object, int given.',
+        ];
     }
 
     public function testRoundTripsTheDecodedForm(): void

@@ -48,7 +48,9 @@ final class SkillFileReadResourceHandlerTest extends AbstractMcpTestCase
     public function testASkillFileIsServedWithoutReachingTheInnerHandler(): void
     {
         $handler = new SkillFileReadResourceHandler(
-            new ClosureRequestHandler(static fn(): Result => self::fail('The inner handler must not run for a skill file.')),
+            new ClosureRequestHandler(
+                static fn(): Result => self::fail('The inner handler must not run for a skill file.'),
+            ),
             new SkillStore([new DirectorySkill('refunds', self::FIXTURES.'/refunds')]),
         );
 
@@ -65,7 +67,9 @@ final class SkillFileReadResourceHandlerTest extends AbstractMcpTestCase
         $file = new SkillFile('skill://reports/q3/notes.md', 'notes', 'text/markdown');
         $provider = new ArraySkillProvider(files: [$file->uri => $file]);
         $handler = new SkillFileReadResourceHandler(
-            new ClosureRequestHandler(static fn(): Result => self::fail('The inner handler must not run for a skill file.')),
+            new ClosureRequestHandler(
+                static fn(): Result => self::fail('The inner handler must not run for a skill file.'),
+            ),
             new SkillStore(provider: $provider),
         );
 
@@ -79,7 +83,10 @@ final class SkillFileReadResourceHandlerTest extends AbstractMcpTestCase
     {
         $request = $this->buildRequest('file:///notes.txt');
         $context = $this->buildContext();
-        $inner = new ReadResourceResult([new TextResourceContents('file:///notes.txt', 'inner')], 0, CacheScope::Private);
+        $inner = new ReadResourceResult([new TextResourceContents(
+            'file:///notes.txt',
+            'inner',
+        )], 0, CacheScope::Private);
         $handler = new SkillFileReadResourceHandler(
             new ClosureRequestHandler(static function (JsonRpcRequest $seen, AbstractContext $seenContext) use ($request, $context, $inner): Result {
                 self::assertSame($request, $seen);

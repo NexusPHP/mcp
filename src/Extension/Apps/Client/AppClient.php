@@ -41,7 +41,9 @@ final readonly class AppClient implements AppClientInterface
     ) {
         Assert::that($mimeTypes)->isList('"mimeTypes" must be a list, {type} given.');
         Assert::that($mimeTypes)->hasMinCount(1, '"mimeTypes" must not be empty.');
-        Assert::that($mimeTypes)->values()->isNonEmptyString('each "mimeTypes" must be a non-empty string, {type} given.');
+        Assert::that($mimeTypes)->values()->isNonEmptyString(
+            'each "mimeTypes" must be a non-empty string, {type} given.',
+        );
     }
 
     #[\Override]
@@ -68,7 +70,10 @@ final readonly class AppClient implements AppClientInterface
         }
 
         $resourceUri = $extras[Apps::DEPRECATED_RESOURCE_URI_KEY];
-        Assert::that($resourceUri)->isNonEmptyString(\sprintf('tool "_meta" key "%s" must be a non-empty string, {type} given.', Apps::DEPRECATED_RESOURCE_URI_KEY));
+        Assert::that($resourceUri)->isNonEmptyString(\sprintf(
+            'tool "_meta" key "%s" must be a non-empty string, {type} given.',
+            Apps::DEPRECATED_RESOURCE_URI_KEY,
+        ));
 
         return new UiToolMeta(resourceUri: $resourceUri, visibility: $nested?->visibility);
     }
@@ -112,9 +117,15 @@ final readonly class AppClient implements AppClientInterface
     }
 
     #[\Override]
-    public function readAppResource(string $uri, ?array $inputResponses = null, ?string $requestState = null): InputRequiredResult|ReadResourceResult
-    {
-        Assert::that($uri)->startsWith(Apps::URI_PREFIX, \sprintf('UI resource "uri" must start with "%s".', Apps::URI_PREFIX));
+    public function readAppResource(
+        string $uri,
+        ?array $inputResponses = null,
+        ?string $requestState = null,
+    ): InputRequiredResult|ReadResourceResult {
+        Assert::that($uri)->startsWith(
+            Apps::URI_PREFIX,
+            \sprintf('UI resource "uri" must start with "%s".', Apps::URI_PREFIX),
+        );
 
         $result = $this->client->readResource($uri, $inputResponses, $requestState);
 

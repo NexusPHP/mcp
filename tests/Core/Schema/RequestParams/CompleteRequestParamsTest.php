@@ -307,17 +307,29 @@ final class CompleteRequestParamsTest extends AbstractMcpTestCase
         ];
 
         yield 'ref missing type' => [
-            ['ref' => ['name' => 'code-review'], 'argument' => ['name' => 'topic', 'value' => 'auth'], '_meta' => RequestMetaObjectFactory::shape()],
+            [
+                'ref' => ['name' => 'code-review'],
+                'argument' => ['name' => 'topic', 'value' => 'auth'],
+                '_meta' => RequestMetaObjectFactory::shape(),
+            ],
             '"params.ref" data missing "type".',
         ];
 
         yield 'ref type not a string' => [
-            ['ref' => ['type' => 1], 'argument' => ['name' => 'topic', 'value' => 'auth'], '_meta' => RequestMetaObjectFactory::shape()],
+            [
+                'ref' => ['type' => 1],
+                'argument' => ['name' => 'topic', 'value' => 'auth'],
+                '_meta' => RequestMetaObjectFactory::shape(),
+            ],
             '"params.ref" "type" must be a string, int given.',
         ];
 
         yield 'ref type unknown' => [
-            ['ref' => ['type' => 'unknown'], 'argument' => ['name' => 'topic', 'value' => 'auth'], '_meta' => RequestMetaObjectFactory::shape()],
+            [
+                'ref' => ['type' => 'unknown'],
+                'argument' => ['name' => 'topic', 'value' => 'auth'],
+                '_meta' => RequestMetaObjectFactory::shape(),
+            ],
             '"params.ref" "type" must be one of "ref/prompt", "ref/resource", \'unknown\' given.',
         ];
 
@@ -342,7 +354,10 @@ final class CompleteRequestParamsTest extends AbstractMcpTestCase
         ];
 
         yield 'argument name not a string' => [
-            ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['name' => 1, 'value' => 'auth']],
+            [
+                'ref' => ['type' => 'ref/prompt', 'name' => 'code-review'],
+                'argument' => ['name' => 1, 'value' => 'auth'],
+            ],
             '"params.argument.name" must be a string, int given.',
         ];
 
@@ -352,37 +367,63 @@ final class CompleteRequestParamsTest extends AbstractMcpTestCase
         ];
 
         yield 'argument value not a string' => [
-            ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['name' => 'topic', 'value' => 1]],
+            [
+                'ref' => ['type' => 'ref/prompt', 'name' => 'code-review'],
+                'argument' => ['name' => 'topic', 'value' => 1],
+            ],
             '"params.argument.value" must be a string, int given.',
         ];
 
         yield 'context not an object' => [
-            ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['name' => 'topic', 'value' => 'auth'], 'context' => 'oops'],
+            [
+                'ref' => ['type' => 'ref/prompt', 'name' => 'code-review'],
+                'argument' => ['name' => 'topic', 'value' => 'auth'],
+                'context' => 'oops',
+            ],
             '"params.context" must be an object, string given.',
         ];
 
         yield 'context list-keyed' => [
-            ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['name' => 'topic', 'value' => 'auth'], 'context' => ['x']],
+            [
+                'ref' => ['type' => 'ref/prompt', 'name' => 'code-review'],
+                'argument' => ['name' => 'topic', 'value' => 'auth'],
+                'context' => ['x'],
+            ],
             '"params.context" must be a string-keyed object.',
         ];
 
         yield 'context arguments not an object' => [
-            ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['name' => 'topic', 'value' => 'auth'], 'context' => ['arguments' => 'oops']],
+            [
+                'ref' => ['type' => 'ref/prompt', 'name' => 'code-review'],
+                'argument' => ['name' => 'topic', 'value' => 'auth'],
+                'context' => ['arguments' => 'oops'],
+            ],
             '"params.context.arguments" must be an object, string given.',
         ];
 
         yield 'context argument value not a string' => [
-            ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['name' => 'topic', 'value' => 'auth'], 'context' => ['arguments' => ['k' => 1]]],
+            [
+                'ref' => ['type' => 'ref/prompt', 'name' => 'code-review'],
+                'argument' => ['name' => 'topic', 'value' => 'auth'],
+                'context' => ['arguments' => ['k' => 1]],
+            ],
             'each "params.context.arguments" must be a string, int given.',
         ];
 
         yield 'missing _meta' => [
-            ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['name' => 'topic', 'value' => 'auth']],
+            [
+                'ref' => ['type' => 'ref/prompt', 'name' => 'code-review'],
+                'argument' => ['name' => 'topic', 'value' => 'auth'],
+            ],
             '"params" is missing the required "_meta" key.',
         ];
 
         yield '_meta not an object' => [
-            ['ref' => ['type' => 'ref/prompt', 'name' => 'code-review'], 'argument' => ['name' => 'topic', 'value' => 'auth'], '_meta' => 'oops'],
+            [
+                'ref' => ['type' => 'ref/prompt', 'name' => 'code-review'],
+                'argument' => ['name' => 'topic', 'value' => 'auth'],
+                '_meta' => 'oops',
+            ],
             '"params._meta" must be an object, string given.',
         ];
     }

@@ -64,7 +64,10 @@ final class GenericResultResponseTest extends AbstractMcpTestCase
 
     public function testJsonSerializeMatchesToArrayForLeafResult(): void
     {
-        $response = new GenericResultResponse(id: new RequestId(id: 1), result: new EmptyResult(meta: new GenericResultMetaObject(extras: ['vendor' => 'x'])));
+        $response = new GenericResultResponse(
+            id: new RequestId(id: 1),
+            result: new EmptyResult(meta: new GenericResultMetaObject(extras: ['vendor' => 'x'])),
+        );
 
         self::assertSame($response->toArray(), $response->jsonSerialize());
     }
@@ -84,12 +87,20 @@ final class GenericResultResponseTest extends AbstractMcpTestCase
         $encoded = json_encode($response);
 
         self::assertIsString($encoded);
-        self::assertStringContainsString('"completions":{}', $encoded, 'Empty capability markers must encode as JSON objects, not arrays.');
+        self::assertStringContainsString(
+            '"completions":{}',
+            $encoded,
+            'Empty capability markers must encode as JSON objects, not arrays.',
+        );
     }
 
     public function testFromArrayDecodesABareSuccessResponseToEmptyResult(): void
     {
-        $response = GenericResultResponse::fromArray(['jsonrpc' => '2.0', 'id' => 7, 'result' => ['resultType' => 'complete']]);
+        $response = GenericResultResponse::fromArray([
+            'jsonrpc' => '2.0',
+            'id' => 7,
+            'result' => ['resultType' => 'complete'],
+        ]);
 
         self::assertInstanceOf(EmptyResult::class, $response->result);
         self::assertSame(7, $response->id->id);

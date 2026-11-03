@@ -78,11 +78,15 @@ final class SecureEndpointTest extends AbstractMcpTestCase
     {
         yield 'plain HTTP to a remote host is rejected' => ['http://auth.example.com/token'];
 
-        yield 'a host merely starting with the loopback name is rejected' => ['http://localhost.attacker.example/token'];
+        yield 'a host merely starting with the loopback name is rejected' => [
+            'http://localhost.attacker.example/token',
+        ];
 
         yield 'a host merely ending with the loopback name is rejected' => ['http://attackerlocalhost/token'];
 
-        yield 'a host merely starting with the loopback address is rejected' => ['http://127.0.0.1.attacker.example/token'];
+        yield 'a host merely starting with the loopback address is rejected' => [
+            'http://127.0.0.1.attacker.example/token',
+        ];
 
         yield 'a host merely ending with the loopback address is rejected' => ['http://attacker127.0.0.1/token'];
 
@@ -219,7 +223,9 @@ final class SecureEndpointTest extends AbstractMcpTestCase
 
         yield 'a private-network address is still refused' => ['http://10.0.0.5:8443/token'];
 
-        yield 'a host merely starting with the loopback name is still refused' => ['http://localhost.evil.example.com/token'];
+        yield 'a host merely starting with the loopback name is still refused' => [
+            'http://localhost.evil.example.com/token',
+        ];
 
         yield 'a host merely ending with the loopback name is still refused' => ['http://evillocalhost/token'];
 
@@ -233,7 +239,10 @@ final class SecureEndpointTest extends AbstractMcpTestCase
         $this->expectException(UntrustedAuthorizationMetadataException::class);
         $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the authorization endpoint "http://127.0.0.1:9000/authorize#done" carries a fragment.');
 
-        (new SecureEndpoint(allowLoopback: true))->verifyAuthorizationServerUrl('http://127.0.0.1:9000/authorize#done', 'authorization endpoint');
+        (new SecureEndpoint(allowLoopback: true))->verifyAuthorizationServerUrl(
+            'http://127.0.0.1:9000/authorize#done',
+            'authorization endpoint',
+        );
     }
 
     public function testAnAuthorizationServerUrlCarryingAFragmentIsRefused(): void
@@ -241,7 +250,10 @@ final class SecureEndpointTest extends AbstractMcpTestCase
         $this->expectException(UntrustedAuthorizationMetadataException::class);
         $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the authorization endpoint "https://auth.example.com/authorize#done" carries a fragment.');
 
-        (new SecureEndpoint())->verifyAuthorizationServerUrl('https://auth.example.com/authorize#done', 'authorization endpoint');
+        (new SecureEndpoint())->verifyAuthorizationServerUrl(
+            'https://auth.example.com/authorize#done',
+            'authorization endpoint',
+        );
     }
 
     public function testAHostileAuthorizationServerUrlIsBoundedAndEscapedInTheRefusal(): void

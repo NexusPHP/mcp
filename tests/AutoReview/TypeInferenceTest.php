@@ -76,12 +76,16 @@ final class TypeInferenceTest extends TypeInferenceTestCase
             }
         }
 
-        self::assertSame([], $missing, \sprintf(
-            'Concrete subclasses of %s without a method() type assertion in %s: %s. Add an `assertType(\'\\\'method-name\\\'\', %s::getMethod())` line.',
-            $base,
-            basename($dataFile),
-            implode(', ', $missing),
-            'ShortName',
-        ));
+        self::assertSame(
+            [],
+            $missing,
+            \sprintf(
+                'Concrete subclasses of %s without a method() type assertion in %s: %s. Add an `assertType(\'\\\'method-name\\\'\', %s::getMethod())` line.',
+                $base,
+                basename($dataFile),
+                implode(', ', $missing),
+                'ShortName',
+            ),
+        );
     }
 }

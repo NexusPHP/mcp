@@ -69,7 +69,9 @@ final class DnsRebindingProtectionMiddlewareTest extends AbstractMcpTestCase
     {
         $handler = $this->buildRecordingHandler();
 
-        $response = $this->buildMiddleware(['https://app.test'])->process($this->buildRequest('https://evil.test'), $handler);
+        $response = $this->buildMiddleware(['https://app.test'])
+            ->process($this->buildRequest('https://evil.test'), $handler)
+        ;
 
         self::assertFalse($handler->called);
         $this->assertRejectedWith($response, 'The request Origin is not allowed.');

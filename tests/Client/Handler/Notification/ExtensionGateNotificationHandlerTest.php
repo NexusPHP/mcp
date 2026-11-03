@@ -65,7 +65,10 @@ final class ExtensionGateNotificationHandlerTest extends AbstractMcpTestCase
         $handler->handle(new TestNotification());
 
         self::assertSame(0, $delivered);
-        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Dropping {method}: the server did not advertise extension {extension}.');
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Dropping {method}: the server did not advertise extension {extension}.',
+        );
         self::assertCount(1, $matches);
         self::assertSame(
             ['method' => TestNotification::getMethod(), 'extension' => 'com.example/feature'],

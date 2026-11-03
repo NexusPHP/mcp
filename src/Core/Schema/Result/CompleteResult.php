@@ -74,7 +74,10 @@ final readonly class CompleteResult extends Result implements ServerResult
             ->isMap('"result.completion" must be a string-keyed object.')
         ;
 
-        Assert::that($data['completion'])->hasOffset('values', '"result" is missing the required "completion.values" key.');
+        Assert::that($data['completion'])->hasOffset(
+            'values',
+            '"result" is missing the required "completion.values" key.',
+        );
         Assert::that($data['completion']['values'])
             ->isList('"result.completion.values" must be a list, {type} given.')
             ->values()->isString('each "result.completion.values" must be a string, {type} given.')
@@ -83,12 +86,16 @@ final readonly class CompleteResult extends Result implements ServerResult
         $completion = ['values' => $data['completion']['values']];
 
         if (\array_key_exists('total', $data['completion'])) {
-            Assert::that($data['completion']['total'])->isInt('"result.completion.total" must be an int, {type} given.');
+            Assert::that($data['completion']['total'])->isInt(
+                '"result.completion.total" must be an int, {type} given.',
+            );
             $completion['total'] = $data['completion']['total'];
         }
 
         if (\array_key_exists('hasMore', $data['completion'])) {
-            Assert::that($data['completion']['hasMore'])->isBool('"result.completion.hasMore" must be a bool, {type} given.');
+            Assert::that($data['completion']['hasMore'])->isBool(
+                '"result.completion.hasMore" must be a bool, {type} given.',
+            );
             $completion['hasMore'] = $data['completion']['hasMore'];
         }
 

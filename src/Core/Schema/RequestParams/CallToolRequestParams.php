@@ -61,9 +61,7 @@ final readonly class CallToolRequestParams extends InputResponseRequestParams
         $arguments = null;
 
         if (\array_key_exists('arguments', $data)) {
-            Assert::that($data['arguments'])
-                ->isArray('"params.arguments" must be an object, {type} given.')
-            ;
+            Assert::that($data['arguments'])->isArray('"params.arguments" must be an object, {type} given.');
             $arguments = $data['arguments'];
         }
 
@@ -75,8 +73,7 @@ final readonly class CallToolRequestParams extends InputResponseRequestParams
                 ->keys()->isIntOrNonEmptyString('each "params.inputResponses" key must be an int or non-empty string.')
             ;
             Assert::that($data['inputResponses'])
-                ->values()
-                ->isArray('each "params.inputResponses" entry must be an object, {type} given.')
+                ->values()->isArray('each "params.inputResponses" entry must be an object, {type} given.')
                 ->isMap('each "params.inputResponses" entry must be a string-keyed object.')
             ;
             $inputResponses = array_map(ElicitResult::fromArray(...), $data['inputResponses']);

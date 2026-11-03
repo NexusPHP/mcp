@@ -273,7 +273,10 @@ final class AttributeScannerTest extends AbstractMcpTestCase
         self::assertInstanceOf(ReflectedToolExecutor::class, $this->buildToolEntry('add')->executor);
         self::assertInstanceOf(ReflectedPromptRenderer::class, $this->buildPromptEntry('compose')->renderer);
         self::assertInstanceOf(ReflectedResourceReader::class, $this->buildResourceEntry('app_config')->reader);
-        self::assertInstanceOf(ReflectedTemplatedResourceReader::class, $this->buildTemplateEntry('user_profile')->reader);
+        self::assertInstanceOf(
+            ReflectedTemplatedResourceReader::class,
+            $this->buildTemplateEntry('user_profile')->reader,
+        );
     }
 
     public function testMethodsWithoutAttributesAreSkipped(): void
@@ -609,7 +612,11 @@ final class AttributeScannerTest extends AbstractMcpTestCase
 
         foreach ((new AttributeScanner())->scan($source) as $entry) {
             if ($entry instanceof PromptCompletionEntry) {
-                $values[] = $entry->provider->complete('x', null, $this->makeContext())->completion['values'][0] ?? null;
+                $values[] = $entry->provider->complete(
+                    'x',
+                    null,
+                    $this->makeContext(),
+                )->completion['values'][0] ?? null;
             }
         }
 
@@ -630,9 +637,7 @@ final class AttributeScannerTest extends AbstractMcpTestCase
         };
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageMatches(
-            '/^\S+::complete\(\) declares parameter "\$limit" of unsupported type "int"\. It is bound from a string value\.$/',
-        );
+        $this->expectExceptionMessageMatches('/^\S+::complete\(\) declares parameter "\$limit" of unsupported type "int"\. It is bound from a string value\.$/');
 
         iterator_to_array((new AttributeScanner())->scan($source), false);
     }
@@ -705,9 +710,7 @@ final class AttributeScannerTest extends AbstractMcpTestCase
         };
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageMatches(
-            '/^class@anonymous.*::complete\(\) declares an invalid #\[AsCompletion\] attribute: it must name the completed "prompt" or "uriTemplate"\.$/',
-        );
+        $this->expectExceptionMessageMatches('/^class@anonymous.*::complete\(\) declares an invalid #\[AsCompletion\] attribute: it must name the completed "prompt" or "uriTemplate"\.$/');
 
         iterator_to_array((new AttributeScanner())->scan($source), false);
     }
@@ -726,9 +729,7 @@ final class AttributeScannerTest extends AbstractMcpTestCase
         };
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageMatches(
-            '/^class@anonymous.*::complete\(\) declares an invalid #\[AsCompletion\] attribute: it must name either a "prompt" or a "uriTemplate", not both\.$/',
-        );
+        $this->expectExceptionMessageMatches('/^class@anonymous.*::complete\(\) declares an invalid #\[AsCompletion\] attribute: it must name either a "prompt" or a "uriTemplate", not both\.$/');
 
         iterator_to_array((new AttributeScanner())->scan($source), false);
     }
@@ -747,9 +748,7 @@ final class AttributeScannerTest extends AbstractMcpTestCase
         };
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageMatches(
-            '/^class@anonymous.*::complete\(\) declares an invalid #\[AsCompletion\] attribute: its "argument" must be a non-empty string\.$/',
-        );
+        $this->expectExceptionMessageMatches('/^class@anonymous.*::complete\(\) declares an invalid #\[AsCompletion\] attribute: its "argument" must be a non-empty string\.$/');
 
         iterator_to_array((new AttributeScanner())->scan($source), false);
     }
@@ -768,9 +767,7 @@ final class AttributeScannerTest extends AbstractMcpTestCase
         };
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageMatches(
-            '/^class@anonymous.*::complete\(\) declares an invalid #\[AsCompletion\] attribute: it must name the completed "prompt" or "uriTemplate"\.$/',
-        );
+        $this->expectExceptionMessageMatches('/^class@anonymous.*::complete\(\) declares an invalid #\[AsCompletion\] attribute: it must name the completed "prompt" or "uriTemplate"\.$/');
 
         iterator_to_array((new AttributeScanner())->scan($source), false);
     }
@@ -778,7 +775,11 @@ final class AttributeScannerTest extends AbstractMcpTestCase
     private function buildPromptCompletionEntry(string $prompt, string $argument): PromptCompletionEntry
     {
         foreach ((new AttributeScanner())->scan(new CompletionHandlers()) as $entry) {
-            if ($entry instanceof PromptCompletionEntry && $entry->prompt === $prompt && $entry->argument === $argument) {
+            if (
+                $entry instanceof PromptCompletionEntry
+                && $entry->prompt === $prompt
+                && $entry->argument === $argument
+            ) {
                 return $entry;
             }
         }

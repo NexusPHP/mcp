@@ -20,7 +20,8 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
- * Shared scaffolding for round-trip tests that pin a hand-authored JSON fixture against a schema class's `toArray`/`jsonSerialize` output.
+ * Shared scaffolding for round-trip tests that pin a hand-authored JSON fixture against a schema class's
+ * `toArray`/`jsonSerialize` output.
  *
  * @internal
  */
@@ -45,22 +46,30 @@ abstract class AbstractRoundTripTestCase extends AbstractMcpTestCase
 
         $reEncoded = json_encode($instance, self::JSON_FLAGS | \JSON_THROW_ON_ERROR);
 
-        self::assertSame($jsonString, $reEncoded, \sprintf(
-            'Canonical shape for "%s/%s" does not round-trip. Fixture is the source of truth: either the schema class\'s `toArray`/`jsonSerialize` drifted from the spec, or the fixture needs updating.',
-            $dir,
-            basename($fixturePath, '.json'),
-        ));
+        self::assertSame(
+            $jsonString,
+            $reEncoded,
+            \sprintf(
+                'Canonical shape for "%s/%s" does not round-trip. Fixture is the source of truth: either the schema class\'s `toArray`/`jsonSerialize` drifted from the spec, or the fixture needs updating.',
+                $dir,
+                basename($fixturePath, '.json'),
+            ),
+        );
 
         $encodingPathsDiverge = true === ($entry['encodingPathsDiverge'] ?? false);
 
         if (! $encodingPathsDiverge) {
             \assert($instance instanceof Arrayable);
 
-            self::assertSame($reEncoded, json_encode($instance->toArray(), self::JSON_FLAGS | \JSON_THROW_ON_ERROR), \sprintf(
-                'Encoding paths diverge for "%s/%s": `json_encode($instance)` (via `jsonSerialize`) does not match `json_encode($instance->toArray())`. Either fix `toArray()` so the two paths agree, or set "encodingPathsDiverge" => true on the registry entry when `jsonSerialize` intentionally substitutes `\stdClass` for an empty object slot that `toArray` returns as `[]`.',
-                $dir,
-                basename($fixturePath, '.json'),
-            ));
+            self::assertSame(
+                $reEncoded,
+                json_encode($instance->toArray(), self::JSON_FLAGS | \JSON_THROW_ON_ERROR),
+                \sprintf(
+                    'Encoding paths diverge for "%s/%s": `json_encode($instance)` (via `jsonSerialize`) does not match `json_encode($instance->toArray())`. Either fix `toArray()` so the two paths agree, or set "encodingPathsDiverge" => true on the registry entry when `jsonSerialize` intentionally substitutes `\stdClass` for an empty object slot that `toArray` returns as `[]`.',
+                    $dir,
+                    basename($fixturePath, '.json'),
+                ),
+            );
         }
     }
 
@@ -119,10 +128,14 @@ abstract class AbstractRoundTripTestCase extends AbstractMcpTestCase
             }
         }
 
-        self::assertSame([], $orphans, \sprintf(
-            'Fixture directories without a matching entry in static::registry(): %s. Either register them or remove the directory.',
-            implode(', ', $orphans),
-        ));
+        self::assertSame(
+            [],
+            $orphans,
+            \sprintf(
+                'Fixture directories without a matching entry in static::registry(): %s. Either register them or remove the directory.',
+                implode(', ', $orphans),
+            ),
+        );
     }
 
     public function testEveryRegisteredEntryHasFixtures(): void
@@ -146,10 +159,11 @@ abstract class AbstractRoundTripTestCase extends AbstractMcpTestCase
             }
         }
 
-        self::assertSame([], $empty, \sprintf(
-            'Registered entries without on-disk fixtures: %s.',
-            implode(', ', $empty),
-        ));
+        self::assertSame(
+            [],
+            $empty,
+            \sprintf('Registered entries without on-disk fixtures: %s.', implode(', ', $empty)),
+        );
     }
 
     /**

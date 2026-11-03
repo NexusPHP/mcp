@@ -66,7 +66,14 @@ final class DocsSiteStager
                 throw new \RuntimeException(\sprintf('Could not read "docs/%s".', $relative));
             }
 
-            $markdown = self::rewriteLinks($markdown, \dirname('docs/'.$relative), $root, 'docs/'.$relative, $rewritten, $errors);
+            $markdown = self::rewriteLinks(
+                $markdown,
+                \dirname('docs/'.$relative),
+                $root,
+                'docs/'.$relative,
+                $rewritten,
+                $errors,
+            );
             $markdown = self::convertAlerts($markdown);
 
             if (file_put_contents($destination, $markdown) === false) {
@@ -82,7 +89,10 @@ final class DocsSiteStager
         }
 
         if ([] !== $errors) {
-            fwrite(\STDERR, "\n\033[31mEvery link above escapes docs/ but has no matching file in the repository.\033[0m\n");
+            fwrite(
+                \STDERR,
+                "\n\033[31mEvery link above escapes docs/ but has no matching file in the repository.\033[0m\n",
+            );
 
             return 1;
         }
@@ -131,7 +141,10 @@ final class DocsSiteStager
         );
 
         if (! \is_string($relocated) || 2 !== $count) {
-            throw new \RuntimeException(\sprintf('Expected "mkdocs.yml" to declare docs_dir and site_dir under "%s/".', $buildDir));
+            throw new \RuntimeException(\sprintf(
+                'Expected "mkdocs.yml" to declare docs_dir and site_dir under "%s/".',
+                $buildDir,
+            ));
         }
 
         $relocated = self::stampCopyrightYear($relocated);
@@ -210,9 +223,10 @@ final class DocsSiteStager
      */
     private static function findFiles(string $directory): array
     {
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($directory, \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::UNIX_PATHS),
-        );
+        $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(
+            $directory,
+            \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::UNIX_PATHS,
+        ));
 
         $files = [];
 
@@ -230,8 +244,14 @@ final class DocsSiteStager
     /**
      * @param list<string> $errors
      */
-    private static function rewriteLinks(string $markdown, string $pageDir, string $root, string $page, int &$rewritten, array &$errors): string
-    {
+    private static function rewriteLinks(
+        string $markdown,
+        string $pageDir,
+        string $root,
+        string $page,
+        int &$rewritten,
+        array &$errors,
+    ): string {
         return (string) preg_replace_callback(
             self::LINK_PATTERN,
             static function (array $match) use ($pageDir, $root, $page, &$rewritten, &$errors): string {
@@ -273,7 +293,12 @@ final class DocsSiteStager
                     return ']('.self::GITHUB_BLOB.$path.$fragment.')';
                 }
 
-                $errors[] = \sprintf('%s: link "%s" points at the missing repository path "%s".', $page, $match[1], $path);
+                $errors[] = \sprintf(
+                    '%s: link "%s" points at the missing repository path "%s".',
+                    $page,
+                    $match[1],
+                    $path,
+                );
 
                 return $match[0];
             },
@@ -324,7 +349,10 @@ final class DocsSiteStager
         }
 
         $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($directory, \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::UNIX_PATHS),
+            new \RecursiveDirectoryIterator(
+                $directory,
+                \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::UNIX_PATHS,
+            ),
             \RecursiveIteratorIterator::CHILD_FIRST,
         );
 

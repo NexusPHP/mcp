@@ -38,7 +38,10 @@ final class Rfc6570UriTemplateValidator
             ->isNonEmptyString(\sprintf('%s must be a non-empty string.', $context))
             ->matchesRegularExpression(
                 '/\A[\x21-\x7E]+\z/',
-                \sprintf('%s must contain only ASCII printable characters (no whitespace or control characters), {value} given.', $context),
+                \sprintf(
+                    '%s must contain only ASCII printable characters (no whitespace or control characters), {value} given.',
+                    $context,
+                ),
             )
             ->matchesRegularExpression(
                 '/\A[A-Za-z][A-Za-z0-9+.\-]*:[^{}]*(?:\{[^{}]+\}[^{}]*)*\z/',

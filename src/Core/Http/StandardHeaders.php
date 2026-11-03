@@ -88,7 +88,9 @@ final readonly class StandardHeaders
         $bodyVersion = $this->readVersion($body);
 
         if (null !== $bodyVersion && $header !== $bodyVersion) {
-            return new HeaderMismatchError(message: 'The MCP-Protocol-Version header does not match the request body protocol version.');
+            return new HeaderMismatchError(
+                message: 'The MCP-Protocol-Version header does not match the request body protocol version.',
+            );
         }
 
         return null;

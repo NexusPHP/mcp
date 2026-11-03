@@ -31,7 +31,11 @@ final class CompleteResultResponseTest extends AbstractMcpTestCase
 {
     public function testRoundTripsTheTypedResult(): void
     {
-        $envelope = ['jsonrpc' => '2.0', 'id' => 1, 'result' => ['resultType' => 'complete', 'completion' => ['values' => []]]];
+        $envelope = [
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'result' => ['resultType' => 'complete', 'completion' => ['values' => []]],
+        ];
 
         $response = CompleteResultResponse::fromArray($envelope);
 

@@ -60,14 +60,26 @@ final class ReadResourceDirectoryRequestParamsTest extends AbstractMcpTestCase
 
     public function testToArrayCarriesTheCursor(): void
     {
-        $params = new ReadResourceDirectoryRequestParams(uri: self::URI, meta: RequestMetaObjectFactory::create(), cursor: new Cursor(cursor: 'next'));
+        $params = new ReadResourceDirectoryRequestParams(
+            uri: self::URI,
+            meta: RequestMetaObjectFactory::create(),
+            cursor: new Cursor(cursor: 'next'),
+        );
 
-        self::assertSame(['_meta' => RequestMetaObjectFactory::shape(), 'uri' => self::URI, 'cursor' => 'next'], $params->toArray());
+        self::assertSame([
+            '_meta' => RequestMetaObjectFactory::shape(),
+            'uri' => self::URI,
+            'cursor' => 'next',
+        ], $params->toArray());
     }
 
     public function testFromArrayRoundTrip(): void
     {
-        $original = new ReadResourceDirectoryRequestParams(uri: self::URI, meta: RequestMetaObjectFactory::create(), cursor: new Cursor(cursor: 'next'));
+        $original = new ReadResourceDirectoryRequestParams(
+            uri: self::URI,
+            meta: RequestMetaObjectFactory::create(),
+            cursor: new Cursor(cursor: 'next'),
+        );
         $rebuilt = ReadResourceDirectoryRequestParams::fromArray($original->toArray());
 
         self::assertSame($original->toArray(), $rebuilt->toArray());
@@ -76,7 +88,10 @@ final class ReadResourceDirectoryRequestParamsTest extends AbstractMcpTestCase
 
     public function testFromArrayReadsAnAbsentCursorAsNone(): void
     {
-        self::assertNull(ReadResourceDirectoryRequestParams::fromArray(['uri' => self::URI, '_meta' => RequestMetaObjectFactory::shape()])->cursor);
+        self::assertNull(ReadResourceDirectoryRequestParams::fromArray([
+            'uri' => self::URI,
+            '_meta' => RequestMetaObjectFactory::shape(),
+        ])->cursor);
     }
 
     /**
@@ -102,14 +117,26 @@ final class ReadResourceDirectoryRequestParamsTest extends AbstractMcpTestCase
 
         yield 'uri empty' => [['uri' => ''], '"params.uri" must be a non-empty string, string given.'];
 
-        yield 'cursor not a string' => [['uri' => self::URI, 'cursor' => 3], '"params.cursor" must be a non-empty string, int given.'];
+        yield 'cursor not a string' => [
+            ['uri' => self::URI, 'cursor' => 3],
+            '"params.cursor" must be a non-empty string, int given.',
+        ];
 
-        yield 'cursor null' => [['uri' => self::URI, 'cursor' => null], '"params.cursor" must be a non-empty string, null given.'];
+        yield 'cursor null' => [
+            ['uri' => self::URI, 'cursor' => null],
+            '"params.cursor" must be a non-empty string, null given.',
+        ];
 
         yield 'missing _meta' => [['uri' => self::URI], '"params" is missing the required "_meta" key.'];
 
-        yield '_meta not an object' => [['uri' => self::URI, '_meta' => 'oops'], '"params._meta" must be an object, string given.'];
+        yield '_meta not an object' => [
+            ['uri' => self::URI, '_meta' => 'oops'],
+            '"params._meta" must be an object, string given.',
+        ];
 
-        yield '_meta list-keyed' => [['uri' => self::URI, '_meta' => ['x']], '"params._meta" must be a string-keyed object.'];
+        yield '_meta list-keyed' => [
+            ['uri' => self::URI, '_meta' => ['x']],
+            '"params._meta" must be a string-keyed object.',
+        ];
     }
 }

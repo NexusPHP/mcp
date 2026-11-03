@@ -579,7 +579,11 @@ final class ArgumentBinderTest extends AbstractMcpTestCase
         self::assertSame([['a']], $this->bind('enumListOrIntList', ['values' => ['a']]));
         self::assertSame(
             [['a']],
-            $this->bindAgainstSource('@param array|list<BackedStringEnum> $values', 'array $values', ['values' => ['a']]),
+            $this->bindAgainstSource(
+                '@param array|list<BackedStringEnum> $values',
+                'array $values',
+                ['values' => ['a']],
+            ),
         );
         self::assertSame([['a' => 'b']], $this->bind('enumListOrShape', ['values' => ['a' => 'b']]));
     }

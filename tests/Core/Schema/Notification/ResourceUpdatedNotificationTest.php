@@ -64,9 +64,7 @@ final class ResourceUpdatedNotificationTest extends AbstractMcpTestCase
 
     public function testFromArrayFullRoundTrip(): void
     {
-        $original = new ResourceUpdatedNotification(
-            params: new ResourceUpdatedNotificationParams(uri: 'file:///x'),
-        );
+        $original = new ResourceUpdatedNotification(params: new ResourceUpdatedNotificationParams(uri: 'file:///x'));
 
         $rebuilt = ResourceUpdatedNotification::fromArray($original->toArray());
 

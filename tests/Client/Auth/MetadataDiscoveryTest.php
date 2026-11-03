@@ -57,7 +57,11 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())->willAnswerJson(self::buildResourceDocument());
 
-        (new MetadataDiscovery($http))->discoverResource(new ResourceIdentifier(self::RESOURCE), null, new NullCancellation());
+        (new MetadataDiscovery($http))->discoverResource(
+            new ResourceIdentifier(self::RESOURCE),
+            null,
+            new NullCancellation(),
+        );
 
         self::assertSame(
             'https://mcp.example.com/.well-known/oauth-protected-resource/mcp',
@@ -72,7 +76,11 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
             ->willAnswerJson(self::buildResourceDocument())
         ;
 
-        (new MetadataDiscovery($http))->discoverResource(new ResourceIdentifier(self::RESOURCE), null, new NullCancellation());
+        (new MetadataDiscovery($http))->discoverResource(
+            new ResourceIdentifier(self::RESOURCE),
+            null,
+            new NullCancellation(),
+        );
 
         self::assertCount(2, $http->requests);
         self::assertSame(
@@ -99,9 +107,14 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
 
     public function testTheResourceDocumentIsRead(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson(self::buildResourceDocument(['scopes_supported' => ['files:read']]));
+        $document = self::buildResourceDocument(['scopes_supported' => ['files:read']]);
+        $http = (new RecordingHttpClient())->willAnswerJson($document);
 
-        $metadata = (new MetadataDiscovery($http))->discoverResource(new ResourceIdentifier(self::RESOURCE), null, new NullCancellation());
+        $metadata = (new MetadataDiscovery($http))->discoverResource(
+            new ResourceIdentifier(self::RESOURCE),
+            null,
+            new NullCancellation(),
+        );
 
         self::assertSame(self::RESOURCE, $metadata->resource->value);
         self::assertSame([self::ISSUER], $metadata->authorizationServers);
@@ -110,23 +123,33 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
 
     public function testAResourceDocumentNamingAnotherResourceIsRefused(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson(self::buildResourceDocument(['resource' => 'https://attacker.example/mcp']));
+        $document = self::buildResourceDocument(['resource' => 'https://attacker.example/mcp']);
+        $http = (new RecordingHttpClient())->willAnswerJson($document);
 
         $this->expectException(UntrustedAuthorizationMetadataException::class);
         $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the document served for "https://mcp.example.com/mcp" names the resource "https://attacker.example/mcp".');
 
-        (new MetadataDiscovery($http))->discoverResource(new ResourceIdentifier(self::RESOURCE), null, new NullCancellation());
+        (new MetadataDiscovery($http))->discoverResource(
+            new ResourceIdentifier(self::RESOURCE),
+            null,
+            new NullCancellation(),
+        );
     }
 
     public function testTheRootDocumentMayNameTheOriginRatherThanTheEndpoint(): void
     {
-        // RFC 9728 assigns the origin-root well-known URL to the resource at the origin, so the document it serves names that origin.
+        // RFC 9728 assigns the origin-root well-known URL to the resource at the origin, so the document it serves
+        // names that origin.
         $http = (new RecordingHttpClient())
             ->willAnswerJson([], 404)
             ->willAnswerJson(self::buildResourceDocument(['resource' => 'https://mcp.example.com']))
         ;
 
-        $metadata = (new MetadataDiscovery($http))->discoverResource(new ResourceIdentifier(self::RESOURCE), null, new NullCancellation());
+        $metadata = (new MetadataDiscovery($http))->discoverResource(
+            new ResourceIdentifier(self::RESOURCE),
+            null,
+            new NullCancellation(),
+        );
 
         self::assertSame('https://mcp.example.com', $metadata->resource->value);
     }
@@ -141,17 +164,26 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
         $this->expectException(UntrustedAuthorizationMetadataException::class);
         $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the document served for "https://mcp.example.com/mcp" names the resource "https://attacker.example".');
 
-        (new MetadataDiscovery($http))->discoverResource(new ResourceIdentifier(self::RESOURCE), null, new NullCancellation());
+        (new MetadataDiscovery($http))->discoverResource(
+            new ResourceIdentifier(self::RESOURCE),
+            null,
+            new NullCancellation(),
+        );
     }
 
     public function testASiblingPathOnTheSameOriginIsStillRefused(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson(self::buildResourceDocument(['resource' => 'https://mcp.example.com/other']));
+        $document = self::buildResourceDocument(['resource' => 'https://mcp.example.com/other']);
+        $http = (new RecordingHttpClient())->willAnswerJson($document);
 
         $this->expectException(UntrustedAuthorizationMetadataException::class);
         $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the document served for "https://mcp.example.com/mcp" names the resource "https://mcp.example.com/other".');
 
-        (new MetadataDiscovery($http))->discoverResource(new ResourceIdentifier(self::RESOURCE), null, new NullCancellation());
+        (new MetadataDiscovery($http))->discoverResource(
+            new ResourceIdentifier(self::RESOURCE),
+            null,
+            new NullCancellation(),
+        );
     }
 
     public function testExhaustingEveryResourceCandidateIsReported(): void
@@ -164,7 +196,11 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('No protected resource metadata was served for "https://mcp.example.com/mcp". Probed: https://mcp.example.com/.well-known/oauth-protected-resource/mcp, https://mcp.example.com/.well-known/oauth-protected-resource.');
 
-        (new MetadataDiscovery($http))->discoverResource(new ResourceIdentifier(self::RESOURCE), null, new NullCancellation());
+        (new MetadataDiscovery($http))->discoverResource(
+            new ResourceIdentifier(self::RESOURCE),
+            null,
+            new NullCancellation(),
+        );
     }
 
     public function testAnOverlongProbedUrlIsBoundedInTheReport(): void
@@ -176,7 +212,11 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
         $resource = 'https://mcp.example.com/'.str_repeat('a', 400);
 
         try {
-            (new MetadataDiscovery($http))->discoverResource(new ResourceIdentifier($resource), null, new NullCancellation());
+            (new MetadataDiscovery($http))->discoverResource(
+                new ResourceIdentifier($resource),
+                null,
+                new NullCancellation(),
+            );
             self::fail('Expected discovery to fail.');
         } catch (RuntimeException $e) {
             self::assertStringContainsString('...', $e->getMessage());
@@ -275,11 +315,15 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
     public static function provideACandidateThatAnswersNothingUsableLeavesTheNextOneItsTurnCases(): iterable
     {
         yield 'a payload that is not a JSON object' => [
-            (new RecordingHttpClient())->willAnswerJson('"not-an-object"')->willAnswerJson(self::buildResourceDocument()),
+            (new RecordingHttpClient())
+                ->willAnswerJson('"not-an-object"')
+                ->willAnswerJson(self::buildResourceDocument()),
         ];
 
         yield 'a payload that is not JSON at all' => [
-            (new RecordingHttpClient())->willAnswerJson('<html>Bad Gateway</html>')->willAnswerJson(self::buildResourceDocument()),
+            (new RecordingHttpClient())
+                ->willAnswerJson('<html>Bad Gateway</html>')
+                ->willAnswerJson(self::buildResourceDocument()),
         ];
 
         yield 'an answer that arrived from somewhere else' => [
@@ -305,7 +349,11 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs('No protected resource metadata was served for "https://mcp.example.com/mcp". Probed: https://mcp.example.com/.well-known/oauth-protected-resource/mcp, https://mcp.example.com/.well-known/oauth-protected-resource.');
 
-        (new MetadataDiscovery($http))->discoverResource(new ResourceIdentifier(self::RESOURCE), null, new NullCancellation());
+        (new MetadataDiscovery($http))->discoverResource(
+            new ResourceIdentifier(self::RESOURCE),
+            null,
+            new NullCancellation(),
+        );
     }
 
     public function testAnAdvertisedUrlThatCannotBeBuiltIntoARequestLeavesTheWellKnownOnesTheirTurn(): void
@@ -332,7 +380,11 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
         $this->expectException(UntrustedAuthorizationMetadataException::class);
         $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the protected resource metadata URL answered with a document off the shape the spec fixes.');
 
-        (new MetadataDiscovery($http))->discoverResource(new ResourceIdentifier(self::RESOURCE), null, new NullCancellation());
+        (new MetadataDiscovery($http))->discoverResource(
+            new ResourceIdentifier(self::RESOURCE),
+            null,
+            new NullCancellation(),
+        );
     }
 
     public function testAServerDocumentOffTheShapeTheSpecFixesIsRefused(): void
@@ -394,7 +446,8 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
 
     public function testAServerDocumentNamingAnotherIssuerIsRefused(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson($this->buildServerDocument(['issuer' => 'https://honest.example']));
+        $document = $this->buildServerDocument(['issuer' => 'https://honest.example']);
+        $http = (new RecordingHttpClient())->willAnswerJson($document);
 
         $this->expectException(UntrustedAuthorizationMetadataException::class);
         $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the document served for "https://auth.example.com" names the issuer "https://honest.example".');
@@ -464,7 +517,11 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
             ->willAnswerJson(self::buildResourceDocument())
         ;
 
-        (new MetadataDiscovery($http))->discoverResource(new ResourceIdentifier(self::RESOURCE), null, new NullCancellation());
+        (new MetadataDiscovery($http))->discoverResource(
+            new ResourceIdentifier(self::RESOURCE),
+            null,
+            new NullCancellation(),
+        );
 
         self::assertTrue($http->drainedBodies[0] ?? false);
     }
@@ -476,7 +533,11 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
             ->willAnswerJson(self::buildResourceDocument())
         ;
 
-        $metadata = (new MetadataDiscovery($http))->discoverResource(new ResourceIdentifier(self::RESOURCE), null, new NullCancellation());
+        $metadata = (new MetadataDiscovery($http))->discoverResource(
+            new ResourceIdentifier(self::RESOURCE),
+            null,
+            new NullCancellation(),
+        );
 
         self::assertSame(self::RESOURCE, $metadata->resource->value);
     }
@@ -488,7 +549,11 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
             ->willAnswerJson(self::buildResourceDocument())
         ;
 
-        $metadata = (new MetadataDiscovery($http))->discoverResource(new ResourceIdentifier(self::RESOURCE), null, new NullCancellation());
+        $metadata = (new MetadataDiscovery($http))->discoverResource(
+            new ResourceIdentifier(self::RESOURCE),
+            null,
+            new NullCancellation(),
+        );
 
         self::assertSame(self::RESOURCE, $metadata->resource->value);
     }

@@ -62,11 +62,14 @@ final class TestCodeTest extends AbstractMcpTestCase
             }
         }
 
-        self::assertTrue(class_exists($expectedTestClassName), \sprintf(
-            'Expected test class "%s" for "%s" was not found. Add a same-named test class or reference the source class via #[CoversClass] in some test.',
-            $expectedTestClassName,
-            $class,
-        ));
+        self::assertTrue(
+            class_exists($expectedTestClassName),
+            \sprintf(
+                'Expected test class "%s" for "%s" was not found. Add a same-named test class or reference the source class via #[CoversClass] in some test.',
+                $expectedTestClassName,
+                $class,
+            ),
+        );
     }
 
     /**
@@ -98,7 +101,10 @@ final class TestCodeTest extends AbstractMcpTestCase
             if ($reflection->isSubclassOf(\Throwable::class)) {
                 $declaredHere = array_filter(
                     $reflection->getMethods(\ReflectionMethod::IS_PUBLIC),
-                    static fn(\ReflectionMethod $rm): bool => $rm->getDeclaringClass()->getName() === $reflection->getName()
+                    static fn(\ReflectionMethod $rm): bool => $rm
+                        ->getDeclaringClass()
+                        ->getName() === $reflection
+                        ->getName()
                         && $rm->getName() !== '__construct',
                 );
 

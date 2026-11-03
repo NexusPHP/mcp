@@ -131,7 +131,12 @@ foreach ($findCheckFiles($resultsDir) as $checkFile) {
 
     // The file list is sorted, so the newest timestamp wins and supersedes an earlier run of the same scenario.
     $mode = $modeOf($checkFile);
-    $scenarios[$name] = ['mode' => $mode, 'bucket' => $bucketOf($name, $mode), 'counts' => $counts, 'failures' => $failures];
+    $scenarios[$name] = [
+        'mode' => $mode,
+        'bucket' => $bucketOf($name, $mode),
+        'counts' => $counts,
+        'failures' => $failures,
+    ];
 }
 
 if ([] === $scenarios) {

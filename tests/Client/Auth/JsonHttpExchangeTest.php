@@ -39,7 +39,10 @@ final class JsonHttpExchangeTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())->willAnswerJson(['issuer' => 'https://auth.example.com'], 201);
 
-        [$status, $payload] = (new JsonHttpExchange($http, 'token endpoint'))->send(new Request(self::URL), new NullCancellation());
+        [$status, $payload] = (new JsonHttpExchange(
+            $http,
+            'token endpoint',
+        ))->send(new Request(self::URL), new NullCancellation());
 
         self::assertSame(201, $status);
         self::assertSame('{"issuer":"https:\/\/auth.example.com"}', $payload);
@@ -90,16 +93,24 @@ final class JsonHttpExchangeTest extends AbstractMcpTestCase
         $payload = str_pad('{"a":"', JsonHttpExchange::MAX_RESPONSE_BYTES - 2, 'x').'"}';
         $http = (new RecordingHttpClient())->willAnswerJson($payload);
 
-        self::assertSame($payload, (new JsonHttpExchange($http, 'token endpoint'))->send(new Request(self::URL), new NullCancellation())[1]);
+        self::assertSame($payload, (new JsonHttpExchange(
+            $http,
+            'token endpoint',
+        ))->send(new Request(self::URL), new NullCancellation())[1]);
     }
 
     public function testEveryMemberOfADecodedObjectIsReturned(): void
     {
         self::assertSame(
-            ['issuer' => 'https://auth.example.com', 'token_endpoint' => self::URL, 'scopes_supported' => ['files:read']],
-            (new JsonHttpExchange(new RecordingHttpClient(), 'token endpoint'))->decode(
-                '{"issuer":"https://auth.example.com","token_endpoint":"https://auth.example.com/token","scopes_supported":["files:read"]}',
-            ),
+            [
+                'issuer' => 'https://auth.example.com',
+                'token_endpoint' => self::URL,
+                'scopes_supported' => ['files:read'],
+            ],
+            (new JsonHttpExchange(
+                new RecordingHttpClient(),
+                'token endpoint',
+            ))->decode('{"issuer":"https://auth.example.com","token_endpoint":"https://auth.example.com/token","scopes_supported":["files:read"]}'),
         );
     }
 

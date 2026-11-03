@@ -480,7 +480,10 @@ final class ToolTest extends AbstractMcpTestCase
             outputSchema: ['type' => 'object', 'properties' => []],
         );
 
-        self::assertStringContainsString('"outputSchema":{"type":"object","properties":{}}', (string) json_encode($tool));
+        self::assertStringContainsString(
+            '"outputSchema":{"type":"object","properties":{}}',
+            (string) json_encode($tool),
+        );
     }
 
     public function testJsonSerializeEmitsAWhollyEmptyOutputSchemaAsAnObject(): void
@@ -499,7 +502,10 @@ final class ToolTest extends AbstractMcpTestCase
         ]);
 
         self::assertSame(2, substr_count((string) json_encode($tool), '"contentSchema":'));
-        self::assertStringContainsString('"contentSchema":{"type":"object","properties":{}}', (string) json_encode($tool));
+        self::assertStringContainsString(
+            '"contentSchema":{"type":"object","properties":{}}',
+            (string) json_encode($tool),
+        );
         self::assertStringContainsString('"contentSchema":{}', (string) json_encode($tool));
     }
 

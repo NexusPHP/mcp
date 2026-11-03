@@ -95,11 +95,14 @@ $tasks = new TaskClient($client);
 try {
     $discoverResult = $client->discover();
 
-    fwrite(\STDOUT, sprintf(
-        "Connected to %s, advertising extensions: %s\n\n",
-        $discoverResult->meta->serverInfo->name ?? '(anonymous)',
-        implode(', ', array_keys($client->getServerCapabilities()->extensions ?? [])),
-    ));
+    fwrite(
+        \STDOUT,
+        sprintf(
+            "Connected to %s, advertising extensions: %s\n\n",
+            $discoverResult->meta->serverInfo->name ?? '(anonymous)',
+            implode(', ', array_keys($client->getServerCapabilities()->extensions ?? [])),
+        ),
+    );
 
     fwrite(\STDOUT, "=== callToolAsTask slow_report: the server answers with a task handle ===\n");
     $outcome = $tasks->callToolAsTask('slow_report', ['steps' => 4]);
@@ -110,24 +113,30 @@ try {
         exit(0);
     }
 
-    fwrite(\STDOUT, sprintf(
-        "    taskId: %s\n    status: %s\n    pollIntervalMs: %d, ttlMs: %s\n",
-        $outcome->taskId,
-        $outcome->status->value,
-        $outcome->pollIntervalMs ?? 1_000,
-        null !== $outcome->ttlMs ? (string) $outcome->ttlMs : 'unlimited',
-    ));
+    fwrite(
+        \STDOUT,
+        sprintf(
+            "    taskId: %s\n    status: %s\n    pollIntervalMs: %d, ttlMs: %s\n",
+            $outcome->taskId,
+            $outcome->status->value,
+            $outcome->pollIntervalMs ?? 1_000,
+            null !== $outcome->ttlMs ? (string) $outcome->ttlMs : 'unlimited',
+        ),
+    );
 
     fwrite(\STDOUT, "\n=== getTask: one typed poll while the tool still works ===\n");
     fwrite(\STDOUT, sprintf("    status: %s\n", $tasks->getTask($outcome->taskId)->status->value));
 
     fwrite(\STDOUT, "\n=== awaitTask: polling at the server-suggested interval until terminal ===\n");
     $terminal = $tasks->awaitTask($outcome);
-    fwrite(\STDOUT, sprintf(
-        "    status: %s\n    result: %s\n",
-        $terminal->status->value,
-        json_encode($terminal->result, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES),
-    ));
+    fwrite(
+        \STDOUT,
+        sprintf(
+            "    status: %s\n    result: %s\n",
+            $terminal->status->value,
+            json_encode($terminal->result, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES),
+        ),
+    );
 
     fwrite(\STDOUT, "\n=== tasks/cancel: cooperative cancellation of endless_job ===\n");
     $endless = $tasks->callToolAsTask('endless_job');

@@ -86,6 +86,10 @@
             "Nexus\\Mcp\\Tools\\": "tools/src/"
         },
         "classmap": [
+            "conformance/ConformanceClient.php",
+            "conformance/HeadlessUserAuthorization.php",
+            "conformance/ScenarioContext.php",
+            "conformance/StaticIdentityAssertionProvider.php",
             "examples/PsrLogger.php",
             "examples/PsrHttpAdapter.php",
             "examples/ProductionPosture.php"

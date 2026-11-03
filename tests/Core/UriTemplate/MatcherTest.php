@@ -171,7 +171,11 @@ final class MatcherTest extends AbstractMcpTestCase
 
         yield 'parentheses in literal' => ['weather://(beta)/{city}', 'weather://(beta)/paris', ['city' => 'paris']];
 
-        yield 'trailing literal with regex-special char' => ['weather://{city}.json', 'weather://paris.json', ['city' => 'paris']];
+        yield 'trailing literal with regex-special char' => [
+            'weather://{city}.json',
+            'weather://paris.json',
+            ['city' => 'paris'],
+        ];
 
         yield 'trailing dot does not match arbitrary char' => ['weather://{city}.json', 'weather://parisXjson', null];
     }

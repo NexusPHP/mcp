@@ -26,6 +26,10 @@ final class SkillVerificationFailedException extends \RuntimeException implement
      */
     public function __construct(string $uri, string $reason)
     {
-        parent::__construct(\sprintf('Skill file "%s" failed verification: it %s.', SafeDisplay::sanitiseCause($uri), $reason));
+        parent::__construct(\sprintf(
+            'Skill file "%s" failed verification: it %s.',
+            SafeDisplay::sanitiseCause($uri),
+            $reason,
+        ));
     }
 }

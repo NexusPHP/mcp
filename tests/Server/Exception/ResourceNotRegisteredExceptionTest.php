@@ -67,7 +67,10 @@ final class ResourceNotRegisteredExceptionTest extends AbstractMcpTestCase
         $e = new ResourceNotRegisteredException($uri);
 
         self::assertSame(['uri' => $uri], $e->errorData);
-        self::assertSame(\sprintf('No resource registered under URI "file:///%s...".', str_repeat('a', 245)), $e->getMessage());
+        self::assertSame(
+            \sprintf('No resource registered under URI "file:///%s...".', str_repeat('a', 245)),
+            $e->getMessage(),
+        );
     }
 
     public function testEscapesControlBytesInTheMessage(): void

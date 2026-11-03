@@ -41,6 +41,8 @@ final readonly class VerifiedAccessToken
         public ?string $subject = null,
         public ?string $clientId = null,
     ) {
-        Assert::that($expiresAt)->isPositiveInt('Verified access token expiry must be a positive Unix timestamp, {value} given.');
+        Assert::that($expiresAt)->isPositiveInt(
+            'Verified access token expiry must be a positive Unix timestamp, {value} given.',
+        );
     }
 }

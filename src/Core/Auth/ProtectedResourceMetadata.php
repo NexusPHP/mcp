@@ -38,7 +38,9 @@ final readonly class ProtectedResourceMetadata
         public ?string $resourceName = null,
     ) {
         if ([] === $authorizationServers) {
-            throw new \InvalidArgumentException('Protected Resource Metadata must name at least one authorization server.');
+            throw new \InvalidArgumentException(
+                'Protected Resource Metadata must name at least one authorization server.',
+            );
         }
 
         $this->authorizationServers = $authorizationServers;

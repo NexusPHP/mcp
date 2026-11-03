@@ -61,8 +61,12 @@ final readonly class ResourceTemplate extends BaseMetadata implements Arrayable,
 
         Rfc6570UriTemplateValidator::validate($uriTemplate, 'resource template "uriTemplate"');
 
-        Assert::that($description)->nullOr()->isNonEmptyString('resource template "description" must be a non-empty string or null.');
-        Assert::that($mimeType)->nullOr()->isNonEmptyString('resource template "mimeType" must be a non-empty string or null.');
+        Assert::that($description)->nullOr()->isNonEmptyString(
+            'resource template "description" must be a non-empty string or null.',
+        );
+        Assert::that($mimeType)->nullOr()->isNonEmptyString(
+            'resource template "mimeType" must be a non-empty string or null.',
+        );
 
         if (null !== $icons) {
             Assert::that($icons)->values()->isInstanceOf(Icon::class);
@@ -78,16 +82,24 @@ final readonly class ResourceTemplate extends BaseMetadata implements Arrayable,
 
         Assert::that($data)->hasOffset('uriTemplate', 'resource template is missing the required "uriTemplate" key.');
         $uriTemplate = $data['uriTemplate'];
-        Assert::that($uriTemplate)->isNonEmptyString('resource template "uriTemplate" must be a non-empty string, {type} given.');
+        Assert::that($uriTemplate)->isNonEmptyString(
+            'resource template "uriTemplate" must be a non-empty string, {type} given.',
+        );
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isNonEmptyString('resource template "title" must be a non-empty string or null, {type} given.');
+        Assert::that($title)->nullOr()->isNonEmptyString(
+            'resource template "title" must be a non-empty string or null, {type} given.',
+        );
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isNonEmptyString('resource template "description" must be a non-empty string or null, {type} given.');
+        Assert::that($description)->nullOr()->isNonEmptyString(
+            'resource template "description" must be a non-empty string or null, {type} given.',
+        );
 
         $mimeType = $data['mimeType'] ?? null;
-        Assert::that($mimeType)->nullOr()->isNonEmptyString('resource template "mimeType" must be a non-empty string or null, {type} given.');
+        Assert::that($mimeType)->nullOr()->isNonEmptyString(
+            'resource template "mimeType" must be a non-empty string or null, {type} given.',
+        );
 
         $annotations = new Annotations();
 
@@ -104,8 +116,7 @@ final readonly class ResourceTemplate extends BaseMetadata implements Arrayable,
         if (isset($data['icons'])) {
             Assert::that($data['icons'])
                 ->isList('resource template "icons" must be a list, {type} given.')
-                ->values()
-                ->isArray('each resource template "icons" must be an object, {type} given.')
+                ->values()->isArray('each resource template "icons" must be an object, {type} given.')
                 ->isMap('each resource template "icons" must be a string-keyed object.')
             ;
             $icons = array_map(Icon::fromArray(...), $data['icons']);

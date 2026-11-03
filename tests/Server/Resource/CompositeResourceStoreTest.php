@@ -46,7 +46,9 @@ final class CompositeResourceStoreTest extends AbstractMcpTestCase
 {
     public function testReadPrefersExactStaticUriMatch(): void
     {
-        $expected = new ReadResourceResult(contents: [new TextResourceContents(uri: 'file:///etc', text: 'static')], ttlMs: 0, cacheScope: CacheScope::Private);
+        $expected = new ReadResourceResult(contents: [
+            new TextResourceContents(uri: 'file:///etc', text: 'static'),
+        ], ttlMs: 0, cacheScope: CacheScope::Private);
         $templateCalled = false;
 
         $composite = new CompositeResourceStore(
@@ -59,13 +61,13 @@ final class CompositeResourceStoreTest extends AbstractMcpTestCase
             new ResourceTemplateStore([
                 'file:///{path}' => new ResourceTemplateEntry(
                     new ResourceTemplate(name: 'files', uriTemplate: 'file:///{path}'),
-                    new ClosureTemplatedResourceReader(
-                        static function () use (&$templateCalled): ReadResourceResult {
-                            $templateCalled = true;
+                    new ClosureTemplatedResourceReader(static function () use (&$templateCalled): ReadResourceResult {
+                        $templateCalled = true;
 
-                            return new ReadResourceResult(contents: [new TextResourceContents(uri: 'file:///', text: 'template')], ttlMs: 0, cacheScope: CacheScope::Private);
-                        },
-                    ),
+                        return new ReadResourceResult(contents: [
+                            new TextResourceContents(uri: 'file:///', text: 'template'),
+                        ], ttlMs: 0, cacheScope: CacheScope::Private);
+                    }),
                 ),
             ]),
         );
@@ -76,7 +78,9 @@ final class CompositeResourceStoreTest extends AbstractMcpTestCase
 
     public function testReadFallsThroughToTemplateOnStaticMiss(): void
     {
-        $expected = new ReadResourceResult(contents: [new TextResourceContents(uri: 'file:///etc', text: 'matched')], ttlMs: 0, cacheScope: CacheScope::Private);
+        $expected = new ReadResourceResult(contents: [
+            new TextResourceContents(uri: 'file:///etc', text: 'matched'),
+        ], ttlMs: 0, cacheScope: CacheScope::Private);
 
         $composite = new CompositeResourceStore(
             new ResourceStore(),
@@ -98,9 +102,7 @@ final class CompositeResourceStoreTest extends AbstractMcpTestCase
             new ResourceTemplateStore([
                 'weather://{city}' => new ResourceTemplateEntry(
                     new ResourceTemplate(name: 'weather', uriTemplate: 'weather://{city}'),
-                    new ClosureTemplatedResourceReader(
-                        static fn(): never => throw new \LogicException('unreachable'),
-                    ),
+                    new ClosureTemplatedResourceReader(static fn(): never => throw new \LogicException('unreachable')),
                 ),
             ]),
         );
@@ -118,19 +120,22 @@ final class CompositeResourceStoreTest extends AbstractMcpTestCase
             new ResourceStore([
                 'db://users/42' => new ResourceEntry(
                     new Resource(name: 'user', uri: 'db://users/42'),
-                    new ClosureResourceReader(static fn(): never => throw new ResourceNotFoundException('db://users/42')),
+                    new ClosureResourceReader(
+                        static fn(): never => throw new ResourceNotFoundException('db://users/42'),
+                    ),
                 ),
             ]),
             new ResourceTemplateStore([
                 'db://users/{id}' => new ResourceTemplateEntry(
                     new ResourceTemplate(name: 'users', uriTemplate: 'db://users/{id}'),
-                    new ClosureTemplatedResourceReader(
-                        static function () use (&$templateCalled): ReadResourceResult {
-                            $templateCalled = true;
+                    new ClosureTemplatedResourceReader(static function () use (&$templateCalled): ReadResourceResult {
+                        $templateCalled = true;
 
-                            return new ReadResourceResult(contents: [new TextResourceContents(uri: 'db://users/42', text: 'template fallback')], ttlMs: 0, cacheScope: CacheScope::Private);
-                        },
-                    ),
+                        return new ReadResourceResult(contents: [new TextResourceContents(
+                            uri: 'db://users/42',
+                            text: 'template fallback',
+                        )], ttlMs: 0, cacheScope: CacheScope::Private);
+                    }),
                 ),
             ]),
         );
@@ -152,9 +157,7 @@ final class CompositeResourceStoreTest extends AbstractMcpTestCase
             new ResourceStore([
                 'file:///etc' => new ResourceEntry(
                     $static,
-                    new ClosureResourceReader(
-                        static fn(): never => throw new \LogicException('unreachable'),
-                    ),
+                    new ClosureResourceReader(static fn(): never => throw new \LogicException('unreachable')),
                 ),
             ]),
             new ResourceTemplateStore(),
@@ -196,15 +199,11 @@ final class CompositeResourceStoreTest extends AbstractMcpTestCase
                 [
                     'file:///a' => new ResourceEntry(
                         new Resource(name: 'a', uri: 'file:///a'),
-                        new ClosureResourceReader(
-                            static fn(): never => throw new \LogicException('unreachable'),
-                        ),
+                        new ClosureResourceReader(static fn(): never => throw new \LogicException('unreachable')),
                     ),
                     'file:///b' => new ResourceEntry(
                         new Resource(name: 'b', uri: 'file:///b'),
-                        new ClosureResourceReader(
-                            static fn(): never => throw new \LogicException('unreachable'),
-                        ),
+                        new ClosureResourceReader(static fn(): never => throw new \LogicException('unreachable')),
                     ),
                 ],
                 pageSize: 1,

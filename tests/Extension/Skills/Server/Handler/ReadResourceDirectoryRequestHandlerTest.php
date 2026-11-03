@@ -47,14 +47,20 @@ final class ReadResourceDirectoryRequestHandlerTest extends AbstractMcpTestCase
         ));
 
         $first = $handler->handle($this->buildRequest('skill://git-workflow'), $this->buildContext());
-        $second = $handler->handle($this->buildRequest('skill://git-workflow', 'skill://git-workflow/scripts'), $this->buildContext());
+        $second = $handler->handle(
+            $this->buildRequest('skill://git-workflow', 'skill://git-workflow/scripts'),
+            $this->buildContext(),
+        );
 
         self::assertSame(
             ['git-workflow', 'references', 'scripts'],
             array_map(static fn(Resource $resource): string => $resource->name, $first->resources),
         );
         self::assertSame('skill://git-workflow/scripts', $first->nextCursor?->cursor);
-        self::assertSame(['templates'], array_map(static fn(Resource $resource): string => $resource->name, $second->resources));
+        self::assertSame(
+            ['templates'],
+            array_map(static fn(Resource $resource): string => $resource->name, $second->resources),
+        );
     }
 
     public function testTheContextReachesTheProvider(): void
@@ -63,7 +69,10 @@ final class ReadResourceDirectoryRequestHandlerTest extends AbstractMcpTestCase
         $provider = new ArraySkillProvider(directories: ['skill://reports/q3' => [$child]]);
         $handler = new ReadResourceDirectoryRequestHandler(new SkillStore(provider: $provider));
 
-        self::assertSame([$child], $handler->handle($this->buildRequest('skill://reports/q3'), $this->buildContext())->resources);
+        self::assertSame([$child], $handler->handle(
+            $this->buildRequest('skill://reports/q3'),
+            $this->buildContext(),
+        )->resources);
         self::assertSame([['findDirectory', 'skill://reports/q3']], $provider->lookups);
     }
 
@@ -87,7 +96,10 @@ final class ReadResourceDirectoryRequestHandlerTest extends AbstractMcpTestCase
     {
         return ReadResourceDirectoryRequest::fromArray([
             'id' => 7,
-            'params' => ['_meta' => RequestMetaObjectFactory::shape(), 'uri' => $uri] + (null === $cursor ? [] : ['cursor' => $cursor]),
+            'params' => [
+                '_meta' => RequestMetaObjectFactory::shape(),
+                'uri' => $uri,
+            ] + (null === $cursor ? [] : ['cursor' => $cursor]),
         ]);
     }
 

@@ -96,8 +96,10 @@ final class ErrorFactoryTest extends AbstractMcpTestCase
     }
 
     #[DataProvider('provideCreateRefusesADataCarryingCodeWithoutDataCases')]
-    public function testCreateRefusesADataCarryingCodeWithoutData(ProtocolErrorCode $code, string $expectedMessage): void
-    {
+    public function testCreateRefusesADataCarryingCodeWithoutData(
+        ProtocolErrorCode $code,
+        string $expectedMessage,
+    ): void {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 

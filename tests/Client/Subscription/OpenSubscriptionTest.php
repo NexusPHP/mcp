@@ -55,7 +55,9 @@ final class OpenSubscriptionTest extends AbstractMcpTestCase
         ($subscription->onNotification)(new ToolListChangedNotification());
         self::assertSame(['notifications/tools/list_changed'], $seen);
 
-        $result = new SubscriptionsListenResult(new SubscriptionsListenResultMetaObject(subscriptionId: new RequestId(id: 'feed-1')));
+        $result = new SubscriptionsListenResult(
+            new SubscriptionsListenResultMetaObject(subscriptionId: new RequestId(id: 'feed-1')),
+        );
         $subscription->outcome->complete($result);
         self::assertSame($result, $subscription->outcome->getFuture()->await());
     }

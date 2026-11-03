@@ -88,18 +88,32 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
      */
     public static function provideAStreamThatCanDeliverStaysOpenCases(): iterable
     {
-        yield 'tool list changes' => [new SubscriptionStore(toolsListChanged: true), new SubscriptionFilter(toolsListChanged: true)];
+        yield 'tool list changes' => [
+            new SubscriptionStore(toolsListChanged: true),
+            new SubscriptionFilter(toolsListChanged: true),
+        ];
 
-        yield 'prompt list changes' => [new SubscriptionStore(promptsListChanged: true), new SubscriptionFilter(promptsListChanged: true)];
+        yield 'prompt list changes' => [
+            new SubscriptionStore(promptsListChanged: true),
+            new SubscriptionFilter(promptsListChanged: true),
+        ];
 
-        yield 'resource list changes' => [new SubscriptionStore(resourcesListChanged: true), new SubscriptionFilter(resourcesListChanged: true)];
+        yield 'resource list changes' => [
+            new SubscriptionStore(resourcesListChanged: true),
+            new SubscriptionFilter(resourcesListChanged: true),
+        ];
 
-        yield 'one resource' => [new SubscriptionStore(resourceSubscriptions: true), new SubscriptionFilter(resourceSubscriptions: ['file:///a'])];
+        yield 'one resource' => [
+            new SubscriptionStore(resourceSubscriptions: true),
+            new SubscriptionFilter(resourceSubscriptions: ['file:///a']),
+        ];
     }
 
     #[DataProvider('provideAStreamThatHonoursNothingEndsAfterItsAcknowledgementCases')]
-    public function testAStreamThatHonoursNothingEndsAfterItsAcknowledgement(SubscriptionStore $store, SubscriptionFilter $requested): void
-    {
+    public function testAStreamThatHonoursNothingEndsAfterItsAcknowledgement(
+        SubscriptionStore $store,
+        SubscriptionFilter $requested,
+    ): void {
         $sender = new RecordingSender();
         $handler = new SubscriptionsListenRequestHandler($store);
 
@@ -124,11 +138,17 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
      */
     public static function provideAStreamThatHonoursNothingEndsAfterItsAcknowledgementCases(): iterable
     {
-        yield 'a type the server does not back' => [new SubscriptionStore(), new SubscriptionFilter(toolsListChanged: true)];
+        yield 'a type the server does not back' => [
+            new SubscriptionStore(),
+            new SubscriptionFilter(toolsListChanged: true),
+        ];
 
         yield 'nothing requested' => [new SubscriptionStore(toolsListChanged: true), new SubscriptionFilter()];
 
-        yield 'an empty resource list' => [new SubscriptionStore(resourceSubscriptions: true), new SubscriptionFilter(resourceSubscriptions: [])];
+        yield 'an empty resource list' => [
+            new SubscriptionStore(resourceSubscriptions: true),
+            new SubscriptionFilter(resourceSubscriptions: []),
+        ];
     }
 
     public function testAStreamThatHonoursNothingHoldsNoSlot(): void
@@ -136,8 +156,14 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
         $store = new SubscriptionStore(maxSubscriptionsPerPeer: 1);
         $handler = new SubscriptionsListenRequestHandler($store);
 
-        $handler->handle($this->listenRequest(1), $this->buildAuthorizedContextFor(1, new RecordingSender(), clientId: 'cli-1', subject: null));
-        $result = $handler->handle($this->listenRequest(2), $this->buildAuthorizedContextFor(2, new RecordingSender(), clientId: 'cli-1', subject: null));
+        $handler->handle(
+            $this->listenRequest(1),
+            $this->buildAuthorizedContextFor(1, new RecordingSender(), clientId: 'cli-1', subject: null),
+        );
+        $result = $handler->handle(
+            $this->listenRequest(2),
+            $this->buildAuthorizedContextFor(2, new RecordingSender(), clientId: 'cli-1', subject: null),
+        );
 
         self::assertSame(2, $result->meta->subscriptionId->id);
     }
@@ -207,7 +233,10 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
             );
             self::fail('A second stream for the same OAuth client must be refused.');
         } catch (SubscriptionLimitReachedException $e) {
-            self::assertSame('Subscription limit reached: this server holds at most 1 open streams per client.', $e->getMessage());
+            self::assertSame(
+                'Subscription limit reached: this server holds at most 1 open streams per client.',
+                $e->getMessage(),
+            );
         }
 
         $store->closeAll();
@@ -275,7 +304,11 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
             new SubscriptionsListenRequest(
                 id: new RequestId(id: 1),
                 params: new SubscriptionsListenRequestParams(
-                    notifications: new SubscriptionFilter(toolsListChanged: true, promptsListChanged: true, resourcesListChanged: true),
+                    notifications: new SubscriptionFilter(
+                        toolsListChanged: true,
+                        promptsListChanged: true,
+                        resourcesListChanged: true,
+                    ),
                     meta: RequestMetaObjectFactory::create(),
                 ),
             ),
@@ -330,8 +363,10 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
     /**
      * @param int|non-empty-string $id
      */
-    private function listenRequest(int|string $id, SubscriptionFilter $requested = new SubscriptionFilter(toolsListChanged: true)): SubscriptionsListenRequest
-    {
+    private function listenRequest(
+        int|string $id,
+        SubscriptionFilter $requested = new SubscriptionFilter(toolsListChanged: true),
+    ): SubscriptionsListenRequest {
         return new SubscriptionsListenRequest(
             id: new RequestId(id: $id),
             params: new SubscriptionsListenRequestParams(
@@ -359,8 +394,12 @@ final class SubscriptionsListenRequestHandlerTest extends AbstractMcpTestCase
      * @param null|non-empty-string $clientId
      * @param null|non-empty-string $subject
      */
-    private function buildAuthorizedContextFor(int|string $id, RecordingSender $sender, ?string $clientId, ?string $subject): ServerContext
-    {
+    private function buildAuthorizedContextFor(
+        int|string $id,
+        RecordingSender $sender,
+        ?string $clientId,
+        ?string $subject,
+    ): ServerContext {
         return new ServerContext(
             new RequestId(id: $id),
             new NullCancellation(),

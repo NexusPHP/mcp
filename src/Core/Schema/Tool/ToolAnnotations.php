@@ -55,19 +55,29 @@ final readonly class ToolAnnotations implements Arrayable
     public static function fromArray(array $data): static
     {
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isNonEmptyString('"annotations.title" must be a non-empty string or null, {type} given.');
+        Assert::that($title)->nullOr()->isNonEmptyString(
+            '"annotations.title" must be a non-empty string or null, {type} given.',
+        );
 
         $readOnlyHint = $data['readOnlyHint'] ?? null;
-        Assert::that($readOnlyHint)->nullOr()->isBool('"annotations.readOnlyHint" must be a bool or null, {type} given.');
+        Assert::that($readOnlyHint)->nullOr()->isBool(
+            '"annotations.readOnlyHint" must be a bool or null, {type} given.',
+        );
 
         $destructiveHint = $data['destructiveHint'] ?? null;
-        Assert::that($destructiveHint)->nullOr()->isBool('"annotations.destructiveHint" must be a bool or null, {type} given.');
+        Assert::that($destructiveHint)->nullOr()->isBool(
+            '"annotations.destructiveHint" must be a bool or null, {type} given.',
+        );
 
         $idempotentHint = $data['idempotentHint'] ?? null;
-        Assert::that($idempotentHint)->nullOr()->isBool('"annotations.idempotentHint" must be a bool or null, {type} given.');
+        Assert::that($idempotentHint)->nullOr()->isBool(
+            '"annotations.idempotentHint" must be a bool or null, {type} given.',
+        );
 
         $openWorldHint = $data['openWorldHint'] ?? null;
-        Assert::that($openWorldHint)->nullOr()->isBool('"annotations.openWorldHint" must be a bool or null, {type} given.');
+        Assert::that($openWorldHint)->nullOr()->isBool(
+            '"annotations.openWorldHint" must be a bool or null, {type} given.',
+        );
 
         return new self(
             title: $title,

@@ -100,12 +100,10 @@ final class PublicParameterSnapshot
             throw new \RuntimeException('Could not resolve the "src" directory.');
         }
 
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator(
-                $directory,
-                \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::UNIX_PATHS,
-            ),
-        );
+        $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(
+            $directory,
+            \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::UNIX_PATHS,
+        ));
 
         $classes = [];
 

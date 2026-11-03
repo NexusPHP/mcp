@@ -68,7 +68,10 @@ final class HeaderValueCodecTest extends AbstractMcpTestCase
 
         yield 'leading control byte outside the trim set is wrapped' => ["\x01abc", '=?base64?AWFiYw==?='];
 
-        yield 'a value already matching the sentinel is self-encoded' => ['=?base64?literal?=', '=?base64?PT9iYXNlNjQ/bGl0ZXJhbD89?='];
+        yield 'a value already matching the sentinel is self-encoded' => [
+            '=?base64?literal?=',
+            '=?base64?PT9iYXNlNjQ/bGl0ZXJhbD89?=',
+        ];
     }
 
     #[DataProvider('provideDecodeCases')]

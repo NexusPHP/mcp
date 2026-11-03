@@ -219,9 +219,10 @@ final class OpisSchemaValidatorTest extends AbstractMcpTestCase
 
     private function countParsedSchemas(OpisSchemaValidator $validator): int
     {
-        $cache = (new \ReflectionProperty(SchemaLoader::class, 'dataCache'))->getValue(
-            $this->readOpisValidator($validator)->loader(),
-        );
+        $cache = (new \ReflectionProperty(
+            SchemaLoader::class,
+            'dataCache',
+        ))->getValue($this->readOpisValidator($validator)->loader());
         self::assertInstanceOf(\SplObjectStorage::class, $cache);
 
         return \count($cache);

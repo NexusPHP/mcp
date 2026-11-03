@@ -43,8 +43,14 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
     public function testListReturnsRegisteredTemplates(): void
     {
         $store = new ResourceTemplateStore([
-            'file:///{name}.txt' => $this->buildEntry(new ResourceTemplate(name: 'alpha', uriTemplate: 'file:///{name}.txt')),
-            'file:///{name}.log' => $this->buildEntry(new ResourceTemplate(name: 'beta', uriTemplate: 'file:///{name}.log')),
+            'file:///{name}.txt' => $this->buildEntry(new ResourceTemplate(
+                name: 'alpha',
+                uriTemplate: 'file:///{name}.txt',
+            )),
+            'file:///{name}.log' => $this->buildEntry(new ResourceTemplate(
+                name: 'beta',
+                uriTemplate: 'file:///{name}.log',
+            )),
         ]);
 
         $result = $store->list(null);
@@ -60,7 +66,10 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
     public function testListReflectsConfiguredTtlAndCacheScope(): void
     {
         $store = new ResourceTemplateStore(
-            ['file:///{name}.txt' => $this->buildEntry(new ResourceTemplate(name: 'alpha', uriTemplate: 'file:///{name}.txt'))],
+            ['file:///{name}.txt' => $this->buildEntry(new ResourceTemplate(
+                name: 'alpha',
+                uriTemplate: 'file:///{name}.txt',
+            ))],
             ttlMs: 120_000,
             cacheScope: CacheScope::Public,
         );
@@ -188,7 +197,9 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
     public function testReadDelegatesToFirstMatchingTemplateWithBindings(): void
     {
         $captured = ['uri' => null, 'bindings' => null];
-        $expected = new ReadResourceResult(contents: [new TextResourceContents(uri: 'file:///etc', text: 'hello')], ttlMs: 0, cacheScope: CacheScope::Private);
+        $expected = new ReadResourceResult(contents: [
+            new TextResourceContents(uri: 'file:///etc', text: 'hello'),
+        ], ttlMs: 0, cacheScope: CacheScope::Private);
 
         $store = new ResourceTemplateStore([
             'weather://{city}/{day}' => $this->buildEntry(
@@ -216,7 +227,9 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
     public function testReadStopsAtFirstMatch(): void
     {
         $firstCalled = false;
-        $expected = new ReadResourceResult(contents: [new TextResourceContents(uri: 'file:///x', text: 'ok')], ttlMs: 0, cacheScope: CacheScope::Private);
+        $expected = new ReadResourceResult(contents: [
+            new TextResourceContents(uri: 'file:///x', text: 'ok'),
+        ], ttlMs: 0, cacheScope: CacheScope::Private);
 
         $store = new ResourceTemplateStore([
             'file:///{path}' => $this->buildEntry(
@@ -239,12 +252,16 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
 
     public function testReadPrefersTheTemplateWithMoreLiteralText(): void
     {
-        $expected = new ReadResourceResult(contents: [new TextResourceContents(uri: 'db://literal', text: 'exact')], ttlMs: 0, cacheScope: CacheScope::Private);
+        $expected = new ReadResourceResult(contents: [
+            new TextResourceContents(uri: 'db://literal', text: 'exact'),
+        ], ttlMs: 0, cacheScope: CacheScope::Private);
 
         $store = new ResourceTemplateStore([
             'db://{table}' => $this->buildEntry(
                 new ResourceTemplate(name: 'generic', uriTemplate: 'db://{table}'),
-                static fn(): never => throw new \LogicException('the generic template must not answer an exact literal'),
+                static fn(): never => throw new \LogicException(
+                    'the generic template must not answer an exact literal',
+                ),
             ),
             'db://literal' => $this->buildEntry(
                 new ResourceTemplate(name: 'exact', uriTemplate: 'db://literal'),
@@ -257,7 +274,9 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
 
     public function testReadFallsBackToTheGenericTemplateForOtherUris(): void
     {
-        $expected = new ReadResourceResult(contents: [new TextResourceContents(uri: 'db://users', text: 'generic')], ttlMs: 0, cacheScope: CacheScope::Private);
+        $expected = new ReadResourceResult(contents: [
+            new TextResourceContents(uri: 'db://users', text: 'generic'),
+        ], ttlMs: 0, cacheScope: CacheScope::Private);
 
         $store = new ResourceTemplateStore([
             'db://{table}' => $this->buildEntry(
@@ -275,12 +294,16 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
 
     public function testATemplateAddedLaterStillWinsWithMoreLiteralText(): void
     {
-        $expected = new ReadResourceResult(contents: [new TextResourceContents(uri: 'db://literal', text: 'exact')], ttlMs: 0, cacheScope: CacheScope::Private);
+        $expected = new ReadResourceResult(contents: [
+            new TextResourceContents(uri: 'db://literal', text: 'exact'),
+        ], ttlMs: 0, cacheScope: CacheScope::Private);
 
         $store = new ResourceTemplateStore([
             'db://{table}' => $this->buildEntry(
                 new ResourceTemplate(name: 'generic', uriTemplate: 'db://{table}'),
-                static fn(): never => throw new \LogicException('the generic template must not answer an exact literal'),
+                static fn(): never => throw new \LogicException(
+                    'the generic template must not answer an exact literal',
+                ),
             ),
         ]);
         $store->addResourceTemplate(
@@ -299,13 +322,11 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
 
         $store->addResourceTemplate(
             new ResourceTemplate(name: 'files', uriTemplate: 'file:///{path}'),
-            new ClosureTemplatedResourceReader(
-                static fn(string $uri, array $bindings, ServerContext $context): ReadResourceResult => new ReadResourceResult(
-                    contents: [],
-                    ttlMs: 0,
-                    cacheScope: CacheScope::Private,
-                ),
-            ),
+            new ClosureTemplatedResourceReader(static fn(string $uri, array $bindings, ServerContext $context): ReadResourceResult => new ReadResourceResult(
+                contents: [],
+                ttlMs: 0,
+                cacheScope: CacheScope::Private,
+            )),
         );
 
         self::assertSame(
@@ -385,7 +406,9 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('resource template "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.');
 
-        new ResourceTemplateStore(['mem://{p}' => $this->buildEntry(new ResourceTemplate(name: 'Project Files', uriTemplate: 'mem://{p}'))]);
+        new ResourceTemplateStore(
+            ['mem://{p}' => $this->buildEntry(new ResourceTemplate(name: 'Project Files', uriTemplate: 'mem://{p}'))],
+        );
     }
 
     public function testAddRefusesAnUnconventionalName(): void
@@ -393,7 +416,10 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('resource template "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.');
 
-        (new ResourceTemplateStore())->addResourceTemplate(new ResourceTemplate(name: 'Project Files', uriTemplate: 'mem://{p}'), new ClosureTemplatedResourceReader(static fn(): never => throw new \LogicException('unreachable')));
+        (new ResourceTemplateStore())->addResourceTemplate(
+            new ResourceTemplate(name: 'Project Files', uriTemplate: 'mem://{p}'),
+            new ClosureTemplatedResourceReader(static fn(): never => throw new \LogicException('unreachable')),
+        );
     }
 
     public function testConstructorRefusesANonConservativeIconSrc(): void
@@ -401,7 +427,11 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('resource template "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.');
 
-        new ResourceTemplateStore(['mem://{p}' => $this->buildEntry(new ResourceTemplate(name: 't', uriTemplate: 'mem://{p}', icons: [new Icon(src: 'ftp://example.com/icon.png')]))]);
+        new ResourceTemplateStore(['mem://{p}' => $this->buildEntry(new ResourceTemplate(
+            name: 't',
+            uriTemplate: 'mem://{p}',
+            icons: [new Icon(src: 'ftp://example.com/icon.png')],
+        ))]);
     }
 
     public function testAddRefusesANonConservativeIconSrc(): void
@@ -409,7 +439,11 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('resource template "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.');
 
-        (new ResourceTemplateStore())->addResourceTemplate(new ResourceTemplate(name: 't', uriTemplate: 'mem://{p}', icons: [new Icon(src: 'ftp://example.com/icon.png')]), new ClosureTemplatedResourceReader(static fn(): never => throw new \LogicException('unreachable')));
+        (new ResourceTemplateStore())->addResourceTemplate(new ResourceTemplate(
+            name: 't',
+            uriTemplate: 'mem://{p}',
+            icons: [new Icon(src: 'ftp://example.com/icon.png')],
+        ), new ClosureTemplatedResourceReader(static fn(): never => throw new \LogicException('unreachable')));
     }
 
     public function testReadWrapsABindingFailureWithTheResourceUri(): void
@@ -418,7 +452,10 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
             'file:///{name}.txt' => $this->buildEntry(
                 new ResourceTemplate(name: 'alpha', uriTemplate: 'file:///{name}.txt'),
                 static function (string $uri, array $bindings, ServerContext $context): ReadResourceResult {
-                    throw new InvalidParamsException($context->requestId, '"name" must be one of [\'a\', \'b\'], \'z\' given.');
+                    throw new InvalidParamsException(
+                        $context->requestId,
+                        '"name" must be one of [\'a\', \'b\'], \'z\' given.',
+                    );
                 },
             ),
         ]);

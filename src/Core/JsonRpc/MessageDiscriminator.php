@@ -42,8 +42,11 @@ final class MessageDiscriminator
      * @param non-empty-string                 $context
      * @param non-empty-list<non-empty-string> $allowedTypes
      */
-    public static function buildUnknownTypeError(string $context, array $allowedTypes, string $given): \InvalidArgumentException
-    {
+    public static function buildUnknownTypeError(
+        string $context,
+        array $allowedTypes,
+        string $given,
+    ): \InvalidArgumentException {
         return new \InvalidArgumentException(\sprintf(
             '%s "type" must be one of "%s", \'%s\' given.',
             $context,

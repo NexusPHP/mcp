@@ -115,7 +115,10 @@ final class RecordingHttpClient implements DelegateHttpClient
 
     public function willChallenge(int $status, string $challenge, string $body = '{}'): self
     {
-        return $this->scheduleAnswer($status, ['content-type' => 'application/json', 'www-authenticate' => $challenge], [$body]);
+        return $this->scheduleAnswer($status, [
+            'content-type' => 'application/json',
+            'www-authenticate' => $challenge,
+        ], [$body]);
     }
 
     public function willChallengeWithAnUnreadableBody(int $status, string $challenge, HttpException $failure): self
@@ -232,7 +235,9 @@ final class RecordingHttpClient implements DelegateHttpClient
 
     public function readRequest(int $index = 0): Request
     {
-        return $this->requests[$index] ?? throw new \OutOfBoundsException(\sprintf('No request was recorded at index %d.', $index));
+        return $this->requests[$index] ?? throw new \OutOfBoundsException(
+            \sprintf('No request was recorded at index %d.', $index),
+        );
     }
 
     /**
@@ -240,7 +245,11 @@ final class RecordingHttpClient implements DelegateHttpClient
      */
     public function readSentEnvelope(int $index = 0): array
     {
-        $decoded = json_decode(buffer($this->readRequest($index)->getBody()->getContent()), associative: true, flags: \JSON_THROW_ON_ERROR);
+        $decoded = json_decode(
+            buffer($this->readRequest($index)->getBody()->getContent()),
+            associative: true,
+            flags: \JSON_THROW_ON_ERROR,
+        );
 
         return \is_array($decoded) ? array_filter($decoded, is_string(...), \ARRAY_FILTER_USE_KEY) : [];
     }
@@ -254,7 +263,8 @@ final class RecordingHttpClient implements DelegateHttpClient
     {
         yield from $chunks;
 
-        // Emitting one more chunk parks this generator until the consumer asks for it, so an abandoned body is never marked drained.
+        // Emitting one more chunk parks this generator until the consumer asks for it, so an abandoned body is never
+        // marked drained.
         yield '';
 
         $this->drainedBodies[$index] = true;

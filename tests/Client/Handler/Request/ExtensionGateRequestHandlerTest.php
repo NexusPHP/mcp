@@ -82,8 +82,10 @@ final class ExtensionGateRequestHandlerTest extends AbstractMcpTestCase
         $handler->handle(new TestRequest(new RequestId(id: 7)), $this->makeContext());
     }
 
-    private function buildGate(DiscoveredServerCapabilities $discovered, EmptyResult $marker): ExtensionGateRequestHandler
-    {
+    private function buildGate(
+        DiscoveredServerCapabilities $discovered,
+        EmptyResult $marker,
+    ): ExtensionGateRequestHandler {
         return new ExtensionGateRequestHandler('com.example/feature', new ClosureRequestHandler(
             static fn(): EmptyResult => $marker,
         ), $discovered);

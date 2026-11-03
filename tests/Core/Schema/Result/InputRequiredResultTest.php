@@ -280,11 +280,16 @@ final class InputRequiredResultTest extends AbstractMcpTestCase
 
     public function testJsonSerializeEmitsANestedRequestedSchemasEmptyPropertiesAsAnObject(): void
     {
-        $result = new InputRequiredResult(inputRequests: ['github_login' => new ElicitRequest(
-            params: new ElicitRequestFormParams(message: 'm', requestedSchema: new ElicitRequestedSchema(properties: [])),
-        )]);
+        $params = new ElicitRequestFormParams(
+            message: 'm',
+            requestedSchema: new ElicitRequestedSchema(properties: []),
+        );
+        $result = new InputRequiredResult(inputRequests: ['github_login' => new ElicitRequest(params: $params)]);
 
-        self::assertStringContainsString('"requestedSchema":{"type":"object","properties":{}}', (string) json_encode($result));
+        self::assertStringContainsString(
+            '"requestedSchema":{"type":"object","properties":{}}',
+            (string) json_encode($result),
+        );
         $serialized = $result->jsonSerialize();
         self::assertArrayHasKey('inputRequests', $serialized);
         self::assertIsArray($serialized['inputRequests']);

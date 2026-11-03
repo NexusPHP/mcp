@@ -258,7 +258,10 @@ final class InMemoryTaskStore implements OwnedTaskStoreInterface
         $oldest = array_key_first($this->terminalAt);
 
         if (null === $oldest) {
-            throw new RuntimeException(\sprintf('The task store holds its maximum of %d records and none of them has settled.', $this->maxRecords));
+            throw new RuntimeException(\sprintf(
+                'The task store holds its maximum of %d records and none of them has settled.',
+                $this->maxRecords,
+            ));
         }
 
         unset($this->records[$oldest], $this->terminalAt[$oldest]);
@@ -284,12 +287,18 @@ final class InMemoryTaskStore implements OwnedTaskStoreInterface
         }
 
         if ($this->hasOverstayed($record, $nowMs)) {
-            return $this->replaceRecord($record, TaskStatus::Failed, [
-                'error' => ErrorFactory::create(ProtocolErrorCode::InternalError, 'The task did not settle within its ttl.')->toArray(),
-                'pendingInputRequests' => [],
-                'inputResponses' => [],
-                'requestState' => null,
-            ]);
+            $error = ErrorFactory::create(ProtocolErrorCode::InternalError, 'The task did not settle within its ttl.')->toArray();
+
+            return $this->replaceRecord(
+                $record,
+                TaskStatus::Failed,
+                [
+                    'error' => $error,
+                    'pendingInputRequests' => [],
+                    'inputResponses' => [],
+                    'requestState' => null,
+                ],
+            );
         }
 
         return $record;
@@ -323,9 +332,13 @@ final class InMemoryTaskStore implements OwnedTaskStoreInterface
             error: \array_key_exists('error', $changes) ? $changes['error'] : $record->error,
             pendingInputRequests: $changes['pendingInputRequests'] ?? $record->pendingInputRequests,
             inputResponses: $changes['inputResponses'] ?? $record->inputResponses,
-            requestState: \array_key_exists('requestState', $changes) ? $changes['requestState'] : $record->requestState,
+            requestState: \array_key_exists('requestState', $changes)
+                ? $changes['requestState']
+                : $record->requestState,
             issuedInputKeys: $changes['issuedInputKeys'] ?? $record->issuedInputKeys,
-            statusMessage: \array_key_exists('statusMessage', $changes) ? $changes['statusMessage'] : $record->statusMessage,
+            statusMessage: \array_key_exists('statusMessage', $changes)
+                ? $changes['statusMessage']
+                : $record->statusMessage,
             owner: $record->owner,
         );
 

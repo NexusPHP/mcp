@@ -37,7 +37,10 @@ final class RecordingMiddleware implements MiddlewareInterface
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         if ($this->inFlight) {
-            throw new \LogicException(\sprintf('The "%s" middleware was entered again before it returned.', $this->label));
+            throw new \LogicException(\sprintf(
+                'The "%s" middleware was entered again before it returned.',
+                $this->label,
+            ));
         }
 
         $this->log->record($this->label);

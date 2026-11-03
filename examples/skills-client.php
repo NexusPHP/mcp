@@ -34,10 +34,21 @@ try {
     $listed = $skills->listSkills()->skills;
 
     foreach ($listed as $skill) {
-        fwrite(\STDOUT, sprintf("- %s (%s)\n  %s\n", $skill->frontmatter['name'], $skill->uri, $skill->frontmatter['description']));
+        fwrite(
+            \STDOUT,
+            sprintf(
+                "- %s (%s)\n  %s\n",
+                $skill->frontmatter['name'],
+                $skill->uri,
+                $skill->frontmatter['description'],
+            ),
+        );
 
         foreach (is_array($skill->resources) ? $skill->resources : [] as $resource) {
-            fwrite(\STDOUT, sprintf("    %s  %d bytes  %s...\n", $resource->uri, $resource->size, substr($resource->digest, 0, 19)));
+            fwrite(
+                \STDOUT,
+                sprintf("    %s  %d bytes  %s...\n", $resource->uri, $resource->size, substr($resource->digest, 0, 19)),
+            );
         }
     }
 
@@ -68,11 +79,14 @@ try {
 
     fwrite(\STDOUT, "\n=== skills/get: a skill left out of the listing, generated on each read ===\n");
     $dailyBrief = $skills->getSkill('skill://reports/daily-brief/SKILL.md');
-    fwrite(\STDOUT, sprintf(
-        "- %s, resources: %s\n",
-        $dailyBrief->frontmatter['name'],
-        is_array($dailyBrief->resources) ? 'listed' : 'dynamic, so only its frontmatter is checked',
-    ));
+    fwrite(
+        \STDOUT,
+        sprintf(
+            "- %s, resources: %s\n",
+            $dailyBrief->frontmatter['name'],
+            is_array($dailyBrief->resources) ? 'listed' : 'dynamic, so only its frontmatter is checked',
+        ),
+    );
 
     $brief = $skills->readSkillFile($dailyBrief, $dailyBrief->uri);
     fwrite(\STDOUT, is_string($brief) ? $brief : "    The server asked for input first.\n");

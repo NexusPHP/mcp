@@ -66,12 +66,15 @@ $client->connect($clientSide);
 try {
     $discoverResult = $client->discover();
 
-    fwrite(\STDOUT, sprintf(
-        "Connected in-process to %s v%s (protocol versions: %s)\n\n",
-        $discoverResult->meta->serverInfo->name ?? '(anonymous)',
-        $discoverResult->meta->serverInfo->version ?? '?',
-        implode(', ', $discoverResult->supportedVersions),
-    ));
+    fwrite(
+        \STDOUT,
+        sprintf(
+            "Connected in-process to %s v%s (protocol versions: %s)\n\n",
+            $discoverResult->meta->serverInfo->name ?? '(anonymous)',
+            $discoverResult->meta->serverInfo->version ?? '?',
+            implode(', ', $discoverResult->supportedVersions),
+        ),
+    );
 
     fwrite(\STDOUT, "=== tools/list ===\n");
 

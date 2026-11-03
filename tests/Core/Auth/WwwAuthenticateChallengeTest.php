@@ -69,20 +69,26 @@ final class WwwAuthenticateChallengeTest extends AbstractMcpTestCase
 
         yield 'the spec 401 challenge' => [
             'Bearer resource_metadata="https://mcp.example.com/.well-known/oauth-protected-resource", scope="files:read"',
-            [['Bearer', [
-                'resource_metadata' => 'https://mcp.example.com/.well-known/oauth-protected-resource',
-                'scope' => 'files:read',
-            ]]],
+            [[
+                'Bearer',
+                [
+                    'resource_metadata' => 'https://mcp.example.com/.well-known/oauth-protected-resource',
+                    'scope' => 'files:read',
+                ],
+            ]],
         ];
 
         yield 'the spec 403 insufficient-scope challenge' => [
             'Bearer error="insufficient_scope", scope="files:write", resource_metadata="https://mcp.example.com/.well-known/oauth-protected-resource", error_description="File write permission required for this operation"',
-            [['Bearer', [
-                'error' => 'insufficient_scope',
-                'scope' => 'files:write',
-                'resource_metadata' => 'https://mcp.example.com/.well-known/oauth-protected-resource',
-                'error_description' => 'File write permission required for this operation',
-            ]]],
+            [[
+                'Bearer',
+                [
+                    'error' => 'insufficient_scope',
+                    'scope' => 'files:write',
+                    'resource_metadata' => 'https://mcp.example.com/.well-known/oauth-protected-resource',
+                    'error_description' => 'File write permission required for this operation',
+                ],
+            ]],
         ];
 
         yield 'two schemes each keep their own parameters' => [
@@ -122,11 +128,20 @@ final class WwwAuthenticateChallengeTest extends AbstractMcpTestCase
 
         yield 'surrounding spaces are trimmed' => ['  Bearer realm="x"  ', [['Bearer', ['realm' => 'x']]]];
 
-        yield 'a tab separates the scheme from its parameter' => ["Bearer\trealm=\"x\"", [['Bearer', ['realm' => 'x']]]];
+        yield 'a tab separates the scheme from its parameter' => [
+            "Bearer\trealm=\"x\"",
+            [['Bearer', ['realm' => 'x']]],
+        ];
 
-        yield 'a tab-padded segment is trimmed' => ["Bearer realm=\"a\",\tscope=\"b\"", [['Bearer', ['realm' => 'a', 'scope' => 'b']]]];
+        yield 'a tab-padded segment is trimmed' => [
+            "Bearer realm=\"a\",\tscope=\"b\"",
+            [['Bearer', ['realm' => 'a', 'scope' => 'b']]],
+        ];
 
-        yield 'whitespace around the equals sign is tolerated' => ['Bearer realm = "x"', [['Bearer', ['realm' => 'x']]]];
+        yield 'whitespace around the equals sign is tolerated' => [
+            'Bearer realm = "x"',
+            [['Bearer', ['realm' => 'x']]],
+        ];
 
         yield 'whitespace around a continuation equals sign is tolerated' => [
             'Bearer realm="a", scope = "b"',
@@ -157,7 +172,10 @@ final class WwwAuthenticateChallengeTest extends AbstractMcpTestCase
 
         yield 'a value ending in a lone backslash is discarded' => ['Bearer realm="x\\', [['Bearer', []]]];
 
-        yield 'a value whose escape consumes the closing quote is discarded' => ['Bearer realm="a\\"', [['Bearer', []]]];
+        yield 'a value whose escape consumes the closing quote is discarded' => [
+            'Bearer realm="a\\"',
+            [['Bearer', []]],
+        ];
 
         yield 'a lone quote is not a value' => ['Bearer realm="', [['Bearer', []]]];
 
@@ -209,9 +227,7 @@ final class WwwAuthenticateChallengeTest extends AbstractMcpTestCase
 
     public function testParseAllStripsControlOctetsFromAQuotedValue(): void
     {
-        $challenges = WwwAuthenticateChallenge::parseAll(
-            "Bearer scope=\"mcp:use \x1b[2K\x1b[1GFORGED-ADMIN-GRANT\x07\", realm=\"a\rb\nc\x7Fd\"",
-        );
+        $challenges = WwwAuthenticateChallenge::parseAll("Bearer scope=\"mcp:use \x1b[2K\x1b[1GFORGED-ADMIN-GRANT\x07\", realm=\"a\rb\nc\x7Fd\"");
 
         self::assertCount(1, $challenges);
         self::assertSame('mcp:use [2K[1GFORGED-ADMIN-GRANT', $challenges[0]->readParameter('scope'));
@@ -259,7 +275,11 @@ final class WwwAuthenticateChallengeTest extends AbstractMcpTestCase
     #[DataProvider('provideBuildForResourceCases')]
     public function testBuildForResource(?string $error, array $scopes, array $expected): void
     {
-        $challenge = WwwAuthenticateChallenge::buildForResource('https://mcp.test/.well-known/oauth-protected-resource', $error, new ScopeSet($scopes));
+        $challenge = WwwAuthenticateChallenge::buildForResource(
+            'https://mcp.test/.well-known/oauth-protected-resource',
+            $error,
+            new ScopeSet($scopes),
+        );
 
         self::assertSame('Bearer', $challenge->scheme);
         self::assertSame($expected, $challenge->parameters);
@@ -276,7 +296,11 @@ final class WwwAuthenticateChallengeTest extends AbstractMcpTestCase
 
         yield 'an error alone' => ['invalid_token', [], ['resource_metadata' => $metadata, 'error' => 'invalid_token']];
 
-        yield 'a scope alone' => [null, ['files:read', 'files:write'], ['resource_metadata' => $metadata, 'scope' => 'files:read files:write']];
+        yield 'a scope alone' => [
+            null,
+            ['files:read', 'files:write'],
+            ['resource_metadata' => $metadata, 'scope' => 'files:read files:write'],
+        ];
 
         yield 'an error and a scope' => [
             'insufficient_scope',
@@ -306,7 +330,10 @@ final class WwwAuthenticateChallengeTest extends AbstractMcpTestCase
 
         yield 'several parameters are comma-separated' => [
             'Bearer',
-            ['resource_metadata' => 'https://mcp.example.com/.well-known/oauth-protected-resource', 'scope' => 'files:read'],
+            [
+                'resource_metadata' => 'https://mcp.example.com/.well-known/oauth-protected-resource',
+                'scope' => 'files:read',
+            ],
             'Bearer resource_metadata="https://mcp.example.com/.well-known/oauth-protected-resource", scope="files:read"',
         ];
 

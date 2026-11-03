@@ -462,7 +462,10 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())->willAnswerFrom('https://elsewhere.example.com/mcp', ['ok' => true]);
 
-        self::assertSame(200, $this->buildClient($http)->request($this->buildMcpRequest(), new NullCancellation())->getStatus());
+        self::assertSame(
+            200,
+            $this->buildClient($http)->request($this->buildMcpRequest(), new NullCancellation())->getStatus(),
+        );
     }
 
     public function testTheChallengeSteersDiscoveryToTheAdvertisedUrl(): void
@@ -484,7 +487,10 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     public function testTheChallengeScopeIsRequested(): void
     {
         $http = (new RecordingHttpClient())
-            ->willChallenge(401, 'Bearer resource_metadata="https://127.0.0.1:1/.well-known/oauth-protected-resource/mcp", scope="files:read"')
+            ->willChallenge(
+                401,
+                'Bearer resource_metadata="https://127.0.0.1:1/.well-known/oauth-protected-resource/mcp", scope="files:read"',
+            )
             ->willAnswerJson($this->buildResourceDocument())
             ->willAnswerJson($this->buildServerDocument())
             ->willAnswerJson(['client_id' => 'the-client'])
@@ -567,7 +573,10 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
         $logger = new ArrayLogger();
 
         try {
-            $this->buildClient($http, $user, logger: $logger)->request($this->buildMcpRequest(), new NullCancellation());
+            $this->buildClient($http, $user, logger: $logger)->request(
+                $this->buildMcpRequest(),
+                new NullCancellation(),
+            );
 
             self::fail('An unwinnable scope challenge must be reported to the caller.');
         } catch (InsufficientScopeException $e) {
@@ -578,22 +587,29 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
         self::assertCount(1, $user->redirects);
         self::assertTrue($http->drainedBodies[5] ?? false);
         self::assertSame(
-            [['level' => LogLevel::WARNING, 'message' => 'The scope challenge from {resource} names {scopes}.', 'context' => [
-                'resource' => self::RESOURCE,
-                'scopes' => 'files:read',
-            ]]],
+            [[
+                'level' => LogLevel::WARNING,
+                'message' => 'The scope challenge from {resource} names {scopes}.',
+                'context' => ['resource' => self::RESOURCE, 'scopes' => 'files:read'],
+            ]],
             $logger->recordsMatching(LogLevel::WARNING, 'The scope challenge from {resource} names {scopes}.'),
         );
     }
 
     public function testAScopeChallengeNamingOnlyUnusableScopesSaysSoRatherThanClaimingItNamedNone(): void
     {
-        $http = $this->scriptChallengeAndFlow()->willChallenge(403, "Bearer error=\"insufficient_scope\", scope=\"fil\xc3\xa9s:read\"");
+        $http = $this->scriptChallengeAndFlow()->willChallenge(
+            403,
+            "Bearer error=\"insufficient_scope\", scope=\"fil\xc3\xa9s:read\"",
+        );
         $user = new ScriptedUserAuthorization();
         $logger = new ArrayLogger();
 
         try {
-            $this->buildClient($http, $user, logger: $logger)->request($this->buildMcpRequest(), new NullCancellation());
+            $this->buildClient($http, $user, logger: $logger)->request(
+                $this->buildMcpRequest(),
+                new NullCancellation(),
+            );
 
             self::fail('A challenge naming only unusable scopes must be reported to the caller.');
         } catch (InsufficientScopeException $e) {
@@ -605,10 +621,14 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
         }
 
         self::assertSame(
-            [['level' => LogLevel::WARNING, 'message' => 'The scope challenge from {resource} names {scopes}.', 'context' => [
-                'resource' => self::RESOURCE,
-                'scopes' => 'only scopes that are not RFC 6749 scope-tokens',
-            ]]],
+            [[
+                'level' => LogLevel::WARNING,
+                'message' => 'The scope challenge from {resource} names {scopes}.',
+                'context' => [
+                    'resource' => self::RESOURCE,
+                    'scopes' => 'only scopes that are not RFC 6749 scope-tokens',
+                ],
+            ]],
             $logger->recordsMatching(LogLevel::WARNING, 'The scope challenge from {resource} names {scopes}.'),
             'The log record must not claim the challenge named nothing when it named a scope this client dropped.',
         );
@@ -621,7 +641,10 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
         $logger = new ArrayLogger();
 
         try {
-            $this->buildClient($http, $user, logger: $logger)->request($this->buildMcpRequest(), new NullCancellation());
+            $this->buildClient($http, $user, logger: $logger)->request(
+                $this->buildMcpRequest(),
+                new NullCancellation(),
+            );
 
             self::fail('An unwinnable scope challenge must be reported to the caller.');
         } catch (InsufficientScopeException $e) {
@@ -632,10 +655,11 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
         self::assertCount(6, $http->requests);
         self::assertCount(1, $user->redirects);
         self::assertSame(
-            [['level' => LogLevel::WARNING, 'message' => 'The scope challenge from {resource} names {scopes}.', 'context' => [
-                'resource' => self::RESOURCE,
-                'scopes' => 'no scope at all',
-            ]]],
+            [[
+                'level' => LogLevel::WARNING,
+                'message' => 'The scope challenge from {resource} names {scopes}.',
+                'context' => ['resource' => self::RESOURCE, 'scopes' => 'no scope at all'],
+            ]],
             $logger->recordsMatching(LogLevel::WARNING, 'The scope challenge from {resource} names {scopes}.'),
         );
     }
@@ -678,7 +702,11 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
             ->willAnswerJson($this->buildServerDocument())
             ->willAnswerJson(['access_token' => 'the-narrow-token', 'token_type' => 'Bearer', 'scope' => 'files:read'])
             ->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:admin"')
-            ->willAnswerJson(['access_token' => 'the-widened-token', 'token_type' => 'Bearer', 'scope' => 'files:read files:admin'])
+            ->willAnswerJson([
+                'access_token' => 'the-widened-token',
+                'token_type' => 'Bearer',
+                'scope' => 'files:read files:admin',
+            ])
             ->willAnswerJson(['ok' => true])
         ;
         $client = $this->buildClient($http);
@@ -693,13 +721,20 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testTheFailPolicyReportsTheChallengedScopesInsteadOfAskingForThem(): void
     {
-        $http = $this->scriptChallengeAndFlow()->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:write files:admin"');
+        $http = $this->scriptChallengeAndFlow()->willChallenge(
+            403,
+            'Bearer error="insufficient_scope", scope="files:write files:admin"',
+        );
         $user = new ScriptedUserAuthorization();
 
         $this->expectException(InsufficientScopeException::class);
         $this->expectExceptionMessageIs('The MCP server requires the scope "files:write files:admin".');
 
-        $this->buildClient($http, $user, policy: InsufficientScopePolicy::Fail)->request($this->buildMcpRequest(), new NullCancellation());
+        $this->buildClient(
+            $http,
+            $user,
+            policy: InsufficientScopePolicy::Fail,
+        )->request($this->buildMcpRequest(), new NullCancellation());
     }
 
     public function testTheFailPolicyDistinguishesAChallengeThatNamedNoScope(): void
@@ -710,27 +745,45 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
         $this->expectException(InsufficientScopeException::class);
         $this->expectExceptionMessageIs('The MCP server answered insufficient_scope without naming a scope.');
 
-        $this->buildClient($http, $user, policy: InsufficientScopePolicy::Fail)->request($this->buildMcpRequest(), new NullCancellation());
+        $this->buildClient(
+            $http,
+            $user,
+            policy: InsufficientScopePolicy::Fail,
+        )->request($this->buildMcpRequest(), new NullCancellation());
     }
 
     public function testTheFailPolicyDistinguishesAChallengeWhoseScopesWereAllDropped(): void
     {
-        $http = $this->scriptChallengeAndFlow()->willChallenge(403, "Bearer error=\"insufficient_scope\", scope=\"fil\xc3\xa9s:read\"");
+        $http = $this->scriptChallengeAndFlow()->willChallenge(
+            403,
+            "Bearer error=\"insufficient_scope\", scope=\"fil\xc3\xa9s:read\"",
+        );
         $user = new ScriptedUserAuthorization();
 
         $this->expectException(InsufficientScopeException::class);
         $this->expectExceptionMessageIs('The MCP server named only scopes that are not RFC 6749 scope-tokens, so none can be requested.');
 
-        $this->buildClient($http, $user, policy: InsufficientScopePolicy::Fail)->request($this->buildMcpRequest(), new NullCancellation());
+        $this->buildClient(
+            $http,
+            $user,
+            policy: InsufficientScopePolicy::Fail,
+        )->request($this->buildMcpRequest(), new NullCancellation());
     }
 
     public function testTheFailPolicyOpensNoSecondConsentScreen(): void
     {
-        $http = $this->scriptChallengeAndFlow()->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:write"');
+        $http = $this->scriptChallengeAndFlow()->willChallenge(
+            403,
+            'Bearer error="insufficient_scope", scope="files:write"',
+        );
         $user = new ScriptedUserAuthorization();
 
         try {
-            $this->buildClient($http, $user, policy: InsufficientScopePolicy::Fail)->request($this->buildMcpRequest(), new NullCancellation());
+            $this->buildClient(
+                $http,
+                $user,
+                policy: InsufficientScopePolicy::Fail,
+            )->request($this->buildMcpRequest(), new NullCancellation());
             self::fail('The insufficient-scope answer should have surfaced.');
         } catch (InsufficientScopeException $e) {
             self::assertSame(['files:write'], $e->required);
@@ -743,7 +796,10 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testTheFailPolicyIsNotDefeatedByAnExhaustedUpgradeBudget(): void
     {
-        $http = $this->scriptChallengeAndFlow()->willChallenge(403, 'Bearer error="insufficient_scope", scope="files:write"');
+        $http = $this->scriptChallengeAndFlow()->willChallenge(
+            403,
+            'Bearer error="insufficient_scope", scope="files:write"',
+        );
         $logger = new ArrayLogger();
 
         try {
@@ -756,7 +812,10 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
             self::assertSame(['files:write'], $e->required);
         }
 
-        self::assertSame([], $logger->recordsMatching(LogLevel::WARNING, 'Giving up on {resource} after {attempts} scope upgrades.'));
+        self::assertSame(
+            [],
+            $logger->recordsMatching(LogLevel::WARNING, 'Giving up on {resource} after {attempts} scope upgrades.'),
+        );
     }
 
     public function testTheFailPolicyStillReportsAChallengeNamingNothingNew(): void
@@ -772,14 +831,21 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
         $logger = new ArrayLogger();
 
         try {
-            $this->buildClient($http, logger: $logger, policy: InsufficientScopePolicy::Fail)->request($this->buildMcpRequest(), new NullCancellation());
+            $this->buildClient(
+                $http,
+                logger: $logger,
+                policy: InsufficientScopePolicy::Fail,
+            )->request($this->buildMcpRequest(), new NullCancellation());
 
             self::fail('The insufficient-scope answer should have surfaced.');
         } catch (InsufficientScopeException $e) {
             self::assertSame(['files:read'], $e->required);
         }
 
-        self::assertSame([], $logger->recordsMatching(LogLevel::WARNING, 'The scope challenge from {resource} names {scopes}.'));
+        self::assertSame(
+            [],
+            $logger->recordsMatching(LogLevel::WARNING, 'The scope challenge from {resource} names {scopes}.'),
+        );
     }
 
     public function testALapsedTokenLeavesItsScopesToTheGrantThatReplacesIt(): void
@@ -789,7 +855,12 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
             ->willAnswerJson($this->buildResourceDocument())
             ->willAnswerJson($this->buildServerDocument())
             ->willAnswerJson(['client_id' => 'the-client'])
-            ->willAnswerJson(['access_token' => 'token-1', 'token_type' => 'Bearer', 'scope' => 'files:read', 'expires_in' => 1])
+            ->willAnswerJson([
+                'access_token' => 'token-1',
+                'token_type' => 'Bearer',
+                'scope' => 'files:read',
+                'expires_in' => 1,
+            ])
             ->willAnswerJson(['ok' => true])
             ->willChallenge(401, self::CHALLENGE)
             ->willAnswerJson($this->buildResourceDocument())
@@ -860,7 +931,11 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
         $logger = new ArrayLogger();
 
         try {
-            $this->buildClient($http, logger: $logger, maxScopeUpgrades: 1)->request($this->buildMcpRequest(), new NullCancellation());
+            $this->buildClient(
+                $http,
+                logger: $logger,
+                maxScopeUpgrades: 1,
+            )->request($this->buildMcpRequest(), new NullCancellation());
 
             self::fail('A spent upgrade budget must be reported to the caller.');
         } catch (InsufficientScopeException $e) {
@@ -869,10 +944,11 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
         self::assertTrue($http->drainedBodies[7] ?? false);
         self::assertSame(
-            [['level' => LogLevel::WARNING, 'message' => 'Giving up on {resource} after {attempts} scope upgrades.', 'context' => [
-                'resource' => self::RESOURCE,
-                'attempts' => 1,
-            ]]],
+            [[
+                'level' => LogLevel::WARNING,
+                'message' => 'Giving up on {resource} after {attempts} scope upgrades.',
+                'context' => ['resource' => self::RESOURCE, 'attempts' => 1],
+            ]],
             $logger->recordsMatching(LogLevel::WARNING, 'Giving up on {resource} after {attempts} scope upgrades.'),
         );
     }
@@ -893,7 +969,10 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
 
     public function testASpentUpgradeBudgetDistinguishesAChallengeWhoseScopesWereAllDropped(): void
     {
-        $http = $this->scriptChallengeAndFlow()->willChallenge(403, "Bearer error=\"insufficient_scope\", scope=\"fil\xc3\xa9s:read\"");
+        $http = $this->scriptChallengeAndFlow()->willChallenge(
+            403,
+            "Bearer error=\"insufficient_scope\", scope=\"fil\xc3\xa9s:read\"",
+        );
 
         try {
             $this->buildClient($http, maxScopeUpgrades: 0)->request($this->buildMcpRequest(), new NullCancellation());
@@ -1030,7 +1109,11 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     public function testAChallengeBodyThatFailsPartwayThroughIsGivenUpOnButStillAuthorizes(): void
     {
         $http = (new RecordingHttpClient())
-            ->willChallengeWithAnUnreadableBody(401, self::CHALLENGE, new HttpException('Invalid hexadecimal chunk size.'))
+            ->willChallengeWithAnUnreadableBody(
+                401,
+                self::CHALLENGE,
+                new HttpException('Invalid hexadecimal chunk size.'),
+            )
             ->willAnswerJson($this->buildResourceDocument())
             ->willAnswerJson($this->buildServerDocument())
             ->willAnswerJson(['client_id' => 'the-client'])
@@ -1058,7 +1141,10 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     {
         $store = new InMemoryTokenStore();
 
-        $this->buildClient($this->scriptChallengeAndFlow()->willAnswerJson(['ok' => true]), tokens: $store)->request($this->buildMcpRequest(), new NullCancellation());
+        $this->buildClient(
+            $this->scriptChallengeAndFlow()->willAnswerJson(['ok' => true]),
+            tokens: $store,
+        )->request($this->buildMcpRequest(), new NullCancellation());
 
         self::assertSame('the-access-token', $store->read(self::RESOURCE)?->value);
     }
@@ -1067,7 +1153,10 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     {
         $store = new InMemoryClientRegistrationStore();
 
-        $this->buildClient($this->scriptChallengeAndFlow()->willAnswerJson(['ok' => true]), registrations: $store)->request($this->buildMcpRequest(), new NullCancellation());
+        $this->buildClient(
+            $this->scriptChallengeAndFlow()->willAnswerJson(['ok' => true]),
+            registrations: $store,
+        )->request($this->buildMcpRequest(), new NullCancellation());
 
         self::assertSame('the-client', $store->read('https://auth.test')?->clientId);
     }
@@ -1075,7 +1164,10 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     public function testAStoredTokenPastItsLifetimeIsRenewedBeforeTheRequestIsSent(): void
     {
         $tokens = new InMemoryTokenStore();
-        $tokens->write(self::RESOURCE, new AccessToken('the-stored-token', 'https://auth.test', time() - 1, 'the-refresh-token'));
+        $tokens->write(
+            self::RESOURCE,
+            new AccessToken('the-stored-token', 'https://auth.test', time() - 1, 'the-refresh-token'),
+        );
         $http = (new RecordingHttpClient())
             ->willAnswerJson($this->buildResourceDocument())
             ->willAnswerJson($this->buildServerDocument())
@@ -1085,7 +1177,11 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
         ;
         $user = new ScriptedUserAuthorization();
 
-        $response = $this->buildClient($http, $user, $tokens)->request($this->buildMcpRequest(), new NullCancellation());
+        $response = $this->buildClient(
+            $http,
+            $user,
+            $tokens,
+        )->request($this->buildMcpRequest(), new NullCancellation());
 
         self::assertSame(200, $response->getStatus());
         self::assertSame([], $user->redirects);
@@ -1096,7 +1192,10 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     public function testARenewalHoldsTheInjectedLock(): void
     {
         $tokens = new InMemoryTokenStore();
-        $tokens->write(self::RESOURCE, new AccessToken('the-stored-token', 'https://auth.test', time() - 1, 'the-refresh-token'));
+        $tokens->write(
+            self::RESOURCE,
+            new AccessToken('the-stored-token', 'https://auth.test', time() - 1, 'the-refresh-token'),
+        );
         $http = (new RecordingHttpClient())
             ->willAnswerJson($this->buildResourceDocument())
             ->willAnswerJson($this->buildServerDocument())
@@ -1106,10 +1205,19 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
         ;
         $semaphore = new RetainingSemaphore();
 
-        $response = $this->buildClient($http, null, $tokens, lock: $semaphore)->request($this->buildMcpRequest(), new NullCancellation());
+        $response = $this->buildClient(
+            $http,
+            null,
+            $tokens,
+            lock: $semaphore,
+        )->request($this->buildMcpRequest(), new NullCancellation());
 
         self::assertSame(200, $response->getStatus());
-        self::assertCount(1, $semaphore->minted, 'The renewal must take the caller-supplied permit, not a private one.');
+        self::assertCount(
+            1,
+            $semaphore->minted,
+            'The renewal must take the caller-supplied permit, not a private one.',
+        );
         self::assertSame(1, $semaphore->released);
         self::assertFalse($semaphore->isHeld());
     }
@@ -1117,7 +1225,10 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     public function testATokenWellClearOfTheLeewayIsPresentedAsItIs(): void
     {
         $tokens = new InMemoryTokenStore();
-        $tokens->write(self::RESOURCE, new AccessToken('the-stored-token', 'https://auth.test', time() + 3_600, 'the-refresh-token'));
+        $tokens->write(
+            self::RESOURCE,
+            new AccessToken('the-stored-token', 'https://auth.test', time() + 3_600, 'the-refresh-token'),
+        );
         $http = (new RecordingHttpClient())
             ->willAnswerJson($this->buildResourceDocument())
             ->willAnswerJson($this->buildServerDocument())
@@ -1133,7 +1244,10 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     public function testATokenLapsingAtTheLeewayIsRenewedInstead(): void
     {
         $tokens = new InMemoryTokenStore();
-        $tokens->write(self::RESOURCE, new AccessToken('the-stored-token', 'https://auth.test', time() + 30, 'the-refresh-token'));
+        $tokens->write(
+            self::RESOURCE,
+            new AccessToken('the-stored-token', 'https://auth.test', time() + 30, 'the-refresh-token'),
+        );
         $http = (new RecordingHttpClient())
             ->willAnswerJson($this->buildResourceDocument())
             ->willAnswerJson($this->buildServerDocument())

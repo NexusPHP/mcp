@@ -59,7 +59,11 @@ final class PsrLogger extends AbstractLogger
                 };
                 $placeholder = sprintf('{%s}', $key);
 
-                if (is_scalar($normalized) && preg_match('/^[A-Za-z0-9_.]+$/', (string) $key) === 1 && str_contains($rendered, $placeholder)) {
+                if (
+                    is_scalar($normalized)
+                    && preg_match('/^[A-Za-z0-9_.]+$/', (string) $key) === 1
+                    && str_contains($rendered, $placeholder)
+                ) {
                     $replacements[$placeholder] = (string) $normalized;
 
                     continue;

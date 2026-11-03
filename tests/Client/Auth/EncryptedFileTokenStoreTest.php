@@ -75,13 +75,16 @@ final class EncryptedFileTokenStoreTest extends AbstractMcpTestCase
     public function testATokenRoundTripsThroughTheFile(): void
     {
         $store = new EncryptedFileTokenStore($this->path, $this->key);
-        $store->write(self::RESOURCE, new AccessToken(
-            value: 'opaque-token',
-            issuer: 'https://issuer.example.com',
-            expiresAt: 1_756_000_000,
-            refreshToken: 'refresh-me',
-            scopes: ['mcp:read', 'mcp:write'],
-        ));
+        $store->write(
+            self::RESOURCE,
+            new AccessToken(
+                value: 'opaque-token',
+                issuer: 'https://issuer.example.com',
+                expiresAt: 1_756_000_000,
+                refreshToken: 'refresh-me',
+                scopes: ['mcp:read', 'mcp:write'],
+            ),
+        );
 
         $token = $store->read(self::RESOURCE);
 
@@ -288,15 +291,35 @@ final class EncryptedFileTokenStoreTest extends AbstractMcpTestCase
 
         yield 'issuer not a string' => [[self::RESOURCE => ['value' => 'opaque-token', 'issuer' => 1]]];
 
-        yield 'expiry not an int' => [[self::RESOURCE => ['value' => 'opaque-token', 'issuer' => 'https://issuer.example.com', 'expiresAt' => 'soon']]];
+        yield 'expiry not an int' => [[self::RESOURCE => [
+            'value' => 'opaque-token',
+            'issuer' => 'https://issuer.example.com',
+            'expiresAt' => 'soon',
+        ]]];
 
-        yield 'refresh token not a string' => [[self::RESOURCE => ['value' => 'opaque-token', 'issuer' => 'https://issuer.example.com', 'refreshToken' => 1]]];
+        yield 'refresh token not a string' => [[self::RESOURCE => [
+            'value' => 'opaque-token',
+            'issuer' => 'https://issuer.example.com',
+            'refreshToken' => 1,
+        ]]];
 
-        yield 'scopes not a list' => [[self::RESOURCE => ['value' => 'opaque-token', 'issuer' => 'https://issuer.example.com', 'scopes' => 'mcp:read']]];
+        yield 'scopes not a list' => [[self::RESOURCE => [
+            'value' => 'opaque-token',
+            'issuer' => 'https://issuer.example.com',
+            'scopes' => 'mcp:read',
+        ]]];
 
-        yield 'scope not a string' => [[self::RESOURCE => ['value' => 'opaque-token', 'issuer' => 'https://issuer.example.com', 'scopes' => [1]]]];
+        yield 'scope not a string' => [[self::RESOURCE => [
+            'value' => 'opaque-token',
+            'issuer' => 'https://issuer.example.com',
+            'scopes' => [1],
+        ]]];
 
-        yield 'scope empty' => [[self::RESOURCE => ['value' => 'opaque-token', 'issuer' => 'https://issuer.example.com', 'scopes' => ['']]]];
+        yield 'scope empty' => [[self::RESOURCE => [
+            'value' => 'opaque-token',
+            'issuer' => 'https://issuer.example.com',
+            'scopes' => [''],
+        ]]];
     }
 
     public function testAnUnwritableDirectoryRefusesTheWrite(): void

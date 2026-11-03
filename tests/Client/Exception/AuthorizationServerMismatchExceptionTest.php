@@ -30,7 +30,10 @@ final class AuthorizationServerMismatchExceptionTest extends AbstractMcpTestCase
     {
         self::assertSame(
             'The supplied client credentials were registered with "https://old.example.com" but the protected resource now names "https://new.example.com", and credentials are not portable between authorization servers.',
-            (new AuthorizationServerMismatchException('https://old.example.com', 'https://new.example.com'))->getMessage(),
+            (new AuthorizationServerMismatchException(
+                'https://old.example.com',
+                'https://new.example.com',
+            ))->getMessage(),
         );
     }
 }

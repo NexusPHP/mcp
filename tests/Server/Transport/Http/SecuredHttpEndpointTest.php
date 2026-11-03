@@ -43,7 +43,10 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
     {
         $handler = $this->buildHandler();
 
-        $response = $this->buildEndpoint($handler, ['https://app.test'])->handle($this->buildRequest('https://app.test'));
+        $response = $this->buildEndpoint(
+            $handler,
+            ['https://app.test'],
+        )->handle($this->buildRequest('https://app.test'));
 
         self::assertTrue($handler->called);
         self::assertSame(200, $response->getStatusCode());
@@ -54,7 +57,10 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
     {
         $handler = $this->buildHandler();
 
-        $response = $this->buildEndpoint($handler, ['https://app.test'])->handle($this->buildRequest('https://evil.test'));
+        $response = $this->buildEndpoint(
+            $handler,
+            ['https://app.test'],
+        )->handle($this->buildRequest('https://evil.test'));
 
         self::assertFalse($handler->called);
         self::assertSame(403, $response->getStatusCode());
@@ -64,7 +70,10 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
     {
         $handler = $this->buildHandler();
 
-        $response = $this->buildEndpoint($handler, ['https://app.test'])->handle($this->buildPreflight('https://evil.test'));
+        $response = $this->buildEndpoint(
+            $handler,
+            ['https://app.test'],
+        )->handle($this->buildPreflight('https://evil.test'));
 
         self::assertFalse($handler->called);
         self::assertSame(204, $response->getStatusCode());
@@ -84,7 +93,11 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
     {
         $handler = $this->buildHandler();
 
-        $response = $this->buildEndpoint($handler, ['*'], maxBodyBytes: 1_024)->handle($this->buildRequest(null, 2_048));
+        $response = $this->buildEndpoint(
+            $handler,
+            ['*'],
+            maxBodyBytes: 1_024,
+        )->handle($this->buildRequest(null, 2_048));
 
         self::assertFalse($handler->called);
         self::assertSame(413, $response->getStatusCode());
@@ -132,7 +145,11 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
     {
         $handler = $this->buildHandler();
 
-        $response = $this->buildEndpoint($handler, ['*'], maxBodyBytes: null)->handle($this->buildRequest(null, 1_048_577));
+        $response = $this->buildEndpoint(
+            $handler,
+            ['*'],
+            maxBodyBytes: null,
+        )->handle($this->buildRequest(null, 1_048_577));
 
         self::assertTrue($handler->called);
         self::assertSame(200, $response->getStatusCode());
@@ -142,7 +159,11 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
     {
         $handler = $this->buildHandler();
 
-        $response = $this->buildEndpoint($handler, ['*'], toolStore: $this->buildToolStore())->handle($this->buildMismatchedToolCall('us-east1'));
+        $response = $this->buildEndpoint(
+            $handler,
+            ['*'],
+            toolStore: $this->buildToolStore(),
+        )->handle($this->buildMismatchedToolCall('us-east1'));
 
         self::assertFalse($handler->called);
         self::assertSame(400, $response->getStatusCode());
@@ -226,7 +247,12 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
     {
         $handler = $this->buildHandler();
 
-        $response = $this->buildEndpoint($handler, ['*'], maxBodyBytes: 16, authentication: $this->buildAuthentication())
+        $response = $this->buildEndpoint(
+            $handler,
+            ['*'],
+            maxBodyBytes: 16,
+            authentication: $this->buildAuthentication(),
+        )
             ->handle($this->buildRequest(null, 2_048))
         ;
 
@@ -244,7 +270,10 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
             operationScopes: $this->buildOperationScopes(),
         );
 
-        $response = $endpoint->handle($this->buildMismatchedToolCall('eu-west1')->withHeader('Authorization', 'Bearer the-token'));
+        $response = $endpoint->handle($this->buildMismatchedToolCall('eu-west1')->withHeader(
+            'Authorization',
+            'Bearer the-token',
+        ));
 
         self::assertSame(403, $response->getStatusCode());
         self::assertStringContainsString('error="insufficient_scope"', $response->getHeaderLine('WWW-Authenticate'));
@@ -270,7 +299,10 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
             operationScopes: $this->buildOperationScopes(),
         );
 
-        $response = $endpoint->handle($this->buildMismatchedToolCall('eu-west1')->withHeader('Authorization', 'Bearer the-token'));
+        $response = $endpoint->handle($this->buildMismatchedToolCall('eu-west1')->withHeader(
+            'Authorization',
+            'Bearer the-token',
+        ));
 
         self::assertSame(413, $response->getStatusCode());
         self::assertFalse($handler->called);
@@ -288,11 +320,18 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
             operationScopes: $this->buildOperationScopes(),
         );
 
-        $response = $endpoint->handle($this->buildMismatchedToolCall('us-east1')->withHeader('Authorization', 'Bearer the-token'));
+        $response = $endpoint->handle($this->buildMismatchedToolCall('us-east1')->withHeader(
+            'Authorization',
+            'Bearer the-token',
+        ));
 
         self::assertSame(403, $response->getStatusCode());
         self::assertFalse($handler->called);
-        self::assertSame(0, $store->listCalls, 'A token short of the scopes is challenged before the headers are compared.');
+        self::assertSame(
+            0,
+            $store->listCalls,
+            'A token short of the scopes is challenged before the headers are compared.',
+        );
     }
 
     /**
@@ -341,9 +380,10 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
     {
         $recognised = new VerifiedAccessToken(['https://mcp.test/'], 2_000_000_000);
         $validator = self::createStub(AccessTokenValidatorInterface::class);
-        $validator->method('validate')->willReturnCallback(
-            static fn(string $presented): ?VerifiedAccessToken => 'the-token' === $presented ? $recognised : null,
-        );
+        $validator
+            ->method('validate')
+            ->willReturnCallback(static fn(string $presented): ?VerifiedAccessToken => 'the-token' === $presented ? $recognised : null)
+        ;
 
         return new BearerAuthenticationMiddleware(
             $validator,

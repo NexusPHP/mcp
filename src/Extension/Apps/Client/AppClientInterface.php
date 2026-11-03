@@ -54,5 +54,9 @@ interface AppClientInterface
      *
      * @throws RuntimeException
      */
-    public function readAppResource(string $uri, ?array $inputResponses = null, ?string $requestState = null): InputRequiredResult|ReadResourceResult;
+    public function readAppResource(
+        string $uri,
+        ?array $inputResponses = null,
+        ?string $requestState = null,
+    ): InputRequiredResult|ReadResourceResult;
 }

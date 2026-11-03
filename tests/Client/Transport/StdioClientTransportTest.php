@@ -37,7 +37,8 @@ use function Amp\async;
 use function Amp\delay;
 
 /**
- * Drives the transport against a scripted subprocess, since a real spawn cannot validate an Infection mutant and lives in `AmpSubprocessLauncherTest`.
+ * Drives the transport against a scripted subprocess, since a real spawn cannot validate an Infection mutant and lives
+ * in `AmpSubprocessLauncherTest`.
  *
  * @internal
  */
@@ -296,7 +297,10 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
             ], true),
         ));
         self::assertCount(2, $lifecycle);
-        self::assertSame('Stdio client transport spawned subprocess. Command: {command} ({argumentCount} arguments, PID {pid}).', $lifecycle[0]['message']);
+        self::assertSame(
+            'Stdio client transport spawned subprocess. Command: {command} ({argumentCount} arguments, PID {pid}).',
+            $lifecycle[0]['message'],
+        );
         self::assertSame('{label} transport started.', $lifecycle[1]['message']);
 
         $transport->close();
@@ -310,7 +314,10 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
         $transport->close();
         delay(0);
 
-        $matches = $logger->recordsMatching(LogLevel::DEBUG, 'Stdio client transport stopped watching for the subprocess exit.');
+        $matches = $logger->recordsMatching(
+            LogLevel::DEBUG,
+            'Stdio client transport stopped watching for the subprocess exit.',
+        );
         self::assertCount(1, $matches);
         self::assertSame([], $matches[0]['context']);
     }
@@ -328,7 +335,10 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
         });
 
         $transport->start();
-        $launcher->lastSubprocess()->emitStdout('{"jsonrpc":"2.0","id":"round-trip-1","method":"server/discover"}'."\n");
+        $launcher
+            ->lastSubprocess()
+            ->emitStdout('{"jsonrpc":"2.0","id":"round-trip-1","method":"server/discover"}'."\n")
+        ;
 
         $envelope = $messageReceived->getFuture()->await();
         $transport->close();
@@ -489,10 +499,13 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
         EventLoop::run();
 
         self::assertSame(0, $notified);
-        self::assertSame([], $logger->recordsMatching(
-            LogLevel::WARNING,
-            'Stdio client transport subprocess exited unexpectedly (code {exitCode}).',
-        ));
+        self::assertSame(
+            [],
+            $logger->recordsMatching(
+                LogLevel::WARNING,
+                'Stdio client transport subprocess exited unexpectedly (code {exitCode}).',
+            ),
+        );
     }
 
     public function testDisposingTheExitSubscriptionStopsTheNotification(): void

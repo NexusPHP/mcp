@@ -70,7 +70,9 @@ final class ProgressListenerRegistryTest extends AbstractMcpTestCase
     public function testUnregisterRemovesTheListener(): void
     {
         $registry = new ProgressListenerRegistry();
-        $registry->register(new ProgressToken(token: 'demo'), static function (float $progress, ?float $total, ?string $message): void {});
+        $registry->register(new ProgressToken(
+            token: 'demo',
+        ), static function (float $progress, ?float $total, ?string $message): void {});
 
         $registry->unregister(new ProgressToken(token: 'demo'));
 

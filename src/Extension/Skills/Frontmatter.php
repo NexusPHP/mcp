@@ -50,9 +50,15 @@ final class Frontmatter
         $budget = self::MAX_VALUES;
 
         try {
-            $frontmatter = self::render(Yaml::parse($matches['yaml'], Yaml::PARSE_DATETIME | Yaml::PARSE_OBJECT_FOR_MAP), $budget);
+            $frontmatter = self::render(
+                Yaml::parse($matches['yaml'], Yaml::PARSE_DATETIME | Yaml::PARSE_OBJECT_FOR_MAP),
+                $budget,
+            );
         } catch (ParseException $e) {
-            throw new \InvalidArgumentException(\sprintf('"SKILL.md" frontmatter is not valid YAML: %s', $e->getMessage()), previous: $e);
+            throw new \InvalidArgumentException(
+                \sprintf('"SKILL.md" frontmatter is not valid YAML: %s', $e->getMessage()),
+                previous: $e,
+            );
         }
 
         Assert::that($frontmatter)
@@ -61,8 +67,12 @@ final class Frontmatter
             ->hasOffset('name', '"SKILL.md" frontmatter is missing the required "name" field.')
             ->hasOffset('description', '"SKILL.md" frontmatter is missing the required "description" field.')
         ;
-        Assert::that($frontmatter['name'])->isNonEmptyString('"SKILL.md" frontmatter "name" must be a non-empty string, {type} given.');
-        Assert::that($frontmatter['description'])->isNonEmptyString('"SKILL.md" frontmatter "description" must be a non-empty string, {type} given.');
+        Assert::that($frontmatter['name'])->isNonEmptyString(
+            '"SKILL.md" frontmatter "name" must be a non-empty string, {type} given.',
+        );
+        Assert::that($frontmatter['description'])->isNonEmptyString(
+            '"SKILL.md" frontmatter "description" must be a non-empty string, {type} given.',
+        );
 
         return $frontmatter;
     }
@@ -73,7 +83,8 @@ final class Frontmatter
      */
     public static function equals(mixed $left, mixed $right): bool
     {
-        return json_encode(self::sortKeys($left), \JSON_PARTIAL_OUTPUT_ON_ERROR) === json_encode(self::sortKeys($right), \JSON_PARTIAL_OUTPUT_ON_ERROR);
+        return json_encode(self::sortKeys($left), \JSON_PARTIAL_OUTPUT_ON_ERROR)
+            === json_encode(self::sortKeys($right), \JSON_PARTIAL_OUTPUT_ON_ERROR);
     }
 
     /**
@@ -87,7 +98,9 @@ final class Frontmatter
     private static function render(mixed $value, int &$budget): mixed
     {
         if (--$budget < 0) {
-            throw new \InvalidArgumentException(\sprintf('"SKILL.md" frontmatter holds more than %d values.', self::MAX_VALUES));
+            throw new \InvalidArgumentException(
+                \sprintf('"SKILL.md" frontmatter holds more than %d values.', self::MAX_VALUES),
+            );
         }
 
         if ($value instanceof \DateTimeInterface) {

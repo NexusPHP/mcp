@@ -22,7 +22,8 @@ use Amp\Process\ProcessException;
 use Nexus\Mcp\Client\Transport\SubprocessInterface;
 
 /**
- * In-memory subprocess driven by the test, since an Infection mutant's `file://` stream wrapper makes `proc_open()` fail.
+ * In-memory subprocess driven by the test, since an Infection mutant's `file://` stream wrapper makes `proc_open()`
+ * fail.
  */
 final class ScriptedSubprocess implements SubprocessInterface
 {

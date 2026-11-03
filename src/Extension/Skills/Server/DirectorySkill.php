@@ -81,7 +81,10 @@ final readonly class DirectorySkill
         $rootUri = Skills::URI_PREFIX.$path;
         $manifestUri = $rootUri.'/'.Skills::MANIFEST_FILENAME;
         $supportingFiles = $this->listFiles($directory, $rootUri);
-        Assert::that($supportingFiles)->hasOffset($manifestUri, \sprintf('Skill directory "%s" holds no "SKILL.md".', $directory));
+        Assert::that($supportingFiles)->hasOffset(
+            $manifestUri,
+            \sprintf('Skill directory "%s" holds no "SKILL.md".', $directory),
+        );
 
         $manifestFile = $this->loadFile($manifestUri, $supportingFiles[$manifestUri]);
         $files = [$manifestUri => $manifestFile];
@@ -138,7 +141,10 @@ final readonly class DirectorySkill
     {
         $paths = [];
         $iterator = new \RecursiveIteratorIterator(new \RecursiveCallbackFilterIterator(
-            new \RecursiveDirectoryIterator($directory, \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::CURRENT_AS_SELF),
+            new \RecursiveDirectoryIterator(
+                $directory,
+                \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::CURRENT_AS_SELF,
+            ),
             static fn(\SplFileInfo $entry): bool => ! $entry->isLink() && ! str_starts_with($entry->getFilename(), '.'),
         ));
 

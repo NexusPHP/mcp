@@ -95,7 +95,12 @@ final class GetSkillResultTest extends AbstractMcpTestCase
 
     public function testFromArrayAcceptsAnEmptyMeta(): void
     {
-        $result = GetSkillResult::fromArray(['skill' => self::ENTRY, 'ttlMs' => 0, 'cacheScope' => 'private', '_meta' => []]);
+        $result = GetSkillResult::fromArray([
+            'skill' => self::ENTRY,
+            'ttlMs' => 0,
+            'cacheScope' => 'private',
+            '_meta' => [],
+        ]);
 
         self::assertSame([], $result->meta->toArray());
     }
@@ -125,9 +130,15 @@ final class GetSkillResultTest extends AbstractMcpTestCase
 
         yield 'missing ttlMs' => [['skill' => self::ENTRY], '"result" is missing the required "ttlMs" key.'];
 
-        yield 'ttlMs not an integer' => [['skill' => self::ENTRY, 'ttlMs' => 'oops'], '"result.ttlMs" must be an integer, string given.'];
+        yield 'ttlMs not an integer' => [
+            ['skill' => self::ENTRY, 'ttlMs' => 'oops'],
+            '"result.ttlMs" must be an integer, string given.',
+        ];
 
-        yield 'missing cacheScope' => [['skill' => self::ENTRY, 'ttlMs' => 0], '"result" is missing the required "cacheScope" key.'];
+        yield 'missing cacheScope' => [
+            ['skill' => self::ENTRY, 'ttlMs' => 0],
+            '"result" is missing the required "cacheScope" key.',
+        ];
 
         yield 'cacheScope not a known value' => [
             ['skill' => self::ENTRY, 'ttlMs' => 0, 'cacheScope' => 'shared'],

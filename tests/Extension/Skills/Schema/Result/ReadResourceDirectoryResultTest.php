@@ -37,7 +37,11 @@ use PHPUnit\Framework\Attributes\Group;
 #[Group('extension-tests')]
 final class ReadResourceDirectoryResultTest extends AbstractMcpTestCase
 {
-    private const array CHILD = ['name' => 'references', 'uri' => 'skill://refunds/references', 'mimeType' => 'inode/directory'];
+    private const array CHILD = [
+        'name' => 'references',
+        'uri' => 'skill://refunds/references',
+        'mimeType' => 'inode/directory',
+    ];
 
     public function testConstructionDefaults(): void
     {
@@ -99,7 +103,12 @@ final class ReadResourceDirectoryResultTest extends AbstractMcpTestCase
 
     public function testFromArrayAcceptsAnEmptyMeta(): void
     {
-        $result = ReadResourceDirectoryResult::fromArray(['resources' => [], 'ttlMs' => 0, 'cacheScope' => 'private', '_meta' => []]);
+        $result = ReadResourceDirectoryResult::fromArray([
+            'resources' => [],
+            'ttlMs' => 0,
+            'cacheScope' => 'private',
+            '_meta' => [],
+        ]);
 
         self::assertSame([], $result->meta->toArray());
     }
@@ -142,15 +151,27 @@ final class ReadResourceDirectoryResultTest extends AbstractMcpTestCase
 
         yield 'resources not a list' => [['resources' => 'oops'], '"result.resources" must be a list, string given.'];
 
-        yield 'resource entry not an object' => [['resources' => ['oops']], 'each "result.resources" entry must be an object, string given.'];
+        yield 'resource entry not an object' => [
+            ['resources' => ['oops']],
+            'each "result.resources" entry must be an object, string given.',
+        ];
 
-        yield 'resource entry list-keyed' => [['resources' => [['x']]], 'each "result.resources" entry must be a string-keyed object.'];
+        yield 'resource entry list-keyed' => [
+            ['resources' => [['x']]],
+            'each "result.resources" entry must be a string-keyed object.',
+        ];
 
         yield 'missing ttlMs' => [['resources' => []], '"result" is missing the required "ttlMs" key.'];
 
-        yield 'ttlMs not an integer' => [['resources' => [], 'ttlMs' => 'oops'], '"result.ttlMs" must be an integer, string given.'];
+        yield 'ttlMs not an integer' => [
+            ['resources' => [], 'ttlMs' => 'oops'],
+            '"result.ttlMs" must be an integer, string given.',
+        ];
 
-        yield 'missing cacheScope' => [['resources' => [], 'ttlMs' => 0], '"result" is missing the required "cacheScope" key.'];
+        yield 'missing cacheScope' => [
+            ['resources' => [], 'ttlMs' => 0],
+            '"result" is missing the required "cacheScope" key.',
+        ];
 
         yield 'cacheScope not a known value' => [
             ['resources' => [], 'ttlMs' => 0, 'cacheScope' => 'shared'],

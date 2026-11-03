@@ -77,19 +77,22 @@ final class ComposerScripts
         $formulas = array_keys($missing);
 
         if ('Darwin' !== \PHP_OS_FAMILY) {
-            fwrite(\STDERR, \sprintf(
-                "Doc linters not installed: %s. Install them with your platform's package manager.\n",
-                implode(', ', $formulas),
-            ));
+            fwrite(
+                \STDERR,
+                \sprintf(
+                    "Doc linters not installed: %s. Install them with your platform's package manager.\n",
+                    implode(', ', $formulas),
+                ),
+            );
 
             return;
         }
 
         if (! self::hasCommand('brew')) {
-            fwrite(\STDERR, \sprintf(
-                "Homebrew not found. Install doc linters manually: %s.\n",
-                implode(', ', $formulas),
-            ));
+            fwrite(
+                \STDERR,
+                \sprintf("Homebrew not found. Install doc linters manually: %s.\n", implode(', ', $formulas)),
+            );
 
             return;
         }
@@ -170,7 +173,10 @@ final class ComposerScripts
     public static function checkCoverage(): void
     {
         if (! is_file(self::PHPUNIT_CLOVER)) {
-            self::fail(\sprintf('Coverage report not found at %s. Run "composer test:unit" first.', self::PHPUNIT_CLOVER));
+            self::fail(\sprintf(
+                'Coverage report not found at %s. Run "composer test:unit" first.',
+                self::PHPUNIT_CLOVER,
+            ));
         }
 
         $contents = file_get_contents(self::PHPUNIT_CLOVER);
@@ -258,7 +264,13 @@ final class ComposerScripts
             echo \sprintf("\nAnalysing src/%s against %s\n", $component, substr($manifest, \strlen($root) + 1));
 
             $proc = proc_open(
-                [self::DEPENDENCY_ANALYSER_BIN, '--composer-json', $manifest, '--config', self::COMPONENT_ANALYSER_CONFIG],
+                [
+                    self::DEPENDENCY_ANALYSER_BIN,
+                    '--composer-json',
+                    $manifest,
+                    '--config',
+                    self::COMPONENT_ANALYSER_CONFIG,
+                ],
                 [0 => \STDIN, 1 => \STDOUT, 2 => \STDERR],
                 $pipes,
                 $root,
@@ -335,14 +347,17 @@ final class ComposerScripts
      */
     private static function listUntrackedSourceFiles(): array
     {
-        $output = shell_exec(implode(' ', array_map(escapeshellarg(...), [
-            'git',
-            'ls-files',
-            '--others',
-            '--exclude-standard',
-            '--',
-            ...self::MUTATION_SOURCE_DIRECTORIES,
-        ])));
+        $output = shell_exec(implode(
+            ' ',
+            array_map(escapeshellarg(...), [
+                'git',
+                'ls-files',
+                '--others',
+                '--exclude-standard',
+                '--',
+                ...self::MUTATION_SOURCE_DIRECTORIES,
+            ]),
+        ));
 
         if (! \is_string($output) || trim($output) === '') {
             return [];

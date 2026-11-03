@@ -21,24 +21,49 @@ return (new Configuration())
     ->addPathToScan(__DIR__.'/examples', isDev: true)
     ->addPathToScan(__DIR__.'/tests', isDev: true)
     ->addPathToExclude(__DIR__.'/tests/AutoReview/data')
-    // These read `SIGINT` / `SIGTERM` behind a `defined()` guard and fall back when ext-pcntl
-    // is absent, so requiring the extension would over-constrain a `composer install`.
     ->ignoreErrorsOnExtensionAndPath('ext-pcntl', __DIR__.'/examples/apps-e2e/host.php', [ErrorType::SHADOW_DEPENDENCY])
-    ->ignoreErrorsOnExtensionAndPath('ext-pcntl', __DIR__.'/examples/apps-e2e/server.php', [ErrorType::SHADOW_DEPENDENCY])
-    ->ignoreErrorsOnExtensionAndPath('ext-pcntl', __DIR__.'/examples/attribute-discovery.php', [ErrorType::SHADOW_DEPENDENCY])
+    ->ignoreErrorsOnExtensionAndPath(
+        'ext-pcntl',
+        __DIR__.'/examples/apps-e2e/server.php',
+        [ErrorType::SHADOW_DEPENDENCY],
+    )
+    ->ignoreErrorsOnExtensionAndPath(
+        'ext-pcntl',
+        __DIR__.'/examples/attribute-discovery.php',
+        [ErrorType::SHADOW_DEPENDENCY],
+    )
     ->ignoreErrorsOnExtensionAndPath('ext-pcntl', __DIR__.'/examples/http-server.php', [ErrorType::SHADOW_DEPENDENCY])
-    ->ignoreErrorsOnExtensionAndPath('ext-pcntl', __DIR__.'/examples/keycloak-e2e/server.php', [ErrorType::SHADOW_DEPENDENCY])
+    ->ignoreErrorsOnExtensionAndPath(
+        'ext-pcntl',
+        __DIR__.'/examples/keycloak-e2e/server.php',
+        [ErrorType::SHADOW_DEPENDENCY],
+    )
     ->ignoreErrorsOnExtensionAndPath('ext-pcntl', __DIR__.'/examples/skills-server.php', [ErrorType::SHADOW_DEPENDENCY])
     ->ignoreErrorsOnExtensionAndPath('ext-pcntl', __DIR__.'/examples/stdio-server.php', [ErrorType::SHADOW_DEPENDENCY])
     ->ignoreErrorsOnExtensionAndPath('ext-pcntl', __DIR__.'/conformance/server.php', [ErrorType::SHADOW_DEPENDENCY])
-    // The signal-ordering test is skipped through `RequiresPhpExtension` where ext-pcntl is absent.
-    ->ignoreErrorsOnExtensionAndPath('ext-pcntl', __DIR__.'/tests/Core/Transport/LineDuplexTest.php', [ErrorType::SHADOW_DEPENDENCY])
-    // A suggested dependency: JwksAccessTokenValidator guards its use behind `class_exists` and
-    // names the package to install, so production code may reference it without requiring it.
-    ->ignoreErrorsOnPackageAndPath('firebase/php-jwt', __DIR__.'/src/Server/Auth/JwksAccessTokenValidator.php', [ErrorType::DEV_DEPENDENCY_IN_PROD])
-    ->ignoreErrorsOnPackageAndPath('firebase/php-jwt', __DIR__.'/src/Extension/Auth/ClientAssertionSigner.php', [ErrorType::DEV_DEPENDENCY_IN_PROD])
-    ->ignoreErrorsOnPackageAndPath('symfony/yaml', __DIR__.'/src/Extension/Skills/Frontmatter.php', [ErrorType::DEV_DEPENDENCY_IN_PROD])
-    // A suggested extension: EncryptedFileTokenStore guards its use behind `extension_loaded` and
-    // names the extension to enable, so production code may reference it without requiring it.
-    ->ignoreErrorsOnExtensionAndPath('ext-sodium', __DIR__.'/src/Client/Auth/EncryptedFileTokenStore.php', [ErrorType::DEV_DEPENDENCY_IN_PROD])
+    ->ignoreErrorsOnExtensionAndPath(
+        'ext-pcntl',
+        __DIR__.'/tests/Core/Transport/LineDuplexTest.php',
+        [ErrorType::SHADOW_DEPENDENCY],
+    )
+    ->ignoreErrorsOnPackageAndPath(
+        'firebase/php-jwt',
+        __DIR__.'/src/Server/Auth/JwksAccessTokenValidator.php',
+        [ErrorType::DEV_DEPENDENCY_IN_PROD],
+    )
+    ->ignoreErrorsOnPackageAndPath(
+        'firebase/php-jwt',
+        __DIR__.'/src/Extension/Auth/ClientAssertionSigner.php',
+        [ErrorType::DEV_DEPENDENCY_IN_PROD],
+    )
+    ->ignoreErrorsOnPackageAndPath(
+        'symfony/yaml',
+        __DIR__.'/src/Extension/Skills/Frontmatter.php',
+        [ErrorType::DEV_DEPENDENCY_IN_PROD],
+    )
+    ->ignoreErrorsOnExtensionAndPath(
+        'ext-sodium',
+        __DIR__.'/src/Client/Auth/EncryptedFileTokenStore.php',
+        [ErrorType::DEV_DEPENDENCY_IN_PROD],
+    )
 ;

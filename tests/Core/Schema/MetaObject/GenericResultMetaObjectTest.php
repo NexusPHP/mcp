@@ -148,7 +148,9 @@ final class GenericResultMetaObjectTest extends AbstractMcpTestCase
 
     public function testDeclaresServerInfoSeesTheKeyAmongTheExtras(): void
     {
-        $meta = new GenericResultMetaObject(extras: [ResultMetaObject::SERVER_INFO_KEY => ['name' => 'x', 'version' => '1']]);
+        $meta = new GenericResultMetaObject(extras: [
+            ResultMetaObject::SERVER_INFO_KEY => ['name' => 'x', 'version' => '1'],
+        ]);
 
         self::assertTrue($meta->declaresServerInfo());
     }

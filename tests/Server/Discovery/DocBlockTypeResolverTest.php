@@ -115,6 +115,9 @@ final class DocBlockTypeResolverTest extends AbstractMcpTestCase
 
     public function testMethodWithoutDocCommentYieldsNoTags(): void
     {
-        self::assertSame([], $this->resolver->parseParamTags(new \ReflectionMethod(SampleToolHandlers::class, 'scalars')));
+        self::assertSame(
+            [],
+            $this->resolver->parseParamTags(new \ReflectionMethod(SampleToolHandlers::class, 'scalars')),
+        );
     }
 }

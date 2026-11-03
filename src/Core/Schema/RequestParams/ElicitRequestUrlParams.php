@@ -39,7 +39,10 @@ final readonly class ElicitRequestUrlParams implements Arrayable, ElicitRequestP
         public string $url,
     ) {
         Assert::that($message)->isNonEmptyString('"params.message" must be a non-empty string.');
-        Assert::that($url)->isNonEmptyString('"params.url" must be a non-empty string.')->isUrl('"params.url" must be a valid URL.');
+        Assert::that($url)
+            ->isNonEmptyString('"params.url" must be a non-empty string.')
+            ->isUrl('"params.url" must be a valid URL.')
+        ;
         Assert::that($mode)->isIdentical(self::MODE, '"params.mode" must be {other}, {value} given.');
     }
 

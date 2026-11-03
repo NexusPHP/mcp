@@ -63,12 +63,14 @@ final readonly class ReadResourceResult extends CacheableResult implements Serve
         Assert::that($data)->hasOffset('contents', '"result" is missing the required "contents" key.');
         Assert::that($data['contents'])
             ->isList('"result.contents" must be a list, {type} given.')
-            ->values()
-            ->isArray('each "result.contents" must be an object, {type} given.')
+            ->values()->isArray('each "result.contents" must be an object, {type} given.')
             ->isMap('each "result.contents" must be a string-keyed object.')
         ;
         $contents = array_map(
-            static fn(array $entry): BlobResourceContents|TextResourceContents => ResourceContentsDispatcher::fromArray($entry, 'ReadResourceResult contents'),
+            static fn(array $entry): BlobResourceContents|TextResourceContents => ResourceContentsDispatcher::fromArray(
+                $entry,
+                'ReadResourceResult contents',
+            ),
             $data['contents'],
         );
 
@@ -77,7 +79,10 @@ final readonly class ReadResourceResult extends CacheableResult implements Serve
         Assert::that($ttlMs)->isInt('"result.ttlMs" must be an integer, {type} given.');
 
         Assert::that($data)->hasOffset('cacheScope', '"result" is missing the required "cacheScope" key.');
-        Assert::that($data['cacheScope'])->isOneOf(array_column(CacheScope::cases(), 'value'), '"result.cacheScope" must be one of {choices}, {value} given.');
+        Assert::that($data['cacheScope'])->isOneOf(
+            array_column(CacheScope::cases(), 'value'),
+            '"result.cacheScope" must be one of {choices}, {value} given.',
+        );
         $cacheScope = CacheScope::from($data['cacheScope']);
 
         $meta = new GenericResultMetaObject();

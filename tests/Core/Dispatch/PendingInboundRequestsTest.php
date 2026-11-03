@@ -61,7 +61,10 @@ final class PendingInboundRequestsTest extends AbstractMcpTestCase
         $set = new PendingInboundRequests();
 
         self::assertNotNull($set->claim(new RequestId(id: 7)));
-        self::assertNull($set->claim(new RequestId(id: 7)), 'Distinct RequestId instances with the same envelope id must collide.');
+        self::assertNull(
+            $set->claim(new RequestId(id: 7)),
+            'Distinct RequestId instances with the same envelope id must collide.',
+        );
     }
 
     public function testIntAndStringIdsAreDistinct(): void
@@ -69,7 +72,10 @@ final class PendingInboundRequestsTest extends AbstractMcpTestCase
         $set = new PendingInboundRequests();
 
         self::assertNotNull($set->claim(new RequestId(id: 1)));
-        self::assertNotNull($set->claim(new RequestId(id: '1')), 'String "1" and int 1 are distinct envelope ids per JSON-RPC.');
+        self::assertNotNull(
+            $set->claim(new RequestId(id: '1')),
+            'String "1" and int 1 are distinct envelope ids per JSON-RPC.',
+        );
         self::assertCount(2, $set);
     }
 

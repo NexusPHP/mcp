@@ -74,10 +74,11 @@ final class SchemaPayloadRoundTripTest extends AbstractRoundTripTestCase
             }
         }
 
-        self::assertSame([], $nonArrayable, \sprintf(
-            'Registry entries pointing at non-Arrayable classes: %s.',
-            implode(', ', $nonArrayable),
-        ));
+        self::assertSame(
+            [],
+            $nonArrayable,
+            \sprintf('Registry entries pointing at non-Arrayable classes: %s.', implode(', ', $nonArrayable)),
+        );
     }
 
     #[\Override]

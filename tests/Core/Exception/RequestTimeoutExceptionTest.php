@@ -32,8 +32,11 @@ final class RequestTimeoutExceptionTest extends AbstractMcpTestCase
      * @param int|non-empty-string $id
      */
     #[DataProvider('provideMessageNamesTheRequestAndTheElapsedDeadlineCases')]
-    public function testMessageNamesTheRequestAndTheElapsedDeadline(int|string $id, float $seconds, string $expected): void
-    {
+    public function testMessageNamesTheRequestAndTheElapsedDeadline(
+        int|string $id,
+        float $seconds,
+        string $expected,
+    ): void {
         self::assertSame($expected, (new RequestTimeoutException(new RequestId(id: $id), $seconds))->getMessage());
     }
 

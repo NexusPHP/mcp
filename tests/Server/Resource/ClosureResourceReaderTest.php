@@ -37,13 +37,11 @@ final class ClosureResourceReaderTest extends AbstractMcpTestCase
     {
         $captured = ['uri' => '', 'requestId' => 0];
         $expected = new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private);
-        $reader = new ClosureResourceReader(
-            static function (string $uri, ServerContext $context) use ($expected, &$captured): ReadResourceResult {
-                $captured = ['uri' => $uri, 'requestId' => $context->requestId->id];
+        $reader = new ClosureResourceReader(static function (string $uri, ServerContext $context) use ($expected, &$captured): ReadResourceResult {
+            $captured = ['uri' => $uri, 'requestId' => $context->requestId->id];
 
-                return $expected;
-            },
-        );
+            return $expected;
+        });
 
         $result = $reader->read('file:///a', $this->makeContext());
 

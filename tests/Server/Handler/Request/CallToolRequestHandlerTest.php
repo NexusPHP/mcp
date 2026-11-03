@@ -62,7 +62,14 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
         $handler = new CallToolRequestHandler($store);
 
         $handler->handle(
-            new CallToolRequest(id: new RequestId(id: 42), params: new CallToolRequestParams(name: 'echo', meta: RequestMetaObjectFactory::create(), arguments: ['x' => 1])),
+            new CallToolRequest(
+                id: new RequestId(id: 42),
+                params: new CallToolRequestParams(
+                    name: 'echo',
+                    meta: RequestMetaObjectFactory::create(),
+                    arguments: ['x' => 1],
+                ),
+            ),
             $this->makeContext(),
         );
 
@@ -75,12 +82,17 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
         $store = new ToolStore([
             'ask' => new ToolEntry(
                 new Tool(name: 'ask', inputSchema: ['type' => 'object']),
-                new ClosureToolExecutor(static fn(?array $arguments, ServerContext $context): InputRequiredResult => $asked),
+                new ClosureToolExecutor(
+                    static fn(?array $arguments, ServerContext $context): InputRequiredResult => $asked,
+                ),
             ),
         ]);
 
         $result = (new CallToolRequestHandler($store))->handle(
-            new CallToolRequest(id: new RequestId(id: 42), params: new CallToolRequestParams(name: 'ask', meta: RequestMetaObjectFactory::create())),
+            new CallToolRequest(
+                id: new RequestId(id: 42),
+                params: new CallToolRequestParams(name: 'ask', meta: RequestMetaObjectFactory::create()),
+            ),
             $this->makeContext(),
         );
 
@@ -93,13 +105,18 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
         $store = new ToolStore([
             'echo' => new ToolEntry(
                 new Tool(name: 'echo', inputSchema: ['type' => 'object']),
-                new ClosureToolExecutor(static fn(?array $arguments, ServerContext $context): CallToolResult => $expected),
+                new ClosureToolExecutor(
+                    static fn(?array $arguments, ServerContext $context): CallToolResult => $expected,
+                ),
             ),
         ]);
         $handler = new CallToolRequestHandler($store);
 
         $result = $handler->handle(
-            new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'echo', meta: RequestMetaObjectFactory::create())),
+            new CallToolRequest(
+                id: new RequestId(id: 1),
+                params: new CallToolRequestParams(name: 'echo', meta: RequestMetaObjectFactory::create()),
+            ),
             $this->makeContext(),
         );
 
@@ -124,7 +141,10 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
         $handler = new CallToolRequestHandler($store);
 
         $result = $handler->handle(
-            new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'report', meta: RequestMetaObjectFactory::create())),
+            new CallToolRequest(
+                id: new RequestId(id: 1),
+                params: new CallToolRequestParams(name: 'report', meta: RequestMetaObjectFactory::create()),
+            ),
             $this->makeContext(),
         );
 
@@ -149,13 +169,18 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
         $store = new ToolStore([
             'report' => new ToolEntry(
                 new Tool(name: 'report', inputSchema: ['type' => 'object']),
-                new ClosureToolExecutor(static fn(?array $arguments, ServerContext $context): CallToolResult => $expected),
+                new ClosureToolExecutor(
+                    static fn(?array $arguments, ServerContext $context): CallToolResult => $expected,
+                ),
             ),
         ]);
         $handler = new CallToolRequestHandler($store);
 
         $result = $handler->handle(
-            new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'report', meta: RequestMetaObjectFactory::create())),
+            new CallToolRequest(
+                id: new RequestId(id: 1),
+                params: new CallToolRequestParams(name: 'report', meta: RequestMetaObjectFactory::create()),
+            ),
             $this->makeContext(),
         );
 
@@ -178,7 +203,10 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
         $handler = new CallToolRequestHandler($store, $logger);
 
         $result = $handler->handle(
-            new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'report', meta: RequestMetaObjectFactory::create())),
+            new CallToolRequest(
+                id: new RequestId(id: 1),
+                params: new CallToolRequestParams(name: 'report', meta: RequestMetaObjectFactory::create()),
+            ),
             $this->makeContext(),
         );
 
@@ -207,7 +235,11 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
                     'properties' => ['q' => ['type' => 'string']],
                     'required' => ['q'],
                 ]),
-                new ClosureToolExecutor(static fn(?array $arguments, ServerContext $context): CallToolResult => new CallToolResult(content: [])),
+                new ClosureToolExecutor(
+                    static fn(?array $arguments, ServerContext $context): CallToolResult => new CallToolResult(
+                        content: [],
+                    ),
+                ),
             ),
         ]);
         $handler = new CallToolRequestHandler($store);
@@ -216,7 +248,14 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
         $this->expectExceptionMessageIs('Invalid arguments for tool "search": "q" must be a string, int given.');
 
         $handler->handle(
-            new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'search', meta: RequestMetaObjectFactory::create(), arguments: ['q' => 123])),
+            new CallToolRequest(
+                id: new RequestId(id: 1),
+                params: new CallToolRequestParams(
+                    name: 'search',
+                    meta: RequestMetaObjectFactory::create(),
+                    arguments: ['q' => 123],
+                ),
+            ),
             $this->makeContext(),
         );
     }
@@ -230,14 +269,22 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
                     'properties' => ['n' => ['type' => 'integer']],
                     'required' => ['n'],
                 ]),
-                new ClosureToolExecutor(static fn(?array $arguments, ServerContext $context): CallToolResult => new CallToolResult(content: [], structuredContent: ['n' => 'oops'])),
+                new ClosureToolExecutor(
+                    static fn(?array $arguments, ServerContext $context): CallToolResult => new CallToolResult(
+                        content: [],
+                        structuredContent: ['n' => 'oops'],
+                    ),
+                ),
             ),
         ]);
         $logger = new ArrayLogger();
         $handler = new CallToolRequestHandler($store, $logger);
 
         $result = $handler->handle(
-            new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'report', meta: RequestMetaObjectFactory::create())),
+            new CallToolRequest(
+                id: new RequestId(id: 1),
+                params: new CallToolRequestParams(name: 'report', meta: RequestMetaObjectFactory::create()),
+            ),
             $this->makeContext(),
         );
 
@@ -266,14 +313,21 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
                     'properties' => ['n' => ['type' => 'integer']],
                     'required' => ['n'],
                 ]),
-                new ClosureToolExecutor(static fn(?array $arguments, ServerContext $context): CallToolResult => new CallToolResult(content: [new TextContent(text: 'hi')])),
+                new ClosureToolExecutor(
+                    static fn(?array $arguments, ServerContext $context): CallToolResult => new CallToolResult(
+                        content: [new TextContent(text: 'hi')],
+                    ),
+                ),
             ),
         ]);
         $logger = new ArrayLogger();
         $handler = new CallToolRequestHandler($store, $logger);
 
         $result = $handler->handle(
-            new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'report', meta: RequestMetaObjectFactory::create())),
+            new CallToolRequest(
+                id: new RequestId(id: 1),
+                params: new CallToolRequestParams(name: 'report', meta: RequestMetaObjectFactory::create()),
+            ),
             $this->makeContext(),
         );
 
@@ -300,7 +354,10 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
         $this->expectExceptionMessageMatches('/^No tool registered under name "missing"\. The server registers tools with addTool\(\) or register\(\)\.$/');
 
         $handler->handle(
-            new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'missing', meta: RequestMetaObjectFactory::create())),
+            new CallToolRequest(
+                id: new RequestId(id: 1),
+                params: new CallToolRequestParams(name: 'missing', meta: RequestMetaObjectFactory::create()),
+            ),
             $this->makeContext(),
         );
     }
@@ -320,7 +377,10 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
         $handler = new CallToolRequestHandler($store, $logger);
 
         $result = $handler->handle(
-            new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'flaky', meta: RequestMetaObjectFactory::create())),
+            new CallToolRequest(
+                id: new RequestId(id: 1),
+                params: new CallToolRequestParams(name: 'flaky', meta: RequestMetaObjectFactory::create()),
+            ),
             $this->makeContext(),
         );
 
@@ -360,7 +420,10 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
         $handler = new CallToolRequestHandler($store, $logger);
 
         $result = $handler->handle(
-            new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'flaky', meta: RequestMetaObjectFactory::create())),
+            new CallToolRequest(
+                id: new RequestId(id: 1),
+                params: new CallToolRequestParams(name: 'flaky', meta: RequestMetaObjectFactory::create()),
+            ),
             $this->makeContext(),
         );
 

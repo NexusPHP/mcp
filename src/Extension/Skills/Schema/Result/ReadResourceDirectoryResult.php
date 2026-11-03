@@ -65,8 +65,7 @@ final readonly class ReadResourceDirectoryResult extends PaginatedResult impleme
         Assert::that($data)->hasOffset('resources', '"result" is missing the required "resources" key.');
         Assert::that($data['resources'])
             ->isList('"result.resources" must be a list, {type} given.')
-            ->values()
-            ->isArray('each "result.resources" entry must be an object, {type} given.')
+            ->values()->isArray('each "result.resources" entry must be an object, {type} given.')
             ->isMap('each "result.resources" entry must be a string-keyed object.')
         ;
         $resources = array_map(Resource::fromArray(...), $data['resources']);
@@ -76,7 +75,10 @@ final readonly class ReadResourceDirectoryResult extends PaginatedResult impleme
         Assert::that($ttlMs)->isInt('"result.ttlMs" must be an integer, {type} given.');
 
         Assert::that($data)->hasOffset('cacheScope', '"result" is missing the required "cacheScope" key.');
-        Assert::that($data['cacheScope'])->isOneOf(array_column(CacheScope::cases(), 'value'), '"result.cacheScope" must be one of {choices}, {value} given.');
+        Assert::that($data['cacheScope'])->isOneOf(
+            array_column(CacheScope::cases(), 'value'),
+            '"result.cacheScope" must be one of {choices}, {value} given.',
+        );
         $cacheScope = CacheScope::from($data['cacheScope']);
 
         $nextCursor = null;
@@ -97,7 +99,13 @@ final readonly class ReadResourceDirectoryResult extends PaginatedResult impleme
             $meta = GenericResultMetaObject::fromArray($data['_meta']);
         }
 
-        return new self(resources: $resources, ttlMs: $ttlMs, cacheScope: $cacheScope, nextCursor: $nextCursor, meta: $meta);
+        return new self(
+            resources: $resources,
+            ttlMs: $ttlMs,
+            cacheScope: $cacheScope,
+            nextCursor: $nextCursor,
+            meta: $meta,
+        );
     }
 
     #[\Override]

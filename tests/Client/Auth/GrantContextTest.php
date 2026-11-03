@@ -75,10 +75,13 @@ final class GrantContextTest extends AbstractMcpTestCase
 
     public function testResolveRegistrationBindsThePreRegisteredCredentialsToTheDiscoveredIssuer(): void
     {
-        $context = $this->buildContext(new RecordingHttpClient(), new AuthorizationOptions(
-            'Example MCP Client',
-            preRegistered: new ClientRegistration('the-client', clientSecret: 'the-secret'),
-        ));
+        $context = $this->buildContext(
+            new RecordingHttpClient(),
+            new AuthorizationOptions(
+                'Example MCP Client',
+                preRegistered: new ClientRegistration('the-client', clientSecret: 'the-secret'),
+            ),
+        );
 
         $registration = $context->resolveRegistration(new NullCancellation());
 

@@ -45,7 +45,10 @@ final readonly class UiResource
         ?int $size = null,
         ?array $icons = null,
     ) {
-        Assert::that($uri)->startsWith(Apps::URI_PREFIX, \sprintf('UI resource "uri" must start with "%s".', Apps::URI_PREFIX));
+        Assert::that($uri)->startsWith(
+            Apps::URI_PREFIX,
+            \sprintf('UI resource "uri" must start with "%s".', Apps::URI_PREFIX),
+        );
 
         $extras = [];
 

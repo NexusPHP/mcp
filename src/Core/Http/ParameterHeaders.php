@@ -86,11 +86,17 @@ final readonly class ParameterHeaders
                     continue;
                 }
 
-                return new HeaderMismatchError(message: \sprintf('The %s header is absent but the request body carries its argument.', $name));
+                return new HeaderMismatchError(message: \sprintf(
+                    'The %s header is absent but the request body carries its argument.',
+                    $name,
+                ));
             }
 
             if (null === $bodyString) {
-                return new HeaderMismatchError(message: \sprintf('The %s header is present but the request body carries no argument it can mirror.', $name));
+                return new HeaderMismatchError(message: \sprintf(
+                    'The %s header is present but the request body carries no argument it can mirror.',
+                    $name,
+                ));
             }
 
             $decoded = HeaderValueCodec::decode($headers[$key]);
@@ -100,7 +106,10 @@ final readonly class ParameterHeaders
             }
 
             if (! $this->matches($binding->type, $decoded, $bodyValue, $bodyString)) {
-                return new HeaderMismatchError(message: \sprintf('The %s header does not match the request body argument.', $name));
+                return new HeaderMismatchError(message: \sprintf(
+                    'The %s header does not match the request body argument.',
+                    $name,
+                ));
             }
         }
 
@@ -109,7 +118,12 @@ final readonly class ParameterHeaders
 
     private function matches(string $type, string $decoded, mixed $bodyValue, string $bodyString): bool
     {
-        if ('integer' === $type && \is_int($bodyValue) && ! $this->exceedsSafeInteger($bodyValue) && preg_match(self::DECIMAL_PATTERN, $decoded) === 1) {
+        if (
+            'integer' === $type
+            && \is_int($bodyValue)
+            && ! $this->exceedsSafeInteger($bodyValue)
+            && preg_match(self::DECIMAL_PATTERN, $decoded) === 1
+        ) {
             return (float) $decoded === (float) $bodyValue;
         }
 
@@ -138,7 +152,12 @@ final readonly class ParameterHeaders
      */
     private function normaliseIntegralFloat(mixed $value): mixed
     {
-        if (\is_float($value) && is_finite($value) && abs($value) <= self::SAFE_INTEGER_MAX && (float) (int) $value === $value) {
+        if (
+            \is_float($value)
+            && is_finite($value)
+            && abs($value) <= self::SAFE_INTEGER_MAX
+            && (float) (int) $value === $value
+        ) {
             return (int) $value;
         }
 

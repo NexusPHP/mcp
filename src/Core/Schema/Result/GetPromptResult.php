@@ -51,7 +51,9 @@ final readonly class GetPromptResult extends Result implements ServerResult
             Assert::that($message)->isInstanceOf(PromptMessage::class);
         }
 
-        Assert::that($description)->nullOr()->isNonEmptyString('"result.description" must be a non-empty string or null.');
+        Assert::that($description)->nullOr()->isNonEmptyString(
+            '"result.description" must be a non-empty string or null.',
+        );
 
         parent::__construct(meta: $meta);
     }
@@ -73,7 +75,9 @@ final readonly class GetPromptResult extends Result implements ServerResult
         }
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isNonEmptyString('"result.description" must be a non-empty string or null, {type} given.');
+        Assert::that($description)->nullOr()->isNonEmptyString(
+            '"result.description" must be a non-empty string or null, {type} given.',
+        );
 
         $meta = new GenericResultMetaObject();
 

@@ -44,7 +44,11 @@ final class DailyBriefSkill implements SkillProviderInterface
             return null;
         }
 
-        return new Skill($uri, ['name' => 'daily-brief', 'description' => self::DESCRIPTION], Skills::DYNAMIC_RESOURCES);
+        return new Skill(
+            $uri,
+            ['name' => 'daily-brief', 'description' => self::DESCRIPTION],
+            Skills::DYNAMIC_RESOURCES,
+        );
     }
 
     #[Override]
@@ -54,11 +58,15 @@ final class DailyBriefSkill implements SkillProviderInterface
             return null;
         }
 
-        return new SkillFile($uri, sprintf(
-            "---\nname: daily-brief\ndescription: %s\n---\n\n# Daily brief\n\nCover the changes merged since %s.\n",
-            self::DESCRIPTION,
-            (new DateTimeImmutable('yesterday'))->format('Y-m-d'),
-        ), 'text/markdown');
+        return new SkillFile(
+            $uri,
+            sprintf(
+                "---\nname: daily-brief\ndescription: %s\n---\n\n# Daily brief\n\nCover the changes merged since %s.\n",
+                self::DESCRIPTION,
+                (new DateTimeImmutable('yesterday'))->format('Y-m-d'),
+            ),
+            'text/markdown',
+        );
     }
 
     #[Override]
@@ -68,7 +76,12 @@ final class DailyBriefSkill implements SkillProviderInterface
             return null;
         }
 
-        return [new Resource('daily-brief', self::MANIFEST_URI, description: self::DESCRIPTION, mimeType: 'text/markdown')];
+        return [new Resource(
+            'daily-brief',
+            self::MANIFEST_URI,
+            description: self::DESCRIPTION,
+            mimeType: 'text/markdown',
+        )];
     }
 }
 

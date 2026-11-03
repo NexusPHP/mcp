@@ -52,7 +52,9 @@ final readonly class TextResourceContents extends ResourceContents
         Assert::that($text)->isString('text resource contents "text" must be a string, {type} given.');
 
         $mimeType = $data['mimeType'] ?? null;
-        Assert::that($mimeType)->nullOr()->isNonEmptyString('text resource contents "mimeType" must be a non-empty string or null, {type} given.');
+        Assert::that($mimeType)->nullOr()->isNonEmptyString(
+            'text resource contents "mimeType" must be a non-empty string or null, {type} given.',
+        );
 
         $meta = new PayloadMetaObject();
 

@@ -42,12 +42,15 @@ try {
     $discoverResult = $client->discover();
 
     fwrite(\STDOUT, "=== Discovery ===\n");
-    fwrite(\STDOUT, sprintf(
-        "Connected to %s v%s over %s\n\n",
-        $discoverResult->meta->serverInfo->name ?? '(anonymous)',
-        $discoverResult->meta->serverInfo->version ?? '?',
-        $endpoint,
-    ));
+    fwrite(
+        \STDOUT,
+        sprintf(
+            "Connected to %s v%s over %s\n\n",
+            $discoverResult->meta->serverInfo->name ?? '(anonymous)',
+            $discoverResult->meta->serverInfo->version ?? '?',
+            $endpoint,
+        ),
+    );
 
     fwrite(\STDOUT, "=== tools/list ===\n");
 
@@ -105,7 +108,10 @@ function requireReachable(string $endpoint): void
     $socket = @stream_socket_client(sprintf('tcp://%s:%d', $host, $port), timeout: 2.0);
 
     if (false === $socket) {
-        fwrite(\STDERR, sprintf("Nothing is listening on %s:%d. Start `php examples/http-server.php` first.\n", $host, $port));
+        fwrite(
+            \STDERR,
+            sprintf("Nothing is listening on %s:%d. Start `php examples/http-server.php` first.\n", $host, $port),
+        );
 
         exit(1);
     }

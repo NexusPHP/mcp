@@ -30,7 +30,10 @@ final class RedirectRefusedExceptionTest extends AbstractMcpTestCase
     {
         self::assertSame(
             'The request to "https://auth.example.com/token" was answered from "http://127.0.0.1:6379/token" after a redirect. Credentials are never carried across one.',
-            (new RedirectRefusedException('https://auth.example.com/token', 'http://127.0.0.1:6379/token'))->getMessage(),
+            (new RedirectRefusedException(
+                'https://auth.example.com/token',
+                'http://127.0.0.1:6379/token',
+            ))->getMessage(),
         );
     }
 

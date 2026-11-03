@@ -50,14 +50,13 @@ final readonly class ReadResourceRequestParams extends ResourceRequestParams imp
         $inputResponses = [] === $inputResponses ? null : $inputResponses;
 
         if (null !== $inputResponses) {
-            Assert::that($inputResponses)
-                ->keys()
-                ->isIntOrNonEmptyString('each "params.inputResponses" key must be an int or non-empty string.')
-            ;
-            Assert::that($inputResponses)
-                ->values()
-                ->isInstanceOf(InputResponse::class, 'each "params.inputResponses" entry must be an InputResponse, {type} given.')
-            ;
+            Assert::that($inputResponses)->keys()->isIntOrNonEmptyString(
+                'each "params.inputResponses" key must be an int or non-empty string.',
+            );
+            Assert::that($inputResponses)->values()->isInstanceOf(
+                InputResponse::class,
+                'each "params.inputResponses" entry must be an InputResponse, {type} given.',
+            );
         }
 
         $this->inputResponses = $inputResponses;
@@ -92,8 +91,7 @@ final readonly class ReadResourceRequestParams extends ResourceRequestParams imp
                 ->keys()->isIntOrNonEmptyString('each "params.inputResponses" key must be an int or non-empty string.')
             ;
             Assert::that($data['inputResponses'])
-                ->values()
-                ->isArray('each "params.inputResponses" entry must be an object, {type} given.')
+                ->values()->isArray('each "params.inputResponses" entry must be an object, {type} given.')
                 ->isMap('each "params.inputResponses" entry must be a string-keyed object.')
             ;
             $inputResponses = array_map(ElicitResult::fromArray(...), $data['inputResponses']);

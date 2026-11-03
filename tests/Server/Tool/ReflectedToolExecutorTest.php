@@ -162,7 +162,10 @@ final class ReflectedToolExecutorTest extends AbstractMcpTestCase
      */
     private function execute(string $method, ?array $arguments = ['ignored' => true]): CallToolResult
     {
-        $executor = new ReflectedToolExecutor(new ReflectedHandlers(), new \ReflectionMethod(ReflectedHandlers::class, $method));
+        $executor = new ReflectedToolExecutor(
+            new ReflectedHandlers(),
+            new \ReflectionMethod(ReflectedHandlers::class, $method),
+        );
 
         $result = $executor->execute($arguments, $this->makeContext());
 

@@ -35,7 +35,10 @@ final class GetPromptResultTest extends AbstractMcpTestCase
 {
     public function testConstructionDefaults(): void
     {
-        $result = new GetPromptResult(messages: [new PromptMessage(role: Role::User, content: new TextContent(text: 'hi'))]);
+        $result = new GetPromptResult(messages: [new PromptMessage(
+            role: Role::User,
+            content: new TextContent(text: 'hi'),
+        )]);
 
         self::assertCount(1, $result->messages);
         self::assertNull($result->description);
@@ -51,7 +54,10 @@ final class GetPromptResultTest extends AbstractMcpTestCase
 
     public function testToArrayEmitsMessages(): void
     {
-        $result = new GetPromptResult(messages: [new PromptMessage(role: Role::User, content: new TextContent(text: 'hi'))]);
+        $result = new GetPromptResult(messages: [new PromptMessage(
+            role: Role::User,
+            content: new TextContent(text: 'hi'),
+        )]);
 
         self::assertSame(
             [

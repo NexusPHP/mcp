@@ -53,22 +53,19 @@ final readonly class SubscriptionFilter implements Arrayable
     public static function fromArray(array $data): static
     {
         $toolsListChanged = $data['toolsListChanged'] ?? null;
-        Assert::that($toolsListChanged)
-            ->nullOr()
-            ->isBool('"notifications.toolsListChanged" must be a bool, {type} given.')
-        ;
+        Assert::that($toolsListChanged)->nullOr()->isBool(
+            '"notifications.toolsListChanged" must be a bool, {type} given.',
+        );
 
         $promptsListChanged = $data['promptsListChanged'] ?? null;
-        Assert::that($promptsListChanged)
-            ->nullOr()
-            ->isBool('"notifications.promptsListChanged" must be a bool, {type} given.')
-        ;
+        Assert::that($promptsListChanged)->nullOr()->isBool(
+            '"notifications.promptsListChanged" must be a bool, {type} given.',
+        );
 
         $resourcesListChanged = $data['resourcesListChanged'] ?? null;
-        Assert::that($resourcesListChanged)
-            ->nullOr()
-            ->isBool('"notifications.resourcesListChanged" must be a bool, {type} given.')
-        ;
+        Assert::that($resourcesListChanged)->nullOr()->isBool(
+            '"notifications.resourcesListChanged" must be a bool, {type} given.',
+        );
 
         $resourceSubscriptions = $data['resourceSubscriptions'] ?? null;
 

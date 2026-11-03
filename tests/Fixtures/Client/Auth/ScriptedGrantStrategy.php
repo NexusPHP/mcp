@@ -58,6 +58,8 @@ final class ScriptedGrantStrategy implements GrantStrategyInterface
 
     public function readContext(int $index = 0): GrantContext
     {
-        return $this->contexts[$index] ?? throw new \OutOfBoundsException(\sprintf('No context was recorded at index %d.', $index));
+        return $this->contexts[$index] ?? throw new \OutOfBoundsException(
+            \sprintf('No context was recorded at index %d.', $index),
+        );
     }
 }

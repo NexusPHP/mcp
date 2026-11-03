@@ -52,11 +52,14 @@ $client->connect(new StreamableHttpClientTransport(
 try {
     $discoverResult = $client->discover();
 
-    fwrite(\STDOUT, sprintf(
-        "Connected to %s v%s after the authorization flow.\n",
-        $discoverResult->meta->serverInfo->name ?? '(anonymous)',
-        $discoverResult->meta->serverInfo->version ?? '?',
-    ));
+    fwrite(
+        \STDOUT,
+        sprintf(
+            "Connected to %s v%s after the authorization flow.\n",
+            $discoverResult->meta->serverInfo->name ?? '(anonymous)',
+            $discoverResult->meta->serverInfo->version ?? '?',
+        ),
+    );
 
     $identity = $client->callTool(name: 'whoami');
 

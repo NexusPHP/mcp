@@ -57,7 +57,9 @@ final readonly class ProgressNotificationParams extends NotificationParams
     {
         Assert::that($data)->hasOffset('progressToken', '"params" is missing the required "progressToken" key.');
         $progressToken = $data['progressToken'];
-        Assert::that($progressToken)->isIntOrNonEmptyString('"params.progressToken" must be an int or non-empty string, {type} given.');
+        Assert::that($progressToken)->isIntOrNonEmptyString(
+            '"params.progressToken" must be an int or non-empty string, {type} given.',
+        );
 
         Assert::that($data)->hasOffset('progress', '"params" is missing the required "progress" key.');
         $progress = self::parseNumber($data['progress'], '"params.progress" must be a number, {type} given.');
@@ -69,7 +71,9 @@ final readonly class ProgressNotificationParams extends NotificationParams
         }
 
         $message = $data['message'] ?? null;
-        Assert::that($message)->nullOr()->isNonEmptyString('"params.message" must be a non-empty string or null, {type} given.');
+        Assert::that($message)->nullOr()->isNonEmptyString(
+            '"params.message" must be a non-empty string or null, {type} given.',
+        );
 
         $meta = new NotificationMetaObject();
 

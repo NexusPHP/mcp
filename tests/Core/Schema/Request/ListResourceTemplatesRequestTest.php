@@ -44,7 +44,10 @@ final class ListResourceTemplatesRequestTest extends AbstractMcpTestCase
 
     public function testToArrayMinimal(): void
     {
-        $request = new ListResourceTemplatesRequest(id: new RequestId(id: 1), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()));
+        $request = new ListResourceTemplatesRequest(
+            id: new RequestId(id: 1),
+            params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()),
+        );
 
         self::assertSame(
             [
@@ -61,7 +64,10 @@ final class ListResourceTemplatesRequestTest extends AbstractMcpTestCase
     {
         $request = new ListResourceTemplatesRequest(
             id: new RequestId(id: 1),
-            params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create(), cursor: new Cursor(cursor: 'cur-1')),
+            params: new PaginatedRequestParams(
+                meta: RequestMetaObjectFactory::create(),
+                cursor: new Cursor(cursor: 'cur-1'),
+            ),
         );
 
         self::assertSame(
@@ -79,7 +85,10 @@ final class ListResourceTemplatesRequestTest extends AbstractMcpTestCase
     {
         $original = new ListResourceTemplatesRequest(
             id: new RequestId(id: 'req-1'),
-            params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create(), cursor: new Cursor(cursor: 'cur-1')),
+            params: new PaginatedRequestParams(
+                meta: RequestMetaObjectFactory::create(),
+                cursor: new Cursor(cursor: 'cur-1'),
+            ),
         );
 
         $rebuilt = ListResourceTemplatesRequest::fromArray($original->toArray());

@@ -65,17 +65,27 @@ final class SkillsServerExtensionTest extends AbstractMcpTestCase
     {
         $extension = new SkillsServerExtension($this->buildStore());
 
-        self::assertSame([ListSkillsRequest::class, GetSkillRequest::class, ReadResourceDirectoryRequest::class], $extension->getRequests());
+        self::assertSame([
+            ListSkillsRequest::class,
+            GetSkillRequest::class,
+            ReadResourceDirectoryRequest::class,
+        ], $extension->getRequests());
 
         $handlers = $extension->getRequestHandlers();
         self::assertSame(['skills/list', 'skills/get', 'resources/directory/read'], array_keys($handlers));
         self::assertInstanceOf(ListSkillsRequestHandler::class, $handlers['skills/list'] ?? null);
         self::assertInstanceOf(GetSkillRequestHandler::class, $handlers['skills/get'] ?? null);
-        self::assertInstanceOf(ReadResourceDirectoryRequestHandler::class, $handlers['resources/directory/read'] ?? null);
+        self::assertInstanceOf(
+            ReadResourceDirectoryRequestHandler::class,
+            $handlers['resources/directory/read'] ?? null,
+        );
 
         $context = $this->buildContext();
         $meta = ['_meta' => RequestMetaObjectFactory::shape()];
-        $listed = $handlers['skills/list']->handle(ListSkillsRequest::fromArray(['id' => 7, 'params' => $meta]), $context);
+        $listed = $handlers['skills/list']->handle(
+            ListSkillsRequest::fromArray(['id' => 7, 'params' => $meta]),
+            $context,
+        );
         $fetched = $handlers['skills/get']->handle(
             GetSkillRequest::fromArray(['id' => 7, 'params' => $meta + ['uri' => 'skill://refunds/SKILL.md']]),
             $context,
@@ -103,9 +113,9 @@ final class SkillsServerExtensionTest extends AbstractMcpTestCase
     {
         $extension = new SkillsServerExtension($this->buildStore());
         $decorators = $extension->getRequestHandlerDecorators();
-        $inner = new ClosureRequestHandler(
-            static fn(): Result => new ListResourcesResult([new Resource('notes', 'file:///notes.txt')], 0, CacheScope::Private),
-        );
+        $inner = new ClosureRequestHandler(static fn(): Result => new ListResourcesResult([
+            new Resource('notes', 'file:///notes.txt'),
+        ], 0, CacheScope::Private));
 
         self::assertSame(['resources/list', 'resources/read'], array_keys($decorators));
 

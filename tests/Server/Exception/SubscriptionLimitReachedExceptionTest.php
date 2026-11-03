@@ -34,7 +34,10 @@ final class SubscriptionLimitReachedExceptionTest extends AbstractMcpTestCase
     {
         $exception = new SubscriptionLimitReachedException(1_024, new RequestId(id: 7));
 
-        self::assertSame('Subscription limit reached: this server holds at most 1024 open streams.', $exception->getMessage());
+        self::assertSame(
+            'Subscription limit reached: this server holds at most 1024 open streams.',
+            $exception->getMessage(),
+        );
         self::assertSame(1_024, $exception->limit);
         self::assertSame(7, $exception->requestId?->id);
     }
@@ -43,7 +46,10 @@ final class SubscriptionLimitReachedExceptionTest extends AbstractMcpTestCase
     {
         $exception = new SubscriptionLimitReachedException(256, perStream: true);
 
-        self::assertSame('Subscription limit reached: this server watches at most 256 resource URIs per stream.', $exception->getMessage());
+        self::assertSame(
+            'Subscription limit reached: this server watches at most 256 resource URIs per stream.',
+            $exception->getMessage(),
+        );
         self::assertSame(['limit' => 256], $exception->errorData);
     }
 

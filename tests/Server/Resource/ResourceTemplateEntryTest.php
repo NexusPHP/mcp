@@ -31,9 +31,7 @@ final class ResourceTemplateEntryTest extends AbstractMcpTestCase
     public function testExposesTemplateAndReader(): void
     {
         $template = new ResourceTemplate(name: 'files', uriTemplate: 'file:///{path}');
-        $reader = new ClosureTemplatedResourceReader(
-            static fn(): never => throw new \LogicException('unreachable'),
-        );
+        $reader = new ClosureTemplatedResourceReader(static fn(): never => throw new \LogicException('unreachable'));
 
         $entry = new ResourceTemplateEntry($template, $reader);
 

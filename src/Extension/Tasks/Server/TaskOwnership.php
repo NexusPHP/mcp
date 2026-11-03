@@ -71,7 +71,11 @@ final class TaskOwnership
     ): TaskRecord {
         $record = $store->findTask($taskId);
 
-        if (null === $record || self::resolveOwner($context) !== $record->owner || ! self::holdsScopesOf($record, $context, $scopes)) {
+        if (
+            null === $record
+            || self::resolveOwner($context) !== $record->owner
+            || ! self::holdsScopesOf($record, $context, $scopes)
+        ) {
             throw new InvalidParamsException($context->requestId, '"params.taskId" does not name a known task.');
         }
 

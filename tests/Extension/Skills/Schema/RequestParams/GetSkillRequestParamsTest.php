@@ -34,7 +34,10 @@ final class GetSkillRequestParamsTest extends AbstractMcpTestCase
 
     public function testConstruction(): void
     {
-        self::assertSame(self::URI, (new GetSkillRequestParams(uri: self::URI, meta: RequestMetaObjectFactory::create()))->uri);
+        self::assertSame(self::URI, (new GetSkillRequestParams(
+            uri: self::URI,
+            meta: RequestMetaObjectFactory::create(),
+        ))->uri);
     }
 
     public function testAnEmptyUriIsRefused(): void
@@ -86,8 +89,14 @@ final class GetSkillRequestParamsTest extends AbstractMcpTestCase
 
         yield 'missing _meta' => [['uri' => self::URI], '"params" is missing the required "_meta" key.'];
 
-        yield '_meta not an object' => [['uri' => self::URI, '_meta' => 'oops'], '"params._meta" must be an object, string given.'];
+        yield '_meta not an object' => [
+            ['uri' => self::URI, '_meta' => 'oops'],
+            '"params._meta" must be an object, string given.',
+        ];
 
-        yield '_meta list-keyed' => [['uri' => self::URI, '_meta' => ['x']], '"params._meta" must be a string-keyed object.'];
+        yield '_meta list-keyed' => [
+            ['uri' => self::URI, '_meta' => ['x']],
+            '"params._meta" must be a string-keyed object.',
+        ];
     }
 }

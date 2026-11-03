@@ -54,7 +54,9 @@ final class ListSkillsRequestHandlerTest extends AbstractMcpTestCase
     {
         return ListSkillsRequest::fromArray([
             'id' => 7,
-            'params' => ['_meta' => RequestMetaObjectFactory::shape()] + (null === $cursor ? [] : ['cursor' => $cursor]),
+            'params' => [
+                '_meta' => RequestMetaObjectFactory::shape(),
+            ] + (null === $cursor ? [] : ['cursor' => $cursor]),
         ]);
     }
 

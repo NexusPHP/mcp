@@ -85,10 +85,13 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
         $http = (new RecordingHttpClient())->willAnswerJson($this->buildResultEnvelope());
         $transport = $this->makeTransport($http);
 
-        $this->exchange($transport, new CallToolRequest(
-            id: new RequestId(id: 1),
-            params: new CallToolRequestParams(name: 'get_weather', meta: RequestMetaObjectFactory::create()),
-        ));
+        $this->exchange(
+            $transport,
+            new CallToolRequest(
+                id: new RequestId(id: 1),
+                params: new CallToolRequestParams(name: 'get_weather', meta: RequestMetaObjectFactory::create()),
+            ),
+        );
 
         self::assertSame('tools/call', $http->readRequest()->getHeader('Mcp-Method'));
         self::assertSame('get_weather', $http->readRequest()->getHeader('Mcp-Name'));
@@ -99,7 +102,11 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
         $http = (new RecordingHttpClient())->willAnswerJson($this->buildResultEnvelope());
         $transport = $this->makeTransport($http);
 
-        $this->exchange($transport, $this->discoverRequest(), new SendContext(headers: ['Mcp-Param-Region' => 'us-west1']));
+        $this->exchange(
+            $transport,
+            $this->discoverRequest(),
+            new SendContext(headers: ['Mcp-Param-Region' => 'us-west1']),
+        );
 
         self::assertSame('us-west1', $http->readRequest()->getHeader('Mcp-Param-Region'));
     }
@@ -131,7 +138,11 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
 
     public function testEmitsEveryFrameOfAnSseResponse(): void
     {
-        $progress = ['jsonrpc' => '2.0', 'method' => 'notifications/progress', 'params' => ['progressToken' => 'p-1', 'progress' => 0.5]];
+        $progress = [
+            'jsonrpc' => '2.0',
+            'method' => 'notifications/progress',
+            'params' => ['progressToken' => 'p-1', 'progress' => 0.5],
+        ];
         $http = (new RecordingHttpClient())->willAnswerStream([
             $this->frame($progress),
             $this->frame($this->buildResultEnvelope()),
@@ -163,7 +174,10 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
 
     public function testIgnoresAKeepAliveComment(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerStream([": keep-alive\n\n", $this->frame($this->buildResultEnvelope())]);
+        $http = (new RecordingHttpClient())->willAnswerStream([
+            ": keep-alive\n\n",
+            $this->frame($this->buildResultEnvelope()),
+        ]);
         $transport = $this->makeTransport($http);
         $received = $this->captureMessages($transport);
 
@@ -178,14 +192,21 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
         $transport = $this->makeTransport($http);
         $uri = 'file:///tmp/notes.txt';
 
-        $this->exchange($transport, new ReadResourceRequest(
-            id: new RequestId(id: 1),
-            params: new ReadResourceRequestParams(uri: $uri, meta: RequestMetaObjectFactory::create()),
-        ));
+        $this->exchange(
+            $transport,
+            new ReadResourceRequest(
+                id: new RequestId(id: 1),
+                params: new ReadResourceRequestParams(uri: $uri, meta: RequestMetaObjectFactory::create()),
+            ),
+        );
 
         $header = $http->readRequest()->getHeader('Mcp-Name');
         self::assertSame($uri, $header);
-        self::assertSame($uri, HeaderValueCodec::decode($header), 'The server must be able to read it back as the body value.');
+        self::assertSame(
+            $uri,
+            HeaderValueCodec::decode($header),
+            'The server must be able to read it back as the body value.',
+        );
     }
 
     public function testDropsAnOutboundResponseTheSpecForbidsAClientFromSending(): void
@@ -194,10 +215,16 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
         $http = new RecordingHttpClient();
         $transport = $this->makeTransport($http, logger: $logger);
 
-        $this->exchange($transport, new JsonRpcErrorResponse(id: new RequestId(id: 1), error: new InternalError(message: 'boom')));
+        $this->exchange(
+            $transport,
+            new JsonRpcErrorResponse(id: new RequestId(id: 1), error: new InternalError(message: 'boom')),
+        );
 
         self::assertSame([], $http->requests, 'A response must never reach the endpoint.');
-        $matches = $logger->recordsMatching(LogLevel::WARNING, 'Streamable HTTP client transport dropped an outbound response, which a client must not send.');
+        $matches = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Streamable HTTP client transport dropped an outbound response, which a client must not send.',
+        );
         self::assertCount(1, $matches);
         self::assertSame([], $matches[0]['context']);
     }
@@ -208,10 +235,17 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
         $transport = $this->makeTransport($http);
         $path = 'file:///tmp/世界.txt';
 
-        $this->exchange($transport, new CallToolRequest(
-            id: new RequestId(id: 1),
-            params: new CallToolRequestParams(name: 'read_file', arguments: ['path' => $path], meta: RequestMetaObjectFactory::create()),
-        ));
+        $this->exchange(
+            $transport,
+            new CallToolRequest(
+                id: new RequestId(id: 1),
+                params: new CallToolRequestParams(
+                    name: 'read_file',
+                    arguments: ['path' => $path],
+                    meta: RequestMetaObjectFactory::create(),
+                ),
+            ),
+        );
 
         $body = buffer($http->readRequest()->getBody()->getContent());
         self::assertStringContainsString($path, $body);
@@ -224,13 +258,16 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
         $http = (new RecordingHttpClient())->willAnswerJson($this->buildResultEnvelope());
         $transport = $this->makeTransport($http);
 
-        $this->exchange($transport, new DiscoverRequest(
-            id: new RequestId(id: 1),
-            params: new EmptyRequestParams(meta: new RequestMetaObject(
-                protocolVersion: new ProtocolVersion(version: ProtocolVersion::LATEST_VERSION),
-                clientCapabilities: new ClientCapabilities(),
-            )),
-        ));
+        $this->exchange(
+            $transport,
+            new DiscoverRequest(
+                id: new RequestId(id: 1),
+                params: new EmptyRequestParams(meta: new RequestMetaObject(
+                    protocolVersion: new ProtocolVersion(version: ProtocolVersion::LATEST_VERSION),
+                    clientCapabilities: new ClientCapabilities(),
+                )),
+            ),
+        );
 
         self::assertStringContainsString(
             \sprintf('"%s":{}', RequestMetaObject::CLIENT_CAPABILITIES_KEY),
@@ -241,7 +278,10 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
     public function testDetectsAnUppercaseContentType(): void
     {
         // RFC 9110 makes the media type case-insensitive, so an upper-case value still parses as a stream.
-        $http = (new RecordingHttpClient())->willAnswerWithContentType('TEXT/EVENT-STREAM', [$this->frame($this->buildResultEnvelope())]);
+        $http = (new RecordingHttpClient())->willAnswerWithContentType(
+            'TEXT/EVENT-STREAM',
+            [$this->frame($this->buildResultEnvelope())],
+        );
         $transport = $this->makeTransport($http);
         $received = $this->captureMessages($transport);
 
@@ -276,7 +316,11 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
 
         $this->exchange($transport, $this->discoverRequest());
 
-        self::assertSame([$this->buildResultEnvelope()], $received->envelopes, 'The frame after the bad one still arrives.');
+        self::assertSame(
+            [$this->buildResultEnvelope()],
+            $received->envelopes,
+            'The frame after the bad one still arrives.',
+        );
         self::assertCount(1, $faults->messages);
     }
 
@@ -292,7 +336,10 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
 
     public function testAResponseEnvelopeCarryingAnIntegerKeyIsRefused(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson('{"jsonrpc":"2.0","id":1,"error":{"code":-32600,"message":"no"},"0":"x"}', status: 400);
+        $http = (new RecordingHttpClient())->willAnswerJson(
+            '{"jsonrpc":"2.0","id":1,"error":{"code":-32600,"message":"no"},"0":"x"}',
+            status: 400,
+        );
         $transport = $this->makeTransport($http);
         $faults = $this->captureFaults($transport);
 
@@ -347,7 +394,9 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
         $resume = new DeferredFuture();
         $http = (new RecordingHttpClient())
             ->willAnswerOpenStream([$this->frame($this->buildResultEnvelope())])
-            ->willAnswerOpenStream([$this->frame($this->buildResultEnvelope())], $resume->getFuture(), [$this->frame($later)])
+            ->willAnswerOpenStream([
+                $this->frame($this->buildResultEnvelope()),
+            ], $resume->getFuture(), [$this->frame($later)])
         ;
         $transport = $this->makeTransport($http);
         $received = $this->captureMessages($transport);
@@ -400,7 +449,9 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
         $later = ['jsonrpc' => '2.0', 'method' => 'notifications/tools/list_changed', 'params' => []];
         $resume = new DeferredFuture();
         $http = (new RecordingHttpClient())
-            ->willAnswerOpenStream([$this->frame($this->buildResultEnvelope())], $resume->getFuture(), [$this->frame($later)])
+            ->willAnswerOpenStream([
+                $this->frame($this->buildResultEnvelope()),
+            ], $resume->getFuture(), [$this->frame($later)])
             ->willAnswerOpenStream([$this->frame($this->buildResultEnvelope())])
         ;
         $transport = $this->makeTransport($http);
@@ -429,7 +480,9 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
         $resume = new DeferredFuture();
         $http = (new RecordingHttpClient())
             ->willAcceptNotification()
-            ->willAnswerOpenStream([$this->frame($this->buildResultEnvelope())], $resume->getFuture(), [$this->frame($later)])
+            ->willAnswerOpenStream([
+                $this->frame($this->buildResultEnvelope()),
+            ], $resume->getFuture(), [$this->frame($later)])
         ;
         $transport = $this->makeTransport($http);
         $received = $this->captureMessages($transport);
@@ -466,7 +519,11 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
         $resume->complete();
         delay(0.05);
 
-        self::assertSame([$this->buildResultEnvelope()], $received->envelopes, 'An aborted exchange stops reading its stream.');
+        self::assertSame(
+            [$this->buildResultEnvelope()],
+            $received->envelopes,
+            'An aborted exchange stops reading its stream.',
+        );
 
         $transport->close();
     }
@@ -477,7 +534,9 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
         $resume = new DeferredFuture();
         $http = (new RecordingHttpClient())
             ->willAnswerOpenStream([$this->frame($this->buildResultEnvelope())])
-            ->willAnswerOpenStream([$this->frame($this->buildResultEnvelope())], $resume->getFuture(), [$this->frame($later)])
+            ->willAnswerOpenStream([
+                $this->frame($this->buildResultEnvelope()),
+            ], $resume->getFuture(), [$this->frame($later)])
         ;
         $transport = $this->makeTransport($http);
         $received = $this->captureMessages($transport);
@@ -630,7 +689,11 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
 
         $this->exchange($transport, $this->discoverRequest());
 
-        self::assertSame([$this->buildResultEnvelope()], $received->envelopes, 'The frame after the bad one still arrives.');
+        self::assertSame(
+            [$this->buildResultEnvelope()],
+            $received->envelopes,
+            'The frame after the bad one still arrives.',
+        );
         self::assertCount(1, $faults->messages);
         self::assertNotInstanceOf(
             OutboundRequestFailedException::class,
@@ -731,7 +794,11 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
         $transport->send($this->discoverRequest());
         $transport->close();
 
-        self::assertSame([$this->buildResultEnvelope()], $received->envelopes, 'A response already on the way must still land.');
+        self::assertSame(
+            [$this->buildResultEnvelope()],
+            $received->envelopes,
+            'A response already on the way must still land.',
+        );
     }
 
     public function testAnErrorStatusFailsTheRequestItsExchangeCarries(): void
@@ -783,15 +850,31 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
      */
     public static function provideAnUncorrelatedBodyOnAnErrorStatusFailsTheRequestCases(): iterable
     {
-        yield 'an id-less error envelope' => [['jsonrpc' => '2.0', 'error' => ['code' => -32_600, 'message' => 'Invalid Request']]];
+        yield 'an id-less error envelope' => [[
+            'jsonrpc' => '2.0',
+            'error' => ['code' => -32_600, 'message' => 'Invalid Request'],
+        ]];
 
-        yield 'an error envelope answering some other id' => [['jsonrpc' => '2.0', 'id' => 99, 'error' => ['code' => -32_600, 'message' => 'Invalid Request']]];
+        yield 'an error envelope answering some other id' => [[
+            'jsonrpc' => '2.0',
+            'id' => 99,
+            'error' => ['code' => -32_600, 'message' => 'Invalid Request'],
+        ]];
 
-        yield 'a notification-shaped body' => [['jsonrpc' => '2.0', 'method' => 'notifications/message', 'params' => []]];
+        yield 'a notification-shaped body' => [[
+            'jsonrpc' => '2.0',
+            'method' => 'notifications/message',
+            'params' => [],
+        ]];
 
         yield 'an envelope without a result or error member' => [['jsonrpc' => '2.0', 'id' => 1]];
 
-        yield 'a correlated id naming both a method and a result' => [['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/list', 'result' => null]];
+        yield 'a correlated id naming both a method and a result' => [[
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tools/list',
+            'result' => null,
+        ]];
 
         yield 'a JSON scalar' => ['"nope"'];
     }
@@ -932,7 +1015,10 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
         $logger = new ArrayLogger();
         $this->makeTransport(new RecordingHttpClient(), logger: $logger);
 
-        $matches = $logger->recordsMatching(LogLevel::INFO, 'Streamable HTTP client transport started. Endpoint: {endpoint}.');
+        $matches = $logger->recordsMatching(
+            LogLevel::INFO,
+            'Streamable HTTP client transport started. Endpoint: {endpoint}.',
+        );
         self::assertCount(1, $matches);
         self::assertSame(
             ['endpoint' => 'https://mcp.test/mcp'],
@@ -953,7 +1039,13 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
         );
         self::assertCount(1, $records);
         self::assertSame(
-            ['label' => 'Streamable HTTP client', 'verb' => 'registered', 'article' => 'a', 'kind' => 'message', 'count' => 1],
+            [
+                'label' => 'Streamable HTTP client',
+                'verb' => 'registered',
+                'article' => 'a',
+                'kind' => 'message',
+                'count' => 1,
+            ],
             $records[0]['context'],
         );
     }
@@ -1093,7 +1185,11 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expected);
 
-        new StreamableHttpClientTransport('https://mcp.test/mcp', new RecordingHttpClient(), maxResponseBytes: $maxResponseBytes);
+        new StreamableHttpClientTransport(
+            'https://mcp.test/mcp',
+            new RecordingHttpClient(),
+            maxResponseBytes: $maxResponseBytes,
+        );
     }
 
     /**
@@ -1119,10 +1215,14 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
     }
 
     /**
-     * Drives one complete round trip, turning the loop for the detached POST since `close()` would cancel the exchange instead.
+     * Drives one complete round trip, turning the loop for the detached POST since `close()` would cancel the exchange
+     * instead.
      */
-    private function exchange(StreamableHttpClientTransport $transport, JsonRpcMessage $message, ?SendContext $context = null): void
-    {
+    private function exchange(
+        StreamableHttpClientTransport $transport,
+        JsonRpcMessage $message,
+        ?SendContext $context = null,
+    ): void {
         $transport->send($message, $context);
         delay(0.05);
     }
@@ -1166,7 +1266,10 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
      */
     private function discoverRequest(int|string $id = 1): DiscoverRequest
     {
-        return new DiscoverRequest(id: new RequestId(id: $id), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create()));
+        return new DiscoverRequest(
+            id: new RequestId(id: $id),
+            params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create()),
+        );
     }
 
     /**

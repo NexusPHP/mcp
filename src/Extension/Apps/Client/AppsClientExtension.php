@@ -29,7 +29,9 @@ final readonly class AppsClientExtension implements ClientExtensionInterface
     {
         Assert::that($mimeTypes)->isList('"mimeTypes" must be a list, {type} given.');
         Assert::that($mimeTypes)->hasMinCount(1, '"mimeTypes" must not be empty.');
-        Assert::that($mimeTypes)->values()->isNonEmptyString('each "mimeTypes" must be a non-empty string, {type} given.');
+        Assert::that($mimeTypes)->values()->isNonEmptyString(
+            'each "mimeTypes" must be a non-empty string, {type} given.',
+        );
     }
 
     #[\Override]

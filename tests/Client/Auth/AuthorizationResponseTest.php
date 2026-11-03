@@ -110,7 +110,10 @@ final class AuthorizationResponseTest extends AbstractMcpTestCase
         $this->expectException(InvalidAuthorizationResponseException::class);
         $this->expectExceptionMessageIs('The authorization response cannot be used because its "iss" names an authorization server other than the one the request was sent to.');
 
-        AuthorizationResponse::readCode($this->buildRedirect($issuerParameterRequired), $this->buildCallback($parameters));
+        AuthorizationResponse::readCode(
+            $this->buildRedirect($issuerParameterRequired),
+            $this->buildCallback($parameters),
+        );
     }
 
     /**

@@ -48,7 +48,9 @@ final readonly class MetadataReader
         }
 
         $value = $data[$key];
-        Assert::that($value)->isNonEmptyString(\sprintf('%s "%s" must be a non-empty string, {type} given.', $this->label, $key));
+        Assert::that($value)->isNonEmptyString(
+            \sprintf('%s "%s" must be a non-empty string, {type} given.', $this->label, $key),
+        );
 
         return $value;
     }
@@ -80,7 +82,9 @@ final readonly class MetadataReader
         }
 
         $value = $data[$key];
-        Assert::that($value)->isNonEmptyString(\sprintf('%s "%s" must be a non-empty string, {type} given.', $this->label, $key));
+        Assert::that($value)->isNonEmptyString(
+            \sprintf('%s "%s" must be a non-empty string, {type} given.', $this->label, $key),
+        );
         $held = substr((string) preg_replace(self::ERROR_FIELD_GRAMMAR, '', $value), 0, self::MAX_ERROR_FIELD_LENGTH);
 
         return '' === $held ? null : $held;
@@ -103,7 +107,9 @@ final readonly class MetadataReader
         $values = [];
 
         foreach ($entries as $entry) {
-            Assert::that($entry)->isNonEmptyString(\sprintf('%s "%s" must hold only non-empty strings, {type} given.', $this->label, $key));
+            Assert::that($entry)->isNonEmptyString(
+                \sprintf('%s "%s" must hold only non-empty strings, {type} given.', $this->label, $key),
+            );
             $values[] = $entry;
         }
 

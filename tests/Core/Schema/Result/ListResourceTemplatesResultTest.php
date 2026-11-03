@@ -39,7 +39,9 @@ final class ListResourceTemplatesResultTest extends AbstractMcpTestCase
 {
     public function testConstructionDefaults(): void
     {
-        $result = new ListResourceTemplatesResult(resourceTemplates: [new ResourceTemplate(name: 't', uriTemplate: 'file:///{name}')], ttlMs: 0, cacheScope: CacheScope::Private);
+        $result = new ListResourceTemplatesResult(resourceTemplates: [
+            new ResourceTemplate(name: 't', uriTemplate: 'file:///{name}'),
+        ], ttlMs: 0, cacheScope: CacheScope::Private);
 
         self::assertCount(1, $result->resourceTemplates);
         self::assertSame(0, $result->ttlMs);
@@ -174,7 +176,11 @@ final class ListResourceTemplatesResultTest extends AbstractMcpTestCase
 
     public function testFromArrayParsesEmptyList(): void
     {
-        $result = ListResourceTemplatesResult::fromArray(['resourceTemplates' => [], 'ttlMs' => 0, 'cacheScope' => 'private']);
+        $result = ListResourceTemplatesResult::fromArray([
+            'resourceTemplates' => [],
+            'ttlMs' => 0,
+            'cacheScope' => 'private',
+        ]);
 
         self::assertSame([], $result->resourceTemplates);
         self::assertSame(0, $result->ttlMs);

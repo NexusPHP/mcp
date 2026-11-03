@@ -138,7 +138,8 @@ final class LineDuplex
         $completion = new DeferredFuture();
         $this->readLoopCompletion = $completion;
 
-        // The first read follows the tick that activates the watchers registered before start(), signal watchers included.
+        // The first read follows the tick that activates the watchers registered before start(),
+        // signal watchers included.
         EventLoop::defer(function () use ($completion): void {
             $this->readLoop($completion);
         });
@@ -158,7 +159,10 @@ final class LineDuplex
         };
 
         try {
-            $this->writable->write(json_encode($message, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE)."\n");
+            $this->writable->write(json_encode(
+                $message,
+                \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE,
+            )."\n");
             $this->logger->debug(
                 '{label} transport sent {kind}.',
                 ['label' => $this->label, 'kind' => $this->describe($message)],
@@ -444,10 +448,14 @@ final class LineDuplex
 
     private function describe(JsonRpcMessage $message): string
     {
-        return match (true) {
-            $message instanceof JsonRpcRequest => \sprintf('"%s" request with id "%s"', $message::getMethod(), $message->id->id),
-            $message instanceof JsonRpcNotification => \sprintf('"%s" notification', $message::getMethod()),
-            default => 'a response envelope',
-        };
+        if ($message instanceof JsonRpcRequest) {
+            return \sprintf('"%s" request with id "%s"', $message::getMethod(), $message->id->id);
+        }
+
+        if ($message instanceof JsonRpcNotification) {
+            return \sprintf('"%s" notification', $message::getMethod());
+        }
+
+        return 'a response envelope';
     }
 }

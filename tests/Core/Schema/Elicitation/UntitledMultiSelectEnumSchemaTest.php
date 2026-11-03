@@ -54,7 +54,14 @@ final class UntitledMultiSelectEnumSchemaTest extends AbstractMcpTestCase
 
     public function testToArrayWithAllFields(): void
     {
-        $schema = new UntitledMultiSelectEnumSchema(items: ['x', 'y'], title: 'Things', description: 'Pick some', minItems: 1, maxItems: 2, default: ['x']);
+        $schema = new UntitledMultiSelectEnumSchema(
+            items: ['x', 'y'],
+            title: 'Things',
+            description: 'Pick some',
+            minItems: 1,
+            maxItems: 2,
+            default: ['x'],
+        );
 
         self::assertSame(
             [
@@ -79,7 +86,14 @@ final class UntitledMultiSelectEnumSchemaTest extends AbstractMcpTestCase
 
     public function testFromArrayFullRoundTrip(): void
     {
-        $original = new UntitledMultiSelectEnumSchema(items: ['x', 'y'], title: 'T', description: 'desc', minItems: 1, maxItems: 2, default: ['x']);
+        $original = new UntitledMultiSelectEnumSchema(
+            items: ['x', 'y'],
+            title: 'T',
+            description: 'desc',
+            minItems: 1,
+            maxItems: 2,
+            default: ['x'],
+        );
 
         $rebuilt = UntitledMultiSelectEnumSchema::fromArray($original->toArray());
 

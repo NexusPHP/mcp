@@ -48,7 +48,8 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
     private array $built = [];
 
     /**
-     * A supervisor left open keeps an armed respawn watcher in the process-global event loop that the next test would run.
+     * A supervisor left open keeps an armed respawn watcher in the process-global event loop that the next test would
+     * run.
      */
     #[\Override]
     protected function tearDown(): void
@@ -65,7 +66,10 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('maxRestarts must be a positive integer, 0 given.');
 
-        new SupervisedTransport(static fn(): SupervisableTransportInterface => new SupervisableRecordingTransport(), maxRestarts: 0);
+        new SupervisedTransport(
+            static fn(): SupervisableTransportInterface => new SupervisableRecordingTransport(),
+            maxRestarts: 0,
+        );
     }
 
     public function testNegativeRestartDelayThrows(): void
@@ -73,7 +77,10 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('restartDelay must not be negative, -1.0 given.');
 
-        new SupervisedTransport(static fn(): SupervisableTransportInterface => new SupervisableRecordingTransport(), restartDelay: -1.0);
+        new SupervisedTransport(
+            static fn(): SupervisableTransportInterface => new SupervisableRecordingTransport(),
+            restartDelay: -1.0,
+        );
     }
 
     public function testAFailedFirstStartLeavesTheTransportRetryable(): void
@@ -364,7 +371,13 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
         );
         self::assertCount(1, $records);
         self::assertSame(
-            ['label' => 'Supervised client', 'verb' => 'registered', 'article' => 'a', 'kind' => 'message', 'count' => 1],
+            [
+                'label' => 'Supervised client',
+                'verb' => 'registered',
+                'article' => 'a',
+                'kind' => 'message',
+                'count' => 1,
+            ],
             $records[0]['context'],
         );
     }
@@ -443,7 +456,11 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
 
         $transport->close();
 
-        self::assertSame(['drain', 'close'], $events, 'A caller blocking on close must be released even when the start failed.');
+        self::assertSame(
+            ['drain', 'close'],
+            $events,
+            'A caller blocking on close must be released even when the start failed.',
+        );
     }
 
     public function testAThrowingErrorListenerStillClosesTheExhaustedTransport(): void
@@ -505,10 +522,13 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
 
         self::assertCount(1, $spawned);
 
-        self::assertSame([], $logger->recordsMatching(
-            LogLevel::WARNING,
-            'Supervised client transport respawning the peer after an unexpected exit (code {exitCode}), attempt {attempt} of {budget}.',
-        ));
+        self::assertSame(
+            [],
+            $logger->recordsMatching(
+                LogLevel::WARNING,
+                'Supervised client transport respawning the peer after an unexpected exit (code {exitCode}), attempt {attempt} of {budget}.',
+            ),
+        );
     }
 
     public function testCloseIsIdempotent(): void
@@ -584,7 +604,11 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
 
         $transport->close();
 
-        self::assertSame(['drain', 'close'], $events, 'The drain must release in-flight work before close cancels the awaiting callers.');
+        self::assertSame(
+            ['drain', 'close'],
+            $events,
+            'The drain must release in-flight work before close cancels the awaiting callers.',
+        );
     }
 
     public function testCloseBeforeStartFiresDrainThenCloseWithoutSpawning(): void
@@ -933,7 +957,10 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
             EventLoop::run();
         }
 
-        $matches = $logger->recordsMatching(LogLevel::ERROR, 'Supervised client transport exhausted its restart budget of {budget}.');
+        $matches = $logger->recordsMatching(
+            LogLevel::ERROR,
+            'Supervised client transport exhausted its restart budget of {budget}.',
+        );
         self::assertCount(1, $matches);
         self::assertSame(['budget' => 1], $matches[0]['context']);
     }
@@ -988,7 +1015,8 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
                 ++$attempts;
 
                 if ($attempts > 8) {
-                    // Budget arithmetic that stopped terminating would otherwise recurse until the suite is killed on the clock.
+                    // Budget arithmetic that stopped terminating would otherwise recurse until the suite is killed on
+                    // the clock.
                     self::fail('A spent budget must stop the respawn recursion.');
                 }
 

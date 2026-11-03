@@ -39,7 +39,9 @@ abstract readonly class ResourceContents implements Arrayable
         public PayloadMetaObject $meta = new PayloadMetaObject(),
     ) {
         Rfc3986UriValidator::validate($uri, 'resource contents "uri"');
-        Assert::that($mimeType)->nullOr()->isNonEmptyString('resource contents "mimeType" must be a non-empty string or null.');
+        Assert::that($mimeType)->nullOr()->isNonEmptyString(
+            'resource contents "mimeType" must be a non-empty string or null.',
+        );
     }
 
     #[\Override]

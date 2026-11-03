@@ -59,13 +59,16 @@ final class NoAssignmentInControlFlowExpressionRule implements Rule
             return $this->isAssignment($node->expr) ? 'return' : null;
         }
 
+        if ($node instanceof Node\Stmt\Foreach_) {
+            $expressions = array_values(array_filter([$node->expr, $node->keyVar, $node->valueVar]));
+
+            return AssignmentFinder::findsAssignment($expressions) ? 'foreach' : null;
+        }
+
         return match (true) {
             $node instanceof Node\Stmt\While_ => AssignmentFinder::findsAssignment([$node->cond]) ? 'while' : null,
             $node instanceof Node\Stmt\If_ => AssignmentFinder::findsAssignment([$node->cond]) ? 'if' : null,
             $node instanceof Node\Stmt\ElseIf_ => AssignmentFinder::findsAssignment([$node->cond]) ? 'elseif' : null,
-            $node instanceof Node\Stmt\Foreach_ => AssignmentFinder::findsAssignment(
-                array_values(array_filter([$node->expr, $node->keyVar, $node->valueVar])),
-            ) ? 'foreach' : null,
             default => null,
         };
     }

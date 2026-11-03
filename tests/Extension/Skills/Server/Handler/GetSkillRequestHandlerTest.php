@@ -51,7 +51,10 @@ final class GetSkillRequestHandlerTest extends AbstractMcpTestCase
 
     public function testTheContextReachesTheProvider(): void
     {
-        $entry = new Skill('skill://reports/q3/SKILL.md', ['name' => 'q3', 'description' => 'Quarterly report.'], 'dynamic');
+        $entry = new Skill('skill://reports/q3/SKILL.md', [
+            'name' => 'q3',
+            'description' => 'Quarterly report.',
+        ], 'dynamic');
         $provider = new ArraySkillProvider(skills: [$entry->uri => $entry]);
         $handler = new GetSkillRequestHandler(new SkillStore(provider: $provider));
 

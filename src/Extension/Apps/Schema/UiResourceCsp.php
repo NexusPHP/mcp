@@ -100,8 +100,9 @@ final readonly class UiResourceCsp implements Arrayable
         if (null !== $domains) {
             Assert::that($domains)
                 ->isList(\sprintf('"_meta.ui.csp.%s" must be a list, {type} given.', $slot))
-                ->values()
-                ->isNonEmptyString(\sprintf('each "_meta.ui.csp.%s" must be a non-empty string, {type} given.', $slot))
+                ->values()->isNonEmptyString(
+                    \sprintf('each "_meta.ui.csp.%s" must be a non-empty string, {type} given.', $slot),
+                )
             ;
         }
     }
@@ -121,8 +122,9 @@ final readonly class UiResourceCsp implements Arrayable
         $domains = $data[$slot];
         Assert::that($domains)
             ->isList(\sprintf('"_meta.ui.csp.%s" must be a list, {type} given.', $slot))
-            ->values()
-            ->isNonEmptyString(\sprintf('each "_meta.ui.csp.%s" must be a non-empty string, {type} given.', $slot))
+            ->values()->isNonEmptyString(
+                \sprintf('each "_meta.ui.csp.%s" must be a non-empty string, {type} given.', $slot),
+            )
         ;
 
         return $domains;

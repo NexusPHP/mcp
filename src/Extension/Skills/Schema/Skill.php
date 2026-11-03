@@ -58,7 +58,9 @@ final readonly class Skill implements Arrayable
             ->hasOffset('description', 'skill "frontmatter" must carry a "description".')
         ;
         Assert::that($frontmatter['name'])->isNonEmptyString('skill "frontmatter.name" must be a non-empty string.');
-        Assert::that($frontmatter['description'])->isNonEmptyString('skill "frontmatter.description" must be a non-empty string.');
+        Assert::that($frontmatter['description'])->isNonEmptyString(
+            'skill "frontmatter.description" must be a non-empty string.',
+        );
 
         $rootUri = substr($uri, 0, -\strlen(self::MANIFEST_SUFFIX));
         Assert::that($rootUri)->isNonEmptyString('skill "uri" must name a skill directory before "SKILL.md".');
@@ -81,11 +83,13 @@ final readonly class Skill implements Arrayable
         $seen = [];
 
         foreach ($resources as $resource) {
-            Assert::that($resource->uri === $uri || str_starts_with($resource->uri, $rootUri.'/'))->isTrue(\sprintf(
-                'each skill "resources" entry must name a file under "%s".',
-                $rootUri,
-            ));
-            Assert::that($seen)->not()->hasOffset($resource->uri, 'each skill "resources" entry must name its file once.');
+            Assert::that($resource->uri === $uri || str_starts_with($resource->uri, $rootUri.'/'))->isTrue(
+                \sprintf('each skill "resources" entry must name a file under "%s".', $rootUri),
+            );
+            Assert::that($seen)->not()->hasOffset(
+                $resource->uri,
+                'each skill "resources" entry must name its file once.',
+            );
 
             $seen[$resource->uri] = $resource;
         }
@@ -108,8 +112,12 @@ final readonly class Skill implements Arrayable
             ->hasOffset('name', 'skill "frontmatter" is missing the required "name" key.')
             ->hasOffset('description', 'skill "frontmatter" is missing the required "description" key.')
         ;
-        Assert::that($frontmatter['name'])->isNonEmptyString('skill "frontmatter.name" must be a non-empty string, {type} given.');
-        Assert::that($frontmatter['description'])->isNonEmptyString('skill "frontmatter.description" must be a non-empty string, {type} given.');
+        Assert::that($frontmatter['name'])->isNonEmptyString(
+            'skill "frontmatter.name" must be a non-empty string, {type} given.',
+        );
+        Assert::that($frontmatter['description'])->isNonEmptyString(
+            'skill "frontmatter.description" must be a non-empty string, {type} given.',
+        );
 
         Assert::that($data)->hasOffset('resources', 'skill is missing the required "resources" key.');
         $resources = $data['resources'];
@@ -130,8 +138,7 @@ final readonly class Skill implements Arrayable
 
         Assert::that($resources)
             ->isList('skill "resources" must be a list or "dynamic", {type} given.')
-            ->values()
-            ->isArray('each skill "resources" entry must be an object, {type} given.')
+            ->values()->isArray('each skill "resources" entry must be an object, {type} given.')
             ->isMap('each skill "resources" entry must be a string-keyed object.')
         ;
 

@@ -56,19 +56,17 @@ final class TransportEvents
      */
     public static function create(LoggerInterface $logger, string $label): self
     {
-        return new self(
-            onChange: static function (string $kind, string $action, int $count) use ($logger, $label): void {
-                $verb = match ($action) {
-                    'register' => 'registered',
-                    'dispose' => 'disposed',
-                };
-                $article = 'error' === $kind ? 'an' : 'a';
-                $logger->debug(
-                    '{label} transport {verb} {article} {kind} listener. {count} active.',
-                    ['label' => $label, 'verb' => $verb, 'article' => $article, 'kind' => $kind, 'count' => $count],
-                );
-            },
-        );
+        return new self(onChange: static function (string $kind, string $action, int $count) use ($logger, $label): void {
+            $verb = match ($action) {
+                'register' => 'registered',
+                'dispose' => 'disposed',
+            };
+            $article = 'error' === $kind ? 'an' : 'a';
+            $logger->debug(
+                '{label} transport {verb} {article} {kind} listener. {count} active.',
+                ['label' => $label, 'verb' => $verb, 'article' => $article, 'kind' => $kind, 'count' => $count],
+            );
+        });
     }
 
     /**

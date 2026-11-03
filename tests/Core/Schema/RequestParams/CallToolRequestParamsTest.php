@@ -65,7 +65,11 @@ final class CallToolRequestParamsTest extends AbstractMcpTestCase
 
     public function testToArrayWithArguments(): void
     {
-        $params = new CallToolRequestParams(name: 'read-file', meta: RequestMetaObjectFactory::create(), arguments: ['path' => 'src/']);
+        $params = new CallToolRequestParams(
+            name: 'read-file',
+            meta: RequestMetaObjectFactory::create(),
+            arguments: ['path' => 'src/'],
+        );
 
         self::assertSame(
             ['_meta' => RequestMetaObjectFactory::shape(), 'name' => 'read-file', 'arguments' => ['path' => 'src/']],
@@ -101,7 +105,11 @@ final class CallToolRequestParamsTest extends AbstractMcpTestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $params = new CallToolRequestParams(name: 'read-file', meta: RequestMetaObjectFactory::create(), arguments: ['path' => 'src/']);
+        $params = new CallToolRequestParams(
+            name: 'read-file',
+            meta: RequestMetaObjectFactory::create(),
+            arguments: ['path' => 'src/'],
+        );
 
         self::assertSame($params->toArray(), $params->jsonSerialize());
     }
@@ -208,7 +216,11 @@ final class CallToolRequestParamsTest extends AbstractMcpTestCase
 
     public function testToArrayOmitsEmptyInputResponses(): void
     {
-        $params = new CallToolRequestParams(name: 'read-file', meta: RequestMetaObjectFactory::create(), inputResponses: []);
+        $params = new CallToolRequestParams(
+            name: 'read-file',
+            meta: RequestMetaObjectFactory::create(),
+            inputResponses: [],
+        );
 
         self::assertNull($params->inputResponses);
         self::assertSame(

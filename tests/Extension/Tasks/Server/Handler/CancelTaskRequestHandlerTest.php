@@ -54,7 +54,14 @@ final class CancelTaskRequestHandlerTest extends AbstractMcpTestCase
     public function testAnotherCallerCannotCancelTheTask(): void
     {
         $store = new InMemoryTaskStore();
-        $taskId = TaskOwnership::createTask($store, $this->buildContext('alice'), 'slow_compute', null, null, 1_000)->taskId;
+        $taskId = TaskOwnership::createTask(
+            $store,
+            $this->buildContext('alice'),
+            'slow_compute',
+            null,
+            null,
+            1_000,
+        )->taskId;
         $handler = new CancelTaskRequestHandler($store, new TaskCancellationRegistry());
 
         try {
@@ -70,7 +77,14 @@ final class CancelTaskRequestHandlerTest extends AbstractMcpTestCase
     public function testACallerWithoutTheToolsScopeCannotCancelTheTask(): void
     {
         $store = new InMemoryTaskStore();
-        $taskId = TaskOwnership::createTask($store, $this->buildContext('alice', ['delete:admin']), 'delete', null, null, 1_000)->taskId;
+        $taskId = TaskOwnership::createTask(
+            $store,
+            $this->buildContext('alice', ['delete:admin']),
+            'delete',
+            null,
+            null,
+            1_000,
+        )->taskId;
         $handler = new CancelTaskRequestHandler(
             $store,
             new TaskCancellationRegistry(),

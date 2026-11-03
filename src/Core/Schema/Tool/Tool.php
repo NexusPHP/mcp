@@ -41,11 +41,25 @@ use Nexus\Mcp\Core\Schema\MetaObject\PayloadMetaObject;
  */
 final readonly class Tool extends BaseMetadata implements Arrayable, Icons
 {
-    private const array SUBSCHEMA_MAP_KEYWORDS = ['$defs', 'definitions', 'dependentSchemas', 'patternProperties', 'properties'];
+    private const array SUBSCHEMA_MAP_KEYWORDS = [
+        '$defs',
+        'definitions',
+        'dependentSchemas',
+        'patternProperties',
+        'properties',
+    ];
     private const array SUBSCHEMA_LIST_KEYWORDS = ['allOf', 'anyOf', 'oneOf', 'prefixItems'];
     private const array SINGLE_SUBSCHEMA_KEYWORDS = [
-        'additionalProperties', 'contains', 'contentSchema', 'else', 'if',
-        'not', 'propertyNames', 'then', 'unevaluatedItems', 'unevaluatedProperties',
+        'additionalProperties',
+        'contains',
+        'contentSchema',
+        'else',
+        'if',
+        'not',
+        'propertyNames',
+        'then',
+        'unevaluatedItems',
+        'unevaluatedProperties',
     ];
     private const array NON_SUBSCHEMA_OBJECT_KEYWORDS = ['$vocabulary', 'dependentRequired'];
 
@@ -107,10 +121,14 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
         Assert::that($name)->isNonEmptyString('Tool "name" must be a non-empty string, {type} given.');
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isNonEmptyString('Tool "title" must be a non-empty string or null, {type} given.');
+        Assert::that($title)->nullOr()->isNonEmptyString(
+            'Tool "title" must be a non-empty string or null, {type} given.',
+        );
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isNonEmptyString('Tool "description" must be a non-empty string or null, {type} given.');
+        Assert::that($description)->nullOr()->isNonEmptyString(
+            'Tool "description" must be a non-empty string or null, {type} given.',
+        );
 
         Assert::that($data)->hasOffset('inputSchema', 'Tool data missing "inputSchema".');
         Assert::that($data['inputSchema'])
@@ -144,8 +162,7 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
         if (isset($data['icons'])) {
             Assert::that($data['icons'])
                 ->isList('Tool "icons" must be a list, {type} given.')
-                ->values()
-                ->isArray('Tool icon entry must be an object, {type} given.')
+                ->values()->isArray('Tool icon entry must be an object, {type} given.')
                 ->isMap('Tool icon entry must be a string-keyed object.')
             ;
             $icons = array_map(Icon::fromArray(...), $data['icons']);
@@ -301,7 +318,10 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
      */
     private function validateInputSchema(array $schema): array
     {
-        Assert::that($schema)->hasOffset('type', 'tool "inputSchema" missing "type". MCP tool schemas must be objects: add "type" => "object".');
+        Assert::that($schema)->hasOffset(
+            'type',
+            'tool "inputSchema" missing "type". MCP tool schemas must be objects: add "type" => "object".',
+        );
         Assert::that($schema['type'])->isIdentical('object', 'tool "inputSchema.type" must be {other}, {value} given.');
         $this->assertSchemaKeywords($schema, 'tool "inputSchema"');
 
@@ -329,7 +349,9 @@ final readonly class Tool extends BaseMetadata implements Arrayable, Icons
     private function assertSchemaKeywords(array $schema, string $context): void
     {
         if (\array_key_exists('$schema', $schema)) {
-            Assert::that($schema['$schema'])->isNonEmptyString(\sprintf('%s "$schema" must be a non-empty string, {type} given.', $context));
+            Assert::that($schema['$schema'])->isNonEmptyString(
+                \sprintf('%s "$schema" must be a non-empty string, {type} given.', $context),
+            );
         }
 
         if (\array_key_exists('properties', $schema)) {

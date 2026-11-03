@@ -31,9 +31,7 @@ final class ResourceEntryTest extends AbstractMcpTestCase
     public function testExposesResourceAndReader(): void
     {
         $resource = new Resource(name: 'etc', uri: 'file:///etc');
-        $reader = new ClosureResourceReader(
-            static fn(): never => throw new \LogicException('unreachable'),
-        );
+        $reader = new ClosureResourceReader(static fn(): never => throw new \LogicException('unreachable'));
 
         $entry = new ResourceEntry($resource, $reader);
 

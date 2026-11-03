@@ -41,13 +41,22 @@ final class ListResourceTemplatesRequestHandlerTest extends AbstractMcpTestCase
     public function testReturnsAllRegisteredTemplatesWhenCursorIsNull(): void
     {
         $store = new ResourceTemplateStore([
-            'file:///{x}.alpha' => $this->buildEntry(new ResourceTemplate(name: 'alpha', uriTemplate: 'file:///{x}.alpha')),
-            'file:///{x}.beta' => $this->buildEntry(new ResourceTemplate(name: 'beta', uriTemplate: 'file:///{x}.beta')),
+            'file:///{x}.alpha' => $this->buildEntry(new ResourceTemplate(
+                name: 'alpha',
+                uriTemplate: 'file:///{x}.alpha',
+            )),
+            'file:///{x}.beta' => $this->buildEntry(new ResourceTemplate(
+                name: 'beta',
+                uriTemplate: 'file:///{x}.beta',
+            )),
         ]);
         $handler = new ListResourceTemplatesRequestHandler($store);
 
         $result = $handler->handle(
-            new ListResourceTemplatesRequest(id: new RequestId(id: 1), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create())),
+            new ListResourceTemplatesRequest(
+                id: new RequestId(id: 1),
+                params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()),
+            ),
             $this->makeContext(),
         );
 
@@ -69,7 +78,13 @@ final class ListResourceTemplatesRequestHandlerTest extends AbstractMcpTestCase
         $handler = new ListResourceTemplatesRequestHandler($store);
 
         $result = $handler->handle(
-            new ListResourceTemplatesRequest(id: new RequestId(id: 2), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create(), cursor: new Cursor(cursor: 'file:///{x}.b'))),
+            new ListResourceTemplatesRequest(
+                id: new RequestId(id: 2),
+                params: new PaginatedRequestParams(
+                    meta: RequestMetaObjectFactory::create(),
+                    cursor: new Cursor(cursor: 'file:///{x}.b'),
+                ),
+            ),
             $this->makeContext(),
         );
 
@@ -91,9 +106,7 @@ final class ListResourceTemplatesRequestHandlerTest extends AbstractMcpTestCase
     {
         return new ResourceTemplateEntry(
             $template,
-            new ClosureTemplatedResourceReader(
-                static fn(): never => throw new \LogicException('unreachable'),
-            ),
+            new ClosureTemplatedResourceReader(static fn(): never => throw new \LogicException('unreachable')),
         );
     }
 }

@@ -78,7 +78,10 @@ final class AnnotationsTest extends AbstractMcpTestCase
         $annotations = new Annotations(lastModified: $lastModified);
 
         self::assertInstanceOf(\DateTimeImmutable::class, $annotations->lastModified);
-        self::assertSame((new \DateTimeImmutable($lastModified))->getTimestamp(), $annotations->lastModified->getTimestamp());
+        self::assertSame(
+            (new \DateTimeImmutable($lastModified))->getTimestamp(),
+            $annotations->lastModified->getTimestamp(),
+        );
     }
 
     /**
@@ -115,7 +118,10 @@ final class AnnotationsTest extends AbstractMcpTestCase
 
         yield 'missing timezone' => ['2026-03-09T12:00:00', $shapeMessage];
 
-        yield 'overflowed date and time' => ['2026-13-45T25:99:99+00:00', '"annotations.lastModified" must be a valid ISO 8601 datetime: The parsed date was invalid.'];
+        yield 'overflowed date and time' => [
+            '2026-13-45T25:99:99+00:00',
+            '"annotations.lastModified" must be a valid ISO 8601 datetime: The parsed date was invalid.',
+        ];
 
         yield 'space separator' => ['2026-03-09 12:00:00+00:00', $shapeMessage];
 

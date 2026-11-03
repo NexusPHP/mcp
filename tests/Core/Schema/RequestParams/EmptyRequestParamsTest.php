@@ -42,12 +42,16 @@ final class EmptyRequestParamsTest extends AbstractMcpTestCase
     {
         $params = new EmptyRequestParams(meta: RequestMetaObjectFactory::create(new ProgressToken(token: 'tok-1')));
 
-        self::assertSame(['_meta' => RequestMetaObjectFactory::shape(new ProgressToken(token: 'tok-1'))], $params->toArray());
+        self::assertSame(['_meta' => RequestMetaObjectFactory::shape(new ProgressToken(
+            token: 'tok-1',
+        ))], $params->toArray());
     }
 
     public function testFromArrayParsesMeta(): void
     {
-        $params = EmptyRequestParams::fromArray(['_meta' => RequestMetaObjectFactory::shape(new ProgressToken(token: 42))]);
+        $params = EmptyRequestParams::fromArray([
+            '_meta' => RequestMetaObjectFactory::shape(new ProgressToken(token: 42)),
+        ]);
         self::assertNotNull($params->meta->progressToken);
         self::assertSame(42, $params->meta->progressToken->token);
     }

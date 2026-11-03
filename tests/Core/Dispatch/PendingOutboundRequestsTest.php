@@ -102,11 +102,17 @@ final class PendingOutboundRequestsTest extends AbstractMcpTestCase
         $pending = new PendingOutboundRequests();
         $pending->register(new RequestId(id: 7), GenericResultResponse::class);
 
-        $pending->resolve(new RequestId(id: 7), new GenericResultResponse(id: new RequestId(id: 7), result: new EmptyResult()));
+        $pending->resolve(
+            new RequestId(id: 7),
+            new GenericResultResponse(id: new RequestId(id: 7), result: new EmptyResult()),
+        );
 
         self::assertCount(0, $pending);
         self::assertFalse(
-            $pending->resolve(new RequestId(id: 7), new GenericResultResponse(id: new RequestId(id: 7), result: new EmptyResult())),
+            $pending->resolve(
+                new RequestId(id: 7),
+                new GenericResultResponse(id: new RequestId(id: 7), result: new EmptyResult()),
+            ),
             'A second resolve for the same id must report no entry.',
         );
     }
@@ -256,9 +262,15 @@ final class PendingOutboundRequestsTest extends AbstractMcpTestCase
         $pending = new PendingOutboundRequests();
         $pending->register(new RequestId(id: 1), GenericResultResponse::class);
 
-        $pending->resolve(new RequestId(id: 1), new GenericResultResponse(id: new RequestId(id: 1), result: new EmptyResult()));
+        $pending->resolve(
+            new RequestId(id: 1),
+            new GenericResultResponse(id: new RequestId(id: 1), result: new EmptyResult()),
+        );
 
-        self::assertNull($pending->resolveResponseClass(new RequestId(id: 1)), 'A resolved entry leaves no class lookup behind.');
+        self::assertNull(
+            $pending->resolveResponseClass(new RequestId(id: 1)),
+            'A resolved entry leaves no class lookup behind.',
+        );
     }
 
     public function testResultClassForReturnsNullAfterReject(): void
@@ -268,7 +280,10 @@ final class PendingOutboundRequestsTest extends AbstractMcpTestCase
 
         $pending->reject(new RequestId(id: 1), new \RuntimeException('boom'));
 
-        self::assertNull($pending->resolveResponseClass(new RequestId(id: 1)), 'A rejected entry leaves no class lookup behind.');
+        self::assertNull(
+            $pending->resolveResponseClass(new RequestId(id: 1)),
+            'A rejected entry leaves no class lookup behind.',
+        );
     }
 
     public function testResultClassForReturnsNullAfterCancelAll(): void
@@ -324,7 +339,11 @@ final class PendingOutboundRequestsTest extends AbstractMcpTestCase
     public function testCancelUnretainedFailsOnlyTheEntriesCarryingNoRequest(): void
     {
         $pending = new PendingOutboundRequests();
-        $retained = $pending->register(new RequestId(id: 1), GenericResultResponse::class, new TestRequest(new RequestId(id: 1)));
+        $retained = $pending->register(
+            new RequestId(id: 1),
+            GenericResultResponse::class,
+            new TestRequest(new RequestId(id: 1)),
+        );
         $dropped = $pending->register(new RequestId(id: 2), GenericResultResponse::class);
 
         $pending->cancelUnretained(new \RuntimeException('transport closed'));
@@ -344,7 +363,11 @@ final class PendingOutboundRequestsTest extends AbstractMcpTestCase
     public function testCancelUnretainedOnAMapOfOnlyRetainedEntriesFailsNothing(): void
     {
         $pending = new PendingOutboundRequests();
-        $future = $pending->register(new RequestId(id: 1), GenericResultResponse::class, new TestRequest(new RequestId(id: 1)));
+        $future = $pending->register(
+            new RequestId(id: 1),
+            GenericResultResponse::class,
+            new TestRequest(new RequestId(id: 1)),
+        );
 
         $pending->cancelUnretained(new \RuntimeException('transport closed'));
 
@@ -355,9 +378,16 @@ final class PendingOutboundRequestsTest extends AbstractMcpTestCase
     public function testResolvingARetainedEntryDropsItsRetention(): void
     {
         $pending = new PendingOutboundRequests();
-        $pending->register(new RequestId(id: 1), GenericResultResponse::class, new TestRequest(new RequestId(id: 1)))->ignore();
+        $pending->register(
+            new RequestId(id: 1),
+            GenericResultResponse::class,
+            new TestRequest(new RequestId(id: 1)),
+        )->ignore();
 
-        $pending->resolve(new RequestId(id: 1), new GenericResultResponse(id: new RequestId(id: 1), result: new EmptyResult()));
+        $pending->resolve(
+            new RequestId(id: 1),
+            new GenericResultResponse(id: new RequestId(id: 1), result: new EmptyResult()),
+        );
 
         self::assertSame([], $pending->collectRetained(), 'An answered request is not one to send again.');
     }

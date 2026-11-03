@@ -57,7 +57,11 @@ $server = (new ServerBuilder())
         static function (?array $args, ServerContext $context): CallToolResult {
             $name = is_string($args['name'] ?? null) ? $args['name'] : 'stranger';
 
-            $context->reportProgress(progress: 0.0, total: 1.0, message: sprintf('Preparing greeting for %s...', $name));
+            $context->reportProgress(
+                progress: 0.0,
+                total: 1.0,
+                message: sprintf('Preparing greeting for %s...', $name),
+            );
             delay(0.2);
             $context->reportProgress(progress: 0.5, total: 1.0, message: 'Composing the message...');
             delay(0.2);
@@ -75,7 +79,11 @@ $server = (new ServerBuilder())
                 'type' => 'object',
                 'properties' => [
                     'count' => ['type' => 'integer', 'minimum' => 1, 'maximum' => 20],
-                    'intervalMs' => ['type' => 'integer', 'minimum' => 0, 'description' => 'Pause between ticks in milliseconds.'],
+                    'intervalMs' => [
+                        'type' => 'integer',
+                        'minimum' => 0,
+                        'description' => 'Pause between ticks in milliseconds.',
+                    ],
                 ],
                 'required' => ['count'],
             ],
@@ -131,7 +139,11 @@ $server = (new ServerBuilder())
             name: 'walkthrough',
             description: 'Asks the model to demonstrate the interactive tools to the user.',
             arguments: [
-                new PromptArgument(name: 'audience', description: 'Who the walkthrough is being explained to (e.g. "a junior developer").', required: false),
+                new PromptArgument(
+                    name: 'audience',
+                    description: 'Who the walkthrough is being explained to (e.g. "a junior developer").',
+                    required: false,
+                ),
             ],
         ),
         static function (?array $args, ServerContext $context): GetPromptResult {

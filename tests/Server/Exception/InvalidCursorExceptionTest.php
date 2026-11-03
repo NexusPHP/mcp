@@ -56,7 +56,10 @@ final class InvalidCursorExceptionTest extends AbstractMcpTestCase
     {
         $e = new InvalidCursorException(str_repeat('a', 200_000));
 
-        self::assertSame(\sprintf('Cursor "%s..." does not match any registered entry.', str_repeat('a', 77)), $e->getMessage());
+        self::assertSame(
+            \sprintf('Cursor "%s..." does not match any registered entry.', str_repeat('a', 77)),
+            $e->getMessage(),
+        );
     }
 
     public function testEscapesControlBytesInTheMessage(): void

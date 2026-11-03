@@ -33,7 +33,11 @@ final class ReadResourceDirectoryResultResponseTest extends AbstractMcpTestCase
         'id' => 7,
         'result' => [
             'resultType' => 'complete',
-            'resources' => [['name' => 'references', 'uri' => 'skill://refunds/references', 'mimeType' => 'inode/directory']],
+            'resources' => [[
+                'name' => 'references',
+                'uri' => 'skill://refunds/references',
+                'mimeType' => 'inode/directory',
+            ]],
             'ttlMs' => 300_000,
             'cacheScope' => 'public',
         ],

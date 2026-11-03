@@ -56,7 +56,10 @@ final class AuthorizationCodeGrantStrategyTest extends AbstractMcpTestCase
         ;
         $user = new ScriptedUserAuthorization();
 
-        $token = (new AuthorizationCodeGrantStrategy($user))->grant($this->buildContext($http, new ScopeSet(['files:read'])), new NullCancellation());
+        $token = (new AuthorizationCodeGrantStrategy($user))->grant(
+            $this->buildContext($http, new ScopeSet(['files:read'])),
+            new NullCancellation(),
+        );
 
         self::assertSame('the-access-token', $token->value);
         self::assertSame(self::ISSUER, $token->issuer);
@@ -79,9 +82,20 @@ final class AuthorizationCodeGrantStrategyTest extends AbstractMcpTestCase
             ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer'])
         ;
         $user = new ScriptedUserAuthorization();
-        $options = new AuthorizationOptions('Example MCP Client', 'http://localhost:3000/callback', skipOfflineAccessConsent: true);
+        $options = new AuthorizationOptions(
+            'Example MCP Client',
+            'http://localhost:3000/callback',
+            skipOfflineAccessConsent: true,
+        );
 
-        (new AuthorizationCodeGrantStrategy($user))->grant($this->buildContext($http, new ScopeSet(['offline_access']), $options), new NullCancellation());
+        (new AuthorizationCodeGrantStrategy($user))->grant(
+            $this->buildContext(
+                $http,
+                new ScopeSet(['offline_access']),
+                $options,
+            ),
+            new NullCancellation(),
+        );
 
         self::assertStringNotContainsString('prompt=', $user->readRedirect()->url);
     }
@@ -119,7 +133,11 @@ final class AuthorizationCodeGrantStrategyTest extends AbstractMcpTestCase
         $this->expectExceptionMessageIs('The authorization-code grant needs a redirect URI, and the authorization options carry none.');
 
         (new AuthorizationCodeGrantStrategy(new ScriptedUserAuthorization()))->grant(
-            $this->buildContext(new RecordingHttpClient(), new ScopeSet(), new AuthorizationOptions('Example MCP Client')),
+            $this->buildContext(
+                new RecordingHttpClient(),
+                new ScopeSet(),
+                new AuthorizationOptions('Example MCP Client'),
+            ),
             new NullCancellation(),
         );
     }

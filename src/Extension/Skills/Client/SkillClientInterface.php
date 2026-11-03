@@ -52,7 +52,12 @@ interface SkillClientInterface
      *
      * @throws SkillVerificationFailedException
      */
-    public function readSkillFile(Skill $skill, string $uri, ?array $inputResponses = null, ?string $requestState = null): InputRequiredResult|string;
+    public function readSkillFile(
+        Skill $skill,
+        string $uri,
+        ?array $inputResponses = null,
+        ?string $requestState = null,
+    ): InputRequiredResult|string;
 
     /**
      * One page of the direct children of a directory resource.

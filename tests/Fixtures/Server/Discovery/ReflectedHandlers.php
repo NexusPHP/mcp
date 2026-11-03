@@ -255,7 +255,10 @@ final class ReflectedHandlers
 
     public function promptResult(): GetPromptResult
     {
-        return new GetPromptResult(messages: [new PromptMessage(role: Role::Assistant, content: new TextContent(text: 'seed'))], description: 'a description');
+        return new GetPromptResult(messages: [new PromptMessage(
+            role: Role::Assistant,
+            content: new TextContent(text: 'seed'),
+        )], description: 'a description');
     }
 
     public function promptString(string $topic): string
@@ -310,7 +313,9 @@ final class ReflectedHandlers
 
     public function resourceResult(): ReadResourceResult
     {
-        return new ReadResourceResult(contents: [new TextResourceContents(uri: 'mem://fixed', text: 'body')], ttlMs: 0, cacheScope: CacheScope::Private);
+        return new ReadResourceResult(contents: [
+            new TextResourceContents(uri: 'mem://fixed', text: 'body'),
+        ], ttlMs: 0, cacheScope: CacheScope::Private);
     }
 
     public function resourceUri(string $uri): string
@@ -513,6 +518,9 @@ final class ReflectedHandlers
 
     public function templatedResult(string $id): ReadResourceResult
     {
-        return new ReadResourceResult(contents: [new TextResourceContents(uri: 'mem://users/'.$id, text: 'profile')], ttlMs: 0, cacheScope: CacheScope::Private);
+        return new ReadResourceResult(contents: [new TextResourceContents(
+            uri: 'mem://users/'.$id,
+            text: 'profile',
+        )], ttlMs: 0, cacheScope: CacheScope::Private);
     }
 }

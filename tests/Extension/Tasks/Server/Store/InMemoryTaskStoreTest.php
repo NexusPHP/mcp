@@ -139,7 +139,10 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
         $store = $this->buildStore();
         $taskId = $store->createTask('failing_job', null, null, 1_000)->taskId;
 
-        self::assertTrue($store->trySetFailed($taskId, ['code' => -32_603, 'message' => 'It broke.'], 'Upstream unavailable.'));
+        self::assertTrue($store->trySetFailed($taskId, [
+            'code' => -32_603,
+            'message' => 'It broke.',
+        ], 'Upstream unavailable.'));
 
         $record = $store->findTask($taskId);
         self::assertInstanceOf(TaskRecord::class, $record);

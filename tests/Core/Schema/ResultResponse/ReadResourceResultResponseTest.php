@@ -32,7 +32,16 @@ final class ReadResourceResultResponseTest extends AbstractMcpTestCase
 {
     public function testRoundTripsTheTypedResult(): void
     {
-        $envelope = ['jsonrpc' => '2.0', 'id' => 1, 'result' => ['resultType' => 'complete', 'contents' => [['uri' => 'file:///tmp/sample', 'text' => 'hello']], 'ttlMs' => 0, 'cacheScope' => 'private']];
+        $envelope = [
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'result' => [
+                'resultType' => 'complete',
+                'contents' => [['uri' => 'file:///tmp/sample', 'text' => 'hello']],
+                'ttlMs' => 0,
+                'cacheScope' => 'private',
+            ],
+        ];
 
         $response = ReadResourceResultResponse::fromArray($envelope);
 

@@ -175,7 +175,9 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             ->setServerInfo('demo', '1.0.0')
             ->addTool(
                 new Tool(name: 'echo', inputSchema: ['type' => 'object']),
-                static fn(?array $args, $ctx): CallToolResult => new CallToolResult(content: [new TextContent(text: 'echo')]),
+                static fn(?array $args, $ctx): CallToolResult => new CallToolResult(
+                    content: [new TextContent(text: 'echo')],
+                ),
             )
             ->build()
         ;
@@ -207,7 +209,11 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             ->setServerInfo('demo', '1.0.0')
             ->addResource(
                 new Resource(name: 'cfg', uri: 'file:///etc/cfg'),
-                static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult(contents: [new TextResourceContents(uri: $uri, text: 'data')], ttlMs: 0, cacheScope: CacheScope::Private),
+                static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult(
+                    contents: [new TextResourceContents(uri: $uri, text: 'data')],
+                    ttlMs: 0,
+                    cacheScope: CacheScope::Private,
+                ),
             )
             ->build()
         ;
@@ -433,7 +439,9 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             ->setServerInfo('demo-srv', '2.3.4')
             ->addTool(
                 new Tool(name: 'echo', inputSchema: ['type' => 'object']),
-                static fn(?array $args, $ctx): CallToolResult => new CallToolResult(content: [new TextContent(text: 'echo')]),
+                static fn(?array $args, $ctx): CallToolResult => new CallToolResult(
+                    content: [new TextContent(text: 'echo')],
+                ),
             )
             ->build()
         ;
@@ -552,11 +560,19 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     public function testNameAndVersionDisclosureTrimsTheIdentityOnResultsOtherThanDiscover(): void
     {
         $server = (new ServerBuilder())
-            ->setServerInfo('demo-srv', '2.3.4', title: 'Demo', description: 'A demo.', websiteUrl: 'https://example.com')
+            ->setServerInfo(
+                'demo-srv',
+                '2.3.4',
+                title: 'Demo',
+                description: 'A demo.',
+                websiteUrl: 'https://example.com',
+            )
             ->setServerInfoDisclosure(ServerInfoDisclosure::NameAndVersion)
             ->addTool(
                 new Tool(name: 'echo', inputSchema: ['type' => 'object']),
-                static fn(?array $args, $ctx): CallToolResult => new CallToolResult(content: [new TextContent(text: 'echo')]),
+                static fn(?array $args, $ctx): CallToolResult => new CallToolResult(
+                    content: [new TextContent(text: 'echo')],
+                ),
             )
             ->build()
         ;
@@ -587,7 +603,9 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             ->setServerInfo('demo', '1.0.0')
             ->addTool(
                 new Tool(name: 'echo', inputSchema: ['type' => 'object']),
-                static fn(?array $args, $ctx): CallToolResult => new CallToolResult(content: [new TextContent(text: 'echo')]),
+                static fn(?array $args, $ctx): CallToolResult => new CallToolResult(
+                    content: [new TextContent(text: 'echo')],
+                ),
             )
             ->build()
         ;
@@ -618,7 +636,10 @@ final class ServerBuilderTest extends AbstractMcpTestCase
                     'properties' => ['n' => ['type' => 'integer']],
                     'required' => ['n'],
                 ]),
-                static fn(?array $args, $ctx): CallToolResult => new CallToolResult(content: [], structuredContent: ['n' => 'not-an-int']),
+                static fn(?array $args, $ctx): CallToolResult => new CallToolResult(
+                    content: [],
+                    structuredContent: ['n' => 'not-an-int'],
+                ),
             )
             ->build()
         ;
@@ -672,7 +693,11 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             self::assertInstanceOf(CacheableResult::class, $result);
 
             self::assertSame(60_000, $result->ttlMs, \sprintf('"%s" did not carry the builder TTL.', $method));
-            self::assertSame(CacheScope::Public, $result->cacheScope, \sprintf('"%s" did not carry the builder cache scope.', $method));
+            self::assertSame(
+                CacheScope::Public,
+                $result->cacheScope,
+                \sprintf('"%s" did not carry the builder cache scope.', $method),
+            );
         }
     }
 
@@ -727,7 +752,11 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             ->setServerInfo('demo', '1.0.0')
             ->addResource(
                 new Resource(name: 'cfg', uri: 'file:///etc/cfg'),
-                static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult(contents: [new TextResourceContents(uri: $uri, text: 'data')], ttlMs: 0, cacheScope: CacheScope::Private),
+                static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult(
+                    contents: [new TextResourceContents(uri: $uri, text: 'data')],
+                    ttlMs: 0,
+                    cacheScope: CacheScope::Private,
+                ),
             )
             ->build()
         ;
@@ -745,11 +774,17 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             ->setServerInfo('demo', '1.0.0')
             ->addResource(
                 new Resource(name: 'cfg', uri: 'file:///etc/cfg'),
-                static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult(contents: [new TextResourceContents(uri: $uri, text: 'static')], ttlMs: 0, cacheScope: CacheScope::Private),
+                static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult(
+                    contents: [new TextResourceContents(uri: $uri, text: 'static')],
+                    ttlMs: 0,
+                    cacheScope: CacheScope::Private,
+                ),
             )
             ->addResourceTemplate(
                 new ResourceTemplate(name: 'files', uriTemplate: 'file:///{path}'),
-                static fn(string $uri, array $bindings, $ctx): ReadResourceResult => new ReadResourceResult(contents: [new TextResourceContents(uri: $uri, text: 'templated:'.($bindings['path'] ?? 'missing'))], ttlMs: 0, cacheScope: CacheScope::Private),
+                static fn(string $uri, array $bindings, $ctx): ReadResourceResult => new ReadResourceResult(contents: [
+                    new TextResourceContents(uri: $uri, text: 'templated:'.($bindings['path'] ?? 'missing')),
+                ], ttlMs: 0, cacheScope: CacheScope::Private),
             )
             ->build()
         ;
@@ -799,7 +834,9 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             ->setServerInfo('demo', '1.0.0')
             ->addResourceTemplate(
                 new ResourceTemplate(name: 'files', uriTemplate: 'file:///{path}'),
-                static fn(string $uri, array $bindings, $ctx): ReadResourceResult => new ReadResourceResult(contents: [new TextResourceContents(uri: $uri, text: 'templated:'.($bindings['path'] ?? 'missing'))], ttlMs: 0, cacheScope: CacheScope::Private),
+                static fn(string $uri, array $bindings, $ctx): ReadResourceResult => new ReadResourceResult(contents: [
+                    new TextResourceContents(uri: $uri, text: 'templated:'.($bindings['path'] ?? 'missing')),
+                ], ttlMs: 0, cacheScope: CacheScope::Private),
             )
             ->build()
         ;
@@ -824,19 +861,31 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
         $tools = $this->dispatch($server, 'tools/list');
         self::assertInstanceOf(ListToolsResult::class, $tools);
-        self::assertSame(['add', 'greet_user'], $this->sortNames(array_map(static fn(Tool $tool): string => $tool->name, $tools->tools)));
+        self::assertSame(['add', 'greet_user'], $this->sortNames(array_map(
+            static fn(Tool $tool): string => $tool->name,
+            $tools->tools,
+        )));
 
         $prompts = $this->dispatch($server, 'prompts/list');
         self::assertInstanceOf(ListPromptsResult::class, $prompts);
-        self::assertSame(['compose', 'labelled', 'outline', 'ping_prompt'], $this->sortNames(array_map(static fn(Prompt $prompt): string => $prompt->name, $prompts->prompts)));
+        self::assertSame(
+            ['compose', 'labelled', 'outline', 'ping_prompt'],
+            $this->sortNames(array_map(static fn(Prompt $prompt): string => $prompt->name, $prompts->prompts)),
+        );
 
         $resources = $this->dispatch($server, 'resources/list');
         self::assertInstanceOf(ListResourcesResult::class, $resources);
-        self::assertSame(['app_config', 'defaults'], $this->sortNames(array_map(static fn(Resource $resource): string => $resource->name, $resources->resources)));
+        self::assertSame(['app_config', 'defaults'], $this->sortNames(array_map(
+            static fn(Resource $resource): string => $resource->name,
+            $resources->resources,
+        )));
 
         $templates = $this->dispatch($server, 'resources/templates/list');
         self::assertInstanceOf(ListResourceTemplatesResult::class, $templates);
-        self::assertSame(['fileTemplate', 'user_profile'], $this->sortNames(array_map(static fn(ResourceTemplate $template): string => $template->name, $templates->resourceTemplates)));
+        self::assertSame(['fileTemplate', 'user_profile'], $this->sortNames(array_map(
+            static fn(ResourceTemplate $template): string => $template->name,
+            $templates->resourceTemplates,
+        )));
     }
 
     public function testRegisterWiresAnExecutableTool(): void
@@ -877,7 +926,10 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         $tools = $this->dispatch($server, 'tools/list');
 
         self::assertInstanceOf(ListToolsResult::class, $tools);
-        self::assertSame(['add', 'greet_user', 'ping'], $this->sortNames(array_map(static fn(Tool $tool): string => $tool->name, $tools->tools)));
+        self::assertSame(
+            ['add', 'greet_user', 'ping'],
+            $this->sortNames(array_map(static fn(Tool $tool): string => $tool->name, $tools->tools)),
+        );
     }
 
     public function testRegisterReturnsTheBuilderForChaining(): void
@@ -927,7 +979,14 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     public function testExplicitServerInfoFieldsTakePrecedencePerField(): void
     {
         $server = (new ServerBuilder())
-            ->setServerInfo('explicit-server', '9.9.9', 'Explicit Title', 'Explicit description.', 'https://explicit.test', [new Icon(src: 'https://explicit.test/icon.svg')])
+            ->setServerInfo(
+                'explicit-server',
+                '9.9.9',
+                'Explicit Title',
+                'Explicit description.',
+                'https://explicit.test',
+                [new Icon(src: 'https://explicit.test/icon.svg')],
+            )
             ->register(new SelfDescribingServer())
             ->build()
         ;
@@ -969,9 +1028,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             }
         };
 
-        $info = $this->readServerInfoFor(
-            (new ServerBuilder())->register(new SelfDescribingServer(), $extra)->build(),
-        );
+        $info = $this->readServerInfoFor((new ServerBuilder())->register(new SelfDescribingServer(), $extra)->build());
 
         self::assertSame('described-server', $info->name);
     }
@@ -1002,8 +1059,11 @@ final class ServerBuilderTest extends AbstractMcpTestCase
      * @param non-empty-string $expectedPattern
      */
     #[DataProvider('provideRegisterRefusesADuplicateDiscoveredEntryCases')]
-    public function testRegisterRefusesADuplicateDiscoveredEntry(object $first, object $second, string $expectedPattern): void
-    {
+    public function testRegisterRefusesADuplicateDiscoveredEntry(
+        object $first,
+        object $second,
+        string $expectedPattern,
+    ): void {
         $this->expectException(LogicException::class);
         $this->expectExceptionMessageMatches($expectedPattern);
 
@@ -1139,9 +1199,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     public function testRegisterNamesBothSourcesOnACollision(): void
     {
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageIs(
-            '"Nexus\Mcp\Tests\Fixtures\Server\Discovery\CollidingSearchTool" declares tool "search", which "Nexus\Mcp\Tests\Fixtures\Server\Discovery\CollidingSearchTool" already declares.',
-        );
+        $this->expectExceptionMessageIs('"Nexus\Mcp\Tests\Fixtures\Server\Discovery\CollidingSearchTool" declares tool "search", which "Nexus\Mcp\Tests\Fixtures\Server\Discovery\CollidingSearchTool" already declares.');
 
         (new ServerBuilder())->register(new CollidingSearchTool(), new CollidingSearchTool());
     }
@@ -1212,13 +1270,11 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         $invoked = 0;
         $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
-            ->replaceRequestHandler('server/discover', new ClosureRequestHandler(
-                static function () use (&$invoked): EmptyResult {
-                    ++$invoked;
+            ->replaceRequestHandler('server/discover', new ClosureRequestHandler(static function () use (&$invoked): EmptyResult {
+                ++$invoked;
 
-                    return new EmptyResult();
-                },
-            ))
+                return new EmptyResult();
+            }))
             ->build()
         ;
 
@@ -1245,9 +1301,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     public function testAddRequestHandlerRejectsAClassWithoutTheClientMarker(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs(
-            'Request class "Nexus\Mcp\Tests\Fixtures\Core\TestRequest" must implement "Nexus\Mcp\Core\Schema\Request\ClientRequest" for the server to dispatch it.',
-        );
+        $this->expectExceptionMessageIs('Request class "Nexus\Mcp\Tests\Fixtures\Core\TestRequest" must implement "Nexus\Mcp\Core\Schema\Request\ClientRequest" for the server to dispatch it.');
 
         (new ServerBuilder())->addRequestHandler(TestRequest::class, new ClosureRequestHandler(
             static fn(): EmptyResult => new EmptyResult(),
@@ -1288,11 +1342,9 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
         $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
-            ->addNotificationHandler(TestNotification::class, new ClosureNotificationHandler(
-                static function () use (&$received): void {
-                    ++$received;
-                },
-            ))
+            ->addNotificationHandler(TestNotification::class, new ClosureNotificationHandler(static function () use (&$received): void {
+                ++$received;
+            }))
             ->build()
         ;
 
@@ -1371,9 +1423,9 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         ;
 
         $result = $this->dispatch($server, TestClientRequest::getMethod(), [
-            '_meta' => RequestMetaObjectFactory::shape(
-                clientCapabilities: new ClientCapabilities(extensions: ['com.example/feature' => []]),
-            ),
+            '_meta' => RequestMetaObjectFactory::shape(clientCapabilities: new ClientCapabilities(
+                extensions: ['com.example/feature' => []],
+            )),
         ]);
 
         self::assertInstanceOf(EmptyResult::class, $result);
@@ -1425,16 +1477,24 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             ->setRequestStateSigner($signer)
             ->addTool(
                 new Tool(name: 'deploy', inputSchema: ['type' => 'object']),
-                static fn(?array $args, ServerContext $ctx): CallToolResult => new CallToolResult(content: [new TextContent(text: $ctx->requestStatePayload ?? 'first')]),
+                static fn(?array $args, ServerContext $ctx): CallToolResult => new CallToolResult(
+                    content: [new TextContent(text: $ctx->requestStatePayload ?? 'first')],
+                ),
             )
             ->build()
         ;
 
         $binding = RequestStateSigner::deriveBinding(
-            CallToolRequest::fromArray(['id' => 2, 'params' => ['_meta' => RequestMetaObjectFactory::shape(), 'name' => 'deploy']]),
+            CallToolRequest::fromArray([
+                'id' => 2,
+                'params' => ['_meta' => RequestMetaObjectFactory::shape(), 'name' => 'deploy'],
+            ]),
             new ReceiveContext(),
         );
-        $result = $this->dispatch($server, 'tools/call', ['name' => 'deploy', 'requestState' => $signer->sign('round-2', $binding)]);
+        $result = $this->dispatch($server, 'tools/call', [
+            'name' => 'deploy',
+            'requestState' => $signer->sign('round-2', $binding),
+        ]);
 
         self::assertInstanceOf(CallToolResult::class, $result);
         self::assertArrayHasKey(0, $result->content);
@@ -1464,7 +1524,11 @@ final class ServerBuilderTest extends AbstractMcpTestCase
                 'jsonrpc' => '2.0',
                 'id' => 2,
                 'method' => 'tools/call',
-                'params' => ['_meta' => RequestMetaObjectFactory::shape(), 'name' => 'deploy', 'requestState' => 'forged'],
+                'params' => [
+                    '_meta' => RequestMetaObjectFactory::shape(),
+                    'name' => 'deploy',
+                    'requestState' => 'forged',
+                ],
             ]);
         });
 
@@ -1498,7 +1562,9 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             ->setServerInfo('demo', '1.0.0')
             ->addTool(
                 new Tool(name: 'report', inputSchema: ['type' => 'object']),
-                static fn(?array $args, $ctx): CallToolResult => new CallToolResult(content: [new TextContent(text: 'inner')]),
+                static fn(?array $args, $ctx): CallToolResult => new CallToolResult(
+                    content: [new TextContent(text: 'inner')],
+                ),
             )
             ->enableExtension($this->buildTextWrappingExtension('com.example/feature', 'outer'))
             ->build()
@@ -1519,7 +1585,9 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->replaceRequestHandler('tools/call', new ClosureRequestHandler(
-                static fn(JsonRpcRequest $request, AbstractContext $context): Result => new CallToolResult(content: [new TextContent(text: 'replaced')]),
+                static fn(JsonRpcRequest $request, AbstractContext $context): Result => new CallToolResult(
+                    content: [new TextContent(text: 'replaced')],
+                ),
             ))
             ->enableExtension($this->buildTextWrappingExtension('com.example/feature', 'outer'))
             ->build()
@@ -1541,7 +1609,9 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             ->setServerInfo('demo', '1.0.0')
             ->addTool(
                 new Tool(name: 'report', inputSchema: ['type' => 'object']),
-                static fn(?array $args, $ctx): CallToolResult => new CallToolResult(content: [new TextContent(text: 'inner')]),
+                static fn(?array $args, $ctx): CallToolResult => new CallToolResult(
+                    content: [new TextContent(text: 'inner')],
+                ),
             )
             ->enableExtension($this->buildTextWrappingExtension('com.example/first', 'first'))
             ->enableExtension($this->buildTextWrappingExtension('com.example/second', 'second'))
@@ -1577,7 +1647,9 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             ->setServerInfo('demo', '1.0.0')
             ->addTool(
                 new Tool(name: 'report', inputSchema: ['type' => 'object']),
-                static fn(?array $args, $ctx): CallToolResult => new CallToolResult(content: [new TextContent(text: 'inner')]),
+                static fn(?array $args, $ctx): CallToolResult => new CallToolResult(
+                    content: [new TextContent(text: 'inner')],
+                ),
             )
             ->enableExtension(new StubDecoratingServerExtension(
                 identifier: 'com.example/feature',
@@ -1601,20 +1673,16 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             ->enableExtension(new StubServerExtension(
                 identifier: 'com.example/feature',
                 notifications: [TestNotification::class],
-                notificationHandlers: [TestNotification::getMethod() => new ClosureNotificationHandler(
-                    static function () use (&$received): void {
-                        $received[] = 'feature';
-                    },
-                )],
+                notificationHandlers: [TestNotification::getMethod() => new ClosureNotificationHandler(static function () use (&$received): void {
+                    $received[] = 'feature';
+                })],
             ))
             ->enableExtension(new StubServerExtension(
                 identifier: 'com.example/other',
                 notifications: [TestSecondNotification::class],
-                notificationHandlers: [TestSecondNotification::getMethod() => new ClosureNotificationHandler(
-                    static function () use (&$received): void {
-                        $received[] = 'other';
-                    },
-                )],
+                notificationHandlers: [TestSecondNotification::getMethod() => new ClosureNotificationHandler(static function () use (&$received): void {
+                    $received[] = 'other';
+                })],
             ))
             ->build()
         ;
@@ -1720,23 +1788,20 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         ));
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageIs(
-            'Extension "com.example/feature" cannot claim the request method "tests/test-client-request" already owned by a builder-registered handler.',
-        );
+        $this->expectExceptionMessageIs('Extension "com.example/feature" cannot claim the request method "tests/test-client-request" already owned by a builder-registered handler.');
 
         $builder->enableExtension($this->buildServerExtension());
     }
 
     public function testEnableExtensionRejectsANotificationMethodABuilderHandlerOwns(): void
     {
-        $builder = (new ServerBuilder())->addNotificationHandler(TestNotification::class, new ClosureNotificationHandler(
-            static function (): void {},
-        ));
+        $builder = (new ServerBuilder())->addNotificationHandler(
+            TestNotification::class,
+            new ClosureNotificationHandler(static function (): void {}),
+        );
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageIs(
-            'Extension "com.example/feature" cannot claim the notification method "tests/test-notification" already owned by a builder-registered handler.',
-        );
+        $this->expectExceptionMessageIs('Extension "com.example/feature" cannot claim the notification method "tests/test-notification" already owned by a builder-registered handler.');
 
         $builder->enableExtension(new StubServerExtension(
             identifier: 'com.example/feature',
@@ -1752,9 +1817,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         $builder = (new ServerBuilder())->enableExtension($this->buildServerExtension());
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageIs(
-            'A builder-registered handler cannot claim the request method "tests/test-client-request" already owned by extension "com.example/feature".',
-        );
+        $this->expectExceptionMessageIs('A builder-registered handler cannot claim the request method "tests/test-client-request" already owned by extension "com.example/feature".');
 
         $builder->addRequestHandler(TestClientRequest::class, new ClosureRequestHandler(
             static fn(): EmptyResult => new EmptyResult(),
@@ -1772,9 +1835,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         ));
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageIs(
-            'A builder-registered handler cannot claim the notification method "tests/test-notification" already owned by extension "com.example/feature".',
-        );
+        $this->expectExceptionMessageIs('A builder-registered handler cannot claim the notification method "tests/test-notification" already owned by extension "com.example/feature".');
 
         $builder->addNotificationHandler(TestNotification::class, new ClosureNotificationHandler(
             static function (): void {},
@@ -1784,9 +1845,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     public function testEnableExtensionRejectsARequestClassWithoutTheClientMarker(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs(
-            'Extension "com.example/feature" request class "Nexus\Mcp\Tests\Fixtures\Core\TestRequest" must implement "Nexus\Mcp\Core\Schema\Request\ClientRequest" for the server to dispatch it.',
-        );
+        $this->expectExceptionMessageIs('Extension "com.example/feature" request class "Nexus\Mcp\Tests\Fixtures\Core\TestRequest" must implement "Nexus\Mcp\Core\Schema\Request\ClientRequest" for the server to dispatch it.');
 
         (new ServerBuilder())->enableExtension(new StubServerExtension(
             identifier: 'com.example/feature',
@@ -1800,9 +1859,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     public function testReplaceRequestHandlerRejectsVendorExtensionMethod(): void
     {
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageIs(
-            'Request method "acme/snapshot" is not reserved by the MCP specification. Use addRequestHandler() to register a vendor extension.',
-        );
+        $this->expectExceptionMessageIs('Request method "acme/snapshot" is not reserved by the MCP specification. Use addRequestHandler() to register a vendor extension.');
 
         (new ServerBuilder())->replaceRequestHandler('acme/snapshot', new ClosureRequestHandler(
             static fn(): EmptyResult => new EmptyResult(),
@@ -1812,9 +1869,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     public function testReplaceNotificationHandlerRejectsVendorExtensionMethod(): void
     {
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageIs(
-            'Notification method "acme/snapshot-done" is not reserved by the MCP specification. Use addNotificationHandler() to register a vendor extension.',
-        );
+        $this->expectExceptionMessageIs('Notification method "acme/snapshot-done" is not reserved by the MCP specification. Use addNotificationHandler() to register a vendor extension.');
 
         (new ServerBuilder())->replaceNotificationHandler('acme/snapshot-done', new ClosureNotificationHandler(
             static function (): void {},
@@ -1900,17 +1955,26 @@ final class ServerBuilderTest extends AbstractMcpTestCase
              * @param null|array<array-key, string> $contextArguments
              */
             #[\Override]
-            public function complete(string $argumentValue, ?array $contextArguments, ServerContext $context): CompleteResult
-            {
+            public function complete(
+                string $argumentValue,
+                ?array $contextArguments,
+                ServerContext $context,
+            ): CompleteResult {
                 return new CompleteResult(completion: ['values' => ['from-provider-'.$argumentValue]]);
             }
         };
 
         $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
-            ->addPromptCompletion('compose', 'tone', static fn(): CompleteResult => new CompleteResult(completion: ['values' => ['from-closure']]))
+            ->addPromptCompletion('compose', 'tone', static fn(): CompleteResult => new CompleteResult(
+                completion: ['values' => ['from-closure']],
+            ))
             ->addResourceTemplateCompletion('file:///{path}', 'path', $provider)
-            ->addResourceTemplateCompletion('file:///{path}', 'ext', static fn(): CompleteResult => new CompleteResult(completion: ['values' => ['csv']]))
+            ->addResourceTemplateCompletion(
+                'file:///{path}',
+                'ext',
+                static fn(): CompleteResult => new CompleteResult(completion: ['values' => ['csv']]),
+            )
             ->build()
         ;
 
@@ -1944,8 +2008,12 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     {
         $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
-            ->addPrompt(new Prompt(name: '0'), static fn(?array $a, $c): GetPromptResult => new GetPromptResult(messages: []))
-            ->addPromptCompletion('0', 'who', static fn(): CompleteResult => new CompleteResult(completion: ['values' => ['zero']]))
+            ->addPrompt(new Prompt(
+                name: '0',
+            ), static fn(?array $a, $c): GetPromptResult => new GetPromptResult(messages: []))
+            ->addPromptCompletion('0', 'who', static fn(): CompleteResult => new CompleteResult(
+                completion: ['values' => ['zero']],
+            ))
             ->build()
         ;
 
@@ -1984,8 +2052,14 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     {
         $builder = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
-            ->addPromptCompletion('compose', 'tone', static fn(): CompleteResult => new CompleteResult(completion: ['values' => ['added']]))
-            ->setCompletionStore(new RecordingCompletionStore(new CompleteResult(completion: ['values' => ['explicit']])))
+            ->addPromptCompletion(
+                'compose',
+                'tone',
+                static fn(): CompleteResult => new CompleteResult(completion: ['values' => ['added']]),
+            )
+            ->setCompletionStore(new RecordingCompletionStore(
+                new CompleteResult(completion: ['values' => ['explicit']]),
+            ))
         ;
 
         $result = $this->dispatch($builder->build(), 'completion/complete', [
@@ -2000,7 +2074,11 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     public function testGetCompletionStoreMemoisesTheAssembledStore(): void
     {
         $builder = (new ServerBuilder())
-            ->addPromptCompletion('compose', 'tone', static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]))
+            ->addPromptCompletion(
+                'compose',
+                'tone',
+                static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]),
+            )
         ;
 
         $store = $builder->getCompletionStore();
@@ -2019,7 +2097,11 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Completion prompt name must be a non-empty string.');
 
-        (new ServerBuilder())->addPromptCompletion('', 'tone', static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]));
+        (new ServerBuilder())->addPromptCompletion(
+            '',
+            'tone',
+            static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]),
+        );
     }
 
     public function testAddPromptCompletionRejectsAnEmptyArgumentName(): void
@@ -2027,7 +2109,11 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Completion argument name must be a non-empty string.');
 
-        (new ServerBuilder())->addPromptCompletion('compose', '', static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]));
+        (new ServerBuilder())->addPromptCompletion(
+            'compose',
+            '',
+            static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]),
+        );
     }
 
     public function testAddResourceTemplateCompletionRejectsAnEmptyTemplate(): void
@@ -2035,7 +2121,11 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Completion URI template must be a non-empty string.');
 
-        (new ServerBuilder())->addResourceTemplateCompletion('', 'path', static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]));
+        (new ServerBuilder())->addResourceTemplateCompletion(
+            '',
+            'path',
+            static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]),
+        );
     }
 
     public function testAddResourceTemplateCompletionRejectsAnEmptyArgumentName(): void
@@ -2043,7 +2133,11 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Completion argument name must be a non-empty string.');
 
-        (new ServerBuilder())->addResourceTemplateCompletion('file:///{path}', '', static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]));
+        (new ServerBuilder())->addResourceTemplateCompletion(
+            'file:///{path}',
+            '',
+            static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]),
+        );
     }
 
     public function testCustomToolStoreReplacesEntriesAndAdvertisesCapability(): void
@@ -2052,7 +2146,10 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             #[\Override]
             public function list(?Cursor $cursor): ListToolsResult
             {
-                return new ListToolsResult(tools: [new Tool(name: 'custom_tool', inputSchema: ['type' => 'object'])], ttlMs: 0, cacheScope: CacheScope::Private);
+                return new ListToolsResult(tools: [new Tool(
+                    name: 'custom_tool',
+                    inputSchema: ['type' => 'object'],
+                )], ttlMs: 0, cacheScope: CacheScope::Private);
             }
 
             #[\Override]
@@ -2062,9 +2159,10 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             }
         };
 
-        $capabilities = $this->discoverResultFor(
-            (new ServerBuilder())->setServerInfo('demo', '1.0.0')->setToolStore($store)->build(),
-        )->capabilities;
+        $capabilities = $this->discoverResultFor((new ServerBuilder())->setServerInfo(
+            'demo',
+            '1.0.0',
+        )->setToolStore($store)->build())->capabilities;
         self::assertSame([], $capabilities->tools);
 
         $storeOnly = $this->dispatch(
@@ -2107,7 +2205,10 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
         self::assertInstanceOf(ToolStoreInterface::class, $store);
 
-        self::assertSame(['entry_tool'], array_map(static fn(Tool $tool): string => $tool->name, $store->list(null)->tools));
+        self::assertSame(['entry_tool'], array_map(
+            static fn(Tool $tool): string => $tool->name,
+            $store->list(null)->tools,
+        ));
     }
 
     public function testToolStoreReturnsTheSuppliedStoreUntouched(): void
@@ -2198,14 +2299,21 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
     public function testSubscriptionsAreNotServedUntilAStoreIsRegistered(): void
     {
-        $capabilities = $this->discoverResultFor(
-            (new ServerBuilder())
-                ->setServerInfo('demo', '1.0.0')
-                ->addTool(new Tool(name: 't', inputSchema: ['type' => 'object']), static fn(?array $a, $c): CallToolResult => new CallToolResult(content: []))
-                ->build(),
-        )->capabilities;
+        $capabilities = $this->discoverResultFor((new ServerBuilder())
+            ->setServerInfo('demo', '1.0.0')
+            ->addTool(new Tool(
+                name: 't',
+                inputSchema: ['type' => 'object'],
+            ), static fn(?array $a, $c): CallToolResult => new CallToolResult(
+                content: [],
+            ))
+            ->build())->capabilities;
 
-        self::assertSame([], $capabilities->tools, 'listChanged is a promise to deliver, so it needs a subscription store.');
+        self::assertSame(
+            [],
+            $capabilities->tools,
+            'listChanged is a promise to deliver, so it needs a subscription store.',
+        );
     }
 
     public function testAdvertisesListChangedOnlyForFeaturesWhoseStoreCanReportChanges(): void
@@ -2213,7 +2321,12 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->setSubscriptionStore(new SubscriptionStore(toolsListChanged: true, promptsListChanged: true))
-            ->addTool(new Tool(name: 't', inputSchema: ['type' => 'object']), static fn(?array $a, $c): CallToolResult => new CallToolResult(content: []))
+            ->addTool(new Tool(
+                name: 't',
+                inputSchema: ['type' => 'object'],
+            ), static fn(?array $a, $c): CallToolResult => new CallToolResult(
+                content: [],
+            ))
             ->setPromptStore(self::createStub(PromptStoreInterface::class))
             ->build()
         ;
@@ -2226,11 +2339,12 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
     public function testEachFeatureReadsItsOwnSlotOfWhatTheSubscriptionStoreHonours(): void
     {
-        $capabilities = $this->discoverResultFor(
-            self::registerFeatureTriples((new ServerBuilder())->setServerInfo('demo', '1.0.0'))
-                ->setSubscriptionStore(new SubscriptionStore(promptsListChanged: true))
-                ->build(),
-        )->capabilities;
+        $capabilities = $this->discoverResultFor(self::registerFeatureTriples((new ServerBuilder())->setServerInfo(
+            'demo',
+            '1.0.0',
+        ))
+            ->setSubscriptionStore(new SubscriptionStore(promptsListChanged: true))
+            ->build())->capabilities;
 
         self::assertSame(['listChanged' => true], $capabilities->prompts);
         self::assertSame([], $capabilities->tools, 'A type the subscription store will not honour is not advertised.');
@@ -2239,13 +2353,11 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
     public function testToolListChangedNeedsAToolStoreThatReportsChanges(): void
     {
-        $capabilities = $this->discoverResultFor(
-            (new ServerBuilder())
-                ->setServerInfo('demo', '1.0.0')
-                ->setToolStore(new PagedToolStore([[new Tool(name: 't', inputSchema: ['type' => 'object'])]]))
-                ->setSubscriptionStore(new SubscriptionStore(toolsListChanged: true))
-                ->build(),
-        )->capabilities;
+        $capabilities = $this->discoverResultFor((new ServerBuilder())
+            ->setServerInfo('demo', '1.0.0')
+            ->setToolStore(new PagedToolStore([[new Tool(name: 't', inputSchema: ['type' => 'object'])]]))
+            ->setSubscriptionStore(new SubscriptionStore(toolsListChanged: true))
+            ->build())->capabilities;
 
         self::assertSame([], $capabilities->tools, 'A store that cannot report changes must not claim listChanged.');
     }
@@ -2298,7 +2410,11 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             static fn(ServerBuilder $b): ServerBuilder => $b
                 ->addResourceTemplate(
                     new ResourceTemplate(name: 'logs', uriTemplate: 'file:///logs/{name}'),
-                    static fn(string $uri, array $vars, ServerContext $c): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
+                    static fn(string $uri, array $vars, ServerContext $c): ReadResourceResult => new ReadResourceResult(
+                        contents: [],
+                        ttlMs: 0,
+                        cacheScope: CacheScope::Private,
+                    ),
                 ),
         ];
 
@@ -2347,7 +2463,11 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             ->setServerInfo('demo', '1.0.0')
             ->addResource(
                 new Resource(name: 'r', uri: 'mem://r'),
-                static fn(string $uri, $c): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
+                static fn(string $uri, $c): ReadResourceResult => new ReadResourceResult(
+                    contents: [],
+                    ttlMs: 0,
+                    cacheScope: CacheScope::Private,
+                ),
             )
             ->setResourceTemplateStore(self::createStub(ResourceTemplateStoreInterface::class))
             ->setSubscriptionStore(new SubscriptionStore(resourcesListChanged: true))
@@ -2367,7 +2487,11 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             ->setResourceStore(self::createStub(ResourceStoreInterface::class))
             ->addResourceTemplate(
                 new ResourceTemplate(name: 'logs', uriTemplate: 'file:///logs/{name}'),
-                static fn(string $uri, array $vars, ServerContext $c): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
+                static fn(string $uri, array $vars, ServerContext $c): ReadResourceResult => new ReadResourceResult(
+                    contents: [],
+                    ttlMs: 0,
+                    cacheScope: CacheScope::Private,
+                ),
             )
             ->setSubscriptionStore(new SubscriptionStore(resourcesListChanged: true))
             ->build()
@@ -2402,7 +2526,11 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             static fn(ServerBuilder $b): ServerBuilder => $b
                 ->addResource(
                     new Resource(name: 'r', uri: 'mem://r'),
-                    static fn(string $u, $c): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
+                    static fn(string $u, $c): ReadResourceResult => new ReadResourceResult(
+                        contents: [],
+                        ttlMs: 0,
+                        cacheScope: CacheScope::Private,
+                    ),
                 )
                 ->setResourceTemplateStore(self::createStub(ResourceTemplateStoreInterface::class)),
             ['listChanged' => true],
@@ -2413,7 +2541,11 @@ final class ServerBuilderTest extends AbstractMcpTestCase
                 ->setResourceStore(self::createStub(ResourceStoreInterface::class))
                 ->addResourceTemplate(
                     new ResourceTemplate(name: 'rt', uriTemplate: 'mem://rt/{x}'),
-                    static fn(string $u, array $bs, $c): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
+                    static fn(string $u, array $bs, $c): ReadResourceResult => new ReadResourceResult(
+                        contents: [],
+                        ttlMs: 0,
+                        cacheScope: CacheScope::Private,
+                    ),
                 ),
             ['listChanged' => true],
         ];
@@ -2445,7 +2577,10 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         $builder = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
             ->setSubscriptionStore($subscriptions)
-            ->addTool(new Tool(name: 'seed', inputSchema: ['type' => 'object']), static fn(?array $a, $c): CallToolResult => new CallToolResult(content: []))
+            ->addTool(new Tool(
+                name: 'seed',
+                inputSchema: ['type' => 'object'],
+            ), static fn(?array $a, $c): CallToolResult => new CallToolResult(content: []))
         ;
         $builder->build();
 
@@ -2540,11 +2675,12 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
     public function testACapabilityIsNotAdvertisedWhenTheSubscriptionStoreWillNotHonourIt(): void
     {
-        $capabilities = $this->discoverResultFor(
-            self::registerFeatureTriples((new ServerBuilder())->setServerInfo('demo', '1.0.0'))
-                ->setSubscriptionStore(new SubscriptionStore())
-                ->build(),
-        )->capabilities;
+        $capabilities = $this->discoverResultFor(self::registerFeatureTriples((new ServerBuilder())->setServerInfo(
+            'demo',
+            '1.0.0',
+        ))
+            ->setSubscriptionStore(new SubscriptionStore())
+            ->build())->capabilities;
 
         self::assertSame([], $capabilities->tools);
         self::assertSame([], $capabilities->prompts);
@@ -2591,13 +2727,33 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
         yield 'setCacheScope' => [static fn(ServerBuilder $b): ServerBuilder => $b->setCacheScope(CacheScope::Public)];
 
-        yield 'addTool' => [static fn(ServerBuilder $b): ServerBuilder => $b->addTool(new Tool(name: 't', inputSchema: ['type' => 'object']), static fn(?array $a, $c): CallToolResult => new CallToolResult(content: []))];
+        yield 'addTool' => [static fn(ServerBuilder $b): ServerBuilder => $b->addTool(
+            new Tool(name: 't', inputSchema: ['type' => 'object']),
+            static fn(?array $a, $c): CallToolResult => new CallToolResult(content: []),
+        )];
 
-        yield 'addPrompt' => [static fn(ServerBuilder $b): ServerBuilder => $b->addPrompt(new Prompt(name: 'p'), static fn(?array $a, $c): GetPromptResult => new GetPromptResult(messages: []))];
+        yield 'addPrompt' => [static fn(ServerBuilder $b): ServerBuilder => $b->addPrompt(
+            new Prompt(name: 'p'),
+            static fn(?array $a, $c): GetPromptResult => new GetPromptResult(messages: []),
+        )];
 
-        yield 'addResource' => [static fn(ServerBuilder $b): ServerBuilder => $b->addResource(new Resource(name: 'r', uri: 'mem://r'), static fn(string $u, $c): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private))];
+        yield 'addResource' => [static fn(ServerBuilder $b): ServerBuilder => $b->addResource(
+            new Resource(name: 'r', uri: 'mem://r'),
+            static fn(string $u, $c): ReadResourceResult => new ReadResourceResult(
+                contents: [],
+                ttlMs: 0,
+                cacheScope: CacheScope::Private,
+            ),
+        )];
 
-        yield 'addResourceTemplate' => [static fn(ServerBuilder $b): ServerBuilder => $b->addResourceTemplate(new ResourceTemplate(name: 'rt', uriTemplate: 'mem://rt/{x}'), static fn(string $u, array $bs, $c): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private))];
+        yield 'addResourceTemplate' => [static fn(ServerBuilder $b): ServerBuilder => $b->addResourceTemplate(
+            new ResourceTemplate(name: 'rt', uriTemplate: 'mem://rt/{x}'),
+            static fn(string $u, array $bs, $c): ReadResourceResult => new ReadResourceResult(
+                contents: [],
+                ttlMs: 0,
+                cacheScope: CacheScope::Private,
+            ),
+        )];
 
         yield 'setToolStore' => [static fn(ServerBuilder $b): ServerBuilder => $b->setToolStore(new ToolStore())];
 
@@ -2611,21 +2767,46 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
         yield 'setCompletionStore' => [static fn(ServerBuilder $b): ServerBuilder => $b->setCompletionStore(new CompletionStore())];
 
-        yield 'addPromptCompletion' => [static fn(ServerBuilder $b): ServerBuilder => $b->addPromptCompletion('compose', 'tone', static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]))];
+        yield 'addPromptCompletion' => [static fn(ServerBuilder $b): ServerBuilder => $b->addPromptCompletion(
+            'compose',
+            'tone',
+            static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]),
+        )];
 
-        yield 'addResourceTemplateCompletion' => [static fn(ServerBuilder $b): ServerBuilder => $b->addResourceTemplateCompletion('file:///{path}', 'path', static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]))];
+        yield 'addResourceTemplateCompletion' => [static fn(ServerBuilder $b): ServerBuilder => $b->addResourceTemplateCompletion(
+            'file:///{path}',
+            'path',
+            static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]),
+        )];
 
-        yield 'register' => [static fn(ServerBuilder $b): ServerBuilder => $b->register(new #[AsServer(name: 'late', version: '1.0.0')] class {})];
+        yield 'register' => [static fn(ServerBuilder $b): ServerBuilder => $b->register(
+            new #[AsServer(name: 'late', version: '1.0.0')]
+            class {},
+        )];
 
-        yield 'addRequestHandler' => [static fn(ServerBuilder $b): ServerBuilder => $b->addRequestHandler(TestClientRequest::class, new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult()))];
+        yield 'addRequestHandler' => [static fn(ServerBuilder $b): ServerBuilder => $b->addRequestHandler(
+            TestClientRequest::class,
+            new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult()),
+        )];
 
-        yield 'replaceRequestHandler' => [static fn(ServerBuilder $b): ServerBuilder => $b->replaceRequestHandler('tools/list', new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult()))];
+        yield 'replaceRequestHandler' => [static fn(ServerBuilder $b): ServerBuilder => $b->replaceRequestHandler(
+            'tools/list',
+            new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult()),
+        )];
 
-        yield 'addNotificationHandler' => [static fn(ServerBuilder $b): ServerBuilder => $b->addNotificationHandler(TestNotification::class, new ClosureNotificationHandler(static function (): void {}))];
+        yield 'addNotificationHandler' => [static fn(ServerBuilder $b): ServerBuilder => $b->addNotificationHandler(
+            TestNotification::class,
+            new ClosureNotificationHandler(static function (): void {}),
+        )];
 
-        yield 'enableExtension' => [static fn(ServerBuilder $b): ServerBuilder => $b->enableExtension(new StubServerExtension(identifier: 'com.example/feature'))];
+        yield 'enableExtension' => [static fn(ServerBuilder $b): ServerBuilder => $b->enableExtension(new StubServerExtension(
+            identifier: 'com.example/feature',
+        ))];
 
-        yield 'replaceNotificationHandler' => [static fn(ServerBuilder $b): ServerBuilder => $b->replaceNotificationHandler('notifications/cancelled', new ClosureNotificationHandler(static function (): void {}))];
+        yield 'replaceNotificationHandler' => [static fn(ServerBuilder $b): ServerBuilder => $b->replaceNotificationHandler(
+            'notifications/cancelled',
+            new ClosureNotificationHandler(static function (): void {}),
+        )];
     }
 
     public function testBuildingTwiceIsRefused(): void
@@ -2814,7 +2995,11 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         yield 'addResource' => [
             static fn(ServerBuilder $b): ServerBuilder => $b->addResource(
                 new Resource(name: 'Project Files', uri: 'mem://r'),
-                static fn(string $u, ServerContext $c): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
+                static fn(string $u, ServerContext $c): ReadResourceResult => new ReadResourceResult(
+                    contents: [],
+                    ttlMs: 0,
+                    cacheScope: CacheScope::Private,
+                ),
             ),
             'resource "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.',
         ];
@@ -2822,7 +3007,11 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         yield 'addResourceTemplate' => [
             static fn(ServerBuilder $b): ServerBuilder => $b->addResourceTemplate(
                 new ResourceTemplate(name: 'Project Files', uriTemplate: 'mem://{path}'),
-                static fn(string $u, array $bindings, ServerContext $c): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
+                static fn(string $u, array $bindings, ServerContext $c): ReadResourceResult => new ReadResourceResult(
+                    contents: [],
+                    ttlMs: 0,
+                    cacheScope: CacheScope::Private,
+                ),
             ),
             'resource template "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.',
         ];
@@ -2847,7 +3036,11 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     {
         yield 'addTool' => [
             static fn(ServerBuilder $b): ServerBuilder => $b->addTool(
-                new Tool(name: 't', inputSchema: ['type' => 'object'], icons: [new Icon(src: 'ftp://example.com/icon.png')]),
+                new Tool(
+                    name: 't',
+                    inputSchema: ['type' => 'object'],
+                    icons: [new Icon(src: 'ftp://example.com/icon.png')],
+                ),
                 static fn(?array $a, ServerContext $c): CallToolResult => new CallToolResult(content: []),
             ),
             'tool "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.',
@@ -2864,28 +3057,48 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         yield 'addResource' => [
             static fn(ServerBuilder $b): ServerBuilder => $b->addResource(
                 new Resource(name: 'r', uri: 'mem://r', icons: [new Icon(src: 'ftp://example.com/icon.png')]),
-                static fn(string $u, ServerContext $c): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
+                static fn(string $u, ServerContext $c): ReadResourceResult => new ReadResourceResult(
+                    contents: [],
+                    ttlMs: 0,
+                    cacheScope: CacheScope::Private,
+                ),
             ),
             'resource "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.',
         ];
 
         yield 'addResourceTemplate' => [
             static fn(ServerBuilder $b): ServerBuilder => $b->addResourceTemplate(
-                new ResourceTemplate(name: 't', uriTemplate: 'mem://{path}', icons: [new Icon(src: 'ftp://example.com/icon.png')]),
-                static fn(string $u, array $bindings, ServerContext $c): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
+                new ResourceTemplate(
+                    name: 't',
+                    uriTemplate: 'mem://{path}',
+                    icons: [new Icon(src: 'ftp://example.com/icon.png')],
+                ),
+                static fn(string $u, array $bindings, ServerContext $c): ReadResourceResult => new ReadResourceResult(
+                    contents: [],
+                    ttlMs: 0,
+                    cacheScope: CacheScope::Private,
+                ),
             ),
             'resource template "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.',
         ];
 
         yield 'setServerInfo' => [
-            static fn(ServerBuilder $b): ServerBuilder => $b->setServerInfo('demo', '1.0.0', icons: [new Icon(src: 'ftp://example.com/icon.png')]),
+            static fn(ServerBuilder $b): ServerBuilder => $b->setServerInfo(
+                'demo',
+                '1.0.0',
+                icons: [new Icon(src: 'ftp://example.com/icon.png')],
+            ),
             'serverInfo "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.',
         ];
     }
 
     public function testANonConservativeAsServerIconSrcIsRefusedAtBuild(): void
     {
-        $source = new #[AsServer(name: 'demo', version: '1.0.0', icons: [new Icon(src: 'ftp://example.com/icon.png')])] class {
+        $source = new #[AsServer(
+            name: 'demo',
+            version: '1.0.0',
+            icons: [new Icon(src: 'ftp://example.com/icon.png')],
+        )] class {
             #[AsTool(name: 'noop')]
             public function noop(): CallToolResult
             {
@@ -3045,7 +3258,9 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             #[\Override]
             public function list(?Cursor $cursor): ListPromptsResult
             {
-                return new ListPromptsResult(prompts: [new Prompt(name: 'custom_prompt')], ttlMs: 0, cacheScope: CacheScope::Private);
+                return new ListPromptsResult(prompts: [
+                    new Prompt(name: 'custom_prompt'),
+                ], ttlMs: 0, cacheScope: CacheScope::Private);
             }
 
             #[\Override]
@@ -3055,9 +3270,10 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             }
         };
 
-        $capabilities = $this->discoverResultFor(
-            (new ServerBuilder())->setServerInfo('demo', '1.0.0')->setPromptStore($store)->build(),
-        )->capabilities;
+        $capabilities = $this->discoverResultFor((new ServerBuilder())->setServerInfo(
+            'demo',
+            '1.0.0',
+        )->setPromptStore($store)->build())->capabilities;
         self::assertSame([], $capabilities->prompts);
 
         $storeOnly = $this->dispatch(
@@ -3065,7 +3281,10 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             'prompts/list',
         );
         self::assertInstanceOf(ListPromptsResult::class, $storeOnly);
-        self::assertSame(['custom_prompt'], array_map(static fn(Prompt $prompt): string => $prompt->name, $storeOnly->prompts));
+        self::assertSame(['custom_prompt'], array_map(
+            static fn(Prompt $prompt): string => $prompt->name,
+            $storeOnly->prompts,
+        ));
 
         $withEntry = $this->dispatch(
             (new ServerBuilder())
@@ -3079,7 +3298,10 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             'prompts/list',
         );
         self::assertInstanceOf(ListPromptsResult::class, $withEntry);
-        self::assertSame(['custom_prompt'], array_map(static fn(Prompt $prompt): string => $prompt->name, $withEntry->prompts));
+        self::assertSame(['custom_prompt'], array_map(
+            static fn(Prompt $prompt): string => $prompt->name,
+            $withEntry->prompts,
+        ));
     }
 
     public function testCustomResourceStoreReplacesEntriesAndAdvertisesCapability(): void
@@ -3088,19 +3310,24 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             #[\Override]
             public function list(?Cursor $cursor): ListResourcesResult
             {
-                return new ListResourcesResult(resources: [new Resource(name: 'custom', uri: 'mem://custom')], ttlMs: 0, cacheScope: CacheScope::Private);
+                return new ListResourcesResult(resources: [
+                    new Resource(name: 'custom', uri: 'mem://custom'),
+                ], ttlMs: 0, cacheScope: CacheScope::Private);
             }
 
             #[\Override]
             public function read(string $uri, ServerContext $context): ReadResourceResult
             {
-                return new ReadResourceResult(contents: [new TextResourceContents(uri: $uri, text: 'custom-body')], ttlMs: 0, cacheScope: CacheScope::Private);
+                return new ReadResourceResult(contents: [
+                    new TextResourceContents(uri: $uri, text: 'custom-body'),
+                ], ttlMs: 0, cacheScope: CacheScope::Private);
             }
         };
 
-        $capabilities = $this->discoverResultFor(
-            (new ServerBuilder())->setServerInfo('demo', '1.0.0')->setResourceStore($store)->build(),
-        )->capabilities;
+        $capabilities = $this->discoverResultFor((new ServerBuilder())->setServerInfo(
+            'demo',
+            '1.0.0',
+        )->setResourceStore($store)->build())->capabilities;
         self::assertSame([], $capabilities->resources);
 
         $storeOnly = $this->dispatch(
@@ -3108,39 +3335,60 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             'resources/list',
         );
         self::assertInstanceOf(ListResourcesResult::class, $storeOnly);
-        self::assertSame(['mem://custom'], array_map(static fn(Resource $resource): string => $resource->uri, $storeOnly->resources));
+        self::assertSame(
+            ['mem://custom'],
+            array_map(static fn(Resource $resource): string => $resource->uri, $storeOnly->resources),
+        );
 
         $withEntry = $this->dispatch(
             (new ServerBuilder())
                 ->setServerInfo('demo', '1.0.0')
                 ->addResource(
                     new Resource(name: 'entry', uri: 'mem://entry'),
-                    static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
+                    static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult(
+                        contents: [],
+                        ttlMs: 0,
+                        cacheScope: CacheScope::Private,
+                    ),
                 )
                 ->setResourceStore($store)
                 ->build(),
             'resources/list',
         );
         self::assertInstanceOf(ListResourcesResult::class, $withEntry);
-        self::assertSame(['mem://custom'], array_map(static fn(Resource $resource): string => $resource->uri, $withEntry->resources));
+        self::assertSame(
+            ['mem://custom'],
+            array_map(static fn(Resource $resource): string => $resource->uri, $withEntry->resources),
+        );
 
         $alongsideTemplates = $this->dispatch(
             (new ServerBuilder())
                 ->setServerInfo('demo', '1.0.0')
                 ->addResource(
                     new Resource(name: 'entry', uri: 'mem://entry'),
-                    static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
+                    static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult(
+                        contents: [],
+                        ttlMs: 0,
+                        cacheScope: CacheScope::Private,
+                    ),
                 )
                 ->addResourceTemplate(
                     new ResourceTemplate(name: 'files', uriTemplate: 'mem://files/{id}'),
-                    static fn(string $uri, array $bindings, $ctx): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
+                    static fn(string $uri, array $bindings, $ctx): ReadResourceResult => new ReadResourceResult(
+                        contents: [],
+                        ttlMs: 0,
+                        cacheScope: CacheScope::Private,
+                    ),
                 )
                 ->setResourceStore($store)
                 ->build(),
             'resources/list',
         );
         self::assertInstanceOf(ListResourcesResult::class, $alongsideTemplates);
-        self::assertSame(['mem://custom'], array_map(static fn(Resource $resource): string => $resource->uri, $alongsideTemplates->resources));
+        self::assertSame(['mem://custom'], array_map(
+            static fn(Resource $resource): string => $resource->uri,
+            $alongsideTemplates->resources,
+        ));
     }
 
     public function testCustomResourceTemplateStoreReplacesEntriesAndAdvertisesCapability(): void
@@ -3149,19 +3397,24 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             #[\Override]
             public function list(?Cursor $cursor): ListResourceTemplatesResult
             {
-                return new ListResourceTemplatesResult(resourceTemplates: [new ResourceTemplate(name: 'custom', uriTemplate: 'mem://{id}')], ttlMs: 0, cacheScope: CacheScope::Private);
+                return new ListResourceTemplatesResult(resourceTemplates: [
+                    new ResourceTemplate(name: 'custom', uriTemplate: 'mem://{id}'),
+                ], ttlMs: 0, cacheScope: CacheScope::Private);
             }
 
             #[\Override]
             public function read(string $uri, ServerContext $context): ReadResourceResult
             {
-                return new ReadResourceResult(contents: [new TextResourceContents(uri: $uri, text: 'custom-body')], ttlMs: 0, cacheScope: CacheScope::Private);
+                return new ReadResourceResult(contents: [
+                    new TextResourceContents(uri: $uri, text: 'custom-body'),
+                ], ttlMs: 0, cacheScope: CacheScope::Private);
             }
         };
 
-        $capabilities = $this->discoverResultFor(
-            (new ServerBuilder())->setServerInfo('demo', '1.0.0')->setResourceTemplateStore($store)->build(),
-        )->capabilities;
+        $capabilities = $this->discoverResultFor((new ServerBuilder())->setServerInfo(
+            'demo',
+            '1.0.0',
+        )->setResourceTemplateStore($store)->build())->capabilities;
         self::assertSame([], $capabilities->resources);
 
         $storeOnly = $this->dispatch(
@@ -3169,21 +3422,37 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             'resources/templates/list',
         );
         self::assertInstanceOf(ListResourceTemplatesResult::class, $storeOnly);
-        self::assertSame(['mem://{id}'], array_map(static fn(ResourceTemplate $template): string => $template->uriTemplate, $storeOnly->resourceTemplates));
+        self::assertSame(
+            ['mem://{id}'],
+            array_map(
+                static fn(ResourceTemplate $template): string => $template->uriTemplate,
+                $storeOnly->resourceTemplates,
+            ),
+        );
 
         $withEntry = $this->dispatch(
             (new ServerBuilder())
                 ->setServerInfo('demo', '1.0.0')
                 ->addResourceTemplate(
                     new ResourceTemplate(name: 'entry', uriTemplate: 'mem://entry/{id}'),
-                    static fn(string $uri, array $bindings, $ctx): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
+                    static fn(string $uri, array $bindings, $ctx): ReadResourceResult => new ReadResourceResult(
+                        contents: [],
+                        ttlMs: 0,
+                        cacheScope: CacheScope::Private,
+                    ),
                 )
                 ->setResourceTemplateStore($store)
                 ->build(),
             'resources/templates/list',
         );
         self::assertInstanceOf(ListResourceTemplatesResult::class, $withEntry);
-        self::assertSame(['mem://{id}'], array_map(static fn(ResourceTemplate $template): string => $template->uriTemplate, $withEntry->resourceTemplates));
+        self::assertSame(
+            ['mem://{id}'],
+            array_map(
+                static fn(ResourceTemplate $template): string => $template->uriTemplate,
+                $withEntry->resourceTemplates,
+            ),
+        );
     }
 
     /**
@@ -3224,7 +3493,11 @@ final class ServerBuilderTest extends AbstractMcpTestCase
                 'method' => 'subscriptions/listen',
                 'params' => [
                     '_meta' => RequestMetaObjectFactory::shape(),
-                    'notifications' => ['toolsListChanged' => true, 'promptsListChanged' => true, 'resourcesListChanged' => true],
+                    'notifications' => [
+                        'toolsListChanged' => true,
+                        'promptsListChanged' => true,
+                        'resourcesListChanged' => true,
+                    ],
                 ],
             ]);
         });
@@ -3284,17 +3557,17 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         return new StubDecoratingServerExtension(
             identifier: $identifier,
             requestDecorators: [
-                'tools/call' => static fn(RequestHandlerInterface $inner): RequestHandlerInterface => new ClosureRequestHandler(
-                    static function (JsonRpcRequest $request, AbstractContext $context) use ($inner, $marker): Result {
-                        \assert($context instanceof ServerContext);
-                        $result = $inner->handle($request, $context);
-                        \assert($result instanceof CallToolResult);
-                        $text = $result->content[0] ?? null;
-                        \assert($text instanceof TextContent);
+                'tools/call' => static fn(RequestHandlerInterface $inner): RequestHandlerInterface => new ClosureRequestHandler(static function (JsonRpcRequest $request, AbstractContext $context) use ($inner, $marker): Result {
+                    \assert($context instanceof ServerContext);
+                    $result = $inner->handle($request, $context);
+                    \assert($result instanceof CallToolResult);
+                    $text = $result->content[0] ?? null;
+                    \assert($text instanceof TextContent);
 
-                        return new CallToolResult(content: [new TextContent(text: \sprintf('%s(%s)', $marker, $text->text))]);
-                    },
-                ),
+                    return new CallToolResult(
+                        content: [new TextContent(text: \sprintf('%s(%s)', $marker, $text->text))],
+                    );
+                }),
             ],
         );
     }
@@ -3402,11 +3675,19 @@ final class ServerBuilderTest extends AbstractMcpTestCase
                 )
                 ->addResource(
                     new Resource(name: $name, uri: \sprintf('mem://%s', $name)),
-                    static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
+                    static fn(string $uri, $ctx): ReadResourceResult => new ReadResourceResult(
+                        contents: [],
+                        ttlMs: 0,
+                        cacheScope: CacheScope::Private,
+                    ),
                 )
                 ->addResourceTemplate(
                     new ResourceTemplate(name: $name, uriTemplate: \sprintf('mem://%s/{path}', $name)),
-                    static fn(string $uri, array $bindings, $ctx): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
+                    static fn(string $uri, array $bindings, $ctx): ReadResourceResult => new ReadResourceResult(
+                        contents: [],
+                        ttlMs: 0,
+                        cacheScope: CacheScope::Private,
+                    ),
                 )
             ;
         }

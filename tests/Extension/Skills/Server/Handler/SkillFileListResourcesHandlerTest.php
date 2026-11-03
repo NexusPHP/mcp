@@ -74,7 +74,9 @@ final class SkillFileListResourcesHandlerTest extends AbstractMcpTestCase
     public function testASkillCursorContinuesThroughTheSkillFilesWithoutReachingTheInnerHandler(): void
     {
         $handler = new SkillFileListResourcesHandler(
-            new ClosureRequestHandler(static fn(): Result => self::fail('The inner handler must not run for a skill cursor.')),
+            new ClosureRequestHandler(
+                static fn(): Result => self::fail('The inner handler must not run for a skill cursor.'),
+            ),
             $this->buildStore(pageSize: 1, ttlMs: 60_000, cacheScope: CacheScope::Public),
         );
         $context = $this->buildContext();
@@ -95,7 +97,10 @@ final class SkillFileListResourcesHandlerTest extends AbstractMcpTestCase
     public function testAServerHoldingNoSkillFileListsItsOtherResourcesAlone(): void
     {
         $inner = new ListResourcesResult([new Resource('notes', 'file:///notes.txt')], 300, CacheScope::Public);
-        $handler = new SkillFileListResourcesHandler($this->answerWith($inner), new SkillStore(ttlMs: 300, cacheScope: CacheScope::Public));
+        $handler = new SkillFileListResourcesHandler(
+            $this->answerWith($inner),
+            new SkillStore(ttlMs: 300, cacheScope: CacheScope::Public),
+        );
 
         $result = $handler->handle($this->buildRequest(), $this->buildContext());
 
@@ -107,7 +112,12 @@ final class SkillFileListResourcesHandlerTest extends AbstractMcpTestCase
     {
         $request = $this->buildRequest('file:///a.txt');
         $context = $this->buildContext();
-        $inner = new ListResourcesResult([new Resource('notes', 'file:///notes.txt')], 0, CacheScope::Private, new Cursor('file:///notes.txt'));
+        $inner = new ListResourcesResult(
+            [new Resource('notes', 'file:///notes.txt')],
+            0,
+            CacheScope::Private,
+            new Cursor('file:///notes.txt'),
+        );
         $handler = new SkillFileListResourcesHandler(
             new ClosureRequestHandler(static function (JsonRpcRequest $seen, AbstractContext $seenContext) use ($request, $context, $inner): Result {
                 self::assertSame($request, $seen);
@@ -159,13 +169,41 @@ final class SkillFileListResourcesHandlerTest extends AbstractMcpTestCase
      */
     public static function provideTheJoinedPageTakesTheStricterCachePolicyCases(): iterable
     {
-        yield 'the skill files expire sooner' => [300, CacheScope::Public, 60, CacheScope::Public, 60, CacheScope::Public];
+        yield 'the skill files expire sooner' => [
+            300,
+            CacheScope::Public,
+            60,
+            CacheScope::Public,
+            60,
+            CacheScope::Public,
+        ];
 
-        yield 'the other resources expire sooner' => [60, CacheScope::Public, 300, CacheScope::Public, 60, CacheScope::Public];
+        yield 'the other resources expire sooner' => [
+            60,
+            CacheScope::Public,
+            300,
+            CacheScope::Public,
+            60,
+            CacheScope::Public,
+        ];
 
-        yield 'only the other resources are private' => [0, CacheScope::Private, 0, CacheScope::Public, 0, CacheScope::Private];
+        yield 'only the other resources are private' => [
+            0,
+            CacheScope::Private,
+            0,
+            CacheScope::Public,
+            0,
+            CacheScope::Private,
+        ];
 
-        yield 'only the skill files are private' => [0, CacheScope::Public, 0, CacheScope::Private, 0, CacheScope::Private];
+        yield 'only the skill files are private' => [
+            0,
+            CacheScope::Public,
+            0,
+            CacheScope::Private,
+            0,
+            CacheScope::Private,
+        ];
 
         yield 'both are private' => [0, CacheScope::Private, 0, CacheScope::Private, 0, CacheScope::Private];
     }
@@ -188,7 +226,10 @@ final class SkillFileListResourcesHandlerTest extends AbstractMcpTestCase
             $handler->handle($this->buildRequest(self::PREFIX), $this->buildContext());
             self::fail('The cursor was not refused.');
         } catch (InvalidCursorException $e) {
-            self::assertSame('Cursor "io.modelcontextprotocol/skills:" does not match any registered entry.', $e->getMessage());
+            self::assertSame(
+                'Cursor "io.modelcontextprotocol/skills:" does not match any registered entry.',
+                $e->getMessage(),
+            );
             self::assertSame(7, $e->requestId?->id);
         }
     }
@@ -197,8 +238,11 @@ final class SkillFileListResourcesHandlerTest extends AbstractMcpTestCase
      * @param int<1, max> $pageSize
      * @param int<0, max> $ttlMs
      */
-    private function buildStore(int $pageSize = 50, int $ttlMs = 0, CacheScope $cacheScope = CacheScope::Private): SkillStore
-    {
+    private function buildStore(
+        int $pageSize = 50,
+        int $ttlMs = 0,
+        CacheScope $cacheScope = CacheScope::Private,
+    ): SkillStore {
         return new SkillStore(
             [new DirectorySkill('git-workflow', self::FIXTURES.'/git-workflow')],
             pageSize: $pageSize,
@@ -224,7 +268,9 @@ final class SkillFileListResourcesHandlerTest extends AbstractMcpTestCase
     {
         return ListResourcesRequest::fromArray([
             'id' => 7,
-            'params' => ['_meta' => RequestMetaObjectFactory::shape()] + (null === $cursor ? [] : ['cursor' => $cursor]),
+            'params' => [
+                '_meta' => RequestMetaObjectFactory::shape(),
+            ] + (null === $cursor ? [] : ['cursor' => $cursor]),
         ]);
     }
 

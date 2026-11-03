@@ -307,7 +307,10 @@ final class SseFrameParserTest extends AbstractMcpTestCase
     {
         $parser = new SseFrameParser(maxFrameBytes: 32);
 
-        self::assertSame([['message', 'ok']], $this->flatten($parser->feed("data: ok\n\ndata: ".str_repeat('a', 15)."\n")));
+        self::assertSame(
+            [['message', 'ok']],
+            $this->flatten($parser->feed("data: ok\n\ndata: ".str_repeat('a', 15)."\n")),
+        );
 
         $this->expectException(ResponseTooLargeException::class);
         $this->expectExceptionMessageIs('The response exceeded the 32 byte limit the client accepts.');

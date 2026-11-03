@@ -74,7 +74,15 @@ final class ValidationErrorFormatterTest extends AbstractMcpTestCase
             ['"point" is missing the required "longitude" key.'],
             $this->format(
                 ['point' => ['latitude' => 1.5]],
-                ['type' => 'object', 'properties' => ['point' => ['type' => 'object', 'required' => ['latitude', 'longitude']]]],
+                [
+                    'type' => 'object',
+                    'properties' => [
+                        'point' => [
+                            'type' => 'object',
+                            'required' => ['latitude', 'longitude'],
+                        ],
+                    ],
+                ],
             ),
         );
     }
@@ -161,7 +169,15 @@ final class ValidationErrorFormatterTest extends AbstractMcpTestCase
             ['"point" carries the undeclared "x" key.'],
             $this->format(
                 ['point' => ['x' => 1]],
-                ['type' => 'object', 'properties' => ['point' => ['type' => 'object', 'additionalProperties' => false]]],
+                [
+                    'type' => 'object',
+                    'properties' => [
+                        'point' => [
+                            'type' => 'object',
+                            'additionalProperties' => false,
+                        ],
+                    ],
+                ],
             ),
         );
     }
@@ -172,7 +188,15 @@ final class ValidationErrorFormatterTest extends AbstractMcpTestCase
             ['"point.latitude" must be a number, string given.'],
             $this->format(
                 ['point' => ['latitude' => 'x']],
-                ['type' => 'object', 'properties' => ['point' => ['type' => 'object', 'properties' => ['latitude' => ['type' => 'number']]]]],
+                [
+                    'type' => 'object',
+                    'properties' => [
+                        'point' => [
+                            'type' => 'object',
+                            'properties' => ['latitude' => ['type' => 'number']],
+                        ],
+                    ],
+                ],
             ),
         );
     }
@@ -191,7 +215,15 @@ final class ValidationErrorFormatterTest extends AbstractMcpTestCase
             [['pointer' => '/point/latitude', 'message' => '"point.latitude" must be a number, string given.']],
             $this->describe(
                 ['point' => ['latitude' => 'north']],
-                ['type' => 'object', 'properties' => ['point' => ['type' => 'object', 'properties' => ['latitude' => ['type' => 'number']]]]],
+                [
+                    'type' => 'object',
+                    'properties' => [
+                        'point' => [
+                            'type' => 'object',
+                            'properties' => ['latitude' => ['type' => 'number']],
+                        ],
+                    ],
+                ],
             ),
         );
     }
@@ -213,7 +245,15 @@ final class ValidationErrorFormatterTest extends AbstractMcpTestCase
             [['pointer' => '/point', 'message' => '"point" is missing the required "longitude" key.']],
             $this->describe(
                 ['point' => ['latitude' => 1.5]],
-                ['type' => 'object', 'properties' => ['point' => ['type' => 'object', 'required' => ['latitude', 'longitude']]]],
+                [
+                    'type' => 'object',
+                    'properties' => [
+                        'point' => [
+                            'type' => 'object',
+                            'required' => ['latitude', 'longitude'],
+                        ],
+                    ],
+                ],
             ),
         );
     }

@@ -51,7 +51,10 @@ final class SkillClientTest extends AbstractMcpTestCase
     private const string MANIFEST_URI = self::ROOT.'/SKILL.md';
     private const string MANIFEST = "---\nname: refunds\ndescription: Process refunds.\nlicense: MIT\n---\n\n# Refunds\n";
     private const array FRONTMATTER = ['license' => 'MIT', 'description' => 'Process refunds.', 'name' => 'refunds'];
-    private const array SKILLS_DECLARED = ['resources' => [], 'extensions' => ['io.modelcontextprotocol/skills' => ['directoryRead' => true]]];
+    private const array SKILLS_DECLARED = [
+        'resources' => [],
+        'extensions' => ['io.modelcontextprotocol/skills' => ['directoryRead' => true]],
+    ];
     private const array ENTRY = [
         'uri' => self::MANIFEST_URI,
         'frontmatter' => ['name' => 'refunds', 'description' => 'Process refunds.'],
@@ -61,7 +64,13 @@ final class SkillClientTest extends AbstractMcpTestCase
     public function testListSkillsDiscoversTheServerOnceThenSendsTheCursor(): void
     {
         [$skills, $transport] = $this->buildSkillClient();
-        $page = ['resultType' => 'complete', 'skills' => [self::ENTRY], 'nextCursor' => 'next', 'ttlMs' => 0, 'cacheScope' => 'private'];
+        $page = [
+            'resultType' => 'complete',
+            'skills' => [self::ENTRY],
+            'nextCursor' => 'next',
+            'ttlMs' => 0,
+            'cacheScope' => 'private',
+        ];
 
         $first = async(static fn(): ListSkillsResult => $skills->listSkills());
         $this->respondToDiscover($transport, 0, self::SKILLS_DECLARED);
@@ -70,7 +79,10 @@ final class SkillClientTest extends AbstractMcpTestCase
         $result = $first->await();
         self::assertArrayNotHasKey('cursor', self::paramsOf($sent));
         self::assertInstanceOf(ListSkillsResult::class, $result);
-        self::assertSame(['refunds'], array_map(static fn(Skill $skill): string => $skill->frontmatter['name'], $result->skills));
+        self::assertSame(
+            ['refunds'],
+            array_map(static fn(Skill $skill): string => $skill->frontmatter['name'], $result->skills),
+        );
 
         $second = async(static fn(): ListSkillsResult => $skills->listSkills(new Cursor('next')));
         $sent = $this->respond($transport, 2, 'skills/list', $page);
@@ -88,7 +100,12 @@ final class SkillClientTest extends AbstractMcpTestCase
 
         $call = async(static fn(): Skill => $skills->getSkill(self::MANIFEST_URI));
         $this->respondToDiscover($transport, 0, self::SKILLS_DECLARED);
-        $sent = $this->respond($transport, 1, 'skills/get', ['resultType' => 'complete', 'skill' => self::ENTRY, 'ttlMs' => 0, 'cacheScope' => 'private']);
+        $sent = $this->respond($transport, 1, 'skills/get', [
+            'resultType' => 'complete',
+            'skill' => self::ENTRY,
+            'ttlMs' => 0,
+            'cacheScope' => 'private',
+        ]);
 
         $entry = $call->await();
         self::assertStringContainsString(
@@ -104,7 +121,12 @@ final class SkillClientTest extends AbstractMcpTestCase
 
         $call = async(static fn(): Skill => $skills->getSkill(self::MANIFEST_URI));
         $this->respondToDiscover($transport, 0, self::SKILLS_DECLARED);
-        $sent = $this->respond($transport, 1, 'skills/get', ['resultType' => 'complete', 'skill' => self::ENTRY, 'ttlMs' => 0, 'cacheScope' => 'private']);
+        $sent = $this->respond($transport, 1, 'skills/get', [
+            'resultType' => 'complete',
+            'skill' => self::ENTRY,
+            'ttlMs' => 0,
+            'cacheScope' => 'private',
+        ]);
 
         $entry = $call->await();
         self::assertSame(self::MANIFEST_URI, self::paramsOf($sent)['uri'] ?? null);
@@ -116,7 +138,10 @@ final class SkillClientTest extends AbstractMcpTestCase
     {
         [$skills, $transport] = $this->buildSkillClient();
 
-        $call = async(static fn(): ReadResourceDirectoryResult => $skills->readDirectory(self::ROOT, new Cursor('next')));
+        $call = async(static fn(): ReadResourceDirectoryResult => $skills->readDirectory(
+            self::ROOT,
+            new Cursor('next'),
+        ));
         $this->respondToDiscover($transport, 0, self::SKILLS_DECLARED);
         $sent = $this->respond($transport, 1, 'resources/directory/read', [
             'resultType' => 'complete',
@@ -129,7 +154,10 @@ final class SkillClientTest extends AbstractMcpTestCase
         self::assertSame(self::ROOT, self::paramsOf($sent)['uri'] ?? null);
         self::assertSame('next', self::paramsOf($sent)['cursor'] ?? null);
         self::assertInstanceOf(ReadResourceDirectoryResult::class, $result);
-        self::assertSame([self::MANIFEST_URI], array_map(static fn(Resource $resource): string => $resource->uri, $result->resources));
+        self::assertSame(
+            [self::MANIFEST_URI],
+            array_map(static fn(Resource $resource): string => $resource->uri, $result->resources),
+        );
     }
 
     /**
@@ -137,8 +165,11 @@ final class SkillClientTest extends AbstractMcpTestCase
      * @param array<string, mixed>         $capabilities
      */
     #[DataProvider('provideAMethodTheServerDidNotDeclareIsRefusedBeforeItIsSentCases')]
-    public function testAMethodTheServerDidNotDeclareIsRefusedBeforeItIsSent(\Closure $call, array $capabilities, string $method): void
-    {
+    public function testAMethodTheServerDidNotDeclareIsRefusedBeforeItIsSent(
+        \Closure $call,
+        array $capabilities,
+        string $method,
+    ): void {
         [$skills, $transport] = $this->buildSkillClient();
 
         $pending = async(static fn(): mixed => $call($skills));
@@ -149,7 +180,10 @@ final class SkillClientTest extends AbstractMcpTestCase
             self::fail('The call was not refused.');
         } catch (ServerCapabilityNotSupportedException $e) {
             self::assertSame(
-                \sprintf('Request method "%s" requires a server capability that was not advertised by server/discover. Check getServerCapabilities() before calling.', $method),
+                \sprintf(
+                    'Request method "%s" requires a server capability that was not advertised by server/discover. Check getServerCapabilities() before calling.',
+                    $method,
+                ),
                 $e->getMessage(),
             );
             self::assertCount(1, $transport->sent);
@@ -164,7 +198,9 @@ final class SkillClientTest extends AbstractMcpTestCase
         $list = static fn(SkillClient $skills): mixed => $skills->listSkills();
         $get = static fn(SkillClient $skills): mixed => $skills->getSkill(self::MANIFEST_URI);
         $read = static fn(SkillClient $skills): mixed => $skills->readDirectory(self::ROOT);
-        $declare = static fn(array $settings): array => ['extensions' => ['io.modelcontextprotocol/skills' => $settings]];
+        $declare = static fn(array $settings): array => ['extensions' => [
+            'io.modelcontextprotocol/skills' => $settings,
+        ]];
 
         yield 'skills/list without the extension' => [$list, ['resources' => []], 'skills/list'];
 
@@ -174,9 +210,17 @@ final class SkillClientTest extends AbstractMcpTestCase
 
         yield 'directory read left undeclared' => [$read, $declare([]), 'resources/directory/read'];
 
-        yield 'directory read declared off' => [$read, $declare(['directoryRead' => false]), 'resources/directory/read'];
+        yield 'directory read declared off' => [
+            $read,
+            $declare(['directoryRead' => false]),
+            'resources/directory/read',
+        ];
 
-        yield 'directory read declared with a value that is not true' => [$read, $declare(['directoryRead' => 'yes']), 'resources/directory/read'];
+        yield 'directory read declared with a value that is not true' => [
+            $read,
+            $declare(['directoryRead' => 'yes']),
+            'resources/directory/read',
+        ];
     }
 
     public function testAFileOfADynamicSkillIsReturnedAsServed(): void
@@ -200,10 +244,15 @@ final class SkillClientTest extends AbstractMcpTestCase
         $entry = self::entryListing($uri, $bytes);
 
         $call = async(static fn(): InputRequiredResult|string => $skills->readSkillFile($entry, $uri));
-        $this->respond($transport, 0, 'resources/read', self::read([
-            ['uri' => self::ROOT.'/other.bin', 'blob' => base64_encode('other')],
-            ['uri' => $uri, 'blob' => base64_encode($bytes)],
-        ]));
+        $this->respond(
+            $transport,
+            0,
+            'resources/read',
+            self::read([
+                ['uri' => self::ROOT.'/other.bin', 'blob' => base64_encode('other')],
+                ['uri' => $uri, 'blob' => base64_encode($bytes)],
+            ]),
+        );
 
         self::assertSame($bytes, $call->await());
     }
@@ -239,7 +288,10 @@ final class SkillClientTest extends AbstractMcpTestCase
         $this->respond($transport, 0, 'resources/read', $result);
 
         $this->expectException(SkillVerificationFailedException::class);
-        $this->expectExceptionMessageIs(\sprintf('Skill file "skill://refunds/notes.md" failed verification: it %s.', $reason));
+        $this->expectExceptionMessageIs(\sprintf(
+            'Skill file "skill://refunds/notes.md" failed verification: it %s.',
+            $reason,
+        ));
 
         $call->await();
     }
@@ -253,11 +305,20 @@ final class SkillClientTest extends AbstractMcpTestCase
 
         yield 'shorter than listed' => [self::textRead($uri, 'notes'), 'is 5 bytes where the manifest lists 6'];
 
-        yield 'longer than listed, the size being checked first' => [self::textRead($uri, 'notes!!'), 'is 7 bytes where the manifest lists 6'];
+        yield 'longer than listed, the size being checked first' => [
+            self::textRead($uri, 'notes!!'),
+            'is 7 bytes where the manifest lists 6',
+        ];
 
-        yield 'same size, other bytes' => [self::textRead($uri, 'notes?'), 'does not match the digest listed in the manifest'];
+        yield 'same size, other bytes' => [
+            self::textRead($uri, 'notes?'),
+            'does not match the digest listed in the manifest',
+        ];
 
-        yield 'no content under the URI' => [self::textRead(self::ROOT.'/other.md', 'notes!'), 'came back with no readable content'];
+        yield 'no content under the URI' => [
+            self::textRead(self::ROOT.'/other.md', 'notes!'),
+            'came back with no readable content',
+        ];
 
         yield 'no content at all' => [self::read([]), 'came back with no readable content'];
 
@@ -296,7 +357,11 @@ final class SkillClientTest extends AbstractMcpTestCase
     {
         [$skills, $transport] = $this->buildSkillClient();
         $entry = new Skill(self::MANIFEST_URI, self::FRONTMATTER, [
-            new SkillResource(self::MANIFEST_URI, SkillResource::computeDigest(self::MANIFEST), \strlen(self::MANIFEST)),
+            new SkillResource(
+                self::MANIFEST_URI,
+                SkillResource::computeDigest(self::MANIFEST),
+                \strlen(self::MANIFEST),
+            ),
         ]);
 
         $call = async(static fn(): InputRequiredResult|string => $skills->readSkillFile($entry, self::MANIFEST_URI));
@@ -315,7 +380,10 @@ final class SkillClientTest extends AbstractMcpTestCase
         $this->respond($transport, 0, 'resources/read', self::textRead(self::MANIFEST_URI, $served));
 
         $this->expectException(SkillVerificationFailedException::class);
-        $this->expectExceptionMessageIs(\sprintf('Skill file "skill://refunds/SKILL.md" failed verification: it %s.', $reason));
+        $this->expectExceptionMessageIs(\sprintf(
+            'Skill file "skill://refunds/SKILL.md" failed verification: it %s.',
+            $reason,
+        ));
 
         $call->await();
     }
@@ -433,7 +501,10 @@ final class SkillClientTest extends AbstractMcpTestCase
         $transport = new RecordingTransport();
         $client->connect($transport);
 
-        return [null === $maxFileBytes ? new SkillClient($client) : new SkillClient($client, $maxFileBytes), $transport];
+        return [
+            null === $maxFileBytes ? new SkillClient($client) : new SkillClient($client, $maxFileBytes),
+            $transport,
+        ];
     }
 
     /**
@@ -442,7 +513,11 @@ final class SkillClientTest extends AbstractMcpTestCase
     private static function entryListing(string $uri, string $bytes): Skill
     {
         return new Skill(self::MANIFEST_URI, self::FRONTMATTER, [
-            new SkillResource(self::MANIFEST_URI, SkillResource::computeDigest(self::MANIFEST), \strlen(self::MANIFEST)),
+            new SkillResource(
+                self::MANIFEST_URI,
+                SkillResource::computeDigest(self::MANIFEST),
+                \strlen(self::MANIFEST),
+            ),
             new SkillResource($uri, SkillResource::computeDigest($bytes), \strlen($bytes)),
         ]);
     }

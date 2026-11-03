@@ -80,7 +80,10 @@ final class RequestDeadlineTest extends AbstractMcpTestCase
 
         delay(0.09);
 
-        self::assertFalse($deadline->getCancellation()->isRequested(), 'The ceiling must not pre-empt the idle timeout.');
+        self::assertFalse(
+            $deadline->getCancellation()->isRequested(),
+            'The ceiling must not pre-empt the idle timeout.',
+        );
 
         delay(0.09);
 
@@ -96,7 +99,10 @@ final class RequestDeadlineTest extends AbstractMcpTestCase
             (new DeferredFuture())->getFuture()->await();
             self::fail('Expected the loop to run dry rather than treat the deadline as work.');
         } catch (\Error $e) {
-            self::assertStringStartsWith('Event loop terminated without resuming the current suspension', $e->getMessage());
+            self::assertStringStartsWith(
+                'Event loop terminated without resuming the current suspension',
+                $e->getMessage(),
+            );
         }
 
         self::assertFalse($deadline->getCancellation()->isRequested());

@@ -109,7 +109,10 @@ final class ReflectedPromptRendererTest extends AbstractMcpTestCase
      */
     private function render(string $method, ?array $arguments): GetPromptResult
     {
-        $renderer = new ReflectedPromptRenderer(new ReflectedHandlers(), new \ReflectionMethod(ReflectedHandlers::class, $method));
+        $renderer = new ReflectedPromptRenderer(
+            new ReflectedHandlers(),
+            new \ReflectionMethod(ReflectedHandlers::class, $method),
+        );
 
         $result = $renderer->render($arguments, $this->makeContext());
 

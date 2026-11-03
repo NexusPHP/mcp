@@ -42,7 +42,9 @@ final readonly class PromptArgument extends BaseMetadata implements Arrayable
     ) {
         parent::__construct(name: $name, title: $title);
 
-        Assert::that($description)->nullOr()->isNonEmptyString('"arguments.description" must be a non-empty string or null.');
+        Assert::that($description)->nullOr()->isNonEmptyString(
+            '"arguments.description" must be a non-empty string or null.',
+        );
     }
 
     #[\Override]
@@ -53,10 +55,14 @@ final readonly class PromptArgument extends BaseMetadata implements Arrayable
         Assert::that($name)->isNonEmptyString('"arguments.name" must be a non-empty string, {type} given.');
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isNonEmptyString('"arguments.title" must be a non-empty string or null, {type} given.');
+        Assert::that($title)->nullOr()->isNonEmptyString(
+            '"arguments.title" must be a non-empty string or null, {type} given.',
+        );
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isNonEmptyString('"arguments.description" must be a non-empty string or null, {type} given.');
+        Assert::that($description)->nullOr()->isNonEmptyString(
+            '"arguments.description" must be a non-empty string or null, {type} given.',
+        );
 
         $required = $data['required'] ?? null;
         Assert::that($required)->nullOr()->isBool('"arguments.required" must be a bool or null, {type} given.');

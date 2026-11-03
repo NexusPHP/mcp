@@ -38,11 +38,27 @@ if ([] !== $siblings) {
 }
 
 match (basename($component)) {
-    'Server' => $config->ignoreErrorsOnPackageAndPath('firebase/php-jwt', $component.'/Auth/JwksAccessTokenValidator.php', [ErrorType::SHADOW_DEPENDENCY]),
-    'Client' => $config->ignoreErrorsOnExtensionAndPath('ext-sodium', $component.'/Auth/EncryptedFileTokenStore.php', [ErrorType::SHADOW_DEPENDENCY]),
+    'Server' => $config->ignoreErrorsOnPackageAndPath(
+        'firebase/php-jwt',
+        $component.'/Auth/JwksAccessTokenValidator.php',
+        [ErrorType::SHADOW_DEPENDENCY],
+    ),
+    'Client' => $config->ignoreErrorsOnExtensionAndPath(
+        'ext-sodium',
+        $component.'/Auth/EncryptedFileTokenStore.php',
+        [ErrorType::SHADOW_DEPENDENCY],
+    ),
     'Extension' => $config
-        ->ignoreErrorsOnPackageAndPath('firebase/php-jwt', $component.'/Auth/ClientAssertionSigner.php', [ErrorType::SHADOW_DEPENDENCY])
-        ->ignoreErrorsOnPackageAndPath('symfony/yaml', $component.'/Skills/Frontmatter.php', [ErrorType::SHADOW_DEPENDENCY]),
+        ->ignoreErrorsOnPackageAndPath(
+            'firebase/php-jwt',
+            $component.'/Auth/ClientAssertionSigner.php',
+            [ErrorType::SHADOW_DEPENDENCY],
+        )
+        ->ignoreErrorsOnPackageAndPath(
+            'symfony/yaml',
+            $component.'/Skills/Frontmatter.php',
+            [ErrorType::SHADOW_DEPENDENCY],
+        ),
     default => null,
 };
 

@@ -46,7 +46,12 @@ final class UntitledSingleSelectEnumSchemaTest extends AbstractMcpTestCase
 
     public function testToArrayWithAllFields(): void
     {
-        $schema = new UntitledSingleSelectEnumSchema(enum: ['red', 'blue'], title: 'Colour', description: 'Pick one', default: 'blue');
+        $schema = new UntitledSingleSelectEnumSchema(
+            enum: ['red', 'blue'],
+            title: 'Colour',
+            description: 'Pick one',
+            default: 'blue',
+        );
 
         self::assertSame(
             [

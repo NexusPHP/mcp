@@ -104,22 +104,18 @@ final class SubscriptionsListenResultTest extends AbstractMcpTestCase
             new SubscriptionsListenResultMetaObject(subscriptionId: new RequestId(42)),
         );
 
-        $rebuilt = $result->rebuildWithMeta(
-            new SubscriptionsListenResultMetaObject(subscriptionId: new RequestId(99)),
-        );
+        $rebuilt = $result->rebuildWithMeta(new SubscriptionsListenResultMetaObject(subscriptionId: new RequestId(99)));
 
         self::assertSame(42, $rebuilt->meta->subscriptionId->id);
     }
 
     public function testRoundTrip(): void
     {
-        $result = new SubscriptionsListenResult(
-            new SubscriptionsListenResultMetaObject(
-                subscriptionId: new RequestId('stream-1'),
-                serverInfo: new Implementation(name: 'srv', version: '1.0.0'),
-                extras: ['vendor' => 'acme'],
-            ),
-        );
+        $result = new SubscriptionsListenResult(new SubscriptionsListenResultMetaObject(
+            subscriptionId: new RequestId('stream-1'),
+            serverInfo: new Implementation(name: 'srv', version: '1.0.0'),
+            extras: ['vendor' => 'acme'],
+        ));
 
         self::assertSame($result->toArray(), SubscriptionsListenResult::fromArray($result->toArray())->toArray());
     }

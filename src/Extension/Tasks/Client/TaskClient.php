@@ -60,12 +60,18 @@ final readonly class TaskClient implements TaskClientInterface
         private int $minPollIntervalMs = self::DEFAULT_MIN_POLL_INTERVAL_MS,
     ) {
         Assert::that($stallCeiling)->isPositiveInt('Task stall ceiling must be a positive integer, {value} given.');
-        Assert::that($minPollIntervalMs)->isPositiveInt('Task minimum poll interval must be a positive integer, {value} given.');
+        Assert::that($minPollIntervalMs)->isPositiveInt(
+            'Task minimum poll interval must be a positive integer, {value} given.',
+        );
     }
 
     #[\Override]
-    public function callToolAsTask(string $name, ?array $arguments = null, ?array $inputResponses = null, ?string $requestState = null): CallToolResult|CreateTaskResult|InputRequiredResult
-    {
+    public function callToolAsTask(
+        string $name,
+        ?array $arguments = null,
+        ?array $inputResponses = null,
+        ?string $requestState = null,
+    ): CallToolResult|CreateTaskResult|InputRequiredResult {
         $response = $this->client->sendRequest(
             new CallToolRequest(
                 id: $this->client->mintRequestId(),
@@ -103,7 +109,11 @@ final readonly class TaskClient implements TaskClientInterface
         $this->client->sendRequest(
             new UpdateTaskRequest(
                 id: $this->client->mintRequestId(),
-                params: new UpdateTaskRequestParams(taskId: $taskId, inputResponses: $inputResponses, meta: $this->client->stampMeta()),
+                params: new UpdateTaskRequestParams(
+                    taskId: $taskId,
+                    inputResponses: $inputResponses,
+                    meta: $this->client->stampMeta(),
+                ),
             ),
             GenericResultResponse::class,
         );
@@ -122,8 +132,11 @@ final readonly class TaskClient implements TaskClientInterface
     }
 
     #[\Override]
-    public function awaitTask(CreateTaskResult $task, ?\Closure $resolveInputRequests = null, ?Cancellation $cancellation = null): GetTaskResult
-    {
+    public function awaitTask(
+        CreateTaskResult $task,
+        ?\Closure $resolveInputRequests = null,
+        ?Cancellation $cancellation = null,
+    ): GetTaskResult {
         $intervalMs = $task->pollIntervalMs ?? 1_000;
         $answeredKeys = [];
         $stalledPolls = 0;

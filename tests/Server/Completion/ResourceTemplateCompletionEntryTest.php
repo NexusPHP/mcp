@@ -30,7 +30,9 @@ final class ResourceTemplateCompletionEntryTest extends AbstractMcpTestCase
 {
     public function testStoresItsFields(): void
     {
-        $provider = new ClosureCompletionProvider(static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]));
+        $provider = new ClosureCompletionProvider(
+            static fn(): CompleteResult => new CompleteResult(completion: ['values' => []]),
+        );
 
         $entry = new ResourceTemplateCompletionEntry('file:///{path}', 'path', $provider);
 

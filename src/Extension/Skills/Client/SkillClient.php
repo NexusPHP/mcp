@@ -49,7 +49,9 @@ final readonly class SkillClient implements SkillClientInterface
         private Client $client,
         private int $maxFileBytes = Skills::MAX_BYTES_PER_SKILL,
     ) {
-        Assert::that($maxFileBytes)->isPositiveInt('Skill client file size limit must be a positive integer, {value} given.');
+        Assert::that($maxFileBytes)->isPositiveInt(
+            'Skill client file size limit must be a positive integer, {value} given.',
+        );
     }
 
     #[\Override]
@@ -81,8 +83,12 @@ final readonly class SkillClient implements SkillClientInterface
     }
 
     #[\Override]
-    public function readSkillFile(Skill $skill, string $uri, ?array $inputResponses = null, ?string $requestState = null): InputRequiredResult|string
-    {
+    public function readSkillFile(
+        Skill $skill,
+        string $uri,
+        ?array $inputResponses = null,
+        ?string $requestState = null,
+    ): InputRequiredResult|string {
         $listed = null;
 
         if (\is_array($skill->resources)) {
@@ -90,7 +96,10 @@ final readonly class SkillClient implements SkillClientInterface
                 ?? throw new SkillVerificationFailedException($uri, 'is not listed in the manifest of the skill');
 
             if ($listed->size > $this->maxFileBytes) {
-                throw new SkillVerificationFailedException($uri, \sprintf('is listed at %d bytes, above the limit of %d', $listed->size, $this->maxFileBytes));
+                throw new SkillVerificationFailedException(
+                    $uri,
+                    \sprintf('is listed at %d bytes, above the limit of %d', $listed->size, $this->maxFileBytes),
+                );
             }
         }
 
@@ -103,12 +112,18 @@ final readonly class SkillClient implements SkillClientInterface
         $bytes = $this->extractBytes($result, $uri);
 
         if ($this->maxFileBytes < \strlen($bytes)) {
-            throw new SkillVerificationFailedException($uri, \sprintf('is %d bytes, above the limit of %d', \strlen($bytes), $this->maxFileBytes));
+            throw new SkillVerificationFailedException(
+                $uri,
+                \sprintf('is %d bytes, above the limit of %d', \strlen($bytes), $this->maxFileBytes),
+            );
         }
 
         if (null !== $listed) {
             if (\strlen($bytes) !== $listed->size) {
-                throw new SkillVerificationFailedException($uri, \sprintf('is %d bytes where the manifest lists %d', \strlen($bytes), $listed->size));
+                throw new SkillVerificationFailedException(
+                    $uri,
+                    \sprintf('is %d bytes where the manifest lists %d', \strlen($bytes), $listed->size),
+                );
             }
 
             if (SkillResource::computeDigest($bytes) !== $listed->digest) {
@@ -135,7 +150,11 @@ final readonly class SkillClient implements SkillClientInterface
         return $this->client->sendRequest(
             new ReadResourceDirectoryRequest(
                 id: $this->client->mintRequestId(),
-                params: new ReadResourceDirectoryRequestParams(uri: $uri, meta: $this->client->stampMeta(), cursor: $cursor),
+                params: new ReadResourceDirectoryRequestParams(
+                    uri: $uri,
+                    meta: $this->client->stampMeta(),
+                    cursor: $cursor,
+                ),
             ),
             ReadResourceDirectoryResultResponse::class,
         )->result;
@@ -152,7 +171,9 @@ final readonly class SkillClient implements SkillClientInterface
     {
         $capabilities = $this->client->getServerCapabilities() ?? $this->client->discover()->capabilities;
 
-        return $capabilities->extensions[Skills::IDENTIFIER] ?? throw new ServerCapabilityNotSupportedException($method);
+        return $capabilities->extensions[Skills::IDENTIFIER] ?? throw new ServerCapabilityNotSupportedException(
+            $method,
+        );
     }
 
     /**

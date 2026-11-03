@@ -30,7 +30,13 @@ use Psr\Http\Message\ServerRequestInterface;
 use function Amp\delay;
 
 if ('cli' === \PHP_SAPI) {
-    fwrite(\STDERR, "This is a front controller for a web SAPI. Run it as:\n  php -S 127.0.0.1:8932 examples/http-server-sapi.php\n");
+    fwrite(
+        \STDERR,
+        <<<'EOT'
+            This is a front controller for a web SAPI. Run it as:
+              php -S 127.0.0.1:8932 examples/http-server-sapi.php
+            EOT,
+    );
 
     exit(1);
 }
@@ -146,7 +152,12 @@ function emitResponse(ResponseInterface $response): void
     }
 
     header(
-        sprintf('HTTP/%s %d %s', $response->getProtocolVersion(), $response->getStatusCode(), $response->getReasonPhrase()),
+        sprintf(
+            'HTTP/%s %d %s',
+            $response->getProtocolVersion(),
+            $response->getStatusCode(),
+            $response->getReasonPhrase(),
+        ),
         true,
         $response->getStatusCode(),
     );

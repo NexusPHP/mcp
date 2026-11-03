@@ -31,7 +31,11 @@ final class ListToolsResultResponseTest extends AbstractMcpTestCase
 {
     public function testRoundTripsTheTypedResult(): void
     {
-        $envelope = ['jsonrpc' => '2.0', 'id' => 1, 'result' => ['resultType' => 'complete', 'tools' => [], 'ttlMs' => 0, 'cacheScope' => 'private']];
+        $envelope = [
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'result' => ['resultType' => 'complete', 'tools' => [], 'ttlMs' => 0, 'cacheScope' => 'private'],
+        ];
 
         $response = ListToolsResultResponse::fromArray($envelope);
 

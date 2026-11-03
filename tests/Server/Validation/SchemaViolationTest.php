@@ -64,7 +64,10 @@ final class SchemaViolationTest extends AbstractMcpTestCase
     public function testAPointerOffTheRfc6901GrammarIsRefused(string $pointer): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs(\sprintf('Schema violation pointer must be an RFC 6901 JSON pointer, \'%s\' given.', $pointer));
+        $this->expectExceptionMessageIs(\sprintf(
+            'Schema violation pointer must be an RFC 6901 JSON pointer, \'%s\' given.',
+            $pointer,
+        ));
 
         new SchemaViolation($pointer, 'x');
     }

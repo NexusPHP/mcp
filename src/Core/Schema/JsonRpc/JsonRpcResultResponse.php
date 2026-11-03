@@ -95,7 +95,9 @@ abstract readonly class JsonRpcResultResponse implements Arrayable, JsonRpcRespo
     protected static function rejectInputRequired(array $payload): void
     {
         if (self::isInputRequired($payload)) {
-            throw new \InvalidArgumentException('"result" returned "input_required" for a method that does not support it.');
+            throw new \InvalidArgumentException(
+                '"result" returned "input_required" for a method that does not support it.',
+            );
         }
     }
 }

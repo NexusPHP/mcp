@@ -43,7 +43,11 @@ final class PublicParameterNameTest extends AbstractMcpTestCase
     public function testReleasedParameterNamesSurvive(string $class, string $method, array $releasedNames): void
     {
         if (! class_exists($class) || ! method_exists($class, $method)) {
-            self::markTestSkipped(\sprintf('"%s::%s()" no longer exists, which `composer bc:check` reports as a removal.', $class, $method));
+            self::markTestSkipped(\sprintf(
+                '"%s::%s()" no longer exists, which `composer bc:check` reports as a removal.',
+                $class,
+                $method,
+            ));
         }
 
         $currentNames = array_map(
@@ -52,20 +56,28 @@ final class PublicParameterNameTest extends AbstractMcpTestCase
         );
 
         if (preg_match(self::SCHEMA_NAMESPACE_PATTERN, $class) === 1) {
-            self::assertSame([], array_values(array_diff($releasedNames, $currentNames)), \sprintf(
-                'The released parameter names of "%s::%s()" must survive. A schema class is constructed with named arguments, so its parameters may move, but not be renamed or removed.',
-                $class,
-                $method,
-            ));
+            self::assertSame(
+                [],
+                array_values(array_diff($releasedNames, $currentNames)),
+                \sprintf(
+                    'The released parameter names of "%s::%s()" must survive. A schema class is constructed with named arguments, so its parameters may move, but not be renamed or removed.',
+                    $class,
+                    $method,
+                ),
+            );
 
             return;
         }
 
-        self::assertSame($releasedNames, \array_slice($currentNames, 0, \count($releasedNames)), \sprintf(
-            'The released parameter names of "%s::%s()" must stay in place and in order, since PHP 8 named arguments make each one part of the signature and `composer bc:check` cannot see a rename on a final class. Appending a parameter is fine.',
-            $class,
-            $method,
-        ));
+        self::assertSame(
+            $releasedNames,
+            \array_slice($currentNames, 0, \count($releasedNames)),
+            \sprintf(
+                'The released parameter names of "%s::%s()" must stay in place and in order, since PHP 8 named arguments make each one part of the signature and `composer bc:check` cannot see a rename on a final class. Appending a parameter is fine.',
+                $class,
+                $method,
+            ),
+        );
     }
 
     /**

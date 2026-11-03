@@ -25,7 +25,8 @@ use PhpParser\NodeVisitorAbstract;
 final class AssignmentFinder
 {
     /**
-     * A closure body runs after evaluation and a call argument is reported against its own call, so both bound the walk.
+     * A closure body runs after evaluation and a call argument is reported against its own call,
+     * so both bound the walk.
      *
      * @param list<Node> $nodes
      */
@@ -37,7 +38,11 @@ final class AssignmentFinder
             #[\Override]
             public function enterNode(Node $node): ?int
             {
-                if ($node instanceof Node\Expr\Closure || $node instanceof Node\Expr\ArrowFunction || $node instanceof Node\Arg) {
+                if (
+                    $node instanceof Node\Expr\Closure
+                    || $node instanceof Node\Expr\ArrowFunction
+                    || $node instanceof Node\Arg
+                ) {
                     return NodeVisitorAbstract::DONT_TRAVERSE_CHILDREN;
                 }
 

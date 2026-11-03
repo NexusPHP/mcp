@@ -185,7 +185,11 @@ final class SampleToolHandlers
     {
     }
 
-    #[InputSchema(definition: ['type' => 'object', 'properties' => ['x' => ['type' => 'integer']], 'required' => ['x']])]
+    #[InputSchema(definition: [
+        'type' => 'object',
+        'properties' => ['x' => ['type' => 'integer']],
+        'required' => ['x'],
+    ])]
     public function methodDefinition(int $ignored): void
     {
     }

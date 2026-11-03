@@ -53,7 +53,10 @@ final class ContentBlockDispatcherTest extends AbstractMcpTestCase
 
         yield 'audio' => [['type' => 'audio', 'data' => 'aGVsbG8=', 'mimeType' => 'audio/mp3'], AudioContent::class];
 
-        yield 'resource_link' => [['type' => 'resource_link', 'name' => 'doc', 'uri' => 'file:///x'], ResourceLink::class];
+        yield 'resource_link' => [
+            ['type' => 'resource_link', 'name' => 'doc', 'uri' => 'file:///x'],
+            ResourceLink::class,
+        ];
 
         yield 'embedded resource' => [
             ['type' => 'resource', 'resource' => ['uri' => 'file:///x', 'text' => 'hi']],

@@ -61,7 +61,10 @@ final class RequestBoundSenderTest extends AbstractMcpTestCase
         $sender = new RequestBoundSender(new RecordingTransport(), $inboundId);
 
         try {
-            $sender->sendRequest(new DiscoverRequest(id: new RequestId(id: 2), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create())));
+            $sender->sendRequest(new DiscoverRequest(
+                id: new RequestId(id: 2),
+                params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create()),
+            ));
         } catch (OutboundRequestsNotSupportedException $e) {
             self::assertSame($inboundId, $e->requestId);
             self::assertSame(

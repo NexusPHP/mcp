@@ -87,7 +87,9 @@ final readonly class UiResourceMeta implements Arrayable
         Assert::that($domain)->nullOr()->isNonEmptyString('"_meta.ui.domain" must be a non-empty string or null.');
 
         $prefersBorder = $data['prefersBorder'] ?? null;
-        Assert::that($prefersBorder)->nullOr()->isBool('"_meta.ui.prefersBorder" must be a bool or null, {type} given.');
+        Assert::that($prefersBorder)->nullOr()->isBool(
+            '"_meta.ui.prefersBorder" must be a bool or null, {type} given.',
+        );
 
         return new self(csp: $csp, permissions: $permissions, domain: $domain, prefersBorder: $prefersBorder);
     }

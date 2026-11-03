@@ -184,6 +184,9 @@ final class ElicitRequestFormParamsTest extends AbstractMcpTestCase
             requestedSchema: new ElicitRequestedSchema(properties: []),
         );
 
-        self::assertStringContainsString('"requestedSchema":{"type":"object","properties":{}}', (string) json_encode($params));
+        self::assertStringContainsString(
+            '"requestedSchema":{"type":"object","properties":{}}',
+            (string) json_encode($params),
+        );
     }
 }

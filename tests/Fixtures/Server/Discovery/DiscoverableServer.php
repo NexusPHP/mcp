@@ -68,7 +68,10 @@ final class DiscoverableServer
     #[AsPrompt]
     public function outline(string $subject, ServerContext $context): GetPromptResult
     {
-        return new GetPromptResult(messages: [new PromptMessage(role: Role::User, content: new TextContent(text: $subject))]);
+        return new GetPromptResult(messages: [new PromptMessage(
+            role: Role::User,
+            content: new TextContent(text: $subject),
+        )]);
     }
 
     #[AsPrompt(name: 'ping_prompt')]
@@ -107,7 +110,9 @@ final class DiscoverableServer
     #[AsResource(uri: 'config://defaults')]
     public function defaults(string $uri): ReadResourceResult
     {
-        return new ReadResourceResult(contents: [new TextResourceContents(uri: $uri, text: 'defaults')], ttlMs: 0, cacheScope: CacheScope::Private);
+        return new ReadResourceResult(contents: [
+            new TextResourceContents(uri: $uri, text: 'defaults'),
+        ], ttlMs: 0, cacheScope: CacheScope::Private);
     }
 
     /**
@@ -131,7 +136,9 @@ final class DiscoverableServer
     #[AsResourceTemplate(uriTemplate: 'files://{path}')]
     public function fileTemplate(string $uri): ReadResourceResult
     {
-        return new ReadResourceResult(contents: [new TextResourceContents(uri: $uri, text: 'file')], ttlMs: 0, cacheScope: CacheScope::Private);
+        return new ReadResourceResult(contents: [
+            new TextResourceContents(uri: $uri, text: 'file'),
+        ], ttlMs: 0, cacheScope: CacheScope::Private);
     }
 
     public function helper(): string

@@ -25,7 +25,10 @@ final class OutboundRequestFailedException extends \RuntimeException implements 
         \Throwable $previous,
     ) {
         parent::__construct(
-            \sprintf('The exchange carrying request %s failed before a response arrived.', var_export($requestId->id, true)),
+            \sprintf(
+                'The exchange carrying request %s failed before a response arrived.',
+                var_export($requestId->id, true),
+            ),
             previous: $previous,
         );
     }

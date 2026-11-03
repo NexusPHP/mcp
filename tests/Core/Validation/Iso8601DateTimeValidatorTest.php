@@ -46,7 +46,10 @@ final class Iso8601DateTimeValidatorTest extends AbstractMcpTestCase
 
         yield 'non-UTC offset' => ['2026-05-10T08:00:00-04:00', '2026-05-10T08:00:00-04:00'];
 
-        yield 'lowercase z, case-insensitive per RFC 3339 ABNF' => ['2026-05-10T12:00:00z', '2026-05-10T12:00:00+00:00'];
+        yield 'lowercase z, case-insensitive per RFC 3339 ABNF' => [
+            '2026-05-10T12:00:00z',
+            '2026-05-10T12:00:00+00:00',
+        ];
 
         yield 'maximal offset' => ['2026-05-10T12:00:00+23:59', '2026-05-10T12:00:00+23:59'];
     }
@@ -175,9 +178,15 @@ final class Iso8601DateTimeValidatorTest extends AbstractMcpTestCase
 
         yield 'sub-second precision preserved' => ['2026-05-10T12:00:00.123+00:00', '2026-05-10T12:00:00.123000+00:00'];
 
-        yield 'microsecond precision survives the round trip' => ['2026-05-10T12:00:00.123456+00:00', '2026-05-10T12:00:00.123456+00:00'];
+        yield 'microsecond precision survives the round trip' => [
+            '2026-05-10T12:00:00.123456+00:00',
+            '2026-05-10T12:00:00.123456+00:00',
+        ];
 
-        yield 'a fraction with no milliseconds is not flattened away' => ['2026-05-10T12:00:00.000456+00:00', '2026-05-10T12:00:00.000456+00:00'];
+        yield 'a fraction with no milliseconds is not flattened away' => [
+            '2026-05-10T12:00:00.000456+00:00',
+            '2026-05-10T12:00:00.000456+00:00',
+        ];
 
         yield 'sub-second .000 collapses to plain' => ['2026-05-10T12:00:00.000+00:00', '2026-05-10T12:00:00+00:00'];
 

@@ -36,7 +36,10 @@ final class McpSchemaProcessor
         $schemaTs = file_get_contents(self::LATEST_SCHEMA_TS_URL);
 
         if (false === $schemaTs) {
-            throw new \RuntimeException(\sprintf('Failed to fetch the latest schema.ts from %s', self::LATEST_SCHEMA_TS_URL));
+            throw new \RuntimeException(\sprintf(
+                'Failed to fetch the latest schema.ts from %s',
+                self::LATEST_SCHEMA_TS_URL,
+            ));
         }
 
         file_put_contents(self::LATEST_SCHEMA_TS_PATH, $schemaTs);
@@ -57,7 +60,10 @@ final class McpSchemaProcessor
             $schemaJson = file_get_contents(self::LATEST_SCHEMA_JSON_URL);
 
             if (false === $schemaJson) {
-                throw new \RuntimeException(\sprintf('Failed to fetch the latest schema from %s', self::LATEST_SCHEMA_JSON_URL));
+                throw new \RuntimeException(\sprintf(
+                    'Failed to fetch the latest schema from %s',
+                    self::LATEST_SCHEMA_JSON_URL,
+                ));
             }
 
             file_put_contents(self::LATEST_SCHEMA_JSON_PATH, $schemaJson);
@@ -79,7 +85,10 @@ final class McpSchemaProcessor
         $decodedSchema['$defs'] = $resolvedDefs;
 
         if ($fetched) {
-            $schemaJson = json_encode(self::convertEmptyArraysToObjects($decodedSchema), \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE | \JSON_THROW_ON_ERROR);
+            $schemaJson = json_encode(
+                self::convertEmptyArraysToObjects($decodedSchema),
+                \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE | \JSON_THROW_ON_ERROR,
+            );
             file_put_contents(self::LATEST_SCHEMA_JSON_PATH, $schemaJson);
         }
 
@@ -164,7 +173,10 @@ final class McpSchemaProcessor
                 'created_at' => date('l, d F Y H:i:sP'),
                 'sorted_schema' => $sortedSchema,
             ];
-            file_put_contents(self::SORTED_SCHEMA_JSON_PATH, json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_THROW_ON_ERROR));
+            file_put_contents(
+                self::SORTED_SCHEMA_JSON_PATH,
+                json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_THROW_ON_ERROR),
+            );
         }
 
         return $sortedSchema;

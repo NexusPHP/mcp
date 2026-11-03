@@ -54,7 +54,10 @@ final class AuthorizationServerMetadataTest extends AbstractMcpTestCase
         self::assertSame(['private_key_jwt', 'client_secret_basic'], $metadata->tokenEndpointAuthMethodsSupported);
         self::assertSame(['ES256'], $metadata->tokenEndpointAuthSigningAlgValuesSupported);
         self::assertSame(['authorization_code', 'client_credentials'], $metadata->grantTypesSupported);
-        self::assertSame(['urn:ietf:params:oauth:grant-profile:id-jag'], $metadata->authorizationGrantProfilesSupported);
+        self::assertSame(
+            ['urn:ietf:params:oauth:grant-profile:id-jag'],
+            $metadata->authorizationGrantProfilesSupported,
+        );
     }
 
     public function testFromArrayLeavesEveryOptionalFieldNull(): void

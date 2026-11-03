@@ -109,7 +109,11 @@ final class CompletionStoreTest extends AbstractMcpTestCase
         $store = new CompletionStore(promptCompletions: [
             'my-prompt' => [
                 'arg' => static function (string $value, ?array $contextArguments, ServerContext $context) use (&$captured): CompleteResult {
-                    $captured = ['value' => $value, 'contextArguments' => $contextArguments, 'requestId' => $context->requestId->id];
+                    $captured = [
+                        'value' => $value,
+                        'contextArguments' => $contextArguments,
+                        'requestId' => $context->requestId->id,
+                    ];
 
                     return new CompleteResult(completion: ['values' => ['suggestion-a', 'suggestion-b']]);
                 },
@@ -125,7 +129,11 @@ final class CompletionStoreTest extends AbstractMcpTestCase
         );
 
         self::assertSame(['suggestion-a', 'suggestion-b'], $result->completion['values']);
-        self::assertSame(['value' => 'partial-value', 'contextArguments' => ['other' => 'context-value'], 'requestId' => 99], $captured);
+        self::assertSame([
+            'value' => 'partial-value',
+            'contextArguments' => ['other' => 'context-value'],
+            'requestId' => 99,
+        ], $captured);
     }
 
     public function testInvokesTemplateProviderWithDeconstructedArgs(): void
@@ -134,7 +142,11 @@ final class CompletionStoreTest extends AbstractMcpTestCase
         $store = new CompletionStore(templateCompletions: [
             'file:///{folder}/{filename}' => [
                 'filename' => static function (string $value, ?array $contextArguments, ServerContext $context) use (&$captured): CompleteResult {
-                    $captured = ['value' => $value, 'contextArguments' => $contextArguments, 'requestId' => $context->requestId->id];
+                    $captured = [
+                        'value' => $value,
+                        'contextArguments' => $contextArguments,
+                        'requestId' => $context->requestId->id,
+                    ];
 
                     return new CompleteResult(completion: ['values' => ['report.pdf', 'report.csv']]);
                 },
@@ -157,15 +169,25 @@ final class CompletionStoreTest extends AbstractMcpTestCase
     {
         $store = new CompletionStore(
             promptCompletions: [
-                'p' => ['a' => static fn(): CompleteResult => new CompleteResult(completion: ['values' => ['from-prompt']])],
+                'p' => ['a' => static fn(): CompleteResult => new CompleteResult(
+                    completion: ['values' => ['from-prompt']],
+                )],
             ],
             templateCompletions: [
-                'file:///{x}' => ['x' => static fn(): CompleteResult => new CompleteResult(completion: ['values' => ['from-template']])],
+                'file:///{x}' => ['x' => static fn(): CompleteResult => new CompleteResult(
+                    completion: ['values' => ['from-template']],
+                )],
             ],
         );
 
         $promptResult = $store->complete(new PromptReference(name: 'p'), 'a', '', null, $this->makeContext());
-        $templateResult = $store->complete(new ResourceTemplateReference(uri: 'file:///{x}'), 'x', '', null, $this->makeContext());
+        $templateResult = $store->complete(
+            new ResourceTemplateReference(uri: 'file:///{x}'),
+            'x',
+            '',
+            null,
+            $this->makeContext(),
+        );
 
         self::assertSame(['from-prompt'], $promptResult->completion['values']);
         self::assertSame(['from-template'], $templateResult->completion['values']);
@@ -281,8 +303,11 @@ final class CompletionStoreTest extends AbstractMcpTestCase
              * @param null|array<array-key, string> $contextArguments
              */
             #[\Override]
-            public function complete(string $argumentValue, ?array $contextArguments, ServerContext $context): CompleteResult
-            {
+            public function complete(
+                string $argumentValue,
+                ?array $contextArguments,
+                ServerContext $context,
+            ): CompleteResult {
                 return new CompleteResult(completion: ['values' => ['provided-'.$argumentValue]]);
             }
         };

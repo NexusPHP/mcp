@@ -41,7 +41,10 @@ final class MultiRoundServer
         return new CallToolResult(content: [new TextContent(text: sprintf('Hello, %s!', $name))]);
     }
 
-    #[AsTool(name: 'test_input_required_result_request_state', description: 'Carries an opaque continuation token across the round trip.')]
+    #[AsTool(
+        name: 'test_input_required_result_request_state',
+        description: 'Carries an opaque continuation token across the round trip.',
+    )]
     public function requestState(ServerContext $context): CallToolResult|InputRequiredResult
     {
         if (null === $context->requestStatePayload) {
@@ -51,7 +54,10 @@ final class MultiRoundServer
         return new CallToolResult(content: [new TextContent(text: 'state-ok')]);
     }
 
-    #[AsTool(name: 'test_input_required_result_multi_round', description: 'Asks two questions in sequence, evolving the continuation token.')]
+    #[AsTool(
+        name: 'test_input_required_result_multi_round',
+        description: 'Asks two questions in sequence, evolving the continuation token.',
+    )]
     public function multiRound(ServerContext $context): CallToolResult|InputRequiredResult
     {
         $round = $context->requestStatePayload;
@@ -65,7 +71,12 @@ final class MultiRoundServer
             // The client will not resend this answer, so the next round carries it in the state.
             $carried = is_string($name) ? $name : 'friend';
 
-            return self::ask('step2', 'Step 2: Which colour do you like best?', 'color', state: $this->mint($context, 'round-2|'.$carried));
+            return self::ask(
+                'step2',
+                'Step 2: Which colour do you like best?',
+                'color',
+                state: $this->mint($context, 'round-2|'.$carried),
+            );
         }
 
         $color = self::readAcceptedAnswer($context, 'step2', 'color');
@@ -77,7 +88,10 @@ final class MultiRoundServer
         ))]);
     }
 
-    #[AsTool(name: 'test_input_required_result_tampered_state', description: 'Refuses a continuation token that fails its integrity check.')]
+    #[AsTool(
+        name: 'test_input_required_result_tampered_state',
+        description: 'Refuses a continuation token that fails its integrity check.',
+    )]
     public function tamperedState(ServerContext $context): CallToolResult|InputRequiredResult
     {
         if (null === $context->requestStatePayload) {
@@ -87,7 +101,10 @@ final class MultiRoundServer
         return new CallToolResult(content: [new TextContent(text: 'State verified.')]);
     }
 
-    #[AsPrompt(name: 'test_input_required_result_prompt', description: 'Asks for context, then renders a message using it.')]
+    #[AsPrompt(
+        name: 'test_input_required_result_prompt',
+        description: 'Asks for context, then renders a message using it.',
+    )]
     public function prompt(ServerContext $context): GetPromptResult|InputRequiredResult
     {
         $userContext = self::readAcceptedAnswer($context, 'user_context', 'context');

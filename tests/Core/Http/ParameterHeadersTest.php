@@ -176,7 +176,11 @@ final class ParameterHeadersTest extends AbstractMcpTestCase
 
         yield 'matching string value' => [[$region], ['region' => 'us-west1'], ['mcp-param-region' => 'us-west1']];
 
-        yield 'header name matched case-insensitively' => [[$region], ['region' => 'us-west1'], ['Mcp-Param-Region' => 'us-west1']];
+        yield 'header name matched case-insensitively' => [
+            [$region],
+            ['region' => 'us-west1'],
+            ['Mcp-Param-Region' => 'us-west1'],
+        ];
 
         yield 'matching encoded value' => [
             [$region],
@@ -192,7 +196,11 @@ final class ParameterHeadersTest extends AbstractMcpTestCase
 
         yield 'integer matched as a string' => [[$count], ['count' => 42], ['mcp-param-count' => '42']];
 
-        yield 'integer matched numerically against a decimal header' => [[$count], ['count' => 42], ['mcp-param-count' => '42.0']];
+        yield 'integer matched numerically against a decimal header' => [
+            [$count],
+            ['count' => 42],
+            ['mcp-param-count' => '42.0'],
+        ];
 
         yield 'integral float matched as its integer' => [[$count], ['count' => 5.0], ['mcp-param-count' => '5']];
 
@@ -215,7 +223,10 @@ final class ParameterHeadersTest extends AbstractMcpTestCase
     #[DataProvider('provideValidateRejectsCases')]
     public function testValidateRejects(array $bindings, array $arguments, array $headers): void
     {
-        self::assertInstanceOf(HeaderMismatchError::class, (new ParameterHeaders())->validate($bindings, $arguments, $headers));
+        self::assertInstanceOf(
+            HeaderMismatchError::class,
+            (new ParameterHeaders())->validate($bindings, $arguments, $headers),
+        );
     }
 
     /**
@@ -258,7 +269,11 @@ final class ParameterHeadersTest extends AbstractMcpTestCase
             ['mcp-param-count' => '9007199254740992'],
         ];
 
-        yield 'header present while the body argument is null' => [[$region], ['region' => null], ['mcp-param-region' => 'x']];
+        yield 'header present while the body argument is null' => [
+            [$region],
+            ['region' => null],
+            ['mcp-param-region' => 'x'],
+        ];
 
         yield 'header present while the body argument is absent' => [[$region], [], ['mcp-param-region' => 'x']];
 

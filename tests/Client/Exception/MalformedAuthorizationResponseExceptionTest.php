@@ -38,6 +38,9 @@ final class MalformedAuthorizationResponseExceptionTest extends AbstractMcpTestC
     {
         $cause = new \JsonException('Syntax error');
 
-        self::assertSame($cause, (new MalformedAuthorizationResponseException('token endpoint', $cause))->getPrevious());
+        self::assertSame(
+            $cause,
+            (new MalformedAuthorizationResponseException('token endpoint', $cause))->getPrevious(),
+        );
     }
 }

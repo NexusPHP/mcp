@@ -136,18 +136,34 @@ final class RequestStateSignerTest extends AbstractMcpTestCase
 
     public function testAStateVerifiesUntilItsExpiryAndNotAfter(): void
     {
-        $state = (new RequestStateSigner('secret', ttlSeconds: 60, clock: new FrozenClock('@'.self::NOW)))->sign('round-1');
+        $state = (new RequestStateSigner(
+            'secret',
+            ttlSeconds: 60,
+            clock: new FrozenClock('@'.self::NOW),
+        ))->sign('round-1');
 
-        self::assertSame('round-1', (new RequestStateSigner('secret', clock: new FrozenClock('@'.(self::NOW + 60))))->verify($state));
-        self::assertNull((new RequestStateSigner('secret', clock: new FrozenClock('@'.(self::NOW + 61))))->verify($state));
+        self::assertSame(
+            'round-1',
+            (new RequestStateSigner('secret', clock: new FrozenClock('@'.(self::NOW + 60))))->verify($state),
+        );
+        self::assertNull((new RequestStateSigner(
+            'secret',
+            clock: new FrozenClock('@'.(self::NOW + 61)),
+        ))->verify($state));
     }
 
     public function testTheDefaultTtlIsTenMinutes(): void
     {
         $state = (new RequestStateSigner('secret', clock: new FrozenClock('@'.self::NOW)))->sign('round-1');
 
-        self::assertSame('round-1', (new RequestStateSigner('secret', clock: new FrozenClock('@'.(self::NOW + 600))))->verify($state));
-        self::assertNull((new RequestStateSigner('secret', clock: new FrozenClock('@'.(self::NOW + 601))))->verify($state));
+        self::assertSame(
+            'round-1',
+            (new RequestStateSigner('secret', clock: new FrozenClock('@'.(self::NOW + 600))))->verify($state),
+        );
+        self::assertNull((new RequestStateSigner(
+            'secret',
+            clock: new FrozenClock('@'.(self::NOW + 601)),
+        ))->verify($state));
     }
 
     public function testAGeneratedSignerTakesItsTtl(): void
@@ -193,12 +209,18 @@ final class RequestStateSignerTest extends AbstractMcpTestCase
      * @param JsonRpcRequest<non-empty-string> $request
      */
     #[DataProvider('provideBindForDerivesTheCallerMethodAndTargetCases')]
-    public function testBindForDerivesTheCallerMethodAndTarget(JsonRpcRequest $request, ReceiveContext $receiveContext, string $expected): void
-    {
+    public function testBindForDerivesTheCallerMethodAndTarget(
+        JsonRpcRequest $request,
+        ReceiveContext $receiveContext,
+        string $expected,
+    ): void {
         $signer = new RequestStateSigner('secret');
 
         self::assertSame($expected, RequestStateSigner::deriveBinding($request, $receiveContext));
-        self::assertSame('round-1', $signer->bindFor($request, $receiveContext)->verify($signer->sign('round-1', $expected)));
+        self::assertSame(
+            'round-1',
+            $signer->bindFor($request, $receiveContext)->verify($signer->sign('round-1', $expected)),
+        );
     }
 
     /**
@@ -207,7 +229,13 @@ final class RequestStateSignerTest extends AbstractMcpTestCase
     public static function provideBindForDerivesTheCallerMethodAndTargetCases(): iterable
     {
         $meta = RequestMetaObjectFactory::shape();
-        $authenticated = new ReceiveContext(authInfo: new VerifiedAccessToken(['https://mcp.example.com'], 2_000_000_000, [], subject: 'alice', clientId: 'app-1'));
+        $authenticated = new ReceiveContext(authInfo: new VerifiedAccessToken(
+            ['https://mcp.example.com'],
+            2_000_000_000,
+            [],
+            subject: 'alice',
+            clientId: 'app-1',
+        ));
         $digest = hash('sha256', '{"a":{"x":1,"y":[2,1]},"b":"two"}');
 
         yield 'tool call by an authenticated caller' => [
@@ -217,13 +245,23 @@ final class RequestStateSignerTest extends AbstractMcpTestCase
         ];
 
         yield 'tool call with arguments, keys in any order' => [
-            CallToolRequest::fromArray(['id' => 1, 'params' => ['_meta' => $meta, 'name' => 'deploy', 'arguments' => ['b' => 'two', 'a' => ['y' => [2, 1], 'x' => 1]]]]),
+            CallToolRequest::fromArray([
+                'id' => 1,
+                'params' => [
+                    '_meta' => $meta,
+                    'name' => 'deploy',
+                    'arguments' => ['b' => 'two', 'a' => ['y' => [2, 1], 'x' => 1]],
+                ],
+            ]),
             $authenticated,
             \sprintf('["alice","app-1","tools/call","deploy","%s"]', $digest),
         ];
 
         yield 'prompt by an anonymous caller' => [
-            GetPromptRequest::fromArray(['id' => 1, 'params' => ['_meta' => $meta, 'name' => 'review', 'arguments' => ['b' => 'two', 'a' => 'one']]]),
+            GetPromptRequest::fromArray([
+                'id' => 1,
+                'params' => ['_meta' => $meta, 'name' => 'review', 'arguments' => ['b' => 'two', 'a' => 'one']],
+            ]),
             new ReceiveContext(),
             \sprintf('[null,null,"prompts/get","review","%s"]', hash('sha256', '{"a":"one","b":"two"}')),
         ];
@@ -243,9 +281,24 @@ final class RequestStateSignerTest extends AbstractMcpTestCase
 
     public function testIdentitiesThatJoinToTheSameBytesBindDifferently(): void
     {
-        $request = CallToolRequest::fromArray(['id' => 1, 'params' => ['_meta' => RequestMetaObjectFactory::shape(), 'name' => 'deploy']]);
-        $first = new ReceiveContext(authInfo: new VerifiedAccessToken(['https://mcp.example.com'], 2_000_000_000, [], subject: "alice\0app", clientId: 'client'));
-        $second = new ReceiveContext(authInfo: new VerifiedAccessToken(['https://mcp.example.com'], 2_000_000_000, [], subject: 'alice', clientId: "app\0client"));
+        $request = CallToolRequest::fromArray([
+            'id' => 1,
+            'params' => ['_meta' => RequestMetaObjectFactory::shape(), 'name' => 'deploy'],
+        ]);
+        $first = new ReceiveContext(authInfo: new VerifiedAccessToken(
+            ['https://mcp.example.com'],
+            2_000_000_000,
+            [],
+            subject: "alice\0app",
+            clientId: 'client',
+        ));
+        $second = new ReceiveContext(authInfo: new VerifiedAccessToken(
+            ['https://mcp.example.com'],
+            2_000_000_000,
+            [],
+            subject: 'alice',
+            clientId: "app\0client",
+        ));
         $signer = new RequestStateSigner('secret');
 
         $state = $signer->bindFor($request, $first)->sign('awaiting-confirmation');
@@ -257,8 +310,14 @@ final class RequestStateSignerTest extends AbstractMcpTestCase
     public function testDifferentArgumentsBindDifferently(): void
     {
         $meta = RequestMetaObjectFactory::shape();
-        $staging = CallToolRequest::fromArray(['id' => 1, 'params' => ['_meta' => $meta, 'name' => 'deploy', 'arguments' => ['target' => 'staging']]]);
-        $production = CallToolRequest::fromArray(['id' => 1, 'params' => ['_meta' => $meta, 'name' => 'deploy', 'arguments' => ['target' => 'production']]]);
+        $staging = CallToolRequest::fromArray([
+            'id' => 1,
+            'params' => ['_meta' => $meta, 'name' => 'deploy', 'arguments' => ['target' => 'staging']],
+        ]);
+        $production = CallToolRequest::fromArray([
+            'id' => 1,
+            'params' => ['_meta' => $meta, 'name' => 'deploy', 'arguments' => ['target' => 'production']],
+        ]);
         $signer = new RequestStateSigner('secret');
 
         $state = $signer->bindFor($staging, new ReceiveContext())->sign('awaiting-confirmation');
@@ -269,9 +328,14 @@ final class RequestStateSignerTest extends AbstractMcpTestCase
 
     public function testBindByReplacesTheDefaultPolicy(): void
     {
-        $request = CallToolRequest::fromArray(['id' => 1, 'params' => ['_meta' => RequestMetaObjectFactory::shape(), 'name' => 'deploy']]);
+        $request = CallToolRequest::fromArray([
+            'id' => 1,
+            'params' => ['_meta' => RequestMetaObjectFactory::shape(), 'name' => 'deploy'],
+        ]);
         $seen = [];
-        $signer = (new RequestStateSigner('secret'))->bindBy(static function (JsonRpcRequest $request, ReceiveContext $receiveContext) use (&$seen): string {
+        $signer = (new RequestStateSigner(
+            'secret',
+        ))->bindBy(static function (JsonRpcRequest $request, ReceiveContext $receiveContext) use (&$seen): string {
             $seen[] = [$request, $receiveContext];
 
             return 'tenant-7';
@@ -282,7 +346,10 @@ final class RequestStateSignerTest extends AbstractMcpTestCase
 
         self::assertSame([[$request, $receiveContext]], $seen);
         self::assertSame('round-1', $bound->verify($signer->sign('round-1', 'tenant-7')));
-        self::assertNull($bound->verify($signer->sign('round-1', RequestStateSigner::deriveBinding($request, $receiveContext))));
+        self::assertNull($bound->verify($signer->sign(
+            'round-1',
+            RequestStateSigner::deriveBinding($request, $receiveContext),
+        )));
     }
 
     public function testBindingKeepsTheSecretAlgorithmTtlAndClock(): void
@@ -291,7 +358,10 @@ final class RequestStateSignerTest extends AbstractMcpTestCase
         $bound = (new RequestStateSigner('secret', 'sha512', 60, $clock))->bindTo('user-alice');
 
         self::assertSame('round-1.1700000060.', substr($bound->sign('round-1'), 0, 19));
-        self::assertSame('round-1', (new RequestStateSigner('secret', 'sha512', clock: $clock))->verify($bound->sign('round-1'), 'user-alice'));
+        self::assertSame(
+            'round-1',
+            (new RequestStateSigner('secret', 'sha512', clock: $clock))->verify($bound->sign('round-1'), 'user-alice'),
+        );
     }
 
     public function testConstructorRejectsANonPositiveTtl(): void
@@ -392,8 +462,13 @@ final class RequestStateSignerTest extends AbstractMcpTestCase
     {
         $bound = (new RequestStateSigner(['new-secret', 'old-secret']))->bindTo('user-alice');
 
-        self::assertSame('round-1', $bound->verify((new RequestStateSigner('old-secret'))->sign('round-1', 'user-alice')));
-        self::assertSame('round-1', $bound->bindBy(static fn(): string => '')->verify((new RequestStateSigner('old-secret'))->sign('round-1', 'user-alice')));
+        self::assertSame(
+            'round-1',
+            $bound->verify((new RequestStateSigner('old-secret'))->sign('round-1', 'user-alice')),
+        );
+        self::assertSame('round-1', $bound->bindBy(static fn(): string => '')->verify((new RequestStateSigner(
+            'old-secret',
+        ))->sign('round-1', 'user-alice')));
     }
 
     /**
@@ -416,9 +491,15 @@ final class RequestStateSignerTest extends AbstractMcpTestCase
     {
         yield 'an empty ring' => [[], 'The request-state signing key ring must be a non-empty list, array given.'];
 
-        yield 'an empty key' => [['secret', ''], 'Each request-state signing key must be a non-empty string, string given.'];
+        yield 'an empty key' => [
+            ['secret', ''],
+            'Each request-state signing key must be a non-empty string, string given.',
+        ];
 
-        yield 'a non-string key' => [['secret', 7], 'Each request-state signing key must be a non-empty string, int given.'];
+        yield 'a non-string key' => [
+            ['secret', 7],
+            'Each request-state signing key must be a non-empty string, int given.',
+        ];
     }
 
     public function testConstructorRejectsAnUnavailableAlgorithm(): void

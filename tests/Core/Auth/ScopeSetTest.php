@@ -29,7 +29,9 @@ final class ScopeSetTest extends AbstractMcpTestCase
 {
     public function testConstructorDropsDuplicatesAndReindexes(): void
     {
-        self::assertSame(['files:read', 'files:write'], (new ScopeSet(['files:read', 'files:read', 'files:write']))->values);
+        self::assertSame(['files:read', 'files:write'], (new ScopeSet(
+            ['files:read', 'files:read', 'files:write'],
+        ))->values);
     }
 
     public function testConstructorDefaultsToTheEmptySet(): void
@@ -123,7 +125,9 @@ final class ScopeSetTest extends AbstractMcpTestCase
 
     public function testWithoutDropsTheNamedScope(): void
     {
-        self::assertSame(['files:read'], (new ScopeSet(['files:read', 'offline_access']))->without('offline_access')->values);
+        self::assertSame(['files:read'], (new ScopeSet(
+            ['files:read', 'offline_access'],
+        ))->without('offline_access')->values);
     }
 
     public function testWithoutLeavesASetThatNeverHeldItAlone(): void

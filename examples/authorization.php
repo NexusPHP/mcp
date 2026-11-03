@@ -217,7 +217,10 @@ final readonly class HeadlessUserAgent implements UserAuthorizationInterface
         ;
 
         if ($response->getStatus() !== 302) {
-            throw new RuntimeException(sprintf('The stub answered the authorization request with %d.', $response->getStatus()));
+            throw new RuntimeException(sprintf(
+                'The stub answered the authorization request with %d.',
+                $response->getStatus(),
+            ));
         }
 
         return new AuthorizationCallback($response->getHeader('location') ?? '');
@@ -262,7 +265,13 @@ $endpoint = new SecuredHttpEndpoint(
     responseFactory: $psr17,
     streamFactory: $psr17,
     logger: $logger,
-    authentication: new BearerAuthenticationMiddleware($stub, RESOURCE, METADATA_URL, $psr17, requiredScopes: [REQUIRED_SCOPE]),
+    authentication: new BearerAuthenticationMiddleware(
+        $stub,
+        RESOURCE,
+        METADATA_URL,
+        $psr17,
+        requiredScopes: [REQUIRED_SCOPE],
+    ),
 );
 
 $metadata = new ProtectedResourceMetadataHandler(

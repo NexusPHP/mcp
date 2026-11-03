@@ -53,11 +53,18 @@ $jwksUrl = ISSUER.'/protocol/openid-connect/certs';
 $jwksJson = @file_get_contents($jwksUrl);
 
 if (false === $jwksJson) {
-    fwrite(\STDERR, sprintf(
-        "Could not fetch the realm JWKS from %s.\nStart Keycloak first: docker compose -f %s/compose.yaml up --wait\n",
-        $jwksUrl,
-        __DIR__,
-    ));
+    fwrite(
+        \STDERR,
+        sprintf(
+            <<<'TXT'
+                Could not fetch the realm JWKS from %s.
+                Start Keycloak first: docker compose -f %s/compose.yaml up --wait
+
+                TXT,
+            $jwksUrl,
+            __DIR__,
+        ),
+    );
 
     exit(1);
 }

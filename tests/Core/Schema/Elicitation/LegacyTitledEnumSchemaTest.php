@@ -47,7 +47,13 @@ final class LegacyTitledEnumSchemaTest extends AbstractMcpTestCase
 
     public function testToArrayWithAllFields(): void
     {
-        $schema = new LegacyTitledEnumSchema(enum: ['S', 'M'], title: 'Size', description: 'desc', enumNames: ['Small', 'Medium'], default: 'M');
+        $schema = new LegacyTitledEnumSchema(
+            enum: ['S', 'M'],
+            title: 'Size',
+            description: 'desc',
+            enumNames: ['Small', 'Medium'],
+            default: 'M',
+        );
 
         self::assertSame(
             [
@@ -71,7 +77,13 @@ final class LegacyTitledEnumSchemaTest extends AbstractMcpTestCase
 
     public function testFromArrayFullRoundTrip(): void
     {
-        $original = new LegacyTitledEnumSchema(enum: ['S', 'M'], title: 'Size', description: 'desc', enumNames: ['Small', 'Medium'], default: 'M');
+        $original = new LegacyTitledEnumSchema(
+            enum: ['S', 'M'],
+            title: 'Size',
+            description: 'desc',
+            enumNames: ['Small', 'Medium'],
+            default: 'M',
+        );
 
         $rebuilt = LegacyTitledEnumSchema::fromArray($original->toArray());
 

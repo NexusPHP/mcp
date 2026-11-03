@@ -88,8 +88,11 @@ final class RoutingProgressNotificationHandlerTest extends AbstractMcpTestCase
         ?float $total = null,
         ?string $message = null,
     ): ProgressNotification {
-        return new ProgressNotification(
-            params: new ProgressNotificationParams(progressToken: new ProgressToken(token: $token), progress: $progress, total: $total, message: $message),
-        );
+        return new ProgressNotification(params: new ProgressNotificationParams(
+            progressToken: new ProgressToken(token: $token),
+            progress: $progress,
+            total: $total,
+            message: $message,
+        ));
     }
 }

@@ -22,7 +22,8 @@ use function Amp\ByteStream\buffer;
 use function Amp\delay;
 
 /**
- * Starts real subprocesses, declaring no coverage of `StdioServerTransport` so Infection never selects these tests and scores a false kill.
+ * Starts real subprocesses, declaring no coverage of `StdioServerTransport` so Infection never selects these tests and
+ * scores a false kill.
  *
  * @internal
  */
@@ -96,7 +97,11 @@ final class RelayedStdinStreamTest extends AbstractMcpTestCase
      */
     private static function createSocketPair(): array
     {
-        $pair = stream_socket_pair('Windows' === \PHP_OS_FAMILY ? \STREAM_PF_INET : \STREAM_PF_UNIX, \STREAM_SOCK_STREAM, 0);
+        $pair = stream_socket_pair(
+            'Windows' === \PHP_OS_FAMILY ? \STREAM_PF_INET : \STREAM_PF_UNIX,
+            \STREAM_SOCK_STREAM,
+            0,
+        );
         self::assertIsArray($pair);
         $writer = array_shift($pair);
         $reader = array_shift($pair);

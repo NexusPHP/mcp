@@ -86,7 +86,10 @@ final class DirectorySkillTest extends AbstractMcpTestCase
         self::assertSame($guideUri, $skill->files[$guideUri]->uri);
         self::assertIsArray($resources);
         self::assertSame('skill://git-workflow', $skill->rootUri);
-        self::assertSame(array_keys($skill->files), array_map(static fn(SkillResource $resource): string => $resource->uri, $resources));
+        self::assertSame(
+            array_keys($skill->files),
+            array_map(static fn(SkillResource $resource): string => $resource->uri, $resources),
+        );
         self::assertArrayHasKey(1, $resources);
         self::assertSame('sha256:'.hash('sha256', $guide), $resources[1]->digest);
         self::assertSame(\strlen($guide), $resources[1]->size);
@@ -128,7 +131,10 @@ final class DirectorySkillTest extends AbstractMcpTestCase
 
         $skill = new DirectorySkill('public-only', $this->directory->path);
 
-        self::assertSame(['skill://public-only/SKILL.md', 'skill://public-only/docs/guide.md'], array_keys($skill->files));
+        self::assertSame([
+            'skill://public-only/SKILL.md',
+            'skill://public-only/docs/guide.md',
+        ], array_keys($skill->files));
     }
 
     public function testSupportingFilesFollowTheManifestInByteOrderWhateverTheFilesystemReturns(): void
@@ -170,7 +176,10 @@ final class DirectorySkillTest extends AbstractMcpTestCase
         $this->directory->writeManifest('linked');
         $target = $this->directory->write('real/notes.md', 'notes');
 
-        if (! @symlink($target, $this->directory->path.'/alias.md') || ! @symlink(\dirname($target), $this->directory->path.'/alias')) {
+        if (
+            ! @symlink($target, $this->directory->path.'/alias.md')
+            || ! @symlink(\dirname($target), $this->directory->path.'/alias')
+        ) {
             self::markTestSkipped('This platform refuses to create symbolic links.');
         }
 
@@ -189,7 +198,10 @@ final class DirectorySkillTest extends AbstractMcpTestCase
         }
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs(\sprintf('Skill directory "%s/skill" holds no "SKILL.md".', $this->directory->path));
+        $this->expectExceptionMessageIs(\sprintf(
+            'Skill directory "%s/skill" holds no "SKILL.md".',
+            $this->directory->path,
+        ));
 
         new DirectorySkill('linked', $this->directory->path.'/skill');
     }
@@ -207,7 +219,10 @@ final class DirectorySkillTest extends AbstractMcpTestCase
     public function testADirectoryThatDoesNotExistIsRefused(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs(\sprintf('Skill directory "%s/absent" does not exist.', $this->directory->path));
+        $this->expectExceptionMessageIs(\sprintf(
+            'Skill directory "%s/absent" does not exist.',
+            $this->directory->path,
+        ));
 
         new DirectorySkill('absent', $this->directory->path.'/absent');
     }

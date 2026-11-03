@@ -53,9 +53,14 @@ final readonly class UpdateTaskRequestHandler implements RequestHandlerInterface
 
         $accepted = [];
 
-        foreach (array_intersect_key($request->params->inputResponses, $record->pendingInputRequests) as $key => $response) {
+        $pending = array_intersect_key($request->params->inputResponses, $record->pendingInputRequests);
+
+        foreach ($pending as $key => $response) {
             if (! $response instanceof InputResponse) {
-                throw new InvalidParamsException($context->requestId, \sprintf('"params.inputResponses" entry "%s" is not a valid input response.', $key));
+                throw new InvalidParamsException(
+                    $context->requestId,
+                    \sprintf('"params.inputResponses" entry "%s" is not a valid input response.', $key),
+                );
             }
 
             $accepted[$key] = $response;
@@ -63,7 +68,11 @@ final readonly class UpdateTaskRequestHandler implements RequestHandlerInterface
 
         $updated = $this->store->resolveInputRequests($record->taskId, $accepted);
 
-        if (null === $updated || TaskStatus::InputRequired !== $updated->status || [] !== $updated->pendingInputRequests) {
+        if (
+            null === $updated
+            || TaskStatus::InputRequired !== $updated->status
+            || [] !== $updated->pendingInputRequests
+        ) {
             return new EmptyResult();
         }
 

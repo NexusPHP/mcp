@@ -48,8 +48,12 @@ final readonly class TitledSingleSelectEnumSchema implements SingleSelectEnumSch
             ->isList('titled single select enum schema "oneOf" must be a list, non-list array given.')
             ->values()->isInstanceOf(EnumOption::class)
         ;
-        Assert::that($title)->nullOr()->isNonEmptyString('titled single select enum schema "title" must be a non-empty string or null.');
-        Assert::that($description)->nullOr()->isNonEmptyString('titled single select enum schema "description" must be a non-empty string or null.');
+        Assert::that($title)->nullOr()->isNonEmptyString(
+            'titled single select enum schema "title" must be a non-empty string or null.',
+        );
+        Assert::that($description)->nullOr()->isNonEmptyString(
+            'titled single select enum schema "description" must be a non-empty string or null.',
+        );
     }
 
     #[\Override]
@@ -57,25 +61,36 @@ final readonly class TitledSingleSelectEnumSchema implements SingleSelectEnumSch
     {
         Assert::that($data)->hasOffset('type', 'titled single select enum schema is missing the required "type" key.');
         $type = $data['type'];
-        Assert::that($type)->isIdentical(self::TYPE, 'titled single select enum schema "type" must be {other}, {value} given.');
+        Assert::that($type)->isIdentical(
+            self::TYPE,
+            'titled single select enum schema "type" must be {other}, {value} given.',
+        );
 
-        Assert::that($data)->hasOffset('oneOf', 'titled single select enum schema is missing the required "oneOf" key.');
+        Assert::that($data)->hasOffset(
+            'oneOf',
+            'titled single select enum schema is missing the required "oneOf" key.',
+        );
         Assert::that($data['oneOf'])
             ->isList('titled single select enum schema "oneOf" must be a list, non-list array given.')
-            ->values()
-            ->isArray('each titled single select enum schema "oneOf" must be an object, {type} given.')
+            ->values()->isArray('each titled single select enum schema "oneOf" must be an object, {type} given.')
             ->isMap('each titled single select enum schema "oneOf" must be a string-keyed object.')
         ;
         $oneOf = array_map(EnumOption::fromArray(...), $data['oneOf']);
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isNonEmptyString('titled single select enum schema "title" must be a non-empty string or null, {type} given.');
+        Assert::that($title)->nullOr()->isNonEmptyString(
+            'titled single select enum schema "title" must be a non-empty string or null, {type} given.',
+        );
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isNonEmptyString('titled single select enum schema "description" must be a non-empty string or null, {type} given.');
+        Assert::that($description)->nullOr()->isNonEmptyString(
+            'titled single select enum schema "description" must be a non-empty string or null, {type} given.',
+        );
 
         $default = $data['default'] ?? null;
-        Assert::that($default)->nullOr()->isString('titled single select enum schema "default" must be a string or null, {type} given.');
+        Assert::that($default)->nullOr()->isString(
+            'titled single select enum schema "default" must be a string or null, {type} given.',
+        );
 
         return new self(oneOf: $oneOf, title: $title, description: $description, default: $default);
     }

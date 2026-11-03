@@ -41,7 +41,10 @@ final class CorsMiddlewareTest extends AbstractMcpTestCase
         self::assertSame(204, $response->getStatusCode());
         self::assertSame('https://app.test', $response->getHeaderLine('Access-Control-Allow-Origin'));
         self::assertSame('POST, OPTIONS', $response->getHeaderLine('Access-Control-Allow-Methods'));
-        self::assertSame('Content-Type, MCP-Protocol-Version', $response->getHeaderLine('Access-Control-Allow-Headers'));
+        self::assertSame(
+            'Content-Type, MCP-Protocol-Version',
+            $response->getHeaderLine('Access-Control-Allow-Headers'),
+        );
         self::assertSame('600', $response->getHeaderLine('Access-Control-Max-Age'));
         self::assertSame('Origin, Access-Control-Request-Headers', $response->getHeaderLine('Vary'));
     }
@@ -73,7 +76,11 @@ final class CorsMiddlewareTest extends AbstractMcpTestCase
         self::assertFalse($response->hasHeader('Access-Control-Allow-Origin'));
         self::assertFalse($response->hasHeader('Access-Control-Allow-Methods'));
         self::assertFalse($response->hasHeader('Access-Control-Max-Age'));
-        self::assertSame('Origin, Access-Control-Request-Headers', $response->getHeaderLine('Vary'), 'A refused preflight is still keyed on the headers it turns on.');
+        self::assertSame(
+            'Origin, Access-Control-Request-Headers',
+            $response->getHeaderLine('Vary'),
+            'A refused preflight is still keyed on the headers it turns on.',
+        );
     }
 
     public function testPreflightWithWildcardReflectsRequestOrigin(): void
@@ -134,7 +141,11 @@ final class CorsMiddlewareTest extends AbstractMcpTestCase
 
         self::assertTrue($handler->called);
         self::assertFalse($response->hasHeader('Access-Control-Allow-Origin'));
-        self::assertSame('Origin', $response->getHeaderLine('Vary'), 'An origin-less response is still keyed, so it is not replayed to an allowed origin.');
+        self::assertSame(
+            'Origin',
+            $response->getHeaderLine('Vary'),
+            'An origin-less response is still keyed, so it is not replayed to an allowed origin.',
+        );
     }
 
     public function testOptionsWithoutRequestedMethodIsNotPreflight(): void

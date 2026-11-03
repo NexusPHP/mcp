@@ -253,9 +253,9 @@ final readonly class ServerCapabilities implements Arrayable
         ;
 
         if (\array_key_exists('listChanged', $value)) {
-            Assert::that($value['listChanged'])
-                ->isBool(\sprintf('"capabilities.%s.listChanged" must be a boolean, {type} given.', $key))
-            ;
+            Assert::that($value['listChanged'])->isBool(
+                \sprintf('"capabilities.%s.listChanged" must be a boolean, {type} given.', $key),
+            );
         }
 
         return $value;
@@ -280,15 +280,15 @@ final readonly class ServerCapabilities implements Arrayable
         ;
 
         if (\array_key_exists('listChanged', $value)) {
-            Assert::that($value['listChanged'])
-                ->isBool('"capabilities.resources.listChanged" must be a boolean, {type} given.')
-            ;
+            Assert::that($value['listChanged'])->isBool(
+                '"capabilities.resources.listChanged" must be a boolean, {type} given.',
+            );
         }
 
         if (\array_key_exists('subscribe', $value)) {
-            Assert::that($value['subscribe'])
-                ->isBool('"capabilities.resources.subscribe" must be a boolean, {type} given.')
-            ;
+            Assert::that($value['subscribe'])->isBool(
+                '"capabilities.resources.subscribe" must be a boolean, {type} given.',
+            );
         }
 
         return $value;

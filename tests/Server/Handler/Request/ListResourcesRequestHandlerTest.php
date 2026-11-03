@@ -49,7 +49,10 @@ final class ListResourcesRequestHandlerTest extends AbstractMcpTestCase
         $handler = new ListResourcesRequestHandler($store);
 
         $result = $handler->handle(
-            new ListResourcesRequest(id: new RequestId(id: 1), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create())),
+            new ListResourcesRequest(
+                id: new RequestId(id: 1),
+                params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()),
+            ),
             $this->makeContext(),
         );
 
@@ -71,7 +74,13 @@ final class ListResourcesRequestHandlerTest extends AbstractMcpTestCase
         $handler = new ListResourcesRequestHandler($store);
 
         $result = $handler->handle(
-            new ListResourcesRequest(id: new RequestId(id: 2), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create(), cursor: new Cursor(cursor: 'file:///b'))),
+            new ListResourcesRequest(
+                id: new RequestId(id: 2),
+                params: new PaginatedRequestParams(
+                    meta: RequestMetaObjectFactory::create(),
+                    cursor: new Cursor(cursor: 'file:///b'),
+                ),
+            ),
             $this->makeContext(),
         );
 
@@ -81,9 +90,11 @@ final class ListResourcesRequestHandlerTest extends AbstractMcpTestCase
 
     private function buildReader(): ClosureResourceReader
     {
-        return new ClosureResourceReader(
-            static fn(string $uri, ServerContext $context): ReadResourceResult => new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private),
-        );
+        return new ClosureResourceReader(static fn(string $uri, ServerContext $context): ReadResourceResult => new ReadResourceResult(
+            contents: [],
+            ttlMs: 0,
+            cacheScope: CacheScope::Private,
+        ));
     }
 
     private function makeContext(): ServerContext

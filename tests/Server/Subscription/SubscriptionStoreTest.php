@@ -159,9 +159,15 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
     {
         yield 'tools' => [static fn(SubscriptionStore $store) => $store->emitToolListChanged(), 'notifications/tools/list_changed'];
 
-        yield 'prompts' => [static fn(SubscriptionStore $store) => $store->emitPromptListChanged(), 'notifications/prompts/list_changed'];
+        yield 'prompts' => [
+            static fn(SubscriptionStore $store) => $store->emitPromptListChanged(),
+            'notifications/prompts/list_changed',
+        ];
 
-        yield 'resources' => [static fn(SubscriptionStore $store) => $store->emitResourceListChanged(), 'notifications/resources/list_changed'];
+        yield 'resources' => [
+            static fn(SubscriptionStore $store) => $store->emitResourceListChanged(),
+            'notifications/resources/list_changed',
+        ];
     }
 
     public function testEachListChangeKindIsAnnouncedSeparately(): void
@@ -317,7 +323,11 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
     public function testClosingAStreamAnotherStoreOwnsIsANoOp(): void
     {
         $store = new SubscriptionStore();
-        $foreign = (new SubscriptionStore())->open(new RequestId(id: 1), new SubscriptionFilter(), new RecordingSender());
+        $foreign = (new SubscriptionStore())->open(
+            new RequestId(id: 1),
+            new SubscriptionFilter(),
+            new RecordingSender(),
+        );
 
         $store->close($foreign);
 
@@ -416,13 +426,11 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
 
         $sends = 0;
         $vanished = self::createStub(SenderInterface::class);
-        $vanished->method('sendNotification')->willReturnCallback(
-            static function () use (&$sends): void {
-                if (++$sends > 1) {
-                    throw new TransportAlreadyClosedException('send a notification');
-                }
-            },
-        );
+        $vanished->method('sendNotification')->willReturnCallback(static function () use (&$sends): void {
+            if (++$sends > 1) {
+                throw new TransportAlreadyClosedException('send a notification');
+            }
+        });
 
         $store->open(new RequestId(id: 1), $filter, $vanished);
         $store->open(new RequestId(id: 2), $filter, $reachable);
@@ -430,7 +438,10 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
         $store->emitToolListChanged();
         delay(0.0);
 
-        $matches = $logger->recordsMatching(LogLevel::DEBUG, 'Dropping a subscription notification its stream could not take.');
+        $matches = $logger->recordsMatching(
+            LogLevel::DEBUG,
+            'Dropping a subscription notification its stream could not take.',
+        );
         self::assertCount(1, $matches);
         self::assertSame('notifications/tools/list_changed', $matches[0]['context']['method'] ?? null);
 
@@ -485,7 +496,10 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
             $store->open(new RequestId(id: 2), new SubscriptionFilter(), $sender, peer: 'alice');
             self::fail('The store must refuse a stream past its per-peer limit.');
         } catch (SubscriptionLimitReachedException $e) {
-            self::assertSame('Subscription limit reached: this server holds at most 1 open streams per client.', $e->getMessage());
+            self::assertSame(
+                'Subscription limit reached: this server holds at most 1 open streams per client.',
+                $e->getMessage(),
+            );
             self::assertSame(ProtocolErrorCode::InternalError, $e::getErrorCode());
         }
 
@@ -494,29 +508,54 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
 
     public function testOpeningAStreamNamingTooManyResourceUrisIsRefusedBeforeAnySlotIsSpent(): void
     {
-        $store = new SubscriptionStore(resourceSubscriptions: true, maxSubscriptions: 1, maxSubscriptionsPerPeer: 1, maxResourceSubscriptionsPerStream: 1);
+        $store = new SubscriptionStore(
+            resourceSubscriptions: true,
+            maxSubscriptions: 1,
+            maxSubscriptionsPerPeer: 1,
+            maxResourceSubscriptionsPerStream: 1,
+        );
         $sender = new RecordingSender();
 
         try {
-            $store->open(new RequestId(id: 1), new SubscriptionFilter(resourceSubscriptions: ['file:///a', 'file:///b']), $sender, peer: 'alice');
+            $store->open(
+                new RequestId(id: 1),
+                new SubscriptionFilter(resourceSubscriptions: ['file:///a', 'file:///b']),
+                $sender,
+                peer: 'alice',
+            );
             self::fail('The store must refuse a stream naming more URIs than one may watch.');
         } catch (SubscriptionLimitReachedException $e) {
-            self::assertSame('Subscription limit reached: this server watches at most 1 resource URIs per stream.', $e->getMessage());
+            self::assertSame(
+                'Subscription limit reached: this server watches at most 1 resource URIs per stream.',
+                $e->getMessage(),
+            );
             self::assertSame(ProtocolErrorCode::InternalError, $e::getErrorCode());
         }
 
         self::assertSame([], $this->readMethodsOf($sender), 'A refused stream is never acknowledged.');
 
-        $entry = $store->open(new RequestId(id: 2), new SubscriptionFilter(resourceSubscriptions: ['file:///a']), new RecordingSender(), peer: 'alice');
+        $entry = $store->open(
+            new RequestId(id: 2),
+            new SubscriptionFilter(resourceSubscriptions: ['file:///a']),
+            new RecordingSender(),
+            peer: 'alice',
+        );
 
-        self::assertFalse($entry->closed->isComplete(), 'A refused stream spends neither the server-wide nor the per-peer slot.');
+        self::assertFalse(
+            $entry->closed->isComplete(),
+            'A refused stream spends neither the server-wide nor the per-peer slot.',
+        );
     }
 
     public function testAResourceListTheServerCannotHonourDoesNotCountAgainstTheStreamBudget(): void
     {
         $store = new SubscriptionStore(maxResourceSubscriptionsPerStream: 1);
 
-        $entry = $store->open(new RequestId(id: 1), new SubscriptionFilter(resourceSubscriptions: ['file:///a', 'file:///b']), new RecordingSender());
+        $entry = $store->open(
+            new RequestId(id: 1),
+            new SubscriptionFilter(resourceSubscriptions: ['file:///a', 'file:///b']),
+            new RecordingSender(),
+        );
 
         self::assertFalse($entry->closed->isComplete());
         self::assertNull($entry->honoured->resourceSubscriptions);
@@ -526,7 +565,11 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
     {
         $store = new SubscriptionStore(resourceSubscriptions: true);
         $sender = new RecordingSender();
-        $store->open(new RequestId(id: 1), new SubscriptionFilter(resourceSubscriptions: ['file:///a', 'file:///a']), $sender);
+        $store->open(
+            new RequestId(id: 1),
+            new SubscriptionFilter(resourceSubscriptions: ['file:///a', 'file:///a']),
+            $sender,
+        );
 
         $store->emitResourceUpdated('file:///a');
         delay(0.0);
@@ -542,7 +585,11 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
         $store = new SubscriptionStore(resourceSubscriptions: true);
         $leaving = new RecordingSender();
         $staying = new RecordingSender();
-        $entry = $store->open(new RequestId(id: 1), new SubscriptionFilter(resourceSubscriptions: ['file:///a']), $leaving);
+        $entry = $store->open(
+            new RequestId(id: 1),
+            new SubscriptionFilter(resourceSubscriptions: ['file:///a']),
+            $leaving,
+        );
         $store->open(new RequestId(id: 2), new SubscriptionFilter(resourceSubscriptions: ['file:///a']), $staying);
 
         $store->close($entry);
@@ -563,7 +610,11 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
     {
         $store = new SubscriptionStore(resourceSubscriptions: true);
         $sender = new RecordingSender();
-        $entry = $store->open(new RequestId(id: 1), new SubscriptionFilter(resourceSubscriptions: ['file:///a']), $sender);
+        $entry = $store->open(
+            new RequestId(id: 1),
+            new SubscriptionFilter(resourceSubscriptions: ['file:///a']),
+            $sender,
+        );
 
         $store->discard($entry);
         $store->emitResourceUpdated('file:///a');
@@ -575,7 +626,11 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
     public function testDiscardingAStreamAnotherStoreOwnsLeavesThisStoreIntact(): void
     {
         $other = new SubscriptionStore(resourceSubscriptions: true);
-        $foreign = $other->open(new RequestId(id: 1), new SubscriptionFilter(resourceSubscriptions: ['file:///a']), new RecordingSender());
+        $foreign = $other->open(
+            new RequestId(id: 1),
+            new SubscriptionFilter(resourceSubscriptions: ['file:///a']),
+            new RecordingSender(),
+        );
         $store = new SubscriptionStore(resourceSubscriptions: true);
         $sender = new RecordingSender();
         $store->open(new RequestId(id: 2), new SubscriptionFilter(resourceSubscriptions: ['file:///a']), $sender);
@@ -629,7 +684,9 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
     {
         $store = new SubscriptionStore(maxSubscriptionsPerPeer: 1);
         $vanished = self::createStub(SenderInterface::class);
-        $vanished->method('sendNotification')->willThrowException(new TransportAlreadyClosedException('send a notification'));
+        $vanished->method('sendNotification')->willThrowException(new TransportAlreadyClosedException(
+            'send a notification',
+        ));
 
         try {
             $store->open(new RequestId(id: 1), new SubscriptionFilter(), $vanished, peer: 'alice');
@@ -681,7 +738,11 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
             }
         };
 
-        $first = async(static fn(): mixed => $store->open(new RequestId(id: 1), new SubscriptionFilter(toolsListChanged: true), $parked));
+        $first = async(static fn(): mixed => $store->open(
+            new RequestId(id: 1),
+            new SubscriptionFilter(toolsListChanged: true),
+            $parked,
+        ));
         delay(0.0);
 
         $sender = new RecordingSender();
@@ -711,7 +772,9 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
         $store = new SubscriptionStore(toolsListChanged: true, maxSubscriptions: 1);
 
         $vanished = self::createStub(SenderInterface::class);
-        $vanished->method('sendNotification')->willThrowException(new TransportAlreadyClosedException('send a notification'));
+        $vanished->method('sendNotification')->willThrowException(new TransportAlreadyClosedException(
+            'send a notification',
+        ));
 
         try {
             $store->open(new RequestId(id: 1), new SubscriptionFilter(toolsListChanged: true), $vanished);

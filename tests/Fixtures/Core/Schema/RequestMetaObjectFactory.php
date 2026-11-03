@@ -44,7 +44,9 @@ final class RequestMetaObjectFactory
         return new RequestMetaObject(
             protocolVersion: new ProtocolVersion(version: $protocolVersion ?? ProtocolVersion::LATEST_VERSION),
             clientInfo: new Implementation(name: self::CLIENT_NAME, version: self::CLIENT_VERSION),
-            clientCapabilities: $clientCapabilities ?? new ClientCapabilities(experimental: ['acme.experimental' => ['enabled' => true]]),
+            clientCapabilities: $clientCapabilities ?? new ClientCapabilities(
+                experimental: ['acme.experimental' => ['enabled' => true]],
+            ),
             logLevel: $logLevel,
             progressToken: $progressToken,
             extras: $extras,

@@ -57,15 +57,13 @@ final class ProgressNotificationTest extends AbstractMcpTestCase
 
     public function testToArrayWithFullParams(): void
     {
-        $notification = new ProgressNotification(
-            params: new ProgressNotificationParams(
-                progressToken: new ProgressToken(token: 7),
-                progress: 3.0,
-                total: 10.0,
-                message: 'fetching',
-                meta: new NotificationMetaObject(extras: ['vendor' => 'x']),
-            ),
-        );
+        $notification = new ProgressNotification(params: new ProgressNotificationParams(
+            progressToken: new ProgressToken(token: 7),
+            progress: 3.0,
+            total: 10.0,
+            message: 'fetching',
+            meta: new NotificationMetaObject(extras: ['vendor' => 'x']),
+        ));
 
         self::assertSame(
             [
@@ -94,15 +92,13 @@ final class ProgressNotificationTest extends AbstractMcpTestCase
 
     public function testFromArrayFullRoundTrip(): void
     {
-        $original = new ProgressNotification(
-            params: new ProgressNotificationParams(
-                progressToken: new ProgressToken(token: 'p-9'),
-                progress: 7.0,
-                total: 14.0,
-                message: 'halfway',
-                meta: new NotificationMetaObject(extras: ['vendor' => 'x']),
-            ),
-        );
+        $original = new ProgressNotification(params: new ProgressNotificationParams(
+            progressToken: new ProgressToken(token: 'p-9'),
+            progress: 7.0,
+            total: 14.0,
+            message: 'halfway',
+            meta: new NotificationMetaObject(extras: ['vendor' => 'x']),
+        ));
 
         $rebuilt = ProgressNotification::fromArray($original->toArray());
 

@@ -108,11 +108,19 @@ final class ClientBuilderTest extends AbstractMcpTestCase
 
         yield 'setMetaExtrasFactory' => [static fn(ClientBuilder $b): ClientBuilder => $b->setMetaExtrasFactory(static fn(): array => [])];
 
-        yield 'addRequestHandler' => [static fn(ClientBuilder $b): ClientBuilder => $b->addRequestHandler(TestRequest::class, new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult()))];
+        yield 'addRequestHandler' => [static fn(ClientBuilder $b): ClientBuilder => $b->addRequestHandler(
+            TestRequest::class,
+            new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult()),
+        )];
 
-        yield 'addNotificationHandler' => [static fn(ClientBuilder $b): ClientBuilder => $b->addNotificationHandler(ProgressNotification::class, new ClosureNotificationHandler(static function (): void {}))];
+        yield 'addNotificationHandler' => [static fn(ClientBuilder $b): ClientBuilder => $b->addNotificationHandler(
+            ProgressNotification::class,
+            new ClosureNotificationHandler(static function (): void {}),
+        )];
 
-        yield 'enableExtension' => [static fn(ClientBuilder $b): ClientBuilder => $b->enableExtension(new StubClientExtension(identifier: 'com.example/feature'))];
+        yield 'enableExtension' => [static fn(ClientBuilder $b): ClientBuilder => $b->enableExtension(new StubClientExtension(
+            identifier: 'com.example/feature',
+        ))];
     }
 
     public function testBuildingTwiceIsRefused(): void
@@ -318,7 +326,10 @@ final class ClientBuilderTest extends AbstractMcpTestCase
     {
         $builder = new ClientBuilder();
 
-        $returned = $builder->addRequestHandler(TestRequest::class, new ClosureRequestHandler(static fn() => throw new \RuntimeException('not used')));
+        $returned = $builder->addRequestHandler(
+            TestRequest::class,
+            new ClosureRequestHandler(static fn() => throw new \RuntimeException('not used')),
+        );
 
         self::assertSame($builder, $returned);
     }
@@ -326,9 +337,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
     public function testAddRequestHandlerKeepsTheRegistryClassForASpecMethod(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs(
-            'Request method "server/discover" is defined by the MCP specification and keeps its registry envelope class, \'Nexus\\\\Mcp\\\\Tests\\\\Fixtures\\\\Core\\\\DiscoverLookalikeRequest\' given.',
-        );
+        $this->expectExceptionMessageIs('Request method "server/discover" is defined by the MCP specification and keeps its registry envelope class, \'Nexus\\\\Mcp\\\\Tests\\\\Fixtures\\\\Core\\\\DiscoverLookalikeRequest\' given.');
 
         (new ClientBuilder())->addRequestHandler(DiscoverLookalikeRequest::class, new ClosureRequestHandler(
             static fn(): EmptyResult => new EmptyResult(),
@@ -338,13 +347,12 @@ final class ClientBuilderTest extends AbstractMcpTestCase
     public function testAddNotificationHandlerKeepsTheRegistryClassForASpecMethod(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs(
-            'Notification method "notifications/progress" is defined by the MCP specification and keeps its registry envelope class, \'Nexus\\\\Mcp\\\\Tests\\\\Fixtures\\\\Core\\\\ProgressLookalikeNotification\' given.',
-        );
+        $this->expectExceptionMessageIs('Notification method "notifications/progress" is defined by the MCP specification and keeps its registry envelope class, \'Nexus\\\\Mcp\\\\Tests\\\\Fixtures\\\\Core\\\\ProgressLookalikeNotification\' given.');
 
-        (new ClientBuilder())->addNotificationHandler(ProgressLookalikeNotification::class, new ClosureNotificationHandler(
-            static function (): void {},
-        ));
+        (new ClientBuilder())->addNotificationHandler(
+            ProgressLookalikeNotification::class,
+            new ClosureNotificationHandler(static function (): void {}),
+        );
     }
 
     public function testEnableExtensionAdvertisesTheCapabilityOnTheStampedMeta(): void
@@ -405,9 +413,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
     public function testEnableExtensionRejectsAnOutboundSpecMethod(): void
     {
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageIs(
-            'Extension "com.example/feature" cannot claim the request method "tools/call" already owned by the MCP specification.',
-        );
+        $this->expectExceptionMessageIs('Extension "com.example/feature" cannot claim the request method "tools/call" already owned by the MCP specification.');
 
         (new ClientBuilder())->enableExtension(new StubClientExtension(
             identifier: 'com.example/feature',
@@ -423,9 +429,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
         ));
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageIs(
-            'Extension "com.example/other" cannot claim the request method "acme/lookup" already owned by extension "com.example/feature".',
-        );
+        $this->expectExceptionMessageIs('Extension "com.example/other" cannot claim the request method "acme/lookup" already owned by extension "com.example/feature".');
 
         $builder->enableExtension(new StubClientExtension(
             identifier: 'com.example/other',
@@ -440,9 +444,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
         ));
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageIs(
-            'Extension "com.example/feature" cannot claim the request method "tests/test-request" already owned by a builder-registered handler.',
-        );
+        $this->expectExceptionMessageIs('Extension "com.example/feature" cannot claim the request method "tests/test-request" already owned by a builder-registered handler.');
 
         $builder->enableExtension(new StubClientExtension(
             identifier: 'com.example/feature',
@@ -455,14 +457,13 @@ final class ClientBuilderTest extends AbstractMcpTestCase
 
     public function testEnableExtensionRejectsANotificationMethodABuilderHandlerOwns(): void
     {
-        $builder = (new ClientBuilder())->addNotificationHandler(TestNotification::class, new ClosureNotificationHandler(
-            static function (): void {},
-        ));
+        $builder = (new ClientBuilder())->addNotificationHandler(
+            TestNotification::class,
+            new ClosureNotificationHandler(static function (): void {}),
+        );
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageIs(
-            'Extension "com.example/feature" cannot claim the notification method "tests/test-notification" already owned by a builder-registered handler.',
-        );
+        $this->expectExceptionMessageIs('Extension "com.example/feature" cannot claim the notification method "tests/test-notification" already owned by a builder-registered handler.');
 
         $builder->enableExtension(new StubClientExtension(
             identifier: 'com.example/feature',
@@ -484,9 +485,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
         ));
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageIs(
-            'A builder-registered handler cannot claim the request method "tests/test-request" already owned by extension "com.example/feature".',
-        );
+        $this->expectExceptionMessageIs('A builder-registered handler cannot claim the request method "tests/test-request" already owned by extension "com.example/feature".');
 
         $builder->addRequestHandler(TestRequest::class, new ClosureRequestHandler(
             static fn(): EmptyResult => new EmptyResult(),
@@ -504,9 +503,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
         ));
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageIs(
-            'A builder-registered handler cannot claim the notification method "tests/test-notification" already owned by extension "com.example/feature".',
-        );
+        $this->expectExceptionMessageIs('A builder-registered handler cannot claim the notification method "tests/test-notification" already owned by extension "com.example/feature".');
 
         $builder->addNotificationHandler(TestNotification::class, new ClosureNotificationHandler(
             static function (): void {},
@@ -567,12 +564,16 @@ final class ClientBuilderTest extends AbstractMcpTestCase
             ->enableExtension(new StubClientExtension(
                 identifier: 'com.example/feature',
                 requests: [TestRequest::class],
-                requestHandlers: [TestRequest::getMethod() => new ClosureRequestHandler(static fn(): EmptyResult => $marker)],
+                requestHandlers: [TestRequest::getMethod() => new ClosureRequestHandler(
+                    static fn(): EmptyResult => $marker,
+                )],
             ))
             ->enableExtension(new StubClientExtension(
                 identifier: 'com.example/other',
                 requests: [TestClientRequest::class],
-                requestHandlers: [TestClientRequest::getMethod() => new ClosureRequestHandler(static fn(): EmptyResult => $secondMarker)],
+                requestHandlers: [TestClientRequest::getMethod() => new ClosureRequestHandler(
+                    static fn(): EmptyResult => $secondMarker,
+                )],
             ))
             ->build()
         ;
@@ -614,20 +615,16 @@ final class ClientBuilderTest extends AbstractMcpTestCase
             ->enableExtension(new StubClientExtension(
                 identifier: 'com.example/feature',
                 notifications: [TestNotification::class],
-                notificationHandlers: [TestNotification::getMethod() => new ClosureNotificationHandler(
-                    static function () use (&$received): void {
-                        $received[] = 'feature';
-                    },
-                )],
+                notificationHandlers: [TestNotification::getMethod() => new ClosureNotificationHandler(static function () use (&$received): void {
+                    $received[] = 'feature';
+                })],
             ))
             ->enableExtension(new StubClientExtension(
                 identifier: 'com.example/other',
                 notifications: [TestSecondNotification::class],
-                notificationHandlers: [TestSecondNotification::getMethod() => new ClosureNotificationHandler(
-                    static function () use (&$received): void {
-                        $received[] = 'other';
-                    },
-                )],
+                notificationHandlers: [TestSecondNotification::getMethod() => new ClosureNotificationHandler(static function () use (&$received): void {
+                    $received[] = 'other';
+                })],
             ))
             ->build()
         ;
@@ -718,11 +715,9 @@ final class ClientBuilderTest extends AbstractMcpTestCase
 
         $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
-            ->addNotificationHandler(TestNotification::class, new ClosureNotificationHandler(
-                static function () use (&$received): void {
-                    ++$received;
-                },
-            ))
+            ->addNotificationHandler(TestNotification::class, new ClosureNotificationHandler(static function () use (&$received): void {
+                ++$received;
+            }))
             ->build()
         ;
         $transport = new RecordingTransport();
@@ -742,17 +737,15 @@ final class ClientBuilderTest extends AbstractMcpTestCase
         $seen = [];
         $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
-            ->addRequestHandler(DiscoverRequest::class, new ClosureRequestHandler(
-                static function ($request, AbstractContext $context) use (&$seen): EmptyResult {
-                    try {
-                        delay(1.0, cancellation: $context->cancellation);
-                    } catch (CancelledException) {
-                        $seen[] = 'cancelled';
-                    }
+            ->addRequestHandler(DiscoverRequest::class, new ClosureRequestHandler(static function ($request, AbstractContext $context) use (&$seen): EmptyResult {
+                try {
+                    delay(1.0, cancellation: $context->cancellation);
+                } catch (CancelledException) {
+                    $seen[] = 'cancelled';
+                }
 
-                    return new EmptyResult();
-                },
-            ))
+                return new EmptyResult();
+            }))
             ->build()
         ;
         $transport = new RecordingTransport();
@@ -772,7 +765,11 @@ final class ClientBuilderTest extends AbstractMcpTestCase
         $client->disconnect();
 
         self::assertSame(['cancelled'], $seen, 'A peer cancelling a request the client serves must reach the handler.');
-        self::assertSame([], $transport->sent, 'The spec forbids answering a request once its cancellation was requested.');
+        self::assertSame(
+            [],
+            $transport->sent,
+            'The spec forbids answering a request once its cancellation was requested.',
+        );
     }
 
     public function testACustomCancelledNotificationHandlerReplacesTheBuiltInOne(): void
@@ -780,11 +777,9 @@ final class ClientBuilderTest extends AbstractMcpTestCase
         $seen = [];
         $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
-            ->addNotificationHandler(CancelledNotification::class, new ClosureNotificationHandler(
-                static function () use (&$seen): void {
-                    $seen[] = 'custom';
-                },
-            ))
+            ->addNotificationHandler(CancelledNotification::class, new ClosureNotificationHandler(static function () use (&$seen): void {
+                $seen[] = 'custom';
+            }))
             ->build()
         ;
         $transport = new RecordingTransport();
@@ -906,7 +901,9 @@ final class ClientBuilderTest extends AbstractMcpTestCase
             ->enableExtension(new StubClientExtension(
                 identifier: 'com.example/feature',
                 requests: [TestRequest::class],
-                requestHandlers: [TestRequest::getMethod() => new ClosureRequestHandler(static fn(): EmptyResult => new EmptyResult())],
+                requestHandlers: [TestRequest::getMethod() => new ClosureRequestHandler(
+                    static fn(): EmptyResult => new EmptyResult(),
+                )],
             ))
             ->build()
             ->connect($transport)

@@ -64,7 +64,11 @@ final class ProgressNotificationParamsTest extends AbstractMcpTestCase
 
     public function testToArrayWithTotal(): void
     {
-        $params = new ProgressNotificationParams(progressToken: new ProgressToken(token: 'p-1'), progress: 5.0, total: 10.0);
+        $params = new ProgressNotificationParams(
+            progressToken: new ProgressToken(token: 'p-1'),
+            progress: 5.0,
+            total: 10.0,
+        );
 
         self::assertSame(
             ['progressToken' => 'p-1', 'progress' => 5.0, 'total' => 10.0],
@@ -74,7 +78,11 @@ final class ProgressNotificationParamsTest extends AbstractMcpTestCase
 
     public function testToArrayWithMessage(): void
     {
-        $params = new ProgressNotificationParams(progressToken: new ProgressToken(token: 'p-1'), progress: 5.0, message: 'fetching');
+        $params = new ProgressNotificationParams(
+            progressToken: new ProgressToken(token: 'p-1'),
+            progress: 5.0,
+            message: 'fetching',
+        );
 
         self::assertSame(
             ['progressToken' => 'p-1', 'progress' => 5.0, 'message' => 'fetching'],

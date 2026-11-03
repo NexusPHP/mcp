@@ -39,14 +39,19 @@ final readonly class UiToolMeta implements Arrayable
         public ?array $visibility = null,
     ) {
         if (null !== $resourceUri) {
-            Assert::that($resourceUri)->startsWith(Apps::URI_PREFIX, \sprintf('"_meta.ui.resourceUri" must start with "%s".', Apps::URI_PREFIX));
+            Assert::that($resourceUri)->startsWith(
+                Apps::URI_PREFIX,
+                \sprintf('"_meta.ui.resourceUri" must start with "%s".', Apps::URI_PREFIX),
+            );
         }
 
         if (null !== $visibility) {
             Assert::that($visibility)
                 ->isList('"_meta.ui.visibility" must be a list, {type} given.')
-                ->values()
-                ->isInstanceOf(ToolVisibility::class, 'each "_meta.ui.visibility" must be a tool visibility, {type} given.')
+                ->values()->isInstanceOf(
+                    ToolVisibility::class,
+                    'each "_meta.ui.visibility" must be a tool visibility, {type} given.',
+                )
             ;
         }
     }
@@ -55,7 +60,9 @@ final readonly class UiToolMeta implements Arrayable
     public static function fromArray(array $data): static
     {
         $resourceUri = $data['resourceUri'] ?? null;
-        Assert::that($resourceUri)->nullOr()->isNonEmptyString('"_meta.ui.resourceUri" must be a non-empty string or null, {type} given.');
+        Assert::that($resourceUri)->nullOr()->isNonEmptyString(
+            '"_meta.ui.resourceUri" must be a non-empty string or null, {type} given.',
+        );
 
         $visibility = null;
 
@@ -63,7 +70,10 @@ final readonly class UiToolMeta implements Arrayable
             Assert::that($data['visibility'])->isList('"_meta.ui.visibility" must be a list, {type} given.');
             $visibility = array_map(
                 static function (mixed $entry): ToolVisibility {
-                    Assert::that($entry)->isOneOf(array_column(ToolVisibility::cases(), 'value'), 'each "_meta.ui.visibility" must be one of {choices}, {value} given.');
+                    Assert::that($entry)->isOneOf(
+                        array_column(ToolVisibility::cases(), 'value'),
+                        'each "_meta.ui.visibility" must be one of {choices}, {value} given.',
+                    );
 
                     return ToolVisibility::from($entry);
                 },
@@ -84,7 +94,10 @@ final readonly class UiToolMeta implements Arrayable
         }
 
         if (null !== $this->visibility) {
-            $data['visibility'] = array_map(static fn(ToolVisibility $visibility): string => $visibility->value, $this->visibility);
+            $data['visibility'] = array_map(
+                static fn(ToolVisibility $visibility): string => $visibility->value,
+                $this->visibility,
+            );
         }
 
         return $data;

@@ -56,7 +56,9 @@ final class ScriptedUserAuthorization implements UserAuthorizationInterface
 
     public function readRedirect(int $index = 0): AuthorizationRedirect
     {
-        return $this->redirects[$index] ?? throw new \OutOfBoundsException(\sprintf('No redirect was recorded at index %d.', $index));
+        return $this->redirects[$index] ?? throw new \OutOfBoundsException(
+            \sprintf('No redirect was recorded at index %d.', $index),
+        );
     }
 
     /**

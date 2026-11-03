@@ -42,7 +42,9 @@ final readonly class ElicitRequestedSchema implements Arrayable
         public ?array $required = null,
         public ?string $schema = null,
     ) {
-        Assert::that($properties)->keys()->isIntOrNonEmptyString('each "requestedSchema.properties" key must be an int or non-empty string.');
+        Assert::that($properties)->keys()->isIntOrNonEmptyString(
+            'each "requestedSchema.properties" key must be an int or non-empty string.',
+        );
         Assert::that($properties)->values()->isInstanceOf(PrimitiveSchemaDefinition::class);
 
         if (null !== $required) {
@@ -52,7 +54,9 @@ final readonly class ElicitRequestedSchema implements Arrayable
             ;
         }
 
-        Assert::that($schema)->nullOr()->isNonEmptyString('"requestedSchema.$schema" must be a non-empty string or null.');
+        Assert::that($schema)->nullOr()->isNonEmptyString(
+            '"requestedSchema.$schema" must be a non-empty string or null.',
+        );
     }
 
     #[\Override]
@@ -68,7 +72,9 @@ final readonly class ElicitRequestedSchema implements Arrayable
         $properties = [];
 
         foreach ($data['properties'] as $name => $shape) {
-            Assert::that($name)->isIntOrNonEmptyString('each "requestedSchema.properties" key must be an int or non-empty string, {value} given.');
+            Assert::that($name)->isIntOrNonEmptyString(
+                'each "requestedSchema.properties" key must be an int or non-empty string, {value} given.',
+            );
             Assert::that($shape)
                 ->isArray('"requestedSchema.properties" must be an object, {type} given.')
                 ->isMap('"requestedSchema.properties" must be a string-keyed object.')
@@ -88,7 +94,9 @@ final readonly class ElicitRequestedSchema implements Arrayable
         }
 
         $schema = $data['$schema'] ?? null;
-        Assert::that($schema)->nullOr()->isNonEmptyString('"requestedSchema.$schema" must be a non-empty string or null, {type} given.');
+        Assert::that($schema)->nullOr()->isNonEmptyString(
+            '"requestedSchema.$schema" must be a non-empty string or null, {type} given.',
+        );
 
         return new self(properties: $properties, required: $required, schema: $schema);
     }

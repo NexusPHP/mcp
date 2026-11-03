@@ -47,7 +47,9 @@ final class SubscriptionStreamTest extends AbstractMcpTestCase
         /** @var DeferredFuture<SubscriptionsListenResult> $deferred */
         $deferred = new DeferredFuture();
         $closes = 0;
-        $stream = new SubscriptionStream(new RequestId(id: 7), $deferred->getFuture(), static function () use (&$closes): void {
+        $stream = new SubscriptionStream(new RequestId(
+            id: 7,
+        ), $deferred->getFuture(), static function () use (&$closes): void {
             ++$closes;
         });
 
@@ -63,7 +65,9 @@ final class SubscriptionStreamTest extends AbstractMcpTestCase
         $deferred = new DeferredFuture();
         $stream = new SubscriptionStream(new RequestId(id: 7), $deferred->getFuture(), static function (): void {});
 
-        $result = new SubscriptionsListenResult(new SubscriptionsListenResultMetaObject(subscriptionId: new RequestId(id: 7)));
+        $result = new SubscriptionsListenResult(
+            new SubscriptionsListenResultMetaObject(subscriptionId: new RequestId(id: 7)),
+        );
         $deferred->complete($result);
 
         self::assertSame($result, $stream->await());

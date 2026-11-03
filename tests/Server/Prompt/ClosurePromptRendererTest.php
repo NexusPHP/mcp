@@ -36,13 +36,11 @@ final class ClosurePromptRendererTest extends AbstractMcpTestCase
     {
         $captured = ['arguments' => null, 'requestId' => 0];
         $expected = new GetPromptResult(messages: []);
-        $renderer = new ClosurePromptRenderer(
-            static function (?array $arguments, ServerContext $context) use ($expected, &$captured): GetPromptResult {
-                $captured = ['arguments' => $arguments, 'requestId' => $context->requestId->id];
+        $renderer = new ClosurePromptRenderer(static function (?array $arguments, ServerContext $context) use ($expected, &$captured): GetPromptResult {
+            $captured = ['arguments' => $arguments, 'requestId' => $context->requestId->id];
 
-                return $expected;
-            },
-        );
+            return $expected;
+        });
 
         $result = $renderer->render(['name' => 'Paul'], $this->makeContext());
 
@@ -53,13 +51,11 @@ final class ClosurePromptRendererTest extends AbstractMcpTestCase
     public function testForwardsNullArgumentsToClosure(): void
     {
         $captured = ['arguments' => ['marker']];
-        $renderer = new ClosurePromptRenderer(
-            static function (?array $arguments, ServerContext $context) use (&$captured): GetPromptResult {
-                $captured = ['arguments' => $arguments];
+        $renderer = new ClosurePromptRenderer(static function (?array $arguments, ServerContext $context) use (&$captured): GetPromptResult {
+            $captured = ['arguments' => $arguments];
 
-                return new GetPromptResult(messages: []);
-            },
-        );
+            return new GetPromptResult(messages: []);
+        });
 
         $renderer->render(null, $this->makeContext());
 

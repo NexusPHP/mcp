@@ -45,7 +45,9 @@ final class SubscriptionRegistryTest extends AbstractMcpTestCase
         $registry = new SubscriptionRegistry();
         $seen = [];
 
-        $registry->register($this->buildSubscription(new RequestId(id: 7), static function (JsonRpcNotification $notification) use (&$seen): void {
+        $registry->register($this->buildSubscription(new RequestId(
+            id: 7,
+        ), static function (JsonRpcNotification $notification) use (&$seen): void {
             $seen[] = $notification::getMethod();
         }));
         $resolved = $registry->get(new RequestId(id: 7));

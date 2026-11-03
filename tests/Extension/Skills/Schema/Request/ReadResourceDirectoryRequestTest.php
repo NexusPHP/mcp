@@ -43,7 +43,10 @@ final class ReadResourceDirectoryRequestTest extends AbstractMcpTestCase
     {
         $request = new ReadResourceDirectoryRequest(
             id: new RequestId(id: 1),
-            params: new ReadResourceDirectoryRequestParams(uri: 'skill://git-workflow/references', meta: RequestMetaObjectFactory::create()),
+            params: new ReadResourceDirectoryRequestParams(
+                uri: 'skill://git-workflow/references',
+                meta: RequestMetaObjectFactory::create(),
+            ),
         );
 
         self::assertSame(
@@ -61,10 +64,16 @@ final class ReadResourceDirectoryRequestTest extends AbstractMcpTestCase
     {
         $original = new ReadResourceDirectoryRequest(
             id: new RequestId(id: 'req-1'),
-            params: new ReadResourceDirectoryRequestParams(uri: 'skill://git-workflow', meta: RequestMetaObjectFactory::create()),
+            params: new ReadResourceDirectoryRequestParams(
+                uri: 'skill://git-workflow',
+                meta: RequestMetaObjectFactory::create(),
+            ),
         );
 
-        self::assertSame($original->toArray(), ReadResourceDirectoryRequest::fromArray($original->toArray())->toArray());
+        self::assertSame(
+            $original->toArray(),
+            ReadResourceDirectoryRequest::fromArray($original->toArray())->toArray(),
+        );
     }
 
     /**
@@ -86,7 +95,10 @@ final class ReadResourceDirectoryRequestTest extends AbstractMcpTestCase
     {
         yield 'missing id' => [['params' => []], 'missing the required "id" key.'];
 
-        yield 'id not int or string' => [['id' => [], 'params' => []], '"id" must be an int or non-empty string, array given.'];
+        yield 'id not int or string' => [
+            ['id' => [], 'params' => []],
+            '"id" must be an int or non-empty string, array given.',
+        ];
 
         yield 'missing params' => [['id' => 1], 'missing the required "params" key.'];
 

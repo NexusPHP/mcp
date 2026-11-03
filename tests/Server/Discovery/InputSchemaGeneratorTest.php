@@ -525,18 +525,17 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
             Place::class,
             InputSchemaGenerator::resolveExpandableNativeClass($this->readParameterAt('nestedObject', 0)),
         );
-        self::assertNull(
-            InputSchemaGenerator::resolveExpandableNativeClass($this->readParameterAt('withContext', 0)),
-        );
+        self::assertNull(InputSchemaGenerator::resolveExpandableNativeClass($this->readParameterAt('withContext', 0)));
     }
 
     public function testResolveExpandableNativeClassReadsSelfAsTheDeclaringClass(): void
     {
         self::assertSame(
             SelfReferencingDto::class,
-            InputSchemaGenerator::resolveExpandableNativeClass(
-                new \ReflectionParameter([SelfReferencingDto::class, '__construct'], 'next'),
-            ),
+            InputSchemaGenerator::resolveExpandableNativeClass(new \ReflectionParameter(
+                [SelfReferencingDto::class, '__construct'],
+                'next',
+            )),
         );
     }
 

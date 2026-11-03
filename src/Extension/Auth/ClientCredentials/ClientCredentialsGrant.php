@@ -129,7 +129,11 @@ final readonly class ClientCredentialsGrant implements GrantStrategyInterface
 
         $algorithms = $server->tokenEndpointAuthSigningAlgValuesSupported;
 
-        if (null !== $this->signingAlgorithm && null !== $algorithms && ! \in_array($this->signingAlgorithm, $algorithms, true)) {
+        if (
+            null !== $this->signingAlgorithm
+            && null !== $algorithms
+            && ! \in_array($this->signingAlgorithm, $algorithms, true)
+        ) {
             throw new RuntimeException(\sprintf(
                 'The authorization server "%s" does not advertise the "%s" client assertion signing algorithm.',
                 SafeDisplay::sanitiseCause($server->issuer),

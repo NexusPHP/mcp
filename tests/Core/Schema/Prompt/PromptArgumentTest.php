@@ -41,7 +41,12 @@ final class PromptArgumentTest extends AbstractMcpTestCase
 
     public function testConstructionWithAllFields(): void
     {
-        $arg = new PromptArgument(name: 'topic', title: 'Topic', description: 'The topic of discussion.', required: true);
+        $arg = new PromptArgument(
+            name: 'topic',
+            title: 'Topic',
+            description: 'The topic of discussion.',
+            required: true,
+        );
 
         self::assertSame('topic', $arg->name);
         self::assertSame('Topic', $arg->title);
@@ -58,7 +63,12 @@ final class PromptArgumentTest extends AbstractMcpTestCase
 
     public function testToArrayWithAllFields(): void
     {
-        $arg = new PromptArgument(name: 'topic', title: 'Topic', description: 'The topic of discussion.', required: true);
+        $arg = new PromptArgument(
+            name: 'topic',
+            title: 'Topic',
+            description: 'The topic of discussion.',
+            required: true,
+        );
 
         self::assertSame(
             [

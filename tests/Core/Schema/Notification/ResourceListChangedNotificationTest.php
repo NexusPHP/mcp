@@ -52,7 +52,9 @@ final class ResourceListChangedNotificationTest extends AbstractMcpTestCase
 
     public function testToArrayIncludesParamsWithMeta(): void
     {
-        $notification = new ResourceListChangedNotification(params: new EmptyNotificationParams(meta: new NotificationMetaObject(extras: ['vendor' => 'x'])));
+        $notification = new ResourceListChangedNotification(
+            params: new EmptyNotificationParams(meta: new NotificationMetaObject(extras: ['vendor' => 'x'])),
+        );
 
         self::assertSame(
             [
@@ -66,7 +68,9 @@ final class ResourceListChangedNotificationTest extends AbstractMcpTestCase
 
     public function testToArrayPreservesKeyOrderStartingWithJsonRpc(): void
     {
-        $notification = new ResourceListChangedNotification(params: new EmptyNotificationParams(meta: new NotificationMetaObject(extras: ['k' => 'v'])));
+        $notification = new ResourceListChangedNotification(
+            params: new EmptyNotificationParams(meta: new NotificationMetaObject(extras: ['k' => 'v'])),
+        );
 
         self::assertSame(
             ['jsonrpc', 'method', 'params'],
@@ -76,7 +80,9 @@ final class ResourceListChangedNotificationTest extends AbstractMcpTestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $notification = new ResourceListChangedNotification(params: new EmptyNotificationParams(meta: new NotificationMetaObject(extras: ['k' => 'v'])));
+        $notification = new ResourceListChangedNotification(
+            params: new EmptyNotificationParams(meta: new NotificationMetaObject(extras: ['k' => 'v'])),
+        );
 
         self::assertSame($notification->toArray(), $notification->jsonSerialize());
     }

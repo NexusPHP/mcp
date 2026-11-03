@@ -143,15 +143,27 @@ final class ListSkillsResultTest extends AbstractMcpTestCase
 
         yield 'skills not a list' => [['skills' => 'oops'], '"result.skills" must be a list, string given.'];
 
-        yield 'skill entry not an object' => [['skills' => ['oops']], 'each "result.skills" entry must be an object, string given.'];
+        yield 'skill entry not an object' => [
+            ['skills' => ['oops']],
+            'each "result.skills" entry must be an object, string given.',
+        ];
 
-        yield 'skill entry list-keyed' => [['skills' => [['x']]], 'each "result.skills" entry must be a string-keyed object.'];
+        yield 'skill entry list-keyed' => [
+            ['skills' => [['x']]],
+            'each "result.skills" entry must be a string-keyed object.',
+        ];
 
         yield 'missing ttlMs' => [['skills' => []], '"result" is missing the required "ttlMs" key.'];
 
-        yield 'ttlMs not an integer' => [['skills' => [], 'ttlMs' => 'oops'], '"result.ttlMs" must be an integer, string given.'];
+        yield 'ttlMs not an integer' => [
+            ['skills' => [], 'ttlMs' => 'oops'],
+            '"result.ttlMs" must be an integer, string given.',
+        ];
 
-        yield 'missing cacheScope' => [['skills' => [], 'ttlMs' => 0], '"result" is missing the required "cacheScope" key.'];
+        yield 'missing cacheScope' => [
+            ['skills' => [], 'ttlMs' => 0],
+            '"result" is missing the required "cacheScope" key.',
+        ];
 
         yield 'cacheScope not a known value' => [
             ['skills' => [], 'ttlMs' => 0, 'cacheScope' => 'shared'],

@@ -94,7 +94,10 @@ final class PromptStoreTest extends AbstractMcpTestCase
 
     public function testAnAllDigitNameIsServedDespiteBecomingAnIntegerKey(): void
     {
-        $store = new PromptStore(['123' => new PromptEntry(new Prompt(name: '123'), $this->makeRenderer()), 'beta' => new PromptEntry(new Prompt(name: 'beta'), $this->makeRenderer())], pageSize: 1);
+        $store = new PromptStore([
+            '123' => new PromptEntry(new Prompt(name: '123'), $this->makeRenderer()),
+            'beta' => new PromptEntry(new Prompt(name: 'beta'), $this->makeRenderer()),
+        ], pageSize: 1);
 
         $first = $store->list(null);
         self::assertNotNull($first->nextCursor);
@@ -116,7 +119,11 @@ final class PromptStoreTest extends AbstractMcpTestCase
             'alpha' => new PromptEntry(
                 new Prompt(name: 'alpha'),
                 new ClosurePromptRenderer(static function (?array $arguments, ServerContext $context) use ($alphaResult, &$captured): GetPromptResult {
-                    $captured[] = ['name' => 'alpha', 'arguments' => $arguments, 'requestId' => $context->requestId->id];
+                    $captured[] = [
+                        'name' => 'alpha',
+                        'arguments' => $arguments,
+                        'requestId' => $context->requestId->id,
+                    ];
 
                     return $alphaResult;
                 }),
@@ -245,7 +252,13 @@ final class PromptStoreTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('prompt "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.');
 
-        new PromptStore(['p' => new PromptEntry(new Prompt(name: 'p', icons: [new Icon(src: 'ftp://example.com/icon.png')]), $this->makeRenderer())]);
+        new PromptStore(['p' => new PromptEntry(
+            new Prompt(
+                name: 'p',
+                icons: [new Icon(src: 'ftp://example.com/icon.png')],
+            ),
+            $this->makeRenderer(),
+        )]);
     }
 
     public function testAddRefusesANonConservativeIconSrc(): void
@@ -253,7 +266,13 @@ final class PromptStoreTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('prompt "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.');
 
-        (new PromptStore())->addPrompt(new Prompt(name: 'p', icons: [new Icon(src: 'ftp://example.com/icon.png')]), $this->makeRenderer());
+        (new PromptStore())->addPrompt(
+            new Prompt(
+                name: 'p',
+                icons: [new Icon(src: 'ftp://example.com/icon.png')],
+            ),
+            $this->makeRenderer(),
+        );
     }
 
     public function testGetWrapsABindingFailureWithThePromptName(): void

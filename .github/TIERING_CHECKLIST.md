@@ -120,7 +120,7 @@ Reproduce with `composer conformance:server`, `composer conformance:client`, the
 - [x] **Conformance example server + client**
   - Reference: not a standalone SEP-1730 requirement. This is the harness behind the conformance score. Mirrors the canonical fixtures per [SDK_INTEGRATION.md](https://github.com/modelcontextprotocol/conformance/blob/main/SDK_INTEGRATION.md)
   - Location: `conformance/server.php` + `conformance/client.php`
-  - Evidence/Notes: `conformance/EverythingServer.php` registers every server capability through attribute discovery, `conformance/client.php` is a scenario-name to closure registry covering the client leg, and `conformance/README.md` documents the run and bump procedure. Both halves key on the harness scenario names, matching the upstream [`everything-client.ts`](https://github.com/modelcontextprotocol/conformance/blob/main/examples/clients/typescript/everything-client.ts) registry shape
+  - Evidence/Notes: `conformance/EverythingServer.php` registers every server capability through attribute discovery, `conformance/ConformanceClient.php` is a scenario-name registry covering the client leg, and `conformance/README.md` documents the run and bump procedure. Both halves key on the harness scenario names, matching the upstream [`everything-client.ts`](https://github.com/modelcontextprotocol/conformance/blob/main/examples/clients/typescript/everything-client.ts) registry shape
 
 ### Implementation Timeline
 

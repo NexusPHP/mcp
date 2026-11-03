@@ -71,11 +71,12 @@ final class EverythingServer
     public function triggerToolChange(): string
     {
         $name = sprintf('generated_tool_%d', ++$this->mutations);
+        $closure = static fn(?array $arguments, ServerContext $context): CallToolResult => new CallToolResult(
+            content: [new TextContent(text: 'generated')],
+        );
         $this->toolStore?->addTool(
             new Tool(name: $name, description: 'Generated to change the tool list.', inputSchema: ['type' => 'object']),
-            new ClosureToolExecutor(static fn(?array $arguments, ServerContext $context): CallToolResult => new CallToolResult(
-                content: [new TextContent(text: 'generated')],
-            )),
+            new ClosureToolExecutor($closure),
         );
 
         return $name;
@@ -85,11 +86,12 @@ final class EverythingServer
     public function triggerPromptChange(): string
     {
         $name = sprintf('generated_prompt_%d', ++$this->mutations);
+        $closure = static fn(?array $arguments, ServerContext $context): GetPromptResult => new GetPromptResult(
+            messages: [],
+        );
         $this->promptStore?->addPrompt(
             new Prompt(name: $name, description: 'Generated to change the prompt list.'),
-            new ClosurePromptRenderer(static fn(?array $arguments, ServerContext $context): GetPromptResult => new GetPromptResult(
-                messages: [],
-            )),
+            new ClosurePromptRenderer($closure),
         );
 
         return $name;
@@ -126,7 +128,10 @@ final class EverythingServer
     /**
      * @return list<EmbeddedResource|ImageContent|TextContent>
      */
-    #[AsTool(name: 'test_multiple_content_types', description: 'Returns text, image, and resource content blocks in one result.')]
+    #[AsTool(
+        name: 'test_multiple_content_types',
+        description: 'Returns text, image, and resource content blocks in one result.',
+    )]
     public function multipleContentTypes(): array
     {
         return [
@@ -188,7 +193,10 @@ final class EverythingServer
      *
      * @param string $message Echoed back, and mirrored into `Mcp-Param-Message`.
      */
-    #[AsTool(name: 'test_custom_header_param', description: 'Echoes a parameter that is also carried as a custom header.')]
+    #[AsTool(
+        name: 'test_custom_header_param',
+        description: 'Echoes a parameter that is also carried as a custom header.',
+    )]
     #[InputSchema(definition: [
         'type' => 'object',
         'properties' => [
@@ -209,7 +217,10 @@ final class EverythingServer
      * The `server-stateless` scenario opens this call's response stream and asserts
      * the server sends nothing on it but that call's own frames.
      */
-    #[AsTool(name: 'test_streaming_elicitation', description: 'Emits progress frames so the response stream stays open for inspection.')]
+    #[AsTool(
+        name: 'test_streaming_elicitation',
+        description: 'Emits progress frames so the response stream stays open for inspection.',
+    )]
     public function streamingElicitation(ServerContext $context): string
     {
         $context->reportProgress(progress: 1.0, total: 2.0, message: 'Working.');
@@ -276,16 +287,30 @@ final class EverythingServer
     /**
      * @param non-empty-string $uri
      */
-    #[AsResource(uri: 'test://static-text', name: 'static-text', description: 'A static text resource.', mimeType: 'text/plain')]
+    #[AsResource(
+        uri: 'test://static-text',
+        name: 'static-text',
+        description: 'A static text resource.',
+        mimeType: 'text/plain',
+    )]
     public function staticText(string $uri): TextResourceContents
     {
-        return new TextResourceContents(uri: $uri, text: 'This is the content of the static text resource.', mimeType: 'text/plain');
+        return new TextResourceContents(
+            uri: $uri,
+            text: 'This is the content of the static text resource.',
+            mimeType: 'text/plain',
+        );
     }
 
     /**
      * @param non-empty-string $uri
      */
-    #[AsResource(uri: 'test://static-binary', name: 'static-binary', description: 'A static binary resource.', mimeType: 'image/png')]
+    #[AsResource(
+        uri: 'test://static-binary',
+        name: 'static-binary',
+        description: 'A static binary resource.',
+        mimeType: 'image/png',
+    )]
     public function staticBinary(string $uri): BlobResourceContents
     {
         return new BlobResourceContents(uri: $uri, blob: self::RED_PIXEL_PNG, mimeType: 'image/png');
@@ -295,7 +320,12 @@ final class EverythingServer
      * @param string           $id  The identifier captured from the URI.
      * @param non-empty-string $uri
      */
-    #[AsResourceTemplate(uriTemplate: 'test://template/{id}/data', name: 'template', description: 'A templated resource addressed by id.', mimeType: 'application/json')]
+    #[AsResourceTemplate(
+        uriTemplate: 'test://template/{id}/data',
+        name: 'template',
+        description: 'A templated resource addressed by id.',
+        mimeType: 'application/json',
+    )]
     public function templatedResource(string $uri, string $id): TextResourceContents
     {
         return new TextResourceContents(

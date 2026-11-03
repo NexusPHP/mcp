@@ -222,12 +222,20 @@ final class TypeNodeSchemaMapperTest extends AbstractMcpTestCase
 
         yield 'array shape' => [
             'array{id: int, name: string}',
-            ['type' => 'object', 'properties' => ['id' => ['type' => 'integer'], 'name' => ['type' => 'string']], 'required' => ['id', 'name']],
+            [
+                'type' => 'object',
+                'properties' => ['id' => ['type' => 'integer'], 'name' => ['type' => 'string']],
+                'required' => ['id', 'name'],
+            ],
         ];
 
         yield 'array shape optional key' => [
             'array{id: int, name?: string}',
-            ['type' => 'object', 'properties' => ['id' => ['type' => 'integer'], 'name' => ['type' => 'string']], 'required' => ['id']],
+            [
+                'type' => 'object',
+                'properties' => ['id' => ['type' => 'integer'], 'name' => ['type' => 'string']],
+                'required' => ['id'],
+            ],
         ];
 
         yield 'array shape all optional' => [
@@ -347,22 +355,40 @@ final class TypeNodeSchemaMapperTest extends AbstractMcpTestCase
 
         yield 'object shape' => [
             'object{id: int, name: string}',
-            ['type' => 'object', 'properties' => ['id' => ['type' => 'integer'], 'name' => ['type' => 'string']], 'required' => ['id', 'name']],
+            [
+                'type' => 'object',
+                'properties' => ['id' => ['type' => 'integer'], 'name' => ['type' => 'string']],
+                'required' => ['id', 'name'],
+            ],
         ];
 
         yield 'object shape optional property' => [
             'object{id: int, name?: string}',
-            ['type' => 'object', 'properties' => ['id' => ['type' => 'integer'], 'name' => ['type' => 'string']], 'required' => ['id']],
+            [
+                'type' => 'object',
+                'properties' => ['id' => ['type' => 'integer'], 'name' => ['type' => 'string']],
+                'required' => ['id'],
+            ],
         ];
 
         yield 'tuple array shape' => [
             'array{int, string}',
-            ['type' => 'array', 'prefixItems' => [['type' => 'integer'], ['type' => 'string']], 'items' => false, 'minItems' => 2],
+            [
+                'type' => 'array',
+                'prefixItems' => [['type' => 'integer'], ['type' => 'string']],
+                'items' => false,
+                'minItems' => 2,
+            ],
         ];
 
         yield 'tuple list shape' => [
             'list{int, string}',
-            ['type' => 'array', 'prefixItems' => [['type' => 'integer'], ['type' => 'string']], 'items' => false, 'minItems' => 2],
+            [
+                'type' => 'array',
+                'prefixItems' => [['type' => 'integer'], ['type' => 'string']],
+                'items' => false,
+                'minItems' => 2,
+            ],
         ];
 
         yield 'single-element tuple' => [
@@ -372,7 +398,12 @@ final class TypeNodeSchemaMapperTest extends AbstractMcpTestCase
 
         yield 'tuple with optional trailing item' => [
             'list{int, 1?: string}',
-            ['type' => 'array', 'prefixItems' => [['type' => 'integer'], ['type' => 'string']], 'items' => false, 'minItems' => 1],
+            [
+                'type' => 'array',
+                'prefixItems' => [['type' => 'integer'], ['type' => 'string']],
+                'items' => false,
+                'minItems' => 1,
+            ],
         ];
 
         yield 'tuple of only optional items' => [
@@ -382,7 +413,12 @@ final class TypeNodeSchemaMapperTest extends AbstractMcpTestCase
 
         yield 'tuple keyed by position' => [
             'array{0: int, 1: string}',
-            ['type' => 'array', 'prefixItems' => [['type' => 'integer'], ['type' => 'string']], 'items' => false, 'minItems' => 2],
+            [
+                'type' => 'array',
+                'prefixItems' => [['type' => 'integer'], ['type' => 'string']],
+                'items' => false,
+                'minItems' => 2,
+            ],
         ];
 
         yield 'unsealed tuple without a type' => [
@@ -392,7 +428,12 @@ final class TypeNodeSchemaMapperTest extends AbstractMcpTestCase
 
         yield 'unsealed tuple with a type' => [
             'list{int, string, ...<float>}',
-            ['type' => 'array', 'prefixItems' => [['type' => 'integer'], ['type' => 'string']], 'items' => ['type' => 'number'], 'minItems' => 2],
+            [
+                'type' => 'array',
+                'prefixItems' => [['type' => 'integer'], ['type' => 'string']],
+                'items' => ['type' => 'number'],
+                'minItems' => 2,
+            ],
         ];
 
         yield 'unsealed array shape without a type' => [
@@ -402,22 +443,40 @@ final class TypeNodeSchemaMapperTest extends AbstractMcpTestCase
 
         yield 'unsealed array shape with a type' => [
             'array{a: int, ...<string, bool>}',
-            ['type' => 'object', 'properties' => ['a' => ['type' => 'integer']], 'required' => ['a'], 'additionalProperties' => ['type' => 'boolean']],
+            [
+                'type' => 'object',
+                'properties' => ['a' => ['type' => 'integer']],
+                'required' => ['a'],
+                'additionalProperties' => ['type' => 'boolean'],
+            ],
         ];
 
         yield 'unsealed array shape with a value type only' => [
             'array{a: int, ...<mixed>}',
-            ['type' => 'object', 'properties' => ['a' => ['type' => 'integer']], 'required' => ['a'], 'additionalProperties' => true],
+            [
+                'type' => 'object',
+                'properties' => ['a' => ['type' => 'integer']],
+                'required' => ['a'],
+                'additionalProperties' => true,
+            ],
         ];
 
         yield 'quoted shape key' => [
             'array{\'a-b\': int, "c": string}',
-            ['type' => 'object', 'properties' => ['a-b' => ['type' => 'integer'], 'c' => ['type' => 'string']], 'required' => ['a-b', 'c']],
+            [
+                'type' => 'object',
+                'properties' => ['a-b' => ['type' => 'integer'], 'c' => ['type' => 'string']],
+                'required' => ['a-b', 'c'],
+            ],
         ];
 
         yield 'integer shape key off position' => [
             'array{a: int, 3: string}',
-            ['type' => 'object', 'properties' => ['a' => ['type' => 'integer'], '3' => ['type' => 'string']], 'required' => ['a', '3']],
+            [
+                'type' => 'object',
+                'properties' => ['a' => ['type' => 'integer'], '3' => ['type' => 'string']],
+                'required' => ['a', '3'],
+            ],
         ];
 
         yield 'true' => [

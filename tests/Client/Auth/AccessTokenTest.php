@@ -28,7 +28,13 @@ final class AccessTokenTest extends AbstractMcpTestCase
 {
     public function testItCarriesEveryIssuedField(): void
     {
-        $token = new AccessToken('the-value', 'https://auth.example.com', 1_800_000_000, 'the-refresh-token', ['files:read']);
+        $token = new AccessToken(
+            'the-value',
+            'https://auth.example.com',
+            1_800_000_000,
+            'the-refresh-token',
+            ['files:read'],
+        );
 
         self::assertSame('the-value', $token->value);
         self::assertSame('https://auth.example.com', $token->issuer);

@@ -84,11 +84,13 @@ final readonly class GetTaskResult extends Result implements ServerResult
         $inputRequests = [] === $inputRequests ? null : $inputRequests;
 
         if (null !== $inputRequests) {
-            Assert::that($inputRequests)->keys()->isIntOrNonEmptyString('each "result.inputRequests" key must be an int or non-empty string.');
-            Assert::that($inputRequests)
-                ->values()
-                ->isInstanceOf(InputRequest::class, 'each "result.inputRequests" entry must be an InputRequest, {type} given.')
-            ;
+            Assert::that($inputRequests)->keys()->isIntOrNonEmptyString(
+                'each "result.inputRequests" key must be an int or non-empty string.',
+            );
+            Assert::that($inputRequests)->values()->isInstanceOf(
+                InputRequest::class,
+                'each "result.inputRequests" entry must be an InputRequest, {type} given.',
+            );
         }
 
         $this->assertStatusPayload($status, $result, $error, $inputRequests);
@@ -106,7 +108,10 @@ final readonly class GetTaskResult extends Result implements ServerResult
         Assert::that($taskId)->isNonEmptyString('"result.taskId" must be a non-empty string, {type} given.');
 
         Assert::that($data)->hasOffset('status', '"result" is missing the required "status" key.');
-        Assert::that($data['status'])->isOneOf(array_column(TaskStatus::cases(), 'value'), '"result.status" must be one of {choices}, {value} given.');
+        Assert::that($data['status'])->isOneOf(
+            array_column(TaskStatus::cases(), 'value'),
+            '"result.status" must be one of {choices}, {value} given.',
+        );
         $status = TaskStatus::from($data['status']);
 
         Assert::that($data)->hasOffset('createdAt', '"result" is missing the required "createdAt" key.');
@@ -115,11 +120,15 @@ final readonly class GetTaskResult extends Result implements ServerResult
 
         Assert::that($data)->hasOffset('lastUpdatedAt', '"result" is missing the required "lastUpdatedAt" key.');
         $lastUpdatedAt = $data['lastUpdatedAt'];
-        Assert::that($lastUpdatedAt)->isNonEmptyString('"result.lastUpdatedAt" must be a non-empty string, {type} given.');
+        Assert::that($lastUpdatedAt)->isNonEmptyString(
+            '"result.lastUpdatedAt" must be a non-empty string, {type} given.',
+        );
 
         Assert::that($data)->hasOffset('ttlMs', '"result" is missing the required "ttlMs" key.');
         $ttlMs = $data['ttlMs'];
-        Assert::that($ttlMs)->nullOr()->isPositiveInt('"result.ttlMs" must be null or a positive integer, {value} given.');
+        Assert::that($ttlMs)->nullOr()->isPositiveInt(
+            '"result.ttlMs" must be null or a positive integer, {value} given.',
+        );
 
         $result = null;
 
@@ -149,8 +158,7 @@ final readonly class GetTaskResult extends Result implements ServerResult
                 ->keys()->isIntOrNonEmptyString('each "result.inputRequests" key must be an int or non-empty string.')
             ;
             Assert::that($data['inputRequests'])
-                ->values()
-                ->isArray('each "result.inputRequests" entry must be an object, {type} given.')
+                ->values()->isArray('each "result.inputRequests" entry must be an object, {type} given.')
                 ->isMap('each "result.inputRequests" entry must be a string-keyed object.')
             ;
             $inputRequests = array_map(InputRequestDispatcher::decode(...), $data['inputRequests']);
@@ -160,14 +168,18 @@ final readonly class GetTaskResult extends Result implements ServerResult
 
         if (\array_key_exists('statusMessage', $data)) {
             $statusMessage = $data['statusMessage'];
-            Assert::that($statusMessage)->isNonEmptyString('"result.statusMessage" must be a non-empty string, {type} given.');
+            Assert::that($statusMessage)->isNonEmptyString(
+                '"result.statusMessage" must be a non-empty string, {type} given.',
+            );
         }
 
         $pollIntervalMs = null;
 
         if (\array_key_exists('pollIntervalMs', $data)) {
             $pollIntervalMs = $data['pollIntervalMs'];
-            Assert::that($pollIntervalMs)->isPositiveInt('"result.pollIntervalMs" must be a positive integer, {value} given.');
+            Assert::that($pollIntervalMs)->isPositiveInt(
+                '"result.pollIntervalMs" must be a positive integer, {value} given.',
+            );
         }
 
         $meta = new GenericResultMetaObject();
@@ -300,16 +312,25 @@ final readonly class GetTaskResult extends Result implements ServerResult
         match ($status) {
             TaskStatus::Completed => null !== $result && null === $error && null === $inputRequests
                 ? null
-                : throw new \InvalidArgumentException('a completed "result" must carry "result" and neither "error" nor "inputRequests".'),
+                : throw new \InvalidArgumentException(
+                    'a completed "result" must carry "result" and neither "error" nor "inputRequests".',
+                ),
             TaskStatus::Failed => null !== $error && null === $result && null === $inputRequests
                 ? null
-                : throw new \InvalidArgumentException('a failed "result" must carry "error" and neither "result" nor "inputRequests".'),
+                : throw new \InvalidArgumentException(
+                    'a failed "result" must carry "error" and neither "result" nor "inputRequests".',
+                ),
             TaskStatus::InputRequired => null !== $inputRequests && null === $result && null === $error
                 ? null
-                : throw new \InvalidArgumentException('an input_required "result" must carry "inputRequests" and neither "result" nor "error".'),
+                : throw new \InvalidArgumentException(
+                    'an input_required "result" must carry "inputRequests" and neither "result" nor "error".',
+                ),
             TaskStatus::Working, TaskStatus::Cancelled => null === $result && null === $error && null === $inputRequests
                 ? null
-                : throw new \InvalidArgumentException(\sprintf('a %s "result" must carry none of "result", "error", or "inputRequests".', $status->value)),
+                : throw new \InvalidArgumentException(\sprintf(
+                    'a %s "result" must carry none of "result", "error", or "inputRequests".',
+                    $status->value,
+                )),
         };
     }
 }

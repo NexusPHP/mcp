@@ -42,13 +42,22 @@ final class ListToolsRequestHandlerTest extends AbstractMcpTestCase
     public function testReturnsAllRegisteredToolsWhenCursorIsNull(): void
     {
         $store = new ToolStore([
-            'alpha' => new ToolEntry(new Tool(name: 'alpha', inputSchema: ['type' => 'object']), $this->buildExecutor()),
+            'alpha' => new ToolEntry(
+                new Tool(
+                    name: 'alpha',
+                    inputSchema: ['type' => 'object'],
+                ),
+                $this->buildExecutor(),
+            ),
             'beta' => new ToolEntry(new Tool(name: 'beta', inputSchema: ['type' => 'object']), $this->buildExecutor()),
         ]);
         $handler = new ListToolsRequestHandler($store);
 
         $result = $handler->handle(
-            new ListToolsRequest(id: new RequestId(id: 1), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create())),
+            new ListToolsRequest(
+                id: new RequestId(id: 1),
+                params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create()),
+            ),
             $this->makeContext(),
         );
 
@@ -70,7 +79,13 @@ final class ListToolsRequestHandlerTest extends AbstractMcpTestCase
         $handler = new ListToolsRequestHandler($store);
 
         $result = $handler->handle(
-            new ListToolsRequest(id: new RequestId(id: 2), params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create(), cursor: new Cursor(cursor: 'b'))),
+            new ListToolsRequest(
+                id: new RequestId(id: 2),
+                params: new PaginatedRequestParams(
+                    meta: RequestMetaObjectFactory::create(),
+                    cursor: new Cursor(cursor: 'b'),
+                ),
+            ),
             $this->makeContext(),
         );
 

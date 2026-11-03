@@ -65,7 +65,11 @@ final class ComponentManifestTest extends AbstractMcpTestCase
         sort($replaced);
         sort($components);
 
-        self::assertSame($components, $replaced, 'The umbrella must replace exactly the component packages plus the legacy alias.');
+        self::assertSame(
+            $components,
+            $replaced,
+            'The umbrella must replace exactly the component packages plus the legacy alias.',
+        );
     }
 
     /**
@@ -77,7 +81,10 @@ final class ComponentManifestTest extends AbstractMcpTestCase
         $root = self::readManifest(self::ROOT.'/composer.json');
         $manifest = self::readManifest(self::componentPath($component, 'composer.json'));
 
-        self::assertSame(\sprintf('nexusphp/mcp-%s', strtolower($component)).('Extension' === $component ? 's' : ''), $manifest['name']);
+        self::assertSame(
+            \sprintf('nexusphp/mcp-%s', strtolower($component)).('Extension' === $component ? 's' : ''),
+            $manifest['name'],
+        );
         self::assertSame([\sprintf('Nexus\\Mcp\\%s\\', $component) => ''], $manifest['autoload']['psr-4']);
 
         foreach (self::SHARED_KEYS as $key) {
@@ -88,20 +95,40 @@ final class ComponentManifestTest extends AbstractMcpTestCase
 
         foreach ($manifest['require'] as $package => $constraint) {
             if (str_starts_with($package, 'nexusphp/mcp-')) {
-                self::assertSame('self.version', $constraint, \sprintf('Sibling "%s" must be pinned to self.version.', $package));
+                self::assertSame(
+                    'self.version',
+                    $constraint,
+                    \sprintf('Sibling "%s" must be pinned to self.version.', $package),
+                );
                 $siblings[] = $package;
 
                 continue;
             }
 
-            self::assertArrayHasKey($package, $root['require'], \sprintf('"%s" is required by %s but not by the umbrella.', $package, $component));
-            self::assertSame($root['require'][$package], $constraint, \sprintf('The "%s" constraint must match the umbrella.', $package));
+            self::assertArrayHasKey(
+                $package,
+                $root['require'],
+                \sprintf('"%s" is required by %s but not by the umbrella.', $package, $component),
+            );
+            self::assertSame(
+                $root['require'][$package],
+                $constraint,
+                \sprintf('The "%s" constraint must match the umbrella.', $package),
+            );
         }
 
-        self::assertSame(self::SIBLINGS[$component], $siblings, 'The sibling requires must match the architecture ruleset.');
+        self::assertSame(
+            self::SIBLINGS[$component],
+            $siblings,
+            'The sibling requires must match the architecture ruleset.',
+        );
 
         foreach (array_keys($manifest['suggest'] ?? []) as $package) {
-            self::assertArrayHasKey($package, $root['suggest'] ?? [], \sprintf('"%s" is suggested by %s but not by the umbrella.', $package, $component));
+            self::assertArrayHasKey(
+                $package,
+                $root['suggest'] ?? [],
+                \sprintf('"%s" is suggested by %s but not by the umbrella.', $package, $component),
+            );
         }
     }
 

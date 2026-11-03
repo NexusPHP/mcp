@@ -46,14 +46,13 @@ abstract readonly class InputResponseRequestParams extends RequestParams impleme
         $inputResponses = [] === $inputResponses ? null : $inputResponses;
 
         if (null !== $inputResponses) {
-            Assert::that($inputResponses)
-                ->keys()
-                ->isIntOrNonEmptyString('each "params.inputResponses" key must be an int or non-empty string.')
-            ;
-            Assert::that($inputResponses)
-                ->values()
-                ->isInstanceOf(InputResponse::class, 'each "params.inputResponses" entry must be an InputResponse, {type} given.')
-            ;
+            Assert::that($inputResponses)->keys()->isIntOrNonEmptyString(
+                'each "params.inputResponses" key must be an int or non-empty string.',
+            );
+            Assert::that($inputResponses)->values()->isInstanceOf(
+                InputResponse::class,
+                'each "params.inputResponses" entry must be an InputResponse, {type} given.',
+            );
         }
 
         $this->inputResponses = $inputResponses;

@@ -181,9 +181,12 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
     {
         $handler = $this->buildHandler();
 
-        $response = $this->buildMiddleware()->process($this->buildRequest(null)->withHeader('Authorization', $header), $handler);
+        $response = $this->buildMiddleware()
+            ->process($this->buildRequest(null)->withHeader('Authorization', $header), $handler)
+        ;
 
-        // RFC 6750 section 3 asks that neither an unsupported authentication method nor a credential-less request be told an error code.
+        // RFC 6750 section 3 asks that neither an unsupported authentication method nor a credential-less request be
+        // told an error code.
         self::assertSame(401, $response->getStatusCode());
         self::assertFalse($handler->called);
         self::assertSame(['resource_metadata' => self::METADATA_URL], $this->readChallenge($response));
@@ -208,7 +211,9 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
     {
         $handler = $this->buildHandler();
 
-        $response = $this->buildMiddleware()->process($this->buildRequest(null)->withHeader('Authorization', $header), $handler);
+        $response = $this->buildMiddleware()
+            ->process($this->buildRequest(null)->withHeader('Authorization', $header), $handler)
+        ;
 
         self::assertSame(400, $response->getStatusCode());
         self::assertFalse($handler->called);
@@ -334,7 +339,10 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
     public function testAnAudienceNamingThisServerAmongOthersIsAccepted(): void
     {
         $handler = $this->buildHandler();
-        $middleware = $this->buildMiddleware(token: new VerifiedAccessToken(['https://other.test/mcp', self::RESOURCE], 2_000_000_000));
+        $middleware = $this->buildMiddleware(token: new VerifiedAccessToken(
+            ['https://other.test/mcp', self::RESOURCE],
+            2_000_000_000,
+        ));
 
         $middleware->process($this->buildRequest('the-token'), $handler);
 
@@ -364,7 +372,11 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
     {
         $handler = $this->buildHandler();
         $middleware = $this->buildMiddleware(
-            token: new VerifiedAccessToken([self::RESOURCE], 2_000_000_000, ['files:read', 'files:write', 'files:admin']),
+            token: new VerifiedAccessToken(
+                [self::RESOURCE],
+                2_000_000_000,
+                ['files:read', 'files:write', 'files:admin'],
+            ),
             requiredScopes: ['files:read', 'files:write'],
         );
 
@@ -375,7 +387,9 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
 
     public function testTheRequiredScopesAreAdvertisedOnTheUnauthorizedChallenge(): void
     {
-        $response = $this->buildMiddleware(requiredScopes: ['files:read'])->process($this->buildRequest(null), $this->buildHandler());
+        $response = $this->buildMiddleware(requiredScopes: ['files:read'])
+            ->process($this->buildRequest(null), $this->buildHandler())
+        ;
 
         self::assertSame([
             'resource_metadata' => self::METADATA_URL,
@@ -387,16 +401,21 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
     {
         $presented = [];
         $validator = self::createStub(AccessTokenValidatorInterface::class);
-        $validator->method('validate')->willReturnCallback(
-            static function (string $token) use (&$presented): ?VerifiedAccessToken {
+        $validator
+            ->method('validate')
+            ->willReturnCallback(static function (string $token) use (&$presented): ?VerifiedAccessToken {
                 $presented[] = $token;
 
                 return null;
-            },
-        );
+            })
+        ;
 
         (new BearerAuthenticationMiddleware($validator, self::RESOURCE, self::METADATA_URL, new Psr17Factory()))
-            ->process($this->buildRequest(null)->withHeader('Authorization', 'Bearer   Padded-Token  '), $this->buildHandler())
+            ->process(
+                $this->buildRequest(null)
+                    ->withHeader('Authorization', 'Bearer   Padded-Token  '),
+                $this->buildHandler(),
+            )
         ;
 
         self::assertSame(['Padded-Token'], $presented);
@@ -415,9 +434,10 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
 
         $recognised = $token ?? new VerifiedAccessToken([self::RESOURCE], 2_000_000_000, subject: 'the-subject');
         $validator = self::createStub(AccessTokenValidatorInterface::class);
-        $validator->method('validate')->willReturnCallback(
-            static fn(string $presented): ?VerifiedAccessToken => 'the-token' === $presented ? $recognised : null,
-        );
+        $validator
+            ->method('validate')
+            ->willReturnCallback(static fn(string $presented): ?VerifiedAccessToken => 'the-token' === $presented ? $recognised : null)
+        ;
 
         return new BearerAuthenticationMiddleware(
             $validator,

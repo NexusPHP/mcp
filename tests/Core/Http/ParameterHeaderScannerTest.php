@@ -81,7 +81,10 @@ final class ParameterHeaderScannerTest extends AbstractMcpTestCase
         ];
 
         yield 'nested property under a properties chain' => [
-            ['properties' => ['a' => ['type' => 'object', 'properties' => ['b' => ['type' => 'string', 'x-mcp-header' => 'B']]]]],
+            ['properties' => ['a' => [
+                'type' => 'object',
+                'properties' => ['b' => ['type' => 'string', 'x-mcp-header' => 'B']],
+            ]]],
             [[['a', 'b'], 'B', 'string']],
         ];
 
@@ -99,7 +102,10 @@ final class ParameterHeaderScannerTest extends AbstractMcpTestCase
         ];
 
         yield 'additionalProperties false does not disturb a valid property' => [
-            ['properties' => ['region' => ['type' => 'string', 'x-mcp-header' => 'Region']], 'additionalProperties' => false],
+            [
+                'properties' => ['region' => ['type' => 'string', 'x-mcp-header' => 'Region']],
+                'additionalProperties' => false,
+            ],
             [[['region'], 'Region', 'string']],
         ];
 
@@ -143,10 +149,13 @@ final class ParameterHeaderScannerTest extends AbstractMcpTestCase
         ];
 
         yield 'a number-typed header beside a binding at the root' => [
-            ['x-mcp-header' => 'Root', 'properties' => [
-                'n' => ['type' => 'number', 'x-mcp-header' => 'N'],
-                's' => ['type' => 'string', 'x-mcp-header' => 'S'],
-            ]],
+            [
+                'x-mcp-header' => 'Root',
+                'properties' => [
+                    'n' => ['type' => 'number', 'x-mcp-header' => 'N'],
+                    's' => ['type' => 'string', 'x-mcp-header' => 'S'],
+                ],
+            ],
         ];
 
         yield 'absent type' => [
@@ -177,7 +186,10 @@ final class ParameterHeaderScannerTest extends AbstractMcpTestCase
         ];
 
         yield 'binding under items as a single subschema' => [
-            ['properties' => ['list' => ['type' => 'array', 'items' => ['type' => 'string', 'x-mcp-header' => 'Item']]]],
+            ['properties' => ['list' => [
+                'type' => 'array',
+                'items' => ['type' => 'string', 'x-mcp-header' => 'Item'],
+            ]]],
         ];
 
         yield 'binding under items as a tuple' => [
@@ -219,7 +231,10 @@ final class ParameterHeaderScannerTest extends AbstractMcpTestCase
         ]]);
 
         self::assertFalse($result->valid);
-        self::assertSame('size: x-mcp-header is only permitted on a string, integer, or boolean property.', $result->reason);
+        self::assertSame(
+            'size: x-mcp-header is only permitted on a string, integer, or boolean property.',
+            $result->reason,
+        );
         self::assertSame(
             [['region'], ['count']],
             array_map(static fn(ParameterHeaderBinding $binding): array => $binding->path, $result->bindings),

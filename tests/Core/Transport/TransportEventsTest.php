@@ -124,11 +124,9 @@ final class TransportEventsTest extends AbstractMcpTestCase
     public function testOnChangeFiresPerEventKind(\Closure $register, string $kind): void
     {
         $changes = [];
-        $events = new TransportEvents(
-            onChange: static function (string $kind, string $action, int $count) use (&$changes): void {
-                $changes[] = [$kind, $action, $count];
-            },
-        );
+        $events = new TransportEvents(onChange: static function (string $kind, string $action, int $count) use (&$changes): void {
+            $changes[] = [$kind, $action, $count];
+        });
 
         $subscription = $register($events);
         $subscription->dispose();

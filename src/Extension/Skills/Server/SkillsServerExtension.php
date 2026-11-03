@@ -83,7 +83,9 @@ final readonly class SkillsServerExtension implements OptionalClientDeclarationI
         ];
 
         if ($this->directoryRead) {
-            $handlers[ReadResourceDirectoryRequest::getMethod()] = new ReadResourceDirectoryRequestHandler($this->store);
+            $handlers[ReadResourceDirectoryRequest::getMethod()] = new ReadResourceDirectoryRequestHandler(
+                $this->store,
+            );
         }
 
         return $handlers;
@@ -99,8 +101,14 @@ final readonly class SkillsServerExtension implements OptionalClientDeclarationI
     public function getRequestHandlerDecorators(): array
     {
         return [
-            ListResourcesRequest::getMethod() => fn(RequestHandlerInterface $inner): RequestHandlerInterface => new SkillFileListResourcesHandler($inner, $this->store),
-            ReadResourceRequest::getMethod() => fn(RequestHandlerInterface $inner): RequestHandlerInterface => new SkillFileReadResourceHandler($inner, $this->store),
+            ListResourcesRequest::getMethod() => fn(RequestHandlerInterface $inner): RequestHandlerInterface => new SkillFileListResourcesHandler(
+                $inner,
+                $this->store,
+            ),
+            ReadResourceRequest::getMethod() => fn(RequestHandlerInterface $inner): RequestHandlerInterface => new SkillFileReadResourceHandler(
+                $inner,
+                $this->store,
+            ),
         ];
     }
 }

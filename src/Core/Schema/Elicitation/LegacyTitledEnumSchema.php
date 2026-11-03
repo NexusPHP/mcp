@@ -50,8 +50,12 @@ final readonly class LegacyTitledEnumSchema implements EnumSchema
             ->isList('legacy titled enum schema "enum" must be a list, non-list array given.')
             ->values()->isNonEmptyString('each legacy titled enum schema "enum" must be a non-empty string.')
         ;
-        Assert::that($title)->nullOr()->isNonEmptyString('legacy titled enum schema "title" must be a non-empty string or null.');
-        Assert::that($description)->nullOr()->isNonEmptyString('legacy titled enum schema "description" must be a non-empty string or null.');
+        Assert::that($title)->nullOr()->isNonEmptyString(
+            'legacy titled enum schema "title" must be a non-empty string or null.',
+        );
+        Assert::that($description)->nullOr()->isNonEmptyString(
+            'legacy titled enum schema "description" must be a non-empty string or null.',
+        );
 
         if (null !== $enumNames) {
             Assert::that($enumNames)
@@ -66,7 +70,10 @@ final readonly class LegacyTitledEnumSchema implements EnumSchema
     {
         Assert::that($data)->hasOffset('type', 'legacy titled enum schema is missing the required "type" key.');
         $type = $data['type'];
-        Assert::that($type)->isIdentical(self::TYPE, 'legacy titled enum schema "type" must be {other}, {value} given.');
+        Assert::that($type)->isIdentical(
+            self::TYPE,
+            'legacy titled enum schema "type" must be {other}, {value} given.',
+        );
 
         Assert::that($data)->hasOffset('enum', 'legacy titled enum schema is missing the required "enum" key.');
         Assert::that($data['enum'])
@@ -76,10 +83,14 @@ final readonly class LegacyTitledEnumSchema implements EnumSchema
         $enum = $data['enum'];
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isNonEmptyString('legacy titled enum schema "title" must be a non-empty string or null, {type} given.');
+        Assert::that($title)->nullOr()->isNonEmptyString(
+            'legacy titled enum schema "title" must be a non-empty string or null, {type} given.',
+        );
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isNonEmptyString('legacy titled enum schema "description" must be a non-empty string or null, {type} given.');
+        Assert::that($description)->nullOr()->isNonEmptyString(
+            'legacy titled enum schema "description" must be a non-empty string or null, {type} given.',
+        );
 
         $enumNames = null;
 
@@ -92,7 +103,9 @@ final readonly class LegacyTitledEnumSchema implements EnumSchema
         }
 
         $default = $data['default'] ?? null;
-        Assert::that($default)->nullOr()->isString('legacy titled enum schema "default" must be a string or null, {type} given.');
+        Assert::that($default)->nullOr()->isString(
+            'legacy titled enum schema "default" must be a string or null, {type} given.',
+        );
 
         return new self(
             enum: $enum,

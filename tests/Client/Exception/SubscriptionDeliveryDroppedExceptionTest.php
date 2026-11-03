@@ -31,7 +31,10 @@ final class SubscriptionDeliveryDroppedExceptionTest extends AbstractMcpTestCase
     {
         $e = new SubscriptionDeliveryDroppedException(new RequestId(7));
 
-        self::assertSame('Subscription 7 was ended because a delivery was shed at the client\'s in-flight dispatch cap.', $e->getMessage());
+        self::assertSame(
+            'Subscription 7 was ended because a delivery was shed at the client\'s in-flight dispatch cap.',
+            $e->getMessage(),
+        );
         self::assertSame(7, $e->subscriptionId->id);
     }
 
@@ -39,6 +42,9 @@ final class SubscriptionDeliveryDroppedExceptionTest extends AbstractMcpTestCase
     {
         $e = new SubscriptionDeliveryDroppedException(new RequestId('feed-1'));
 
-        self::assertSame('Subscription \'feed-1\' was ended because a delivery was shed at the client\'s in-flight dispatch cap.', $e->getMessage());
+        self::assertSame(
+            'Subscription \'feed-1\' was ended because a delivery was shed at the client\'s in-flight dispatch cap.',
+            $e->getMessage(),
+        );
     }
 }

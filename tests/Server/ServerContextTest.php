@@ -105,9 +105,12 @@ final class ServerContextTest extends AbstractMcpTestCase
 
         $context->reportProgress(0.5, 1.0, 'halfway');
 
-        $expected = new ProgressNotification(
-            params: new ProgressNotificationParams(progressToken: $token, progress: 0.5, total: 1.0, message: 'halfway'),
-        );
+        $expected = new ProgressNotification(params: new ProgressNotificationParams(
+            progressToken: $token,
+            progress: 0.5,
+            total: 1.0,
+            message: 'halfway',
+        ));
 
         self::assertCount(1, $sender->notifications);
         self::assertSame($expected->toArray(), $sender->notifications[0]->toArray());

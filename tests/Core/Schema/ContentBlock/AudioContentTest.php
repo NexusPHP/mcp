@@ -72,7 +72,11 @@ final class AudioContentTest extends AbstractMcpTestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $content = new AudioContent(data: 'aGVsbG8=', mimeType: 'audio/mp3', meta: new PayloadMetaObject(extras: ['k' => 'v']));
+        $content = new AudioContent(
+            data: 'aGVsbG8=',
+            mimeType: 'audio/mp3',
+            meta: new PayloadMetaObject(extras: ['k' => 'v']),
+        );
 
         self::assertSame($content->toArray(), $content->jsonSerialize());
     }

@@ -88,8 +88,13 @@ final class ToolTaskRunner
      * @param null|array<int|non-empty-string, InputResponse> $inputResponses
      * @param null|string                                     $requestState   The state as the tool handler reads it: the verified payload when the server signs states, the raw token otherwise
      */
-    public function startTask(string $taskId, CallToolRequest $request, ServerContext $origin, ?array $inputResponses, ?string $requestState): void
-    {
+    public function startTask(
+        string $taskId,
+        CallToolRequest $request,
+        ServerContext $origin,
+        ?array $inputResponses,
+        ?string $requestState,
+    ): void {
         $inner = $this->inner;
 
         if (null === $inner) {
@@ -122,25 +127,37 @@ final class ToolTaskRunner
      * @param non-empty-string                                                 $taskId
      * @param RequestHandlerInterface<non-empty-string, Result, ServerContext> $inner
      */
-    private function settleOutcome(string $taskId, RequestHandlerInterface $inner, CallToolRequest $request, ServerContext $context): void
-    {
+    private function settleOutcome(
+        string $taskId,
+        RequestHandlerInterface $inner,
+        CallToolRequest $request,
+        ServerContext $context,
+    ): void {
         try {
             $result = $inner->handle($request, $context);
 
             if ($result instanceof InputRequiredResult) {
                 $state = $result->requestState;
-                $payload = null === $context->requestStateSigner || null === $state ? $state : $context->requestStateSigner->verify($state);
+                $payload = null === $context->requestStateSigner || null === $state
+                    ? $state
+                    : $context->requestStateSigner->verify($state);
 
                 if (null === $result->inputRequests) {
-                    $this->store->trySetFailed($taskId, ErrorFactory::create(
-                        ProtocolErrorCode::InternalError,
-                        'The tool parked the task without any input requests.',
-                    )->toArray());
+                    $this->store->trySetFailed(
+                        $taskId,
+                        ErrorFactory::create(
+                            ProtocolErrorCode::InternalError,
+                            'The tool parked the task without any input requests.',
+                        )->toArray(),
+                    );
                 } elseif (null === $payload && null !== $state) {
-                    $this->store->trySetFailed($taskId, ErrorFactory::create(
-                        ProtocolErrorCode::InternalError,
-                        'The tool parked the task with a "requestState" that does not verify under the server\'s signer.',
-                    )->toArray());
+                    $this->store->trySetFailed(
+                        $taskId,
+                        ErrorFactory::create(
+                            ProtocolErrorCode::InternalError,
+                            'The tool parked the task with a "requestState" that does not verify under the server\'s signer.',
+                        )->toArray(),
+                    );
                 } else {
                     $this->store->trySetInputRequired($taskId, $result->inputRequests, $payload);
                 }
@@ -152,26 +169,25 @@ final class ToolTaskRunner
         } catch (CancelledException) {
             $this->store->trySetCancelled($taskId);
         } catch (InputRequestKeyReusedException $e) {
-            $this->store->trySetFailed($taskId, ErrorFactory::create(
-                ProtocolErrorCode::InternalError,
-                $e->getMessage(),
-            )->toArray());
+            $this->store->trySetFailed(
+                $taskId,
+                ErrorFactory::create(ProtocolErrorCode::InternalError, $e->getMessage())->toArray(),
+            );
         } catch (AbstractJsonRpcProtocolException $e) {
-            $this->store->trySetFailed($taskId, ErrorFactory::create(
-                $e::getErrorCode(),
-                $e->getMessage(),
-                $e->errorData,
-            )->toArray());
+            $this->store->trySetFailed(
+                $taskId,
+                ErrorFactory::create($e::getErrorCode(), $e->getMessage(), $e->errorData)->toArray(),
+            );
         } catch (\Throwable $e) {
             $this->logger->error(
                 'Uncaught task executor exception. Failing task {taskId} with a generic error.',
                 ['taskId' => $taskId, 'exception' => $e],
             );
 
-            $this->store->trySetFailed($taskId, ErrorFactory::create(
-                ProtocolErrorCode::InternalError,
-                'Task execution failed.',
-            )->toArray());
+            $this->store->trySetFailed(
+                $taskId,
+                ErrorFactory::create(ProtocolErrorCode::InternalError, 'Task execution failed.')->toArray(),
+            );
         }
     }
 }

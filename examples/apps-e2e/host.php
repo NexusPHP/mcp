@@ -99,8 +99,7 @@ $handler = new ClosureRequestHandler(static function (Request $request) use ($cl
 
             $arguments = $payload['arguments'] ?? null;
             Assert::that($arguments)
-                ->nullOr()
-                ->isArray('The "arguments" field must be an object or absent, {type} given.')
+                ->nullOr()->isArray('The "arguments" field must be an object or absent, {type} given.')
                 ->isMap('The "arguments" field must be a string-keyed object.')
             ;
 
@@ -146,7 +145,10 @@ $httpServer = SocketHttpServer::createForDirectAccess($logger);
 $httpServer->expose(APPS_HOST_ADDRESS);
 $httpServer->start($handler, new DefaultErrorHandler());
 
-fwrite(\STDOUT, sprintf("Apps example host running: open http://%s in a browser (Ctrl-C to stop)\n", APPS_HOST_ADDRESS));
+fwrite(
+    \STDOUT,
+    sprintf("Apps example host running: open http://%s in a browser (Ctrl-C to stop)\n", APPS_HOST_ADDRESS),
+);
 
 if (defined('SIGINT')) {
     trapSignal([\SIGINT, \SIGTERM]);
@@ -188,7 +190,10 @@ function requireAppsServerReachable(string $endpoint): void
     $socket = @stream_socket_client(sprintf('tcp://%s:%d', $host, $port), timeout: 2.0);
 
     if (false === $socket) {
-        fwrite(\STDERR, sprintf("Nothing is listening on %s:%d. Start `php examples/apps-e2e/server.php` first.\n", $host, $port));
+        fwrite(
+            \STDERR,
+            sprintf("Nothing is listening on %s:%d. Start `php examples/apps-e2e/server.php` first.\n", $host, $port),
+        );
 
         exit(1);
     }

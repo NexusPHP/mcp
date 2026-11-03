@@ -59,7 +59,10 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
 
     public function testDiscoverRequestRoundTripUsesDefaultRegistration(): void
     {
-        $original = new DiscoverRequest(id: new RequestId(id: 42), params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create()));
+        $original = new DiscoverRequest(
+            id: new RequestId(id: 42),
+            params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create()),
+        );
 
         $parser = new JsonRpcMessageParser();
         $parsed = $parser->parse($original->toArray());
@@ -86,7 +89,10 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
     {
         $original = new DiscoverRequest(
             id: new RequestId(id: 'req-1'),
-            params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create(new ProgressToken(token: 'tok-1'), ['vendor' => 'x'])),
+            params: new EmptyRequestParams(meta: RequestMetaObjectFactory::create(
+                new ProgressToken(token: 'tok-1'),
+                ['vendor' => 'x'],
+            )),
         );
 
         $envelope = $original->toArray();
@@ -96,7 +102,10 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
                 'jsonrpc' => '2.0',
                 'id' => 'req-1',
                 'method' => 'server/discover',
-                'params' => ['_meta' => RequestMetaObjectFactory::shape(new ProgressToken(token: 'tok-1'), ['vendor' => 'x'])],
+                'params' => ['_meta' => RequestMetaObjectFactory::shape(
+                    new ProgressToken(token: 'tok-1'),
+                    ['vendor' => 'x'],
+                )],
             ],
             $envelope,
         );
@@ -259,7 +268,10 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
         } catch (MethodMisroutedException $e) {
             self::assertNull($e->requestId, 'Notification envelopes carry no id.');
             self::assertSame(ProtocolErrorCode::InvalidRequest, MethodMisroutedException::getErrorCode());
-            self::assertSame('Method "server/discover" must be sent as a request, not a notification.', $e->getMessage());
+            self::assertSame(
+                'Method "server/discover" must be sent as a request, not a notification.',
+                $e->getMessage(),
+            );
         }
     }
 
@@ -339,7 +351,10 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
             self::fail('Expected InvalidRequestException.');
         } catch (InvalidRequestException $e) {
             self::assertNull($e->requestId, 'An empty-string id cannot be preserved on the exception.');
-            self::assertSame('Invalid success response: "id" must be an int or non-empty string, string given.', $e->getMessage());
+            self::assertSame(
+                'Invalid success response: "id" must be an int or non-empty string, string given.',
+                $e->getMessage(),
+            );
         }
     }
 
@@ -361,7 +376,10 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
         } catch (InvalidRequestException $e) {
             self::assertNull($e->requestId, 'A non-scalar id cannot be preserved on the exception.');
             self::assertSame(ProtocolErrorCode::InvalidRequest, InvalidRequestException::getErrorCode());
-            self::assertSame('Invalid "tests/test-request" request: "id" must be an int or non-empty string, array given.', $e->getMessage());
+            self::assertSame(
+                'Invalid "tests/test-request" request: "id" must be an int or non-empty string, array given.',
+                $e->getMessage(),
+            );
         }
     }
 
@@ -374,7 +392,10 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
         } catch (InvalidParamsException $e) {
             self::assertSame(1, $e->requestId?->id);
             self::assertSame(ProtocolErrorCode::InvalidParams, InvalidParamsException::getErrorCode());
-            self::assertSame('Invalid "server/discover" request: "params" must be an object, string given.', $e->getMessage());
+            self::assertSame(
+                'Invalid "server/discover" request: "params" must be an object, string given.',
+                $e->getMessage(),
+            );
         }
     }
 
@@ -492,7 +513,10 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
             $parser->parse(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/list', 'result' => null]);
             self::fail('Expected InvalidRequestException.');
         } catch (InvalidRequestException $e) {
-            self::assertSame('JSON-RPC envelope must not carry a "method" together with a "result" or an "error".', $e->getMessage());
+            self::assertSame(
+                'JSON-RPC envelope must not carry a "method" together with a "result" or an "error".',
+                $e->getMessage(),
+            );
             self::assertNotNull($e->requestId);
             self::assertSame(1, $e->requestId->id);
         }
@@ -503,10 +527,18 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
         $parser = new JsonRpcMessageParser();
 
         try {
-            $parser->parse(['jsonrpc' => '2.0', 'id' => 'abc', 'method' => 'tools/list', 'error' => ['code' => -1, 'message' => 'x']]);
+            $parser->parse([
+                'jsonrpc' => '2.0',
+                'id' => 'abc',
+                'method' => 'tools/list',
+                'error' => ['code' => -1, 'message' => 'x'],
+            ]);
             self::fail('Expected InvalidRequestException.');
         } catch (InvalidRequestException $e) {
-            self::assertSame('JSON-RPC envelope must not carry a "method" together with a "result" or an "error".', $e->getMessage());
+            self::assertSame(
+                'JSON-RPC envelope must not carry a "method" together with a "result" or an "error".',
+                $e->getMessage(),
+            );
             self::assertNotNull($e->requestId);
             self::assertSame('abc', $e->requestId->id);
         }
@@ -590,7 +622,10 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
             self::fail('Expected InvalidRequestException.');
         } catch (InvalidRequestException $e) {
             self::assertSame(1, $e->requestId?->id);
-            self::assertSame('Invalid success response: "result._meta" must be an object, string given.', $e->getMessage());
+            self::assertSame(
+                'Invalid success response: "result._meta" must be an object, string given.',
+                $e->getMessage(),
+            );
         }
     }
 
@@ -630,13 +665,20 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
         try {
             $parser = new JsonRpcMessageParser();
             $parser->parse(
-                ['jsonrpc' => '2.0', 'id' => 1, 'result' => ['resultType' => 'input_required', 'inputRequests' => 'bad']],
+                [
+                    'jsonrpc' => '2.0',
+                    'id' => 1,
+                    'result' => ['resultType' => 'input_required', 'inputRequests' => 'bad'],
+                ],
                 CallToolResultResponse::class,
             );
             self::fail('Expected InvalidRequestException.');
         } catch (InvalidRequestException $e) {
             self::assertSame(1, $e->requestId?->id);
-            self::assertSame('Invalid success response: "result.inputRequests" must be an object, string given.', $e->getMessage());
+            self::assertSame(
+                'Invalid success response: "result.inputRequests" must be an object, string given.',
+                $e->getMessage(),
+            );
         }
     }
 
@@ -645,13 +687,20 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
         try {
             $parser = new JsonRpcMessageParser();
             $parser->parse(
-                ['jsonrpc' => '2.0', 'id' => 1, 'result' => ['resultType' => 'input_required', 'requestState' => 'tok']],
+                [
+                    'jsonrpc' => '2.0',
+                    'id' => 1,
+                    'result' => ['resultType' => 'input_required', 'requestState' => 'tok'],
+                ],
                 ListToolsResultResponse::class,
             );
             self::fail('Expected InvalidRequestException.');
         } catch (InvalidRequestException $e) {
             self::assertSame(1, $e->requestId?->id);
-            self::assertSame('Invalid success response: "result" returned "input_required" for a method that does not support it.', $e->getMessage());
+            self::assertSame(
+                'Invalid success response: "result" returned "input_required" for a method that does not support it.',
+                $e->getMessage(),
+            );
         }
     }
 
@@ -674,8 +723,14 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
             $parser->parse(['jsonrpc' => '2.0', 'id' => '', 'method' => 'unknown/method']);
             self::fail('Expected an InvalidRequestException.');
         } catch (InvalidRequestException $e) {
-            self::assertNull($e->requestId, 'An empty-string id cannot be wrapped into a RequestId, so the exception carries null.');
-            self::assertSame('Invalid "unknown/method" request: "id" must be an int or non-empty string, string given.', $e->getMessage());
+            self::assertNull(
+                $e->requestId,
+                'An empty-string id cannot be wrapped into a RequestId, so the exception carries null.',
+            );
+            self::assertSame(
+                'Invalid "unknown/method" request: "id" must be an int or non-empty string, string given.',
+                $e->getMessage(),
+            );
         }
     }
 
@@ -686,7 +741,10 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
             $parser->parse(['jsonrpc' => '1.0', 'id' => '', 'method' => 'tests/test-request']);
             self::fail('Expected an InvalidRequestException.');
         } catch (InvalidRequestException $e) {
-            self::assertNull($e->requestId, 'An empty-string envelope id cannot be wrapped into a RequestId, so the exception carries null.');
+            self::assertNull(
+                $e->requestId,
+                'An empty-string envelope id cannot be wrapped into a RequestId, so the exception carries null.',
+            );
         }
     }
 

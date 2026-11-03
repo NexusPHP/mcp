@@ -36,13 +36,11 @@ final class ClosureToolExecutorTest extends AbstractMcpTestCase
     {
         $captured = ['arguments' => null, 'requestId' => 0];
         $expected = new CallToolResult(content: []);
-        $executor = new ClosureToolExecutor(
-            static function (?array $arguments, ServerContext $context) use ($expected, &$captured): CallToolResult {
-                $captured = ['arguments' => $arguments, 'requestId' => $context->requestId->id];
+        $executor = new ClosureToolExecutor(static function (?array $arguments, ServerContext $context) use ($expected, &$captured): CallToolResult {
+            $captured = ['arguments' => $arguments, 'requestId' => $context->requestId->id];
 
-                return $expected;
-            },
-        );
+            return $expected;
+        });
 
         $result = $executor->execute(['x' => 1], $this->makeContext());
 
@@ -53,13 +51,11 @@ final class ClosureToolExecutorTest extends AbstractMcpTestCase
     public function testForwardsNullArgumentsToClosure(): void
     {
         $captured = ['arguments' => ['marker']];
-        $executor = new ClosureToolExecutor(
-            static function (?array $arguments, ServerContext $context) use (&$captured): CallToolResult {
-                $captured = ['arguments' => $arguments];
+        $executor = new ClosureToolExecutor(static function (?array $arguments, ServerContext $context) use (&$captured): CallToolResult {
+            $captured = ['arguments' => $arguments];
 
-                return new CallToolResult(content: []);
-            },
-        );
+            return new CallToolResult(content: []);
+        });
 
         $executor->execute(null, $this->makeContext());
 

@@ -35,7 +35,12 @@ interface TaskClientInterface
      * @param null|array<array-key, mixed>                    $arguments
      * @param null|array<int|non-empty-string, InputResponse> $inputResponses
      */
-    public function callToolAsTask(string $name, ?array $arguments = null, ?array $inputResponses = null, ?string $requestState = null): CallToolResult|CreateTaskResult|InputRequiredResult;
+    public function callToolAsTask(
+        string $name,
+        ?array $arguments = null,
+        ?array $inputResponses = null,
+        ?string $requestState = null,
+    ): CallToolResult|CreateTaskResult|InputRequiredResult;
 
     /**
      * @param non-empty-string $taskId
@@ -66,5 +71,9 @@ interface TaskClientInterface
      *
      * @throws StalledTaskException
      */
-    public function awaitTask(CreateTaskResult $task, ?\Closure $resolveInputRequests = null, ?Cancellation $cancellation = null): GetTaskResult;
+    public function awaitTask(
+        CreateTaskResult $task,
+        ?\Closure $resolveInputRequests = null,
+        ?Cancellation $cancellation = null,
+    ): GetTaskResult;
 }

@@ -48,7 +48,12 @@ final class PrivateKeyJwtCredentialTest extends AbstractMcpTestCase
 
     public function testItCarriesTheAuthorizationServerItWasRegisteredWith(): void
     {
-        $credential = new PrivateKeyJwtCredential('the-client', '-----BEGIN PRIVATE KEY-----', 'ES256', issuer: 'https://auth.example.com');
+        $credential = new PrivateKeyJwtCredential(
+            'the-client',
+            '-----BEGIN PRIVATE KEY-----',
+            'ES256',
+            issuer: 'https://auth.example.com',
+        );
 
         self::assertSame('https://auth.example.com', $credential->issuer);
     }

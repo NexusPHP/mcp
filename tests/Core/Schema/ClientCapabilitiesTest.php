@@ -46,7 +46,9 @@ final class ClientCapabilitiesTest extends AbstractMcpTestCase
 
         self::assertSame(['form' => [], 'url' => []], $caps->elicitation);
         self::assertSame(['custom' => ['flag' => true]], $caps->experimental);
-        self::assertSame(['io.modelcontextprotocol/oauth-client-credentials' => ['scope' => 'read']], $caps->extensions);
+        self::assertSame(['io.modelcontextprotocol/oauth-client-credentials' => [
+            'scope' => 'read',
+        ]], $caps->extensions);
     }
 
     public function testToArrayMinimalIsEmpty(): void

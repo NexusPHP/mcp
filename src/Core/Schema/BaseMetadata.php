@@ -33,7 +33,9 @@ abstract readonly class BaseMetadata
         $label = basename(strtr(static::class, '\\', '/'));
 
         Assert::that($name)->isNonEmptyString(\sprintf('%s name must be a non-empty string.', $label));
-        Assert::that($title)->nullOr()->isNonEmptyString(\sprintf('%s title must be a non-empty string or null.', $label));
+        Assert::that($title)->nullOr()->isNonEmptyString(
+            \sprintf('%s title must be a non-empty string or null.', $label),
+        );
     }
 
     /**

@@ -168,7 +168,12 @@ final class AppClientTest extends AbstractMcpTestCase
         $unlinked = $this->buildTool([], name: 'unlinked');
         $emptyMeta = $this->buildTool(['ui' => []], name: 'empty_meta');
         $legacy = $this->buildTool(['ui/resourceUri' => 'ui://demo/legacy'], name: 'legacy');
-        $result = new ListToolsResult(tools: [$linked, $unlinked, $emptyMeta, $legacy], ttlMs: 0, cacheScope: CacheScope::Private);
+        $result = new ListToolsResult(tools: [
+            $linked,
+            $unlinked,
+            $emptyMeta,
+            $legacy,
+        ], ttlMs: 0, cacheScope: CacheScope::Private);
 
         $found = $app->findAppTools($result);
 
@@ -421,7 +426,9 @@ final class AppClientTest extends AbstractMcpTestCase
         $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
             ->setRequestTimeout(0.5)
-            ->enableExtension(null === $mimeTypes ? new AppsClientExtension() : new AppsClientExtension(mimeTypes: $mimeTypes))
+            ->enableExtension(null === $mimeTypes ? new AppsClientExtension() : new AppsClientExtension(
+                mimeTypes: $mimeTypes,
+            ))
             ->build()
         ;
         $transport = new RecordingTransport();

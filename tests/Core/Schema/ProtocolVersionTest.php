@@ -29,7 +29,9 @@ final class ProtocolVersionTest extends AbstractMcpTestCase
 {
     public function testLatestIsAcceptedByTheConstructor(): void
     {
-        self::assertSame(ProtocolVersion::LATEST_VERSION, (new ProtocolVersion(version: ProtocolVersion::LATEST_VERSION))->version);
+        self::assertSame(ProtocolVersion::LATEST_VERSION, (new ProtocolVersion(
+            version: ProtocolVersion::LATEST_VERSION,
+        ))->version);
     }
 
     public function testPreviousVersionsDoNotIncludeLatest(): void

@@ -30,14 +30,18 @@ final class InputRequestDispatcher
      */
     public static function decode(array $request): InputRequest
     {
-        Assert::that($request)->hasOffset('method', 'each "result.inputRequests" entry is missing the required "method" key.');
+        Assert::that($request)->hasOffset(
+            'method',
+            'each "result.inputRequests" entry is missing the required "method" key.',
+        );
 
-        return match ($request['method']) {
-            ElicitRequest::getMethod() => ElicitRequest::fromArray($request),
-            default => throw new \InvalidArgumentException(\sprintf(
-                'each "result.inputRequests" entry must use a supported input-request method, %s given.',
-                SafeDisplay::sanitise(var_export($request['method'], true)),
-            )),
-        };
+        if (ElicitRequest::getMethod() === $request['method']) {
+            return ElicitRequest::fromArray($request);
+        }
+
+        throw new \InvalidArgumentException(\sprintf(
+            'each "result.inputRequests" entry must use a supported input-request method, %s given.',
+            SafeDisplay::sanitise(var_export($request['method'], true)),
+        ));
     }
 }

@@ -41,9 +41,7 @@ final class NoAssignmentInCallArgumentRule implements Rule
         }
 
         return [
-            RuleErrorBuilder::message(
-                'Assignment inside a call argument. Hoist the assignment onto its own statement ahead of the call.',
-            )
+            RuleErrorBuilder::message('Assignment inside a call argument. Hoist the assignment onto its own statement ahead of the call.')
                 ->identifier('nexusMcp.assignmentInCallArgument')
                 ->build(),
         ];

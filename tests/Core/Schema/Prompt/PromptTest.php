@@ -77,7 +77,11 @@ final class PromptTest extends AbstractMcpTestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $prompt = new Prompt(name: 'code-review', title: 'Code Review', meta: new PayloadMetaObject(extras: ['k' => 'v']));
+        $prompt = new Prompt(
+            name: 'code-review',
+            title: 'Code Review',
+            meta: new PayloadMetaObject(extras: ['k' => 'v']),
+        );
 
         self::assertSame($prompt->toArray(), $prompt->jsonSerialize());
     }

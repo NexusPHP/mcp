@@ -40,12 +40,10 @@ final class ElicitRequestTest extends AbstractMcpTestCase
 
     public function testToArrayWithFormParams(): void
     {
-        $req = new ElicitRequest(
-            params: new ElicitRequestFormParams(
-                message: 'Pick',
-                requestedSchema: new ElicitRequestedSchema(properties: ['x' => new StringSchema()]),
-            ),
-        );
+        $req = new ElicitRequest(params: new ElicitRequestFormParams(
+            message: 'Pick',
+            requestedSchema: new ElicitRequestedSchema(properties: ['x' => new StringSchema()]),
+        ));
 
         self::assertSame(
             [
@@ -84,9 +82,10 @@ final class ElicitRequestTest extends AbstractMcpTestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $req = new ElicitRequest(
-            params: new ElicitRequestFormParams(message: 'Pick', requestedSchema: new ElicitRequestedSchema(properties: ['x' => new StringSchema()])),
-        );
+        $req = new ElicitRequest(params: new ElicitRequestFormParams(
+            message: 'Pick',
+            requestedSchema: new ElicitRequestedSchema(properties: ['x' => new StringSchema()]),
+        ));
 
         self::assertSame($req->toArray(), $req->jsonSerialize());
     }

@@ -78,7 +78,8 @@ use function Amp\delay;
 final class ServerMessageDispatcherTest extends AbstractMcpTestCase
 {
     /**
-     * Seconds a cancellation test's handler waits, since `RecordingTransport` holds no I/O and needs self-terminating referenced loop work.
+     * Seconds a cancellation test's handler waits, since `RecordingTransport` holds no I/O and needs self-terminating
+     * referenced loop work.
      */
     private const float CANCELLATION_ANCHOR = 1.0;
 
@@ -146,9 +147,17 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
 
         $dispatcher->flushPending();
 
-        self::assertSame([], $transport->sent, 'A response envelope must not provoke another response, even when malformed.');
+        self::assertSame(
+            [],
+            $transport->sent,
+            'A response envelope must not provoke another response, even when malformed.',
+        );
         self::assertCount(1, $logger->recordsMatching(LogLevel::WARNING, self::ORPHAN_LOG_MESSAGE));
-        self::assertSame([], $logger->messagesAtLevel(LogLevel::INFO), 'Response envelopes must not fall through to the notification-drop log.');
+        self::assertSame(
+            [],
+            $logger->messagesAtLevel(LogLevel::INFO),
+            'Response envelopes must not fall through to the notification-drop log.',
+        );
     }
 
     public function testAnIdCarryingEnvelopeNamingBothAMethodAndAResultIsAnsweredNotDropped(): void
@@ -193,7 +202,11 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         $transport = new RecordingTransport();
         $dispatcher = $this->buildDispatcher();
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'method' => 'tools/list', 'result' => null], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'method' => 'tools/list',
+            'result' => null,
+        ], $transport, new ReceiveContext());
 
         $dispatcher->flushPending();
 
@@ -205,7 +218,11 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         $transport = new RecordingTransport();
         $dispatcher = $this->buildDispatcher();
 
-        $dispatcher->dispatch(['jsonrpc' => '1.0', 'id' => 7, 'method' => 'tools/list'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '1.0',
+            'id' => 7,
+            'method' => 'tools/list',
+        ], $transport, new ReceiveContext());
 
         $dispatcher->flushPending();
 
@@ -247,7 +264,11 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
 
         $dispatcher->flushPending();
 
-        self::assertSame([], $transport->sent, 'An envelope without an id is a notification whatever method it names, and JSON-RPC 2.0 §4.1 forbids answering one.');
+        self::assertSame(
+            [],
+            $transport->sent,
+            'An envelope without an id is a notification whatever method it names, and JSON-RPC 2.0 §4.1 forbids answering one.',
+        );
 
         $matches = $logger->recordsMatching(
             LogLevel::WARNING,
@@ -291,7 +312,9 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         $dispatcher = $this->buildDispatcher(
             requestHandlers: [
                 TestLooseClientRequest::getMethod() => new ClosureRequestHandler(
-                    static fn(): EmptyResult => throw new \RuntimeException('The guard must reject before the handler runs.'),
+                    static fn(): EmptyResult => throw new \RuntimeException(
+                        'The guard must reject before the handler runs.',
+                    ),
                 ),
             ],
             parser: new JsonRpcMessageParser([TestLooseClientRequest::getMethod() => TestLooseClientRequest::class]),
@@ -399,15 +422,23 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
     public function testServerRejectsNonClientRequestMethodWithMethodNotFound(): void
     {
         $transport = new RecordingTransport();
-        $dispatcher = $this->buildDispatcher(
-            parser: new JsonRpcMessageParser(requests: ['tests/test-request' => TestRequest::class]),
-        );
+        $dispatcher = $this->buildDispatcher(parser: new JsonRpcMessageParser(
+            requests: ['tests/test-request' => TestRequest::class],
+        ));
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 'r-3', 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 'r-3',
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
 
         $dispatcher->flushPending();
 
-        self::assertCount(1, $transport->sent, 'A non-ClientRequest method must draw exactly one response, not a silent drop.');
+        self::assertCount(
+            1,
+            $transport->sent,
+            'A non-ClientRequest method must draw exactly one response, not a silent drop.',
+        );
         $message = $transport->sent[0]['message'];
         self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
         self::assertSame('r-3', $message->id?->id);
@@ -420,22 +451,27 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         $transport = new RecordingTransport();
         $dispatcher = $this->buildDispatcher(
             requestHandlers: [
-                'tests/test-request' => new ClosureRequestHandler(
-                    static function () use (&$invoked): Result {
-                        $invoked = true;
+                'tests/test-request' => new ClosureRequestHandler(static function () use (&$invoked): Result {
+                    $invoked = true;
 
-                        return new EmptyResult();
-                    },
-                ),
+                    return new EmptyResult();
+                }),
             ],
             parser: new JsonRpcMessageParser(requests: ['tests/test-request' => TestRequest::class]),
         );
 
-        $dispatcher->dispatch(['jsonrpc' => '2.0', 'id' => 'r-1', 'method' => 'tests/test-request'], $transport, new ReceiveContext());
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 'r-1',
+            'method' => 'tests/test-request',
+        ], $transport, new ReceiveContext());
 
         $dispatcher->flushPending();
 
-        self::assertFalse($invoked, 'A non-ClientRequest method must be rejected by direction before any registered handler runs.');
+        self::assertFalse(
+            $invoked,
+            'A non-ClientRequest method must be rejected by direction before any registered handler runs.',
+        );
         self::assertCount(1, $transport->sent);
         $message = $transport->sent[0]['message'];
         self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
@@ -447,19 +483,19 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
     {
         $invoked = false;
         $transport = new RecordingTransport();
-        $dispatcher = $this->buildDispatcher(
-            requestHandlers: [
-                'tools/list' => new ClosureRequestHandler(
-                    static function () use (&$invoked): Result {
-                        $invoked = true;
+        $dispatcher = $this->buildDispatcher(requestHandlers: [
+            'tools/list' => new ClosureRequestHandler(static function () use (&$invoked): Result {
+                $invoked = true;
 
-                        return new EmptyResult();
-                    },
-                ),
-            ],
+                return new EmptyResult();
+            }),
+        ]);
+
+        $dispatcher->dispatch(
+            $this->buildToolsListEnvelope(1, protocolVersion: '2025-11-25'),
+            $transport,
+            new ReceiveContext(),
         );
-
-        $dispatcher->dispatch($this->buildToolsListEnvelope(1, protocolVersion: '2025-11-25'), $transport, new ReceiveContext());
 
         $dispatcher->flushPending();
 
@@ -483,7 +519,11 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         $transport = new RecordingTransport();
         $dispatcher = $this->buildDispatcher();
 
-        $dispatcher->dispatch($this->buildToolsListEnvelope(1, protocolVersion: 'v999.0.0'), $transport, new ReceiveContext());
+        $dispatcher->dispatch(
+            $this->buildToolsListEnvelope(1, protocolVersion: 'v999.0.0'),
+            $transport,
+            new ReceiveContext(),
+        );
 
         $dispatcher->flushPending();
 
@@ -502,12 +542,18 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
      * @param non-empty-string $requested
      */
     #[DataProvider('provideAHostileProtocolVersionIsBoundedBeforeItReachesErrorDataCases')]
-    public function testAHostileProtocolVersionIsBoundedBeforeItReachesErrorData(string $requested, string $expected): void
-    {
+    public function testAHostileProtocolVersionIsBoundedBeforeItReachesErrorData(
+        string $requested,
+        string $expected,
+    ): void {
         $transport = new RecordingTransport();
         $dispatcher = $this->buildDispatcher();
 
-        $dispatcher->dispatch($this->buildToolsListEnvelope(1, protocolVersion: $requested), $transport, new ReceiveContext());
+        $dispatcher->dispatch(
+            $this->buildToolsListEnvelope(1, protocolVersion: $requested),
+            $transport,
+            new ReceiveContext(),
+        );
 
         $dispatcher->flushPending();
 
@@ -535,11 +581,15 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
     public function testServerDiscoverIsGatedByTheProtocolVersionToo(): void
     {
         $transport = new RecordingTransport();
-        $dispatcher = $this->buildDispatcher(
-            requestHandlers: ['server/discover' => new DiscoverRequestHandler(new ServerCapabilities())],
-        );
+        $dispatcher = $this->buildDispatcher(requestHandlers: ['server/discover' => new DiscoverRequestHandler(
+            new ServerCapabilities(),
+        )]);
 
-        $dispatcher->dispatch($this->discoverEnvelope(2, protocolVersion: '2025-11-25'), $transport, new ReceiveContext());
+        $dispatcher->dispatch(
+            $this->discoverEnvelope(2, protocolVersion: '2025-11-25'),
+            $transport,
+            new ReceiveContext(),
+        );
 
         $dispatcher->flushPending();
 
@@ -554,7 +604,11 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         $transport = new RecordingTransport();
         $dispatcher = $this->buildDispatcher();
 
-        $dispatcher->dispatch($this->buildToolsListEnvelope(3, protocolVersion: '2025-11-25'), $transport, new ReceiveContext());
+        $dispatcher->dispatch(
+            $this->buildToolsListEnvelope(3, protocolVersion: '2025-11-25'),
+            $transport,
+            new ReceiveContext(),
+        );
 
         $dispatcher->flushPending();
 
@@ -571,9 +625,9 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
     public function testSuccessfulRequestSendsResultResponse(): void
     {
         $transport = new RecordingTransport();
-        $dispatcher = $this->buildDispatcher(
-            requestHandlers: ['server/discover' => new DiscoverRequestHandler(new ServerCapabilities())],
-        );
+        $dispatcher = $this->buildDispatcher(requestHandlers: ['server/discover' => new DiscoverRequestHandler(
+            new ServerCapabilities(),
+        )]);
 
         $dispatcher->dispatch($this->discoverEnvelope(1), $transport, new ReceiveContext());
 
@@ -646,7 +700,10 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         self::assertNull($seen->requestState);
         self::assertNull($seen->requestStatePayload);
         self::assertInstanceOf(RequestStateSigner::class, $seen->requestStateSigner);
-        self::assertSame('round-1', $signer->verify($seen->requestStateSigner->sign('round-1'), $this->deriveToolsCallBinding()));
+        self::assertSame(
+            'round-1',
+            $signer->verify($seen->requestStateSigner->sign('round-1'), $this->deriveToolsCallBinding()),
+        );
     }
 
     public function testARequestThatCannotCarryAStateGetsNoSigner(): void
@@ -675,7 +732,9 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         $logger = new ArrayLogger();
         $dispatcher = $this->buildDispatcher(
             requestHandlers: ['tools/call' => new ClosureRequestHandler(
-                static fn(): Result => new InputRequiredResult(requestState: RequestStateSigner::generate()->sign('round-1')),
+                static fn(): Result => new InputRequiredResult(
+                    requestState: RequestStateSigner::generate()->sign('round-1'),
+                ),
             )],
             logger: $logger,
             requestStateSigner: new RequestStateSigner('secret'),
@@ -692,7 +751,10 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         self::assertCount(1, $records);
         $logged = $records[0]['context']['exception'] ?? null;
         self::assertInstanceOf(\LogicException::class, $logged);
-        self::assertSame('The handler for "tools/call" answered with a "requestState" that does not verify under the server\'s signer.', $logged->getMessage());
+        self::assertSame(
+            'The handler for "tools/call" answered with a "requestState" that does not verify under the server\'s signer.',
+            $logged->getMessage(),
+        );
     }
 
     public function testAHandlerAnsweringWithAStateItMintedThroughTheContextIsServed(): void
@@ -719,13 +781,11 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
     {
         $seen = null;
         $transport = new RecordingTransport();
-        $dispatcher = $this->buildDispatcher(
-            requestHandlers: ['tools/call' => new ClosureRequestHandler(static function ($request, AbstractContext $context) use (&$seen): Result {
-                $seen = $context;
+        $dispatcher = $this->buildDispatcher(requestHandlers: ['tools/call' => new ClosureRequestHandler(static function ($request, AbstractContext $context) use (&$seen): Result {
+            $seen = $context;
 
-                return new CallToolResult(content: []);
-            })],
-        );
+            return new CallToolResult(content: []);
+        })]);
 
         $dispatcher->dispatch($this->buildToolsCallEnvelope(1, 'anything'), $transport, new ReceiveContext());
         $dispatcher->flushPending();
@@ -738,19 +798,21 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
 
     public function testACancelledRequestWhoseHandlerPropagatesTheCancellationIsNotAnswered(): void
     {
-        [$dispatcher, $transport, $logger] = $this->buildCancellableDispatcher(
-            static function ($request, AbstractContext $context): Result {
-                delay(self::CANCELLATION_ANCHOR, cancellation: $context->cancellation);
+        [$dispatcher, $transport, $logger] = $this->buildCancellableDispatcher(static function ($request, AbstractContext $context): Result {
+            delay(self::CANCELLATION_ANCHOR, cancellation: $context->cancellation);
 
-                return new EmptyResult();
-            },
-        );
+            return new EmptyResult();
+        });
 
         $dispatcher->dispatch($this->buildToolsListEnvelope(1), $transport, new ReceiveContext());
         $dispatcher->dispatch($this->cancelEnvelope(1), $transport, new ReceiveContext());
         $dispatcher->flushPending();
 
-        self::assertSame([], $transport->sent, 'The spec forbids answering a request whose cancellation was requested.');
+        self::assertSame(
+            [],
+            $transport->sent,
+            'The spec forbids answering a request whose cancellation was requested.',
+        );
 
         $records = $logger->recordsMatching(
             LogLevel::DEBUG,
@@ -767,16 +829,14 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
 
     public function testACancelledRequestWhoseHandlerReturnsTidilyIsStillNotAnswered(): void
     {
-        [$dispatcher, $transport, $logger] = $this->buildCancellableDispatcher(
-            static function ($request, AbstractContext $context): Result {
-                try {
-                    delay(self::CANCELLATION_ANCHOR, cancellation: $context->cancellation);
-                } catch (CancelledException) {
-                }
+        [$dispatcher, $transport, $logger] = $this->buildCancellableDispatcher(static function ($request, AbstractContext $context): Result {
+            try {
+                delay(self::CANCELLATION_ANCHOR, cancellation: $context->cancellation);
+            } catch (CancelledException) {
+            }
 
-                return new EmptyResult();
-            },
-        );
+            return new EmptyResult();
+        });
 
         $dispatcher->dispatch($this->buildToolsListEnvelope(1), $transport, new ReceiveContext());
         $dispatcher->dispatch($this->cancelEnvelope(1), $transport, new ReceiveContext());
@@ -791,16 +851,14 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
 
     public function testACancelledRequestIsNotAnsweredWithAProtocolErrorItsHandlerRaised(): void
     {
-        [$dispatcher, $transport] = $this->buildCancellableDispatcher(
-            static function ($request, AbstractContext $context): Result {
-                try {
-                    delay(self::CANCELLATION_ANCHOR, cancellation: $context->cancellation);
-                } catch (CancelledException) {
-                }
+        [$dispatcher, $transport] = $this->buildCancellableDispatcher(static function ($request, AbstractContext $context): Result {
+            try {
+                delay(self::CANCELLATION_ANCHOR, cancellation: $context->cancellation);
+            } catch (CancelledException) {
+            }
 
-                throw new InvalidParamsException($context->requestId, 'bad arguments');
-            },
-        );
+            throw new InvalidParamsException($context->requestId, 'bad arguments');
+        });
 
         $dispatcher->dispatch($this->buildToolsListEnvelope(1), $transport, new ReceiveContext());
         $dispatcher->dispatch($this->cancelEnvelope(1), $transport, new ReceiveContext());
@@ -811,16 +869,14 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
 
     public function testACancelledRequestIsNotAnsweredWithTheInternalErrorItsHandlerRaised(): void
     {
-        [$dispatcher, $transport] = $this->buildCancellableDispatcher(
-            static function ($request, AbstractContext $context): Result {
-                try {
-                    delay(self::CANCELLATION_ANCHOR, cancellation: $context->cancellation);
-                } catch (CancelledException) {
-                }
+        [$dispatcher, $transport] = $this->buildCancellableDispatcher(static function ($request, AbstractContext $context): Result {
+            try {
+                delay(self::CANCELLATION_ANCHOR, cancellation: $context->cancellation);
+            } catch (CancelledException) {
+            }
 
-                throw new \RuntimeException('boom');
-            },
-        );
+            throw new \RuntimeException('boom');
+        });
 
         $dispatcher->dispatch($this->buildToolsListEnvelope(1), $transport, new ReceiveContext());
         $dispatcher->dispatch($this->cancelEnvelope(1), $transport, new ReceiveContext());
@@ -833,13 +889,11 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
     {
         $inboundRequests = new PendingInboundRequests();
         $dispatcher = $this->buildDispatcher(
-            requestHandlers: ['tools/list' => new ClosureRequestHandler(
-                static function ($request, AbstractContext $context): Result {
-                    delay(self::CANCELLATION_ANCHOR, cancellation: $context->cancellation);
+            requestHandlers: ['tools/list' => new ClosureRequestHandler(static function ($request, AbstractContext $context): Result {
+                delay(self::CANCELLATION_ANCHOR, cancellation: $context->cancellation);
 
-                    return new EmptyResult();
-                },
-            )],
+                return new EmptyResult();
+            })],
             inboundRequests: $inboundRequests,
         );
         $transport = new RecordingTransport();
@@ -854,19 +908,15 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
     public function testCancelAllCancelsEveryRequestInFlight(): void
     {
         $observed = [];
-        $dispatcher = $this->buildDispatcher(
-            requestHandlers: ['tools/list' => new ClosureRequestHandler(
-                static function ($request, AbstractContext $context) use (&$observed): Result {
-                    try {
-                        delay(self::CANCELLATION_ANCHOR, cancellation: $context->cancellation);
-                    } finally {
-                        $observed[] = $context->cancellation->isRequested();
-                    }
+        $dispatcher = $this->buildDispatcher(requestHandlers: ['tools/list' => new ClosureRequestHandler(static function ($request, AbstractContext $context) use (&$observed): Result {
+            try {
+                delay(self::CANCELLATION_ANCHOR, cancellation: $context->cancellation);
+            } finally {
+                $observed[] = $context->cancellation->isRequested();
+            }
 
-                    return new EmptyResult();
-                },
-            )],
-        );
+            return new EmptyResult();
+        })]);
         $transport = new RecordingTransport();
 
         $dispatcher->dispatch($this->buildToolsListEnvelope(1), $transport, new ReceiveContext());
@@ -880,9 +930,7 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
 
     public function testAnUncancelledRequestIsStillAnswered(): void
     {
-        [$dispatcher, $transport] = $this->buildCancellableDispatcher(
-            static fn($request, AbstractContext $context): Result => new EmptyResult(),
-        );
+        [$dispatcher, $transport] = $this->buildCancellableDispatcher(static fn($request, AbstractContext $context): Result => new EmptyResult());
 
         $dispatcher->dispatch($this->buildToolsListEnvelope(1), $transport, new ReceiveContext());
         $dispatcher->flushPending();
@@ -892,15 +940,13 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
 
     public function testCancellingOneRequestLeavesAnotherAnswerable(): void
     {
-        [$dispatcher, $transport] = $this->buildCancellableDispatcher(
-            static function ($request, AbstractContext $context): Result {
-                if (1 === $context->requestId->id) {
-                    delay(self::CANCELLATION_ANCHOR, cancellation: $context->cancellation);
-                }
+        [$dispatcher, $transport] = $this->buildCancellableDispatcher(static function ($request, AbstractContext $context): Result {
+            if (1 === $context->requestId->id) {
+                delay(self::CANCELLATION_ANCHOR, cancellation: $context->cancellation);
+            }
 
-                return new EmptyResult();
-            },
-        );
+            return new EmptyResult();
+        });
 
         $dispatcher->dispatch($this->buildToolsListEnvelope(1), $transport, new ReceiveContext());
         $dispatcher->dispatch($this->buildToolsListEnvelope(2), $transport, new ReceiveContext());
@@ -989,7 +1035,9 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
     public function testRequestPastTheInFlightCapIsShedAsOverloaded(): void
     {
         $transport = new RecordingTransport();
-        $dispatcher = $this->buildDispatcher(requestHandlers: ['tools/list' => $this->buildOkHandler()], maxInFlight: 1);
+        $dispatcher = $this->buildDispatcher(requestHandlers: [
+            'tools/list' => $this->buildOkHandler(),
+        ], maxInFlight: 1);
 
         $dispatcher->dispatch($this->buildToolsListEnvelope(1), $transport, new ReceiveContext());
         $dispatcher->dispatch($this->buildToolsListEnvelope(2), $transport, new ReceiveContext());
@@ -1023,7 +1071,11 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         self::assertCount(2, $transport->sent);
         $admitted = $transport->sent[1]['message'];
         self::assertInstanceOf(JsonRpcResultResponse::class, $admitted);
-        self::assertSame(2, $admitted->id->id, 'The admitted response must answer the listen, not the request that saturated the cap.');
+        self::assertSame(
+            2,
+            $admitted->id->id,
+            'The admitted response must answer the listen, not the request that saturated the cap.',
+        );
         self::assertInstanceOf(JsonRpcResultResponse::class, $transport->sent[0]['message']);
     }
 
@@ -1052,13 +1104,11 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         $parked = new DeferredFuture();
         $transport = new RecordingTransport();
         $dispatcher = $this->buildDispatcher(
-            requestHandlers: ['subscriptions/listen' => new ClosureRequestHandler(
-                static function () use ($parked): Result {
-                    $parked->getFuture()->await();
+            requestHandlers: ['subscriptions/listen' => new ClosureRequestHandler(static function () use ($parked): Result {
+                $parked->getFuture()->await();
 
-                    return new EmptyResult();
-                },
-            )],
+                return new EmptyResult();
+            })],
             maxInFlight: 1,
         );
 
@@ -1067,7 +1117,11 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
             delay(0.0);
         }
 
-        self::assertCount(0, $transport->sent, 'A listen already parked in its handler no longer occupies the backlog.');
+        self::assertCount(
+            0,
+            $transport->sent,
+            'A listen already parked in its handler no longer occupies the backlog.',
+        );
 
         $parked->complete();
         $dispatcher->flushPending();
@@ -1096,7 +1150,10 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
 
         $dispatcher->flushPending();
 
-        self::assertTrue($cancelled, 'The one notification that frees a slot must not be shed by the cap it would relieve.');
+        self::assertTrue(
+            $cancelled,
+            'The one notification that frees a slot must not be shed by the cap it would relieve.',
+        );
     }
 
     public function testACancellationNamingNothingInFlightIsShedAtTheCap(): void
@@ -1159,15 +1216,15 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         $observed = null;
         $transport = new RecordingTransport();
         $dispatcher = $this->buildDispatcher(
-            requestHandlers: ['tools/list' => new ClosureRequestHandler(
-                static function ($request, AbstractContext $context) use ($parked, &$observed): Result {
-                    $observed = $context->cancellation;
-                    $parked->getFuture()->await();
+            requestHandlers: ['tools/list' => new ClosureRequestHandler(static function ($request, AbstractContext $context) use ($parked, &$observed): Result {
+                $observed = $context->cancellation;
+                $parked->getFuture()->await();
 
-                    return new EmptyResult();
-                },
+                return new EmptyResult();
+            })],
+            notificationHandlers: ['notifications/cancelled' => new ClosureNotificationHandler(
+                static function (): void {},
             )],
-            notificationHandlers: ['notifications/cancelled' => new ClosureNotificationHandler(static function (): void {})],
         );
 
         $dispatcher->dispatch($this->buildToolsListEnvelope(1), $transport, new ReceiveContext());
@@ -1177,7 +1234,10 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
 
         self::assertInstanceOf(Cancellation::class, $observed);
 
-        self::assertFalse($observed->isRequested(), 'Below the cap the registered handler owns the cancel, and this one declined it.');
+        self::assertFalse(
+            $observed->isRequested(),
+            'Below the cap the registered handler owns the cancel, and this one declined it.',
+        );
 
         $parked->complete(null);
         $dispatcher->flushPending();
@@ -1190,15 +1250,15 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         $observed = null;
         $transport = new RecordingTransport();
         $dispatcher = $this->buildDispatcher(
-            requestHandlers: ['tools/list' => new ClosureRequestHandler(
-                static function ($request, AbstractContext $context) use ($parked, &$observed): Result {
-                    $observed = $context->cancellation;
-                    $parked->getFuture()->await();
+            requestHandlers: ['tools/list' => new ClosureRequestHandler(static function ($request, AbstractContext $context) use ($parked, &$observed): Result {
+                $observed = $context->cancellation;
+                $parked->getFuture()->await();
 
-                    return new EmptyResult();
-                },
+                return new EmptyResult();
+            })],
+            notificationHandlers: ['notifications/cancelled' => new ClosureNotificationHandler(
+                static function (): void {},
             )],
-            notificationHandlers: ['notifications/cancelled' => new ClosureNotificationHandler(static function (): void {})],
             maxInFlight: 1,
         );
 
@@ -1217,7 +1277,9 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
     public function testSubscriptionsListenIsStillShedByAServerThatDoesNotServeIt(): void
     {
         $transport = new RecordingTransport();
-        $dispatcher = $this->buildDispatcher(requestHandlers: ['tools/list' => $this->buildOkHandler()], maxInFlight: 1);
+        $dispatcher = $this->buildDispatcher(requestHandlers: [
+            'tools/list' => $this->buildOkHandler(),
+        ], maxInFlight: 1);
 
         $dispatcher->dispatch($this->buildToolsListEnvelope(1), $transport, new ReceiveContext());
         $dispatcher->dispatch($this->buildSubscriptionsListenEnvelope(2), $transport, new ReceiveContext());
@@ -1234,7 +1296,9 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
     public function testAShedRequestLeavesItsIdFreeForARetry(): void
     {
         $transport = new RecordingTransport();
-        $dispatcher = $this->buildDispatcher(requestHandlers: ['tools/list' => $this->buildOkHandler()], maxInFlight: 1);
+        $dispatcher = $this->buildDispatcher(requestHandlers: [
+            'tools/list' => $this->buildOkHandler(),
+        ], maxInFlight: 1);
 
         $dispatcher->dispatch($this->buildToolsListEnvelope(1), $transport, new ReceiveContext());
         $dispatcher->dispatch($this->buildToolsListEnvelope(2), $transport, new ReceiveContext());
@@ -1252,7 +1316,9 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
     public function testRequestsUpToTheCapAreDispatchedNormally(): void
     {
         $transport = new RecordingTransport();
-        $dispatcher = $this->buildDispatcher(requestHandlers: ['tools/list' => $this->buildOkHandler()], maxInFlight: 2);
+        $dispatcher = $this->buildDispatcher(requestHandlers: [
+            'tools/list' => $this->buildOkHandler(),
+        ], maxInFlight: 2);
 
         $dispatcher->dispatch($this->buildToolsListEnvelope(1), $transport, new ReceiveContext());
         $dispatcher->dispatch($this->buildToolsListEnvelope(2), $transport, new ReceiveContext());
@@ -1297,7 +1363,11 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
 
         $dispatcher->dispatch($this->buildToolsListEnvelope(1), $transport, new ReceiveContext());
         $dispatcher->dispatch(
-            ['jsonrpc' => '2.0', 'method' => 'notifications/progress', 'params' => ['progressToken' => 'p-1', 'progress' => 1.0]],
+            [
+                'jsonrpc' => '2.0',
+                'method' => 'notifications/progress',
+                'params' => ['progressToken' => 'p-1', 'progress' => 1.0],
+            ],
             $transport,
             new ReceiveContext(),
         );
@@ -1317,9 +1387,7 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
     public function testSecondRequestWithSameInFlightIdIsRejectedSynchronouslyWithInvalidRequest(): void
     {
         $transport = new RecordingTransport();
-        $dispatcher = $this->buildDispatcher(
-            requestHandlers: ['tools/list' => $this->buildOkHandler()],
-        );
+        $dispatcher = $this->buildDispatcher(requestHandlers: ['tools/list' => $this->buildOkHandler()]);
 
         $dispatcher->dispatch($this->buildToolsListEnvelope(1), $transport, new ReceiveContext());
         $dispatcher->dispatch($this->buildToolsListEnvelope(1), $transport, new ReceiveContext());
@@ -1344,15 +1412,11 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         /** @var DeferredFuture<null> $parked */
         $parked = new DeferredFuture();
         $transport = new RecordingTransport();
-        $dispatcher = $this->buildDispatcher(
-            requestHandlers: ['tools/list' => new ClosureRequestHandler(
-                static function () use ($parked): Result {
-                    $parked->getFuture()->await();
+        $dispatcher = $this->buildDispatcher(requestHandlers: ['tools/list' => new ClosureRequestHandler(static function () use ($parked): Result {
+            $parked->getFuture()->await();
 
-                    return new EmptyResult();
-                },
-            )],
-        );
+            return new EmptyResult();
+        })]);
 
         $dispatcher->dispatch($this->buildToolsListEnvelope(1), $transport, new ReceiveContext());
         delay(0.0);
@@ -1375,9 +1439,7 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
     public function testIdsAreReleasedAfterTheHandlerCompletesSoSequentialReuseSucceeds(): void
     {
         $transport = new RecordingTransport();
-        $dispatcher = $this->buildDispatcher(
-            requestHandlers: ['tools/list' => $this->buildOkHandler()],
-        );
+        $dispatcher = $this->buildDispatcher(requestHandlers: ['tools/list' => $this->buildOkHandler()]);
 
         $dispatcher->dispatch($this->buildToolsListEnvelope('x'), $transport, new ReceiveContext());
         $dispatcher->flushPending();
@@ -1393,19 +1455,15 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
     {
         $calls = 0;
         $transport = new RecordingTransport();
-        $dispatcher = $this->buildDispatcher(
-            requestHandlers: [
-                'tools/list' => new ClosureRequestHandler(
-                    static function () use (&$calls): Result {
-                        if (1 === ++$calls) {
-                            throw new \RuntimeException('boom');
-                        }
+        $dispatcher = $this->buildDispatcher(requestHandlers: [
+            'tools/list' => new ClosureRequestHandler(static function () use (&$calls): Result {
+                if (1 === ++$calls) {
+                    throw new \RuntimeException('boom');
+                }
 
-                        return new EmptyResult();
-                    },
-                ),
-            ],
-        );
+                return new EmptyResult();
+            }),
+        ]);
 
         $dispatcher->dispatch($this->buildToolsListEnvelope(1), $transport, new ReceiveContext());
         $dispatcher->flushPending();
@@ -1424,13 +1482,11 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
     public function testErrorResponseUsesExceptionRequestIdWhenSetEvenIfDifferentFromIncomingRequestId(): void
     {
         $transport = new RecordingTransport();
-        $dispatcher = $this->buildDispatcher(
-            requestHandlers: [
-                'tools/list' => new ClosureRequestHandler(
-                    static fn() => throw new ResourceNotFoundException('file:///x', new RequestId(id: 'explicit-id')),
-                ),
-            ],
-        );
+        $dispatcher = $this->buildDispatcher(requestHandlers: [
+            'tools/list' => new ClosureRequestHandler(
+                static fn() => throw new ResourceNotFoundException('file:///x', new RequestId(id: 'explicit-id')),
+            ),
+        ]);
 
         $dispatcher->dispatch($this->buildToolsListEnvelope('incoming-id'), $transport, new ReceiveContext());
 
@@ -1445,13 +1501,11 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
     public function testHandlerThrowingMcpExceptionTranslatesToTypedErrorResponse(): void
     {
         $transport = new RecordingTransport();
-        $dispatcher = $this->buildDispatcher(
-            requestHandlers: [
-                'tools/list' => new ClosureRequestHandler(
-                    static fn() => throw new ResourceNotFoundException('file:///missing'),
-                ),
-            ],
-        );
+        $dispatcher = $this->buildDispatcher(requestHandlers: [
+            'tools/list' => new ClosureRequestHandler(
+                static fn() => throw new ResourceNotFoundException('file:///missing'),
+            ),
+        ]);
 
         $dispatcher->dispatch($this->buildToolsListEnvelope(1), $transport, new ReceiveContext());
 
@@ -1510,12 +1564,10 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         $logger = new ArrayLogger();
         $dispatcher = $this->buildDispatcher(
             requestHandlers: [
-                'tools/list' => new ClosureRequestHandler(
-                    static fn(): Result => InputRequiredResult::fromArray([
-                        'resultType' => 'input_required',
-                        'requestState' => 'tok',
-                    ]),
-                ),
+                'tools/list' => new ClosureRequestHandler(static fn(): Result => InputRequiredResult::fromArray([
+                    'resultType' => 'input_required',
+                    'requestState' => 'tok',
+                ])),
             ],
             logger: $logger,
         );
@@ -1534,7 +1586,10 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         $logged = $matches[0]['context']['exception'] ?? null;
         self::assertInstanceOf(\InvalidArgumentException::class, $logged);
         self::assertSame(
-            \sprintf('Handler for "tools/list" returned %s, which is not a valid result for that method.', InputRequiredResult::class),
+            \sprintf(
+                'Handler for "tools/list" returned %s, which is not a valid result for that method.',
+                InputRequiredResult::class,
+            ),
             $logged->getMessage(),
         );
     }
@@ -1573,7 +1628,11 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
 
         $dispatcher->flushPending();
 
-        self::assertSame([], $logger->messagesAtLevel(LogLevel::ERROR), 'Closed transport must not produce error-level logs.');
+        self::assertSame(
+            [],
+            $logger->messagesAtLevel(LogLevel::ERROR),
+            'Closed transport must not produce error-level logs.',
+        );
         $matches = $logger->recordsMatching(LogLevel::INFO, 'Skipping response delivery. Transport is closed.');
         self::assertCount(1, $matches);
         self::assertSame('tools/list', $matches[0]['context']['method'] ?? null);
@@ -1633,19 +1692,15 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
     {
         $transport = new RecordingTransport();
 
-        $dispatcher = $this->buildDispatcher(
-            requestHandlers: [
-                'tools/list' => new ClosureRequestHandler(
-                    static function ($req, $ctx): EmptyResult {
-                        \assert($ctx instanceof ServerContext);
+        $dispatcher = $this->buildDispatcher(requestHandlers: [
+            'tools/list' => new ClosureRequestHandler(static function ($req, $ctx): EmptyResult {
+                \assert($ctx instanceof ServerContext);
 
-                        $ctx->reportProgress(0.5);
+                $ctx->reportProgress(0.5);
 
-                        return new EmptyResult();
-                    },
-                ),
-            ],
-        );
+                return new EmptyResult();
+            }),
+        ]);
 
         $envelope = [
             'jsonrpc' => '2.0',
@@ -1678,19 +1733,15 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         $receiveContext = new ReceiveContext();
         $captured = null;
 
-        $dispatcher = $this->buildDispatcher(
-            requestHandlers: [
-                'tools/list' => new ClosureRequestHandler(
-                    static function ($req, $ctx) use (&$captured): EmptyResult {
-                        \assert($ctx instanceof ServerContext);
+        $dispatcher = $this->buildDispatcher(requestHandlers: [
+            'tools/list' => new ClosureRequestHandler(static function ($req, $ctx) use (&$captured): EmptyResult {
+                \assert($ctx instanceof ServerContext);
 
-                        $captured = $ctx->receiveContext;
+                $captured = $ctx->receiveContext;
 
-                        return new EmptyResult();
-                    },
-                ),
-            ],
-        );
+                return new EmptyResult();
+            }),
+        ]);
 
         $dispatcher->dispatch($this->buildToolsListEnvelope(1), $transport, $receiveContext);
 
@@ -1757,13 +1808,11 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
     {
         $invocations = 0;
         $transport = new RecordingTransport();
-        $dispatcher = $this->buildDispatcher(
-            notificationHandlers: [
-                'notifications/cancelled' => new ClosureNotificationHandler(
-                    static function () use (&$invocations): void { ++$invocations; },
-                ),
-            ],
-        );
+        $dispatcher = $this->buildDispatcher(notificationHandlers: [
+            'notifications/cancelled' => new ClosureNotificationHandler(
+                static function () use (&$invocations): void { ++$invocations; },
+            ),
+        ]);
 
         $dispatcher->dispatch(
             [
@@ -1793,9 +1842,7 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
     public function testFlushPendingDrainsAnInFlightRequestDispatchBeforeReturning(): void
     {
         $transport = new RecordingTransport();
-        $dispatcher = $this->buildDispatcher(
-            requestHandlers: ['tools/list' => $this->buildOkHandler()],
-        );
+        $dispatcher = $this->buildDispatcher(requestHandlers: ['tools/list' => $this->buildOkHandler()]);
 
         $dispatcher->dispatch($this->buildToolsListEnvelope(1), $transport, new ReceiveContext());
 
@@ -1853,12 +1900,19 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
             'Dropping malformed notification (JSON-RPC 2.0 §4.1 forbids responses to notifications).',
         );
         self::assertCount(1, $matches);
-        self::assertSame(['exception'], array_keys($matches[0]['context']), 'The peer envelope must not ride the log record.');
+        self::assertSame(
+            ['exception'],
+            array_keys($matches[0]['context']),
+            'The peer envelope must not ride the log record.',
+        );
     }
 
     private function deriveToolsCallBinding(): string
     {
-        return RequestStateSigner::deriveBinding(CallToolRequest::fromArray($this->buildToolsCallEnvelope(1, null)), new ReceiveContext());
+        return RequestStateSigner::deriveBinding(
+            CallToolRequest::fromArray($this->buildToolsCallEnvelope(1, null)),
+            new ReceiveContext(),
+        );
     }
 
     /**

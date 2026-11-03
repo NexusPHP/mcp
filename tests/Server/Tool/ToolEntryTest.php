@@ -32,9 +32,7 @@ final class ToolEntryTest extends AbstractMcpTestCase
     public function testExposesToolAndExecutor(): void
     {
         $tool = new Tool(name: 'echo', inputSchema: ['type' => 'object']);
-        $executor = new ClosureToolExecutor(
-            static fn(): CallToolResult => new CallToolResult(content: []),
-        );
+        $executor = new ClosureToolExecutor(static fn(): CallToolResult => new CallToolResult(content: []));
 
         $entry = new ToolEntry($tool, $executor);
 

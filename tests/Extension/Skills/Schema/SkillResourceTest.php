@@ -52,7 +52,11 @@ final class SkillResourceTest extends AbstractMcpTestCase
     {
         $resource = new SkillResource('skill://git-workflow/SKILL.md', self::DIGEST, 5);
 
-        self::assertSame(['uri' => 'skill://git-workflow/SKILL.md', 'digest' => self::DIGEST, 'size' => 5], $resource->toArray());
+        self::assertSame([
+            'uri' => 'skill://git-workflow/SKILL.md',
+            'digest' => self::DIGEST,
+            'size' => 5,
+        ], $resource->toArray());
         self::assertSame($resource->toArray(), $resource->jsonSerialize());
     }
 
@@ -64,8 +68,12 @@ final class SkillResourceTest extends AbstractMcpTestCase
     }
 
     #[DataProvider('provideConstructionRejectsInvalidValuesCases')]
-    public function testConstructionRejectsInvalidValues(string $uri, string $digest, int $size, string $expectedMessage): void
-    {
+    public function testConstructionRejectsInvalidValues(
+        string $uri,
+        string $digest,
+        int $size,
+        string $expectedMessage,
+    ): void {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs($expectedMessage);
 
@@ -82,21 +90,61 @@ final class SkillResourceTest extends AbstractMcpTestCase
 
         yield 'an empty uri' => ['', self::DIGEST, 5, 'skill resource "uri" must be a non-empty string.'];
 
-        yield 'a digest without its prefix' => ['skill://a/b', substr(self::DIGEST, 7), 5, \sprintf($digestMessage, var_export(substr(self::DIGEST, 7), true))];
+        yield 'a digest without its prefix' => [
+            'skill://a/b',
+            substr(self::DIGEST, 7),
+            5,
+            \sprintf($digestMessage, var_export(substr(self::DIGEST, 7), true)),
+        ];
 
-        yield 'a digest under another algorithm' => ['skill://a/b', 'sha512:'.substr(self::DIGEST, 7), 5, \sprintf($digestMessage, var_export('sha512:'.substr(self::DIGEST, 7), true))];
+        yield 'a digest under another algorithm' => [
+            'skill://a/b',
+            'sha512:'.substr(self::DIGEST, 7),
+            5,
+            \sprintf($digestMessage, var_export('sha512:'.substr(self::DIGEST, 7), true)),
+        ];
 
-        yield 'an uppercase digest' => ['skill://a/b', strtoupper(self::DIGEST), 5, \sprintf($digestMessage, var_export(strtoupper(self::DIGEST), true))];
+        yield 'an uppercase digest' => [
+            'skill://a/b',
+            strtoupper(self::DIGEST),
+            5,
+            \sprintf($digestMessage, var_export(strtoupper(self::DIGEST), true)),
+        ];
 
-        yield 'a short digest' => ['skill://a/b', substr(self::DIGEST, 0, -1), 5, \sprintf($digestMessage, var_export(substr(self::DIGEST, 0, -1), true))];
+        yield 'a short digest' => [
+            'skill://a/b',
+            substr(self::DIGEST, 0, -1),
+            5,
+            \sprintf($digestMessage, var_export(substr(self::DIGEST, 0, -1), true)),
+        ];
 
-        yield 'a long digest' => ['skill://a/b', self::DIGEST.'0', 5, \sprintf($digestMessage, var_export(self::DIGEST.'0', true))];
+        yield 'a long digest' => [
+            'skill://a/b',
+            self::DIGEST.'0',
+            5,
+            \sprintf($digestMessage, var_export(self::DIGEST.'0', true)),
+        ];
 
-        yield 'a digest followed by a line feed' => ['skill://a/b', self::DIGEST."\n", 5, \sprintf($digestMessage, var_export(self::DIGEST."\n", true))];
+        yield 'a digest followed by a line feed' => [
+            'skill://a/b',
+            self::DIGEST."\n",
+            5,
+            \sprintf($digestMessage, var_export(self::DIGEST."\n", true)),
+        ];
 
-        yield 'a digest after other text' => ['skill://a/b', 'x'.self::DIGEST, 5, \sprintf($digestMessage, var_export('x'.self::DIGEST, true))];
+        yield 'a digest after other text' => [
+            'skill://a/b',
+            'x'.self::DIGEST,
+            5,
+            \sprintf($digestMessage, var_export('x'.self::DIGEST, true)),
+        ];
 
-        yield 'a negative size' => ['skill://a/b', self::DIGEST, -1, 'skill resource "size" must be a non-negative integer, -1 given.'];
+        yield 'a negative size' => [
+            'skill://a/b',
+            self::DIGEST,
+            -1,
+            'skill resource "size" must be a non-negative integer, -1 given.',
+        ];
     }
 
     /**
@@ -116,18 +164,39 @@ final class SkillResourceTest extends AbstractMcpTestCase
      */
     public static function provideFromArrayRejectsInvalidInputCases(): iterable
     {
-        yield 'missing uri' => [['digest' => self::DIGEST, 'size' => 5], 'skill resource is missing the required "uri" key.'];
+        yield 'missing uri' => [
+            ['digest' => self::DIGEST, 'size' => 5],
+            'skill resource is missing the required "uri" key.',
+        ];
 
-        yield 'uri not a string' => [['uri' => 7, 'digest' => self::DIGEST, 'size' => 5], 'skill resource "uri" must be a non-empty string, int given.'];
+        yield 'uri not a string' => [
+            ['uri' => 7, 'digest' => self::DIGEST, 'size' => 5],
+            'skill resource "uri" must be a non-empty string, int given.',
+        ];
 
-        yield 'missing digest' => [['uri' => 'skill://a/b', 'size' => 5], 'skill resource is missing the required "digest" key.'];
+        yield 'missing digest' => [
+            ['uri' => 'skill://a/b', 'size' => 5],
+            'skill resource is missing the required "digest" key.',
+        ];
 
-        yield 'digest not a string' => [['uri' => 'skill://a/b', 'digest' => null, 'size' => 5], 'skill resource "digest" must be a non-empty string, null given.'];
+        yield 'digest not a string' => [
+            ['uri' => 'skill://a/b', 'digest' => null, 'size' => 5],
+            'skill resource "digest" must be a non-empty string, null given.',
+        ];
 
-        yield 'missing size' => [['uri' => 'skill://a/b', 'digest' => self::DIGEST], 'skill resource is missing the required "size" key.'];
+        yield 'missing size' => [
+            ['uri' => 'skill://a/b', 'digest' => self::DIGEST],
+            'skill resource is missing the required "size" key.',
+        ];
 
-        yield 'size not an integer' => [['uri' => 'skill://a/b', 'digest' => self::DIGEST, 'size' => '5'], 'skill resource "size" must be a non-negative integer, string given.'];
+        yield 'size not an integer' => [
+            ['uri' => 'skill://a/b', 'digest' => self::DIGEST, 'size' => '5'],
+            'skill resource "size" must be a non-negative integer, string given.',
+        ];
 
-        yield 'size negative' => [['uri' => 'skill://a/b', 'digest' => self::DIGEST, 'size' => -1], 'skill resource "size" must be a non-negative integer, int given.'];
+        yield 'size negative' => [
+            ['uri' => 'skill://a/b', 'digest' => self::DIGEST, 'size' => -1],
+            'skill resource "size" must be a non-negative integer, int given.',
+        ];
     }
 }

@@ -34,11 +34,11 @@ final class JsonRpcMethodRegistryTest extends AbstractMcpTestCase
         self::assertNotSame([], $registry);
 
         foreach ($registry as $method => $class) {
-            self::assertSame($method, $class::getMethod(), \sprintf(
-                'Registry key "%s" must match %s::getMethod().',
+            self::assertSame(
                 $method,
-                $class,
-            ));
+                $class::getMethod(),
+                \sprintf('Registry key "%s" must match %s::getMethod().', $method, $class),
+            );
         }
     }
 
@@ -48,11 +48,11 @@ final class JsonRpcMethodRegistryTest extends AbstractMcpTestCase
         self::assertNotSame([], $registry);
 
         foreach ($registry as $method => $class) {
-            self::assertSame($method, $class::getMethod(), \sprintf(
-                'Registry key "%s" must match %s::getMethod().',
+            self::assertSame(
                 $method,
-                $class,
-            ));
+                $class::getMethod(),
+                \sprintf('Registry key "%s" must match %s::getMethod().', $method, $class),
+            );
         }
     }
 
@@ -70,9 +70,17 @@ final class JsonRpcMethodRegistryTest extends AbstractMcpTestCase
     {
         $registry = JsonRpcMethodRegistry::requests();
 
-        foreach ($this->discoverConcreteSubclassesUnder(__DIR__.'/../../../src/Core/Schema/Request', 'Nexus\\Mcp\\Core\\Schema\\Request', JsonRpcRequest::class) as $class) {
+        foreach ($this->discoverConcreteSubclassesUnder(
+            __DIR__.'/../../../src/Core/Schema/Request',
+            'Nexus\\Mcp\\Core\\Schema\\Request',
+            JsonRpcRequest::class,
+        ) as $class) {
             $method = $class::getMethod();
-            self::assertArrayHasKey($method, $registry, \sprintf('Concrete request class "%s" (method "%s") must be registered.', $class, $method));
+            self::assertArrayHasKey(
+                $method,
+                $registry,
+                \sprintf('Concrete request class "%s" (method "%s") must be registered.', $class, $method),
+            );
             self::assertSame($class, $registry[$method], \sprintf('Method "%s" must map to "%s".', $method, $class));
         }
     }
@@ -81,9 +89,17 @@ final class JsonRpcMethodRegistryTest extends AbstractMcpTestCase
     {
         $registry = JsonRpcMethodRegistry::notifications();
 
-        foreach ($this->discoverConcreteSubclassesUnder(__DIR__.'/../../../src/Core/Schema/Notification', 'Nexus\\Mcp\\Core\\Schema\\Notification', JsonRpcNotification::class) as $class) {
+        foreach ($this->discoverConcreteSubclassesUnder(
+            __DIR__.'/../../../src/Core/Schema/Notification',
+            'Nexus\\Mcp\\Core\\Schema\\Notification',
+            JsonRpcNotification::class,
+        ) as $class) {
             $method = $class::getMethod();
-            self::assertArrayHasKey($method, $registry, \sprintf('Concrete notification class "%s" (method "%s") must be registered.', $class, $method));
+            self::assertArrayHasKey(
+                $method,
+                $registry,
+                \sprintf('Concrete notification class "%s" (method "%s") must be registered.', $class, $method),
+            );
             self::assertSame($class, $registry[$method], \sprintf('Method "%s" must map to "%s".', $method, $class));
         }
     }
@@ -97,11 +113,15 @@ final class JsonRpcMethodRegistryTest extends AbstractMcpTestCase
         $sorted = $keys;
         sort($sorted);
 
-        self::assertSame($sorted, $keys, \sprintf(
-            'JsonRpcMethodRegistry::%s() entries must be sorted by evaluated method key. Expected order: %s.',
-            $label,
-            implode(', ', $sorted),
-        ));
+        self::assertSame(
+            $sorted,
+            $keys,
+            \sprintf(
+                'JsonRpcMethodRegistry::%s() entries must be sorted by evaluated method key. Expected order: %s.',
+                $label,
+                implode(', ', $sorted),
+            ),
+        );
     }
 
     /**
@@ -111,8 +131,11 @@ final class JsonRpcMethodRegistryTest extends AbstractMcpTestCase
      *
      * @return iterable<class-string<T>>
      */
-    private function discoverConcreteSubclassesUnder(string $directory, string $namespace, string $parentClass): iterable
-    {
+    private function discoverConcreteSubclassesUnder(
+        string $directory,
+        string $namespace,
+        string $parentClass,
+    ): iterable {
         $files = glob($directory.'/*.php');
         self::assertIsArray($files, \sprintf('Failed to list files under "%s".', $directory));
 

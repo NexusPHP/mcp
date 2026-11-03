@@ -37,7 +37,9 @@ final readonly class ElicitResult implements InputResponse
         public ?array $content = null,
     ) {
         if (null !== $content) {
-            Assert::that($content)->keys()->isIntOrNonEmptyString('each elicit result "content" key must be an int or non-empty string.');
+            Assert::that($content)->keys()->isIntOrNonEmptyString(
+                'each elicit result "content" key must be an int or non-empty string.',
+            );
 
             foreach ($content as $key => $value) {
                 self::validateValue((string) $key, $value);
@@ -49,7 +51,10 @@ final readonly class ElicitResult implements InputResponse
     public static function fromArray(array $data): static
     {
         Assert::that($data)->hasOffset('action', 'elicit result is missing the required "action" key.');
-        Assert::that($data['action'])->isOneOf(array_column(ElicitAction::cases(), 'value'), 'elicit result "action" must be one of {choices}, {value} given.');
+        Assert::that($data['action'])->isOneOf(
+            array_column(ElicitAction::cases(), 'value'),
+            'elicit result "action" must be one of {choices}, {value} given.',
+        );
         $action = ElicitAction::from($data['action']);
 
         $content = null;

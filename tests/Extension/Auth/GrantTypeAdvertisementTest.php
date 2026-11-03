@@ -35,7 +35,10 @@ final class GrantTypeAdvertisementTest extends AbstractMcpTestCase
         $this->expectNotToPerformAssertions();
 
         GrantTypeAdvertisement::verify(
-            new AuthorizationServerMetadata(self::ISSUER, grantTypesSupported: ['authorization_code', 'client_credentials']),
+            new AuthorizationServerMetadata(self::ISSUER, grantTypesSupported: [
+                'authorization_code',
+                'client_credentials',
+            ]),
             'client_credentials',
         );
     }
@@ -78,7 +81,10 @@ final class GrantTypeAdvertisementTest extends AbstractMcpTestCase
         ));
 
         GrantTypeAdvertisement::verify(
-            new AuthorizationServerMetadata('https://'.str_repeat('a', 300)."\x1b", grantTypesSupported: ['authorization_code']),
+            new AuthorizationServerMetadata(
+                'https://'.str_repeat('a', 300)."\x1b",
+                grantTypesSupported: ['authorization_code'],
+            ),
             'client_credentials',
         );
     }

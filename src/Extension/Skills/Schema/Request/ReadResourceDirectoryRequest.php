@@ -60,7 +60,10 @@ final readonly class ReadResourceDirectoryRequest extends JsonRpcRequest impleme
             ->isMap('"params" must be a string-keyed object.')
         ;
 
-        return new self(id: new RequestId(id: $id), params: ReadResourceDirectoryRequestParams::fromArray($data['params']));
+        return new self(
+            id: new RequestId(id: $id),
+            params: ReadResourceDirectoryRequestParams::fromArray($data['params']),
+        );
     }
 
     #[\Override]

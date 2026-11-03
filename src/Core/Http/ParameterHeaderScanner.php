@@ -36,9 +36,24 @@ final class ParameterHeaderScanner
      * JSON Schema keywords whose subschemas fall outside the `properties`-only reachability chain.
      */
     private const array NON_REACHABLE_KEYWORDS = [
-        'items', 'prefixItems', 'contains', 'additionalProperties', 'unevaluatedProperties',
-        'unevaluatedItems', 'propertyNames', 'patternProperties', 'dependentSchemas',
-        'oneOf', 'anyOf', 'allOf', 'not', 'if', 'then', 'else', '$defs', 'definitions',
+        'items',
+        'prefixItems',
+        'contains',
+        'additionalProperties',
+        'unevaluatedProperties',
+        'unevaluatedItems',
+        'propertyNames',
+        'patternProperties',
+        'dependentSchemas',
+        'oneOf',
+        'anyOf',
+        'allOf',
+        'not',
+        'if',
+        'then',
+        'else',
+        '$defs',
+        'definitions',
     ];
 
     /**
@@ -73,8 +88,14 @@ final class ParameterHeaderScanner
      *
      * @return null|non-empty-string
      */
-    private static function visit(mixed $node, array $path, bool $reachable, array &$bindings, array &$seen, ?string &$typeFault): ?string
-    {
+    private static function visit(
+        mixed $node,
+        array $path,
+        bool $reachable,
+        array &$bindings,
+        array &$seen,
+        ?string &$typeFault,
+    ): ?string {
         if (! \is_array($node)) {
             return null;
         }
@@ -105,7 +126,14 @@ final class ParameterHeaderScanner
             }
 
             foreach (self::resolveBranches($keyword, $node[$keyword]) as $branch) {
-                $fault = self::visit($branch, [...$path, \sprintf('<%s>', $keyword)], false, $bindings, $seen, $typeFault);
+                $fault = self::visit(
+                    $branch,
+                    [...$path, \sprintf('<%s>', $keyword)],
+                    false,
+                    $bindings,
+                    $seen,
+                    $typeFault,
+                );
 
                 if (null !== $fault) {
                     return $fault;
@@ -125,12 +153,21 @@ final class ParameterHeaderScanner
      *
      * @return null|non-empty-string
      */
-    private static function inspectBinding(array $node, array $path, bool $reachable, array &$bindings, array &$seen, ?string &$typeFault): ?string
-    {
+    private static function inspectBinding(
+        array $node,
+        array $path,
+        bool $reachable,
+        array &$bindings,
+        array &$seen,
+        ?string &$typeFault,
+    ): ?string {
         $location = self::formatPath($path);
 
         if (! $reachable || [] === $path) {
-            return \sprintf('%s: x-mcp-header is only permitted on a property reachable through a chain of "properties" keys.', $location);
+            return \sprintf(
+                '%s: x-mcp-header is only permitted on a property reachable through a chain of "properties" keys.',
+                $location,
+            );
         }
 
         $raw = $node['x-mcp-header'] ?? null;
@@ -146,14 +183,21 @@ final class ParameterHeaderScanner
         $lower = strtolower($raw);
 
         if (\array_key_exists($lower, $seen)) {
-            return \sprintf('x-mcp-header "%s" is not case-insensitively unique (also declared as "%s").', $raw, $seen[$lower]);
+            return \sprintf(
+                'x-mcp-header "%s" is not case-insensitively unique (also declared as "%s").',
+                $raw,
+                $seen[$lower],
+            );
         }
 
         $seen[$lower] = $raw;
         $type = $node['type'] ?? null;
 
         if (! \is_string($type) || ! \in_array($type, self::PERMITTED_TYPES, true)) {
-            $typeFault ??= \sprintf('%s: x-mcp-header is only permitted on a string, integer, or boolean property.', $location);
+            $typeFault ??= \sprintf(
+                '%s: x-mcp-header is only permitted on a string, integer, or boolean property.',
+                $location,
+            );
 
             return null;
         }

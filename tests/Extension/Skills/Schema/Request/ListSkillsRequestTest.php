@@ -46,7 +46,10 @@ final class ListSkillsRequestTest extends AbstractMcpTestCase
     {
         $request = new ListSkillsRequest(
             id: new RequestId(id: 1),
-            params: new PaginatedRequestParams(meta: RequestMetaObjectFactory::create(), cursor: new Cursor(cursor: 'next')),
+            params: new PaginatedRequestParams(
+                meta: RequestMetaObjectFactory::create(),
+                cursor: new Cursor(cursor: 'next'),
+            ),
         );
 
         self::assertSame(
@@ -89,7 +92,10 @@ final class ListSkillsRequestTest extends AbstractMcpTestCase
     {
         yield 'missing id' => [['params' => []], 'missing the required "id" key.'];
 
-        yield 'id not int or string' => [['id' => [], 'params' => []], '"id" must be an int or non-empty string, array given.'];
+        yield 'id not int or string' => [
+            ['id' => [], 'params' => []],
+            '"id" must be an int or non-empty string, array given.',
+        ];
 
         yield 'missing params' => [['id' => 1], 'missing the required "params" key.'];
 

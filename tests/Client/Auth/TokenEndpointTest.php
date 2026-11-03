@@ -130,7 +130,10 @@ final class TokenEndpointTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse());
 
-        $this->exchange($http, new ClientRegistration('the client', self::ISSUER, 'se cret', TokenEndpointAuthMethod::ClientSecretBasic));
+        $this->exchange(
+            $http,
+            new ClientRegistration('the client', self::ISSUER, 'se cret', TokenEndpointAuthMethod::ClientSecretBasic),
+        );
 
         $request = $http->readRequest();
         self::assertSame('Basic '.base64_encode('the+client:se+cret'), $request->getHeader('Authorization'));
@@ -142,7 +145,10 @@ final class TokenEndpointTest extends AbstractMcpTestCase
     {
         $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse());
 
-        $this->exchange($http, new ClientRegistration('the-client', self::ISSUER, 'the-secret', TokenEndpointAuthMethod::ClientSecretPost));
+        $this->exchange(
+            $http,
+            new ClientRegistration('the-client', self::ISSUER, 'the-secret', TokenEndpointAuthMethod::ClientSecretPost),
+        );
 
         $request = $http->readRequest();
         self::assertNull($request->getHeader('Authorization'));
@@ -175,7 +181,10 @@ final class TokenEndpointTest extends AbstractMcpTestCase
     public function testASecretBearingMethodRequiresASecret(TokenEndpointAuthMethod $method): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs(\sprintf('Client "the-client" must carry a secret to authenticate with "%s".', $method->value));
+        $this->expectExceptionMessageIs(\sprintf(
+            'Client "the-client" must carry a secret to authenticate with "%s".',
+            $method->value,
+        ));
 
         $this->exchange(new RecordingHttpClient(), new ClientRegistration('the-client', self::ISSUER, null, $method));
     }
@@ -218,7 +227,12 @@ final class TokenEndpointTest extends AbstractMcpTestCase
         (new TokenEndpoint($http))->refresh(
             $this->buildMetadata(),
             new ClientRegistration('the-client', self::ISSUER),
-            new AccessToken('the-old-token', self::ISSUER, refreshToken: 'the-refresh-token', scopes: ['files:read', 'files:write']),
+            new AccessToken(
+                'the-old-token',
+                self::ISSUER,
+                refreshToken: 'the-refresh-token',
+                scopes: ['files:read', 'files:write'],
+            ),
             new ResourceIdentifier(self::RESOURCE),
             true,
             new NullCancellation(),
@@ -283,7 +297,8 @@ final class TokenEndpointTest extends AbstractMcpTestCase
 
     public function testRefreshTakesTheRotatedRefreshTokenOverTheEarlierOne(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse(['refresh_token' => 'the-rotated-token']));
+        $response = $this->buildTokenResponse(['refresh_token' => 'the-rotated-token']);
+        $http = (new RecordingHttpClient())->willAnswerJson($response);
 
         $token = (new TokenEndpoint($http))->refresh(
             $this->buildMetadata(),
@@ -470,10 +485,10 @@ final class TokenEndpointTest extends AbstractMcpTestCase
         $this->expectException(UntrustedAuthorizationMetadataException::class);
         $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the token endpoint "http://auth.example.com/token" is not an absolute HTTPS URL.');
 
-        $this->exchange(new RecordingHttpClient(), metadata: new AuthorizationServerMetadata(
-            self::ISSUER,
-            tokenEndpoint: 'http://auth.example.com/token',
-        ));
+        $this->exchange(
+            new RecordingHttpClient(),
+            metadata: new AuthorizationServerMetadata(self::ISSUER, tokenEndpoint: 'http://auth.example.com/token'),
+        );
     }
 
     public function testALoopbackTokenEndpointIsRefusedUnlessOptedIn(): void
@@ -481,10 +496,10 @@ final class TokenEndpointTest extends AbstractMcpTestCase
         $this->expectException(UntrustedAuthorizationMetadataException::class);
         $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the token endpoint "http://127.0.0.1:9000/token" is not an absolute HTTPS URL.');
 
-        $this->exchange(new RecordingHttpClient(), metadata: new AuthorizationServerMetadata(
-            self::ISSUER,
-            tokenEndpoint: 'http://127.0.0.1:9000/token',
-        ));
+        $this->exchange(
+            new RecordingHttpClient(),
+            metadata: new AuthorizationServerMetadata(self::ISSUER, tokenEndpoint: 'http://127.0.0.1:9000/token'),
+        );
     }
 
     public function testRequestTokenRedeemsTheCallerBuiltGrant(): void
@@ -493,7 +508,12 @@ final class TokenEndpointTest extends AbstractMcpTestCase
 
         $token = (new TokenEndpoint($http))->requestToken(
             $this->buildMetadata(),
-            new ClientRegistration('the-client', self::ISSUER, 'the-secret', TokenEndpointAuthMethod::ClientSecretBasic),
+            new ClientRegistration(
+                'the-client',
+                self::ISSUER,
+                'the-secret',
+                TokenEndpointAuthMethod::ClientSecretBasic,
+            ),
             ['grant_type' => 'client_credentials', 'resource' => self::RESOURCE],
             new ScopeSet(['files:read']),
             new NullCancellation(),
@@ -507,7 +527,10 @@ final class TokenEndpointTest extends AbstractMcpTestCase
         $request = $http->readRequest();
         self::assertSame('https://auth.example.com/token', (string) $request->getUri());
         self::assertNotNull($request->getHeader('Authorization'));
-        self::assertSame(['grant_type' => 'client_credentials', 'resource' => self::RESOURCE], $this->readForm($request));
+        self::assertSame([
+            'grant_type' => 'client_credentials',
+            'resource' => self::RESOURCE,
+        ], $this->readForm($request));
     }
 
     public function testAPrivateKeyJwtClientAuthenticatesThroughItsAssertionAlone(): void
@@ -551,7 +574,10 @@ final class TokenEndpointTest extends AbstractMcpTestCase
 
     public function testAHostileTokenTypeIsBoundedAndEscapedInTheRefusal(): void
     {
-        $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse(['token_type' => str_repeat('D', 200)."\x1b"]));
+        $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse(['token_type' => str_repeat(
+            'D',
+            200,
+        )."\x1b"]));
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageIs(\sprintf(

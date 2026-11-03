@@ -88,9 +88,9 @@ final class ToolTaskRunnerTest extends AbstractMcpTestCase
 
     public function testAToolErrorResultStillCompletes(): void
     {
-        [$store, $runner] = $this->buildRunner(new ClosureRequestHandler(
-            static fn(): Result => new CallToolResult(content: [new TextContent(text: 'Tool execution failed.')], isError: true),
-        ));
+        [$store, $runner] = $this->buildRunner(new ClosureRequestHandler(static fn(): Result => new CallToolResult(content: [
+            new TextContent(text: 'Tool execution failed.'),
+        ], isError: true)));
         $taskId = $store->createTask('failing_job', null, null, 1_000)->taskId;
 
         $runner->startTask($taskId, $this->buildRequest(), $this->buildContext(), null, null);
@@ -106,9 +106,10 @@ final class ToolTaskRunnerTest extends AbstractMcpTestCase
     public function testAnInputRequiredResultParksTheTask(): void
     {
         $request = $this->buildElicitRequest();
-        [$store, $runner] = $this->buildRunner(new ClosureRequestHandler(
-            static fn(): Result => new InputRequiredResult(inputRequests: ['confirm' => $request], requestState: 'state-1'),
-        ));
+        [$store, $runner] = $this->buildRunner(new ClosureRequestHandler(static fn(): Result => new InputRequiredResult(
+            inputRequests: ['confirm' => $request],
+            requestState: 'state-1',
+        )));
         $taskId = $store->createTask('confirm_delete', null, null, 1_000)->taskId;
 
         $runner->startTask($taskId, $this->buildRequest(), $this->buildContext(), null, null);
@@ -125,14 +126,15 @@ final class ToolTaskRunnerTest extends AbstractMcpTestCase
     {
         $elicit = $this->buildElicitRequest();
         $signer = new RequestStateSigner('secret');
-        [$store, $runner] = $this->buildRunner(new ClosureRequestHandler(
-            static function ($request, AbstractContext $context) use ($elicit): Result {
-                self::assertInstanceOf(ServerContext::class, $context);
-                self::assertInstanceOf(RequestStateSigner::class, $context->requestStateSigner);
+        [$store, $runner] = $this->buildRunner(new ClosureRequestHandler(static function ($request, AbstractContext $context) use ($elicit): Result {
+            self::assertInstanceOf(ServerContext::class, $context);
+            self::assertInstanceOf(RequestStateSigner::class, $context->requestStateSigner);
 
-                return new InputRequiredResult(inputRequests: ['confirm' => $elicit], requestState: $context->requestStateSigner->sign('step-2'));
-            },
-        ));
+            return new InputRequiredResult(
+                inputRequests: ['confirm' => $elicit],
+                requestState: $context->requestStateSigner->sign('step-2'),
+            );
+        }));
         $taskId = $store->createTask('slow_compute', null, null, 1_000)->taskId;
 
         $runner->startTask($taskId, $this->buildRequest(), $this->buildContext($signer), null, null);
@@ -147,19 +149,29 @@ final class ToolTaskRunnerTest extends AbstractMcpTestCase
     public function testAParkedStateTheServerDidNotMintFailsTheTask(): void
     {
         $request = $this->buildElicitRequest();
-        [$store, $runner] = $this->buildRunner(new ClosureRequestHandler(
-            static fn(): Result => new InputRequiredResult(inputRequests: ['confirm' => $request], requestState: 'unsigned'),
-        ));
+        [$store, $runner] = $this->buildRunner(new ClosureRequestHandler(static fn(): Result => new InputRequiredResult(
+            inputRequests: ['confirm' => $request],
+            requestState: 'unsigned',
+        )));
         $taskId = $store->createTask('slow_compute', null, null, 1_000)->taskId;
 
-        $runner->startTask($taskId, $this->buildRequest(), $this->buildContext(new RequestStateSigner('secret')), null, null);
+        $runner->startTask(
+            $taskId,
+            $this->buildRequest(),
+            $this->buildContext(new RequestStateSigner('secret')),
+            null,
+            null,
+        );
         delay(0);
 
         $record = $store->findTask($taskId);
         self::assertInstanceOf(TaskRecord::class, $record);
         self::assertSame(TaskStatus::Failed, $record->status);
         self::assertSame(
-            ['code' => -32_603, 'message' => 'The tool parked the task with a "requestState" that does not verify under the server\'s signer.'],
+            [
+                'code' => -32_603,
+                'message' => 'The tool parked the task with a "requestState" that does not verify under the server\'s signer.',
+            ],
             $record->error,
         );
     }
@@ -168,13 +180,11 @@ final class ToolTaskRunnerTest extends AbstractMcpTestCase
     {
         $signer = new RequestStateSigner('secret');
         $seen = null;
-        [$store, $runner] = $this->buildRunner(new ClosureRequestHandler(
-            static function ($request, AbstractContext $context) use (&$seen): Result {
-                $seen = $context;
+        [$store, $runner] = $this->buildRunner(new ClosureRequestHandler(static function ($request, AbstractContext $context) use (&$seen): Result {
+            $seen = $context;
 
-                return new CallToolResult(content: []);
-            },
-        ));
+            return new CallToolResult(content: []);
+        }));
         $taskId = $store->createTask('slow_compute', null, null, 1_000)->taskId;
 
         $runner->startTask($taskId, $this->buildRequest(), $this->buildContext($signer), null, 'step-2');
@@ -225,16 +235,21 @@ final class ToolTaskRunnerTest extends AbstractMcpTestCase
         self::assertInstanceOf(TaskRecord::class, $record);
         self::assertSame(TaskStatus::Failed, $record->status);
         self::assertSame(
-            ['code' => -32_603, 'message' => \sprintf('Task "%s" already issued the input-request key "confirm".', $taskId)],
+            [
+                'code' => -32_603,
+                'message' => \sprintf('Task "%s" already issued the input-request key "confirm".', $taskId),
+            ],
             $record->error,
         );
     }
 
     public function testAProtocolExceptionFailsTheTaskWithItsErrorShape(): void
     {
-        [$store, $runner] = $this->buildRunner(new ClosureRequestHandler(
-            static fn(): Result => throw new InvalidParamsException(new RequestId(id: 7), 'Bad params.', errorData: ['field' => 'name']),
-        ));
+        [$store, $runner] = $this->buildRunner(new ClosureRequestHandler(static fn(): Result => throw new InvalidParamsException(
+            new RequestId(id: 7),
+            'Bad params.',
+            errorData: ['field' => 'name'],
+        )));
         $taskId = $store->createTask('slow_compute', null, null, 1_000)->taskId;
 
         $runner->startTask($taskId, $this->buildRequest(), $this->buildContext(), null, null);
@@ -293,9 +308,7 @@ final class ToolTaskRunnerTest extends AbstractMcpTestCase
         $registry = new TaskCancellationRegistry();
         $store = new InMemoryTaskStore();
         $runner = new ToolTaskRunner($store, $registry, new ArrayLogger());
-        $runner->bindInnerHandler(new ClosureRequestHandler(
-            static fn(): Result => new CallToolResult(content: []),
-        ));
+        $runner->bindInnerHandler(new ClosureRequestHandler(static fn(): Result => new CallToolResult(content: [])));
         $taskId = $store->createTask('slow_compute', null, null, 1_000)->taskId;
 
         $runner->startTask($taskId, $this->buildRequest(), $this->buildContext(), null, null);
@@ -317,13 +330,11 @@ final class ToolTaskRunnerTest extends AbstractMcpTestCase
     public function testEnsureCapacityRefusesOnceTheCapIsRunning(): void
     {
         $gate = new DeferredFuture();
-        [$store, $runner] = $this->buildRunner(new ClosureRequestHandler(
-            static function () use ($gate): Result {
-                $gate->getFuture()->await();
+        [$store, $runner] = $this->buildRunner(new ClosureRequestHandler(static function () use ($gate): Result {
+            $gate->getFuture()->await();
 
-                return new CallToolResult(content: []);
-            },
-        ), maxRunningTasks: 1);
+            return new CallToolResult(content: []);
+        }), maxRunningTasks: 1);
         $taskId = $store->createTask('slow_compute', null, null, 1_000)->taskId;
 
         $runner->ensureCapacity(new RequestId(id: 7));
@@ -349,17 +360,27 @@ final class ToolTaskRunnerTest extends AbstractMcpTestCase
     public function testEnsureCapacityAdmitsUpToTheCap(): void
     {
         $gate = new DeferredFuture();
-        [$store, $runner] = $this->buildRunner(new ClosureRequestHandler(
-            static function () use ($gate): Result {
-                $gate->getFuture()->await();
+        [$store, $runner] = $this->buildRunner(new ClosureRequestHandler(static function () use ($gate): Result {
+            $gate->getFuture()->await();
 
-                return new CallToolResult(content: []);
-            },
-        ), maxRunningTasks: 2);
+            return new CallToolResult(content: []);
+        }), maxRunningTasks: 2);
 
-        $runner->startTask($store->createTask('slow_compute', null, null, 1_000)->taskId, $this->buildRequest(), $this->buildContext(), null, null);
+        $runner->startTask(
+            $store->createTask('slow_compute', null, null, 1_000)->taskId,
+            $this->buildRequest(),
+            $this->buildContext(),
+            null,
+            null,
+        );
         $runner->ensureCapacity(new RequestId(id: 8));
-        $runner->startTask($store->createTask('slow_compute', null, null, 1_000)->taskId, $this->buildRequest(), $this->buildContext(), null, null);
+        $runner->startTask(
+            $store->createTask('slow_compute', null, null, 1_000)->taskId,
+            $this->buildRequest(),
+            $this->buildContext(),
+            null,
+            null,
+        );
 
         $this->expectException(TaskLimitReachedException::class);
         $this->expectExceptionMessageIs('Task limit reached: this server runs at most 2 tasks at once.');
@@ -381,8 +402,12 @@ final class ToolTaskRunnerTest extends AbstractMcpTestCase
             }
 
             #[\Override]
-            public function createTask(string $toolName, ?array $arguments, ?int $ttlMs, int $pollIntervalMs): TaskRecord
-            {
+            public function createTask(
+                string $toolName,
+                ?array $arguments,
+                ?int $ttlMs,
+                int $pollIntervalMs,
+            ): TaskRecord {
                 return $this->inner->createTask($toolName, $arguments, $ttlMs, $pollIntervalMs);
             }
 
@@ -444,10 +469,18 @@ final class ToolTaskRunnerTest extends AbstractMcpTestCase
      *
      * @return array{InMemoryTaskStore, ToolTaskRunner}
      */
-    private function buildRunner(ClosureRequestHandler $inner, ?ArrayLogger $logger = null, int $maxRunningTasks = 1_024): array
-    {
+    private function buildRunner(
+        ClosureRequestHandler $inner,
+        ?ArrayLogger $logger = null,
+        int $maxRunningTasks = 1_024,
+    ): array {
         $store = new InMemoryTaskStore();
-        $runner = new ToolTaskRunner($store, new TaskCancellationRegistry(), $logger ?? new ArrayLogger(), $maxRunningTasks);
+        $runner = new ToolTaskRunner(
+            $store,
+            new TaskCancellationRegistry(),
+            $logger ?? new ArrayLogger(),
+            $maxRunningTasks,
+        );
         $runner->bindInnerHandler($inner);
 
         return [$store, $runner];

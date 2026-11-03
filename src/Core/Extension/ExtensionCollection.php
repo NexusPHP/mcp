@@ -116,16 +116,24 @@ final class ExtensionCollection
         Assert::that($settings)->isMap(\sprintf('Extension "%s" settings must be a string-keyed object.', $identifier));
 
         $this->assertPairedKeys($identifier, array_keys($requests), array_keys($requestHandlers), 'request');
-        $this->assertPairedKeys($identifier, array_keys($notifications), array_keys($notificationHandlers), 'notification');
+        $this->assertPairedKeys(
+            $identifier,
+            array_keys($notifications),
+            array_keys($notificationHandlers),
+            'notification',
+        );
 
         foreach ($requests as $method => $requestClass) {
             if ($requireClientRequests) {
-                Assert::that($requestClass)->isSubclassOf(ClientRequest::class, \sprintf(
-                    'Extension "%s" request class "%s" must implement "%s" for the server to dispatch it.',
-                    $identifier,
-                    $requestClass,
+                Assert::that($requestClass)->isSubclassOf(
                     ClientRequest::class,
-                ));
+                    \sprintf(
+                        'Extension "%s" request class "%s" must implement "%s" for the server to dispatch it.',
+                        $identifier,
+                        $requestClass,
+                        ClientRequest::class,
+                    ),
+                );
             }
 
             $this->assertUnclaimedRequest($identifier, $method, $claimedRequests);
@@ -145,14 +153,21 @@ final class ExtensionCollection
             }
 
             if (\array_key_exists($method, $this->outboundOwners)) {
-                $this->refuseMethodClaim($claimant, $method, \sprintf('extension "%s"', $this->outboundOwners[$method]));
+                $this->refuseMethodClaim(
+                    $claimant,
+                    $method,
+                    \sprintf('extension "%s"', $this->outboundOwners[$method]),
+                );
             }
         }
 
-        Assert::that($requestDecorators)->keys()->isOneOf(array_keys($specRequests), \sprintf(
-            'Extension "%s" may only decorate spec-registry request methods, and {value} is not one.',
-            $identifier,
-        ));
+        Assert::that($requestDecorators)->keys()->isOneOf(
+            array_keys($specRequests),
+            \sprintf(
+                'Extension "%s" may only decorate spec-registry request methods, and {value} is not one.',
+                $identifier,
+            ),
+        );
 
         $this->settings[$identifier] = $settings;
         $this->requestHandlerGroups[$identifier] = $requestHandlers;
@@ -319,7 +334,12 @@ final class ExtensionCollection
             $method = $class::getMethod();
 
             if (\array_key_exists($method, $keyed)) {
-                throw new LogicException(\sprintf('Extension "%s" declares the %s method "%s" twice.', $identifier, $kind, $method));
+                throw new LogicException(\sprintf(
+                    'Extension "%s" declares the %s method "%s" twice.',
+                    $identifier,
+                    $kind,
+                    $method,
+                ));
             }
 
             $keyed[$method] = $class;
@@ -333,17 +353,24 @@ final class ExtensionCollection
      * @param list<non-empty-string> $handlerMethods
      * @param non-empty-string       $kind
      */
-    private function assertPairedKeys(string $identifier, array $classMethods, array $handlerMethods, string $kind): void
-    {
+    private function assertPairedKeys(
+        string $identifier,
+        array $classMethods,
+        array $handlerMethods,
+        string $kind,
+    ): void {
         sort($classMethods);
         sort($handlerMethods);
 
-        Assert::that($handlerMethods)->isIdentical($classMethods, \sprintf(
-            'Extension "%s" must declare its %s classes and %s handlers under the same method keys.',
-            $identifier,
-            $kind,
-            $kind,
-        ));
+        Assert::that($handlerMethods)->isIdentical(
+            $classMethods,
+            \sprintf(
+                'Extension "%s" must declare its %s classes and %s handlers under the same method keys.',
+                $identifier,
+                $kind,
+                $kind,
+            ),
+        );
     }
 
     /**
@@ -382,7 +409,12 @@ final class ExtensionCollection
         }
 
         if (\array_key_exists($method, $this->notificationOwners)) {
-            $this->refuseMethodClaim($claimant, $method, \sprintf('extension "%s"', $this->notificationOwners[$method]), isNotification: true);
+            $this->refuseMethodClaim(
+                $claimant,
+                $method,
+                \sprintf('extension "%s"', $this->notificationOwners[$method]),
+                true,
+            );
         }
 
         if (\in_array($method, $claimed, true)) {
@@ -390,8 +422,12 @@ final class ExtensionCollection
         }
     }
 
-    private function refuseMethodClaim(string $claimant, string $method, string $owner, bool $isNotification = false): never
-    {
+    private function refuseMethodClaim(
+        string $claimant,
+        string $method,
+        string $owner,
+        bool $isNotification = false,
+    ): never {
         throw new LogicException(\sprintf(
             '%s cannot claim the %s method "%s" already owned by %s.',
             $claimant,

@@ -78,7 +78,10 @@ final class JsonRpcErrorResponseTest extends AbstractMcpTestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $response = new JsonRpcErrorResponse(id: new RequestId(id: 1), error: new InternalError(message: InternalError::DEFAULT_MESSAGE));
+        $response = new JsonRpcErrorResponse(
+            id: new RequestId(id: 1),
+            error: new InternalError(message: InternalError::DEFAULT_MESSAGE),
+        );
 
         self::assertSame($response->toArray(), $response->jsonSerialize());
     }

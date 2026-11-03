@@ -75,7 +75,10 @@ final class CancelledNotificationParamsTest extends AbstractMcpTestCase
 
     public function testToArrayIncludesMeta(): void
     {
-        $params = new CancelledNotificationParams(requestId: new RequestId(id: 1), meta: new NotificationMetaObject(extras: ['vendor' => 'x']));
+        $params = new CancelledNotificationParams(
+            requestId: new RequestId(id: 1),
+            meta: new NotificationMetaObject(extras: ['vendor' => 'x']),
+        );
 
         self::assertSame(
             ['_meta' => ['vendor' => 'x'], 'requestId' => 1],

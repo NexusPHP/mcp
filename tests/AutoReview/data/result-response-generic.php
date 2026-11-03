@@ -12,13 +12,14 @@ declare(strict_types=1);
  */
 
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
-use Nexus\Mcp\Core\Schema\Implementation;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\CompleteResult;
 use Nexus\Mcp\Core\Schema\Result\DiscoverResult;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
+use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
 use Nexus\Mcp\Core\Schema\Result\ListPromptsResult;
 use Nexus\Mcp\Core\Schema\Result\ListResourcesResult;
 use Nexus\Mcp\Core\Schema\Result\ListResourceTemplatesResult;
@@ -41,47 +42,49 @@ use function PHPStan\Testing\assertType;
 $id = new RequestId(id: 1);
 
 $callTool = new CallToolResultResponse(id: $id, result: new CallToolResult(content: []));
-assertType('Nexus\Mcp\Core\Schema\ResultResponse\CallToolResultResponse', $callTool);
-assertType('Nexus\Mcp\Core\Schema\Result\CallToolResult|Nexus\Mcp\Core\Schema\Result\InputRequiredResult', $callTool->result);
+assertType(CallToolResultResponse::class, $callTool);
+assertType(CallToolResult::class.'|'.InputRequiredResult::class, $callTool->result);
 
 $getPrompt = new GetPromptResultResponse(id: $id, result: new GetPromptResult(messages: []));
-assertType('Nexus\Mcp\Core\Schema\ResultResponse\GetPromptResultResponse', $getPrompt);
-assertType('Nexus\Mcp\Core\Schema\Result\GetPromptResult|Nexus\Mcp\Core\Schema\Result\InputRequiredResult', $getPrompt->result);
+assertType(GetPromptResultResponse::class, $getPrompt);
+assertType(GetPromptResult::class.'|'.InputRequiredResult::class, $getPrompt->result);
 
 $readResource = new ReadResourceResultResponse(id: $id, result: new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private));
-assertType('Nexus\Mcp\Core\Schema\ResultResponse\ReadResourceResultResponse', $readResource);
-assertType('Nexus\Mcp\Core\Schema\Result\InputRequiredResult|Nexus\Mcp\Core\Schema\Result\ReadResourceResult', $readResource->result);
+assertType(ReadResourceResultResponse::class, $readResource);
+assertType(InputRequiredResult::class.'|'.ReadResourceResult::class, $readResource->result);
 
 $complete = new CompleteResultResponse(id: $id, result: new CompleteResult(completion: ['values' => []]));
-assertType('Nexus\Mcp\Core\Schema\ResultResponse\CompleteResultResponse', $complete);
-assertType('Nexus\Mcp\Core\Schema\Result\CompleteResult', $complete->result);
+assertType(CompleteResultResponse::class, $complete);
+assertType(CompleteResult::class, $complete->result);
 
-$discover = new DiscoverResultResponse(id: $id, result: new DiscoverResult(
-    supportedVersions: [],
-    capabilities: new ServerCapabilities(),
-    serverInfo: new Implementation(name: 'srv', version: '1.0.0'),
-    ttlMs: 0,
-    cacheScope: CacheScope::Private,
-));
-assertType('Nexus\Mcp\Core\Schema\ResultResponse\DiscoverResultResponse', $discover);
-assertType('Nexus\Mcp\Core\Schema\Result\DiscoverResult', $discover->result);
+$discover = new DiscoverResultResponse(
+    id: $id,
+    result: new DiscoverResult(
+        supportedVersions: [],
+        capabilities: new ServerCapabilities(),
+        ttlMs: 0,
+        cacheScope: CacheScope::Private,
+    ),
+);
+assertType(DiscoverResultResponse::class, $discover);
+assertType(DiscoverResult::class, $discover->result);
 
 $listPrompts = new ListPromptsResultResponse(id: $id, result: new ListPromptsResult(prompts: [], ttlMs: 0, cacheScope: CacheScope::Private));
-assertType('Nexus\Mcp\Core\Schema\ResultResponse\ListPromptsResultResponse', $listPrompts);
-assertType('Nexus\Mcp\Core\Schema\Result\ListPromptsResult', $listPrompts->result);
+assertType(ListPromptsResultResponse::class, $listPrompts);
+assertType(ListPromptsResult::class, $listPrompts->result);
 
 $listResources = new ListResourcesResultResponse(id: $id, result: new ListResourcesResult(resources: [], ttlMs: 0, cacheScope: CacheScope::Private));
-assertType('Nexus\Mcp\Core\Schema\ResultResponse\ListResourcesResultResponse', $listResources);
-assertType('Nexus\Mcp\Core\Schema\Result\ListResourcesResult', $listResources->result);
+assertType(ListResourcesResultResponse::class, $listResources);
+assertType(ListResourcesResult::class, $listResources->result);
 
 $listResourceTemplates = new ListResourceTemplatesResultResponse(id: $id, result: new ListResourceTemplatesResult(resourceTemplates: [], ttlMs: 0, cacheScope: CacheScope::Private));
-assertType('Nexus\Mcp\Core\Schema\ResultResponse\ListResourceTemplatesResultResponse', $listResourceTemplates);
-assertType('Nexus\Mcp\Core\Schema\Result\ListResourceTemplatesResult', $listResourceTemplates->result);
+assertType(ListResourceTemplatesResultResponse::class, $listResourceTemplates);
+assertType(ListResourceTemplatesResult::class, $listResourceTemplates->result);
 
 $listTools = new ListToolsResultResponse(id: $id, result: new ListToolsResult(tools: [], ttlMs: 0, cacheScope: CacheScope::Private));
-assertType('Nexus\Mcp\Core\Schema\ResultResponse\ListToolsResultResponse', $listTools);
-assertType('Nexus\Mcp\Core\Schema\Result\ListToolsResult', $listTools->result);
+assertType(ListToolsResultResponse::class, $listTools);
+assertType(ListToolsResult::class, $listTools->result);
 
 $generic = new GenericResultResponse(id: $id, result: new EmptyResult());
-assertType('Nexus\Mcp\Core\Schema\ResultResponse\GenericResultResponse', $generic);
-assertType('Nexus\Mcp\Core\Schema\Result', $generic->result);
+assertType(GenericResultResponse::class, $generic);
+assertType(Result::class, $generic->result);

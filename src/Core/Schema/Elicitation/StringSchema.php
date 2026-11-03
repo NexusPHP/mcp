@@ -53,29 +53,20 @@ final readonly class StringSchema implements PrimitiveSchemaDefinition
         public ?string $format = null,
         public ?string $default = null,
     ) {
-        Assert::that($title)
-            ->nullOr()
-            ->isNonEmptyString('string schema "title" must be a non-empty string or null.')
-        ;
-        Assert::that($description)
-            ->nullOr()
-            ->isNonEmptyString('string schema "description" must be a non-empty string or null.')
-        ;
-        Assert::that($minLength)
-            ->nullOr()
-            ->isNaturalInt('string schema "minLength" must be a non-negative integer or null.')
-        ;
-        Assert::that($maxLength)
-            ->nullOr()
-            ->isNaturalInt('string schema "maxLength" must be a non-negative integer or null.')
-        ;
-        Assert::that($format)
-            ->nullOr()
-            ->isOneOf(
-                [self::FORMAT_DATE, self::FORMAT_DATE_TIME, self::FORMAT_EMAIL, self::FORMAT_URI],
-                'string schema "format" must be one of "date", "date-time", "email", "uri".',
-            )
-        ;
+        Assert::that($title)->nullOr()->isNonEmptyString('string schema "title" must be a non-empty string or null.');
+        Assert::that($description)->nullOr()->isNonEmptyString(
+            'string schema "description" must be a non-empty string or null.',
+        );
+        Assert::that($minLength)->nullOr()->isNaturalInt(
+            'string schema "minLength" must be a non-negative integer or null.',
+        );
+        Assert::that($maxLength)->nullOr()->isNaturalInt(
+            'string schema "maxLength" must be a non-negative integer or null.',
+        );
+        Assert::that($format)->nullOr()->isOneOf(
+            [self::FORMAT_DATE, self::FORMAT_DATE_TIME, self::FORMAT_EMAIL, self::FORMAT_URI],
+            'string schema "format" must be one of "date", "date-time", "email", "uri".',
+        );
     }
 
     #[\Override]
@@ -86,19 +77,30 @@ final readonly class StringSchema implements PrimitiveSchemaDefinition
         Assert::that($type)->isIdentical(self::TYPE, 'string schema "type" must be {other}, {value} given.');
 
         $title = $data['title'] ?? null;
-        Assert::that($title)->nullOr()->isNonEmptyString('string schema "title" must be a non-empty string or null, {type} given.');
+        Assert::that($title)->nullOr()->isNonEmptyString(
+            'string schema "title" must be a non-empty string or null, {type} given.',
+        );
 
         $description = $data['description'] ?? null;
-        Assert::that($description)->nullOr()->isNonEmptyString('string schema "description" must be a non-empty string or null, {type} given.');
+        Assert::that($description)->nullOr()->isNonEmptyString(
+            'string schema "description" must be a non-empty string or null, {type} given.',
+        );
 
         $minLength = $data['minLength'] ?? null;
-        Assert::that($minLength)->nullOr()->isNaturalInt('string schema "minLength" must be a non-negative integer or null, {type} given.');
+        Assert::that($minLength)->nullOr()->isNaturalInt(
+            'string schema "minLength" must be a non-negative integer or null, {type} given.',
+        );
 
         $maxLength = $data['maxLength'] ?? null;
-        Assert::that($maxLength)->nullOr()->isNaturalInt('string schema "maxLength" must be a non-negative integer or null, {type} given.');
+        Assert::that($maxLength)->nullOr()->isNaturalInt(
+            'string schema "maxLength" must be a non-negative integer or null, {type} given.',
+        );
 
         $format = $data['format'] ?? null;
-        Assert::that($format)->nullOr()->isOneOf([self::FORMAT_DATE, self::FORMAT_DATE_TIME, self::FORMAT_EMAIL, self::FORMAT_URI], 'string schema "format" must be one of "date", "date-time", "email", "uri".');
+        Assert::that($format)->nullOr()->isOneOf(
+            [self::FORMAT_DATE, self::FORMAT_DATE_TIME, self::FORMAT_EMAIL, self::FORMAT_URI],
+            'string schema "format" must be one of "date", "date-time", "email", "uri".',
+        );
 
         $default = $data['default'] ?? null;
         Assert::that($default)->nullOr()->isString('string schema "default" must be a string or null, {type} given.');

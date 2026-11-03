@@ -59,7 +59,10 @@ final class UpdateTaskRequestHandlerTest extends AbstractMcpTestCase
 {
     public function testAnUnknownTaskIdIsInvalidParams(): void
     {
-        $handler = new UpdateTaskRequestHandler(new InMemoryTaskStore(), $this->buildUnboundRunner(new InMemoryTaskStore()));
+        $handler = new UpdateTaskRequestHandler(
+            new InMemoryTaskStore(),
+            $this->buildUnboundRunner(new InMemoryTaskStore()),
+        );
 
         $this->expectException(InvalidParamsException::class);
         $this->expectExceptionMessageIs('"params.taskId" does not name a known task.');
@@ -70,12 +73,25 @@ final class UpdateTaskRequestHandlerTest extends AbstractMcpTestCase
     public function testAnotherCallerCannotSupplyInputToTheTask(): void
     {
         $store = new InMemoryTaskStore();
-        $taskId = TaskOwnership::createTask($store, $this->buildContext('alice'), 'confirm_delete', null, null, 1_000)->taskId;
+        $taskId = TaskOwnership::createTask(
+            $store,
+            $this->buildContext('alice'),
+            'confirm_delete',
+            null,
+            null,
+            1_000,
+        )->taskId;
         $store->trySetInputRequired($taskId, ['first' => $this->buildElicitRequest()], 'state-1');
         $handler = new UpdateTaskRequestHandler($store, $this->buildUnboundRunner($store));
 
         try {
-            $handler->handle($this->buildRequest($taskId, ['first' => ['action' => 'accept']]), $this->buildContext('bob'));
+            $handler->handle(
+                $this->buildRequest(
+                    $taskId,
+                    ['first' => ['action' => 'accept']],
+                ),
+                $this->buildContext('bob'),
+            );
             self::fail('Expected the update to be refused.');
         } catch (InvalidParamsException $e) {
             self::assertSame('"params.taskId" does not name a known task.', $e->getMessage());
@@ -99,7 +115,13 @@ final class UpdateTaskRequestHandlerTest extends AbstractMcpTestCase
         );
 
         try {
-            $handler->handle($this->buildRequest($taskId, ['first' => ['action' => 'accept']]), $this->buildContext('alice', ['read']));
+            $handler->handle(
+                $this->buildRequest(
+                    $taskId,
+                    ['first' => ['action' => 'accept']],
+                ),
+                $this->buildContext('alice', ['read']),
+            );
             self::fail('Expected the update to be refused.');
         } catch (InvalidParamsException $e) {
             self::assertSame('"params.taskId" does not name a known task.', $e->getMessage());
@@ -184,20 +206,18 @@ final class UpdateTaskRequestHandlerTest extends AbstractMcpTestCase
 
         $seen = null;
         $runner = new ToolTaskRunner($store, new TaskCancellationRegistry(), new ArrayLogger());
-        $runner->bindInnerHandler(new ClosureRequestHandler(
-            static function (JsonRpcRequest $request, $context) use (&$seen): Result {
-                \assert($request instanceof CallToolRequest);
-                \assert($context instanceof ServerContext);
-                $seen = [
-                    'name' => $request->params->name,
-                    'arguments' => $request->params->arguments,
-                    'responses' => array_keys($context->inputResponses ?? []),
-                    'requestState' => $context->requestState,
-                ];
+        $runner->bindInnerHandler(new ClosureRequestHandler(static function (JsonRpcRequest $request, $context) use (&$seen): Result {
+            \assert($request instanceof CallToolRequest);
+            \assert($context instanceof ServerContext);
+            $seen = [
+                'name' => $request->params->name,
+                'arguments' => $request->params->arguments,
+                'responses' => array_keys($context->inputResponses ?? []),
+                'requestState' => $context->requestState,
+            ];
 
-                return new CallToolResult(content: [new TextContent(text: 'resumed')]);
-            },
-        ));
+            return new CallToolResult(content: [new TextContent(text: 'resumed')]);
+        }));
 
         $handler = new UpdateTaskRequestHandler($store, $runner);
         $handler->handle($this->buildRequest($taskId, ['confirm' => ['action' => 'accept']]), $this->buildContext());
@@ -232,17 +252,29 @@ final class UpdateTaskRequestHandlerTest extends AbstractMcpTestCase
 
             return new CallToolResult(content: []);
         }));
-        $runner->startTask($store->createTask('other', null, null, 1_000)->taskId, CallToolRequest::fromArray([
-            'id' => 1,
-            'params' => ['_meta' => RequestMetaObjectFactory::shape(), 'name' => 'other'],
-        ]), $this->buildContext(), null, null);
+        $runner->startTask(
+            $store->createTask('other', null, null, 1_000)->taskId,
+            CallToolRequest::fromArray([
+                'id' => 1,
+                'params' => ['_meta' => RequestMetaObjectFactory::shape(), 'name' => 'other'],
+            ]),
+            $this->buildContext(),
+            null,
+            null,
+        );
 
         $taskId = $store->createTask('confirm_delete', null, null, 1_000)->taskId;
         $store->trySetInputRequired($taskId, ['confirm' => $this->buildElicitRequest()], 'state-1');
         $handler = new UpdateTaskRequestHandler($store, $runner);
 
         try {
-            $handler->handle($this->buildRequest($taskId, ['confirm' => ['action' => 'accept']]), $this->buildContext());
+            $handler->handle(
+                $this->buildRequest(
+                    $taskId,
+                    ['confirm' => ['action' => 'accept']],
+                ),
+                $this->buildContext(),
+            );
             self::fail('The resume must be refused while the cap is running.');
         } catch (TaskLimitReachedException $e) {
             self::assertSame(['limit' => 1], $e->errorData);

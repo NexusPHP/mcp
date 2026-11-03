@@ -28,7 +28,10 @@ final class SkillVerificationFailedExceptionTest extends AbstractMcpTestCase
 {
     public function testCarriesTheUriAndTheReasonInItsMessage(): void
     {
-        $exception = new SkillVerificationFailedException('skill://refunds/SKILL.md', 'does not match the digest listed in the manifest');
+        $exception = new SkillVerificationFailedException(
+            'skill://refunds/SKILL.md',
+            'does not match the digest listed in the manifest',
+        );
 
         self::assertSame(
             'Skill file "skill://refunds/SKILL.md" failed verification: it does not match the digest listed in the manifest.',
@@ -38,10 +41,16 @@ final class SkillVerificationFailedExceptionTest extends AbstractMcpTestCase
 
     public function testBoundsAndEscapesAHostileUri(): void
     {
-        $exception = new SkillVerificationFailedException('skill://'.str_repeat('u', 300)."\x1b", 'is not listed in the manifest of the skill');
+        $exception = new SkillVerificationFailedException(
+            'skill://'.str_repeat('u', 300)."\x1b",
+            'is not listed in the manifest of the skill',
+        );
 
         self::assertSame(
-            \sprintf('Skill file "skill://%s..." failed verification: it is not listed in the manifest of the skill.', str_repeat('u', 245)),
+            \sprintf(
+                'Skill file "skill://%s..." failed verification: it is not listed in the manifest of the skill.',
+                str_repeat('u', 245),
+            ),
             $exception->getMessage(),
         );
     }

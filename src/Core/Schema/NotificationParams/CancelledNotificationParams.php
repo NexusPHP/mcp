@@ -49,11 +49,15 @@ final readonly class CancelledNotificationParams extends NotificationParams
     public static function fromArray(array $data): static
     {
         Assert::that($data)->hasOffset('requestId', '"params" is missing the required "requestId" key.');
-        Assert::that($data['requestId'])->isIntOrNonEmptyString('"params.requestId" must be an int or non-empty string, {type} given.');
+        Assert::that($data['requestId'])->isIntOrNonEmptyString(
+            '"params.requestId" must be an int or non-empty string, {type} given.',
+        );
         $requestId = new RequestId(id: $data['requestId']);
 
         $reason = $data['reason'] ?? null;
-        Assert::that($reason)->nullOr()->isNonEmptyString('"params.reason" must be a non-empty string or null, {type} given.');
+        Assert::that($reason)->nullOr()->isNonEmptyString(
+            '"params.reason" must be a non-empty string or null, {type} given.',
+        );
 
         $meta = new NotificationMetaObject();
 

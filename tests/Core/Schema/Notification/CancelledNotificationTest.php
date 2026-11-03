@@ -40,7 +40,9 @@ final class CancelledNotificationTest extends AbstractMcpTestCase
 
     public function testToArrayWithMinimalParams(): void
     {
-        $notification = new CancelledNotification(params: new CancelledNotificationParams(requestId: new RequestId(id: 7)));
+        $notification = new CancelledNotification(
+            params: new CancelledNotificationParams(requestId: new RequestId(id: 7)),
+        );
 
         self::assertSame(
             [
@@ -76,7 +78,9 @@ final class CancelledNotificationTest extends AbstractMcpTestCase
 
     public function testToArrayPreservesKeyOrderStartingWithJsonRpc(): void
     {
-        $notification = new CancelledNotification(params: new CancelledNotificationParams(requestId: new RequestId(id: 1)));
+        $notification = new CancelledNotification(
+            params: new CancelledNotificationParams(requestId: new RequestId(id: 1)),
+        );
 
         self::assertSame(
             ['jsonrpc', 'method', 'params'],

@@ -41,7 +41,10 @@ final class CallToolRequestTest extends AbstractMcpTestCase
 
     public function testToArray(): void
     {
-        $request = new CallToolRequest(id: new RequestId(id: 1), params: new CallToolRequestParams(name: 'read-file', meta: RequestMetaObjectFactory::create()));
+        $request = new CallToolRequest(
+            id: new RequestId(id: 1),
+            params: new CallToolRequestParams(name: 'read-file', meta: RequestMetaObjectFactory::create()),
+        );
 
         self::assertSame(
             [
@@ -58,7 +61,11 @@ final class CallToolRequestTest extends AbstractMcpTestCase
     {
         $original = new CallToolRequest(
             id: new RequestId(id: 'req-1'),
-            params: new CallToolRequestParams(name: 'read-file', meta: RequestMetaObjectFactory::create(), arguments: ['path' => 'src/']),
+            params: new CallToolRequestParams(
+                name: 'read-file',
+                meta: RequestMetaObjectFactory::create(),
+                arguments: ['path' => 'src/'],
+            ),
         );
 
         $rebuilt = CallToolRequest::fromArray($original->toArray());

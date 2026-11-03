@@ -55,7 +55,14 @@ final class GetPromptRequestHandlerTest extends AbstractMcpTestCase
         $handler = new GetPromptRequestHandler($store);
 
         $handler->handle(
-            new GetPromptRequest(id: new RequestId(id: 42), params: new GetPromptRequestParams(name: 'greeting', meta: RequestMetaObjectFactory::create(), arguments: ['name' => 'Paul'])),
+            new GetPromptRequest(
+                id: new RequestId(id: 42),
+                params: new GetPromptRequestParams(
+                    name: 'greeting',
+                    meta: RequestMetaObjectFactory::create(),
+                    arguments: ['name' => 'Paul'],
+                ),
+            ),
             $this->makeContext(),
         );
 
@@ -68,13 +75,18 @@ final class GetPromptRequestHandlerTest extends AbstractMcpTestCase
         $store = new PromptStore([
             'greeting' => new PromptEntry(
                 new Prompt(name: 'greeting'),
-                new ClosurePromptRenderer(static fn(?array $arguments, ServerContext $context): GetPromptResult => $expected),
+                new ClosurePromptRenderer(
+                    static fn(?array $arguments, ServerContext $context): GetPromptResult => $expected,
+                ),
             ),
         ]);
         $handler = new GetPromptRequestHandler($store);
 
         $result = $handler->handle(
-            new GetPromptRequest(id: new RequestId(id: 1), params: new GetPromptRequestParams(name: 'greeting', meta: RequestMetaObjectFactory::create())),
+            new GetPromptRequest(
+                id: new RequestId(id: 1),
+                params: new GetPromptRequestParams(name: 'greeting', meta: RequestMetaObjectFactory::create()),
+            ),
             $this->makeContext(),
         );
 
@@ -89,7 +101,10 @@ final class GetPromptRequestHandlerTest extends AbstractMcpTestCase
         $this->expectExceptionMessageMatches('/^No prompt registered under name "missing"\.$/');
 
         $handler->handle(
-            new GetPromptRequest(id: new RequestId(id: 1), params: new GetPromptRequestParams(name: 'missing', meta: RequestMetaObjectFactory::create())),
+            new GetPromptRequest(
+                id: new RequestId(id: 1),
+                params: new GetPromptRequestParams(name: 'missing', meta: RequestMetaObjectFactory::create()),
+            ),
             $this->makeContext(),
         );
     }

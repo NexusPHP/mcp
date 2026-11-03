@@ -65,7 +65,11 @@ final class GetPromptRequestParamsTest extends AbstractMcpTestCase
 
     public function testToArrayWithArguments(): void
     {
-        $params = new GetPromptRequestParams(name: 'code-review', meta: RequestMetaObjectFactory::create(), arguments: ['topic' => 'auth']);
+        $params = new GetPromptRequestParams(
+            name: 'code-review',
+            meta: RequestMetaObjectFactory::create(),
+            arguments: ['topic' => 'auth'],
+        );
 
         self::assertSame(
             ['_meta' => RequestMetaObjectFactory::shape(), 'name' => 'code-review', 'arguments' => ['topic' => 'auth']],
@@ -75,7 +79,11 @@ final class GetPromptRequestParamsTest extends AbstractMcpTestCase
 
     public function testToArrayOmitsEmptyArguments(): void
     {
-        $params = new GetPromptRequestParams(name: 'code-review', meta: RequestMetaObjectFactory::create(), arguments: []);
+        $params = new GetPromptRequestParams(
+            name: 'code-review',
+            meta: RequestMetaObjectFactory::create(),
+            arguments: [],
+        );
 
         self::assertSame(
             ['_meta' => RequestMetaObjectFactory::shape(), 'name' => 'code-review'],
@@ -96,7 +104,11 @@ final class GetPromptRequestParamsTest extends AbstractMcpTestCase
 
     public function testJsonSerializeMatchesToArray(): void
     {
-        $params = new GetPromptRequestParams(name: 'code-review', meta: RequestMetaObjectFactory::create(), arguments: ['topic' => 'auth']);
+        $params = new GetPromptRequestParams(
+            name: 'code-review',
+            meta: RequestMetaObjectFactory::create(),
+            arguments: ['topic' => 'auth'],
+        );
 
         self::assertSame($params->toArray(), $params->jsonSerialize());
     }

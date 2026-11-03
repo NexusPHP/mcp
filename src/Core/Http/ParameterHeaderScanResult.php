@@ -32,7 +32,9 @@ final readonly class ParameterHeaderScanResult
         public array $bindings = [],
         public ?string $reason = null,
     ) {
-        Assert::that($reason)->nullOr()->isNonEmptyString('A scan result\'s reason must name the violated constraint or be null.');
+        Assert::that($reason)->nullOr()->isNonEmptyString(
+            'A scan result\'s reason must name the violated constraint or be null.',
+        );
 
         $this->valid = null === $reason;
     }

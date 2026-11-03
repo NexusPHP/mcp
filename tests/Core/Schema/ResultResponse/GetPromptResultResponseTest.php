@@ -32,7 +32,14 @@ final class GetPromptResultResponseTest extends AbstractMcpTestCase
 {
     public function testRoundTripsTheTypedResult(): void
     {
-        $envelope = ['jsonrpc' => '2.0', 'id' => 1, 'result' => ['resultType' => 'complete', 'messages' => [['content' => ['text' => 'Hello.', 'type' => 'text'], 'role' => 'user']]]];
+        $envelope = [
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'result' => [
+                'resultType' => 'complete',
+                'messages' => [['content' => ['text' => 'Hello.', 'type' => 'text'], 'role' => 'user']],
+            ],
+        ];
 
         $response = GetPromptResultResponse::fromArray($envelope);
 
