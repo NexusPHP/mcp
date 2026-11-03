@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Extension\Tasks\Schema\Result;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\JsonRpc\InputRequestDispatcher;
+use Nexus\Mcp\Core\JsonRpc\MessageDiscriminator;
 use Nexus\Mcp\Core\Schema\Enum\ResultType;
 use Nexus\Mcp\Core\Schema\MetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
@@ -161,7 +161,7 @@ final readonly class GetTaskResult extends Result implements ServerResult
                 ->values()->isArray('each "result.inputRequests" entry must be an object, {type} given.')
                 ->isMap('each "result.inputRequests" entry must be a string-keyed object.')
             ;
-            $inputRequests = array_map(InputRequestDispatcher::decode(...), $data['inputRequests']);
+            $inputRequests = array_map(MessageDiscriminator::decodeInputRequest(...), $data['inputRequests']);
         }
 
         $statusMessage = null;

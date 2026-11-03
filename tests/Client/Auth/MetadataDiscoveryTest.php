@@ -569,6 +569,196 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
     }
 
     /**
+     * @param list<string> $expected
+     */
+    #[DataProvider('provideBuildProtectedResourceUrlsCases')]
+    public function testBuildProtectedResourceUrls(string $resource, array $expected): void
+    {
+        self::assertSame($expected, MetadataDiscovery::buildProtectedResourceUrls($resource));
+    }
+
+    /**
+     * @return iterable<string, array{string, list<string>}>
+     */
+    public static function provideBuildProtectedResourceUrlsCases(): iterable
+    {
+        yield 'a path-scoped endpoint probes the path form first' => [
+            'https://example.com/public/mcp',
+            [
+                'https://example.com/.well-known/oauth-protected-resource/public/mcp',
+                'https://example.com/.well-known/oauth-protected-resource',
+            ],
+        ];
+
+        yield 'a root endpoint has only the root form' => [
+            'https://example.com',
+            ['https://example.com/.well-known/oauth-protected-resource'],
+        ];
+
+        yield 'a bare root path has only the root form' => [
+            'https://example.com/',
+            ['https://example.com/.well-known/oauth-protected-resource'],
+        ];
+
+        yield 'a trailing slash does not reach the well-known path' => [
+            'https://example.com/mcp/',
+            [
+                'https://example.com/.well-known/oauth-protected-resource/mcp',
+                'https://example.com/.well-known/oauth-protected-resource',
+            ],
+        ];
+
+        yield 'the origin is lowercased and keeps its port' => [
+            'HTTPS://Example.COM:8443/mcp',
+            [
+                'https://example.com:8443/.well-known/oauth-protected-resource/mcp',
+                'https://example.com:8443/.well-known/oauth-protected-resource',
+            ],
+        ];
+    }
+
+    /**
+     * @param list<string> $expected
+     */
+    #[DataProvider('provideBuildAuthorizationServerUrlsCases')]
+    public function testBuildAuthorizationServerUrls(string $issuer, array $expected): void
+    {
+        self::assertSame($expected, MetadataDiscovery::buildAuthorizationServerUrls($issuer));
+    }
+
+    /**
+     * @return iterable<string, array{string, list<string>}>
+     */
+    public static function provideBuildAuthorizationServerUrlsCases(): iterable
+    {
+        yield 'an issuer with a path probes three endpoints in order' => [
+            'https://auth.example.com/tenant1',
+            [
+                'https://auth.example.com/.well-known/oauth-authorization-server/tenant1',
+                'https://auth.example.com/.well-known/openid-configuration/tenant1',
+                'https://auth.example.com/tenant1/.well-known/openid-configuration',
+            ],
+        ];
+
+        yield 'an issuer without a path probes two endpoints in order' => [
+            'https://auth.example.com',
+            [
+                'https://auth.example.com/.well-known/oauth-authorization-server',
+                'https://auth.example.com/.well-known/openid-configuration',
+            ],
+        ];
+
+        yield 'a bare root path is not a path component' => [
+            'https://auth.example.com/',
+            [
+                'https://auth.example.com/.well-known/oauth-authorization-server',
+                'https://auth.example.com/.well-known/openid-configuration',
+            ],
+        ];
+
+        yield 'a trailing slash does not reach the well-known path' => [
+            'https://auth.example.com/tenant1/',
+            [
+                'https://auth.example.com/.well-known/oauth-authorization-server/tenant1',
+                'https://auth.example.com/.well-known/openid-configuration/tenant1',
+                'https://auth.example.com/tenant1/.well-known/openid-configuration',
+            ],
+        ];
+
+        yield 'the origin is lowercased and keeps its port' => [
+            'HTTPS://Auth.Example.COM:8443/tenant1',
+            [
+                'https://auth.example.com:8443/.well-known/oauth-authorization-server/tenant1',
+                'https://auth.example.com:8443/.well-known/openid-configuration/tenant1',
+                'https://auth.example.com:8443/tenant1/.well-known/openid-configuration',
+            ],
+        ];
+    }
+
+    public function testAResourceQueryIsKeptOnThePathScopedUrlAndDroppedFromTheRootFallback(): void
+    {
+        // The root form is the URL assigned by RFC 9728 to another resource, so asking for it under this query would
+        // read that one's document.
+        self::assertSame([
+            'https://mcp.example.com/.well-known/oauth-protected-resource/mcp?tenant=acme',
+            'https://mcp.example.com/.well-known/oauth-protected-resource',
+        ], MetadataDiscovery::buildProtectedResourceUrls('https://mcp.example.com/mcp?tenant=acme'));
+    }
+
+    /**
+     * @param non-empty-string $uri
+     */
+    #[DataProvider('provideReadOriginCases')]
+    public function testReadOrigin(string $uri, string $expected): void
+    {
+        self::assertSame($expected, MetadataDiscovery::readOrigin($uri));
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string, string}>
+     */
+    public static function provideReadOriginCases(): iterable
+    {
+        yield 'a path is dropped' => ['https://mcp.example.com/mcp', 'https://mcp.example.com'];
+
+        yield 'a query is dropped' => ['https://mcp.example.com/mcp?tenant=acme', 'https://mcp.example.com'];
+
+        yield 'a port is kept' => ['http://localhost:3000/mcp', 'http://localhost:3000'];
+
+        yield 'the scheme and host are lowercased' => ['HTTPS://MCP.Example.COM/mcp', 'https://mcp.example.com'];
+
+        yield 'an origin is already one' => ['https://mcp.example.com', 'https://mcp.example.com'];
+    }
+
+    public function testAnIssuerQueryIsDroppedBecauseTheSpecForbidsOne(): void
+    {
+        self::assertSame([
+            'https://auth.example.com/.well-known/oauth-authorization-server',
+            'https://auth.example.com/.well-known/openid-configuration',
+        ], MetadataDiscovery::buildAuthorizationServerUrls('https://auth.example.com?tenant=acme'));
+    }
+
+    public function testARootResourceKeepsItsQueryOnTheWellKnownUrl(): void
+    {
+        self::assertSame(
+            ['https://mcp.example.com/.well-known/oauth-protected-resource?tenant=acme'],
+            MetadataDiscovery::buildProtectedResourceUrls('https://mcp.example.com?tenant=acme'),
+        );
+    }
+
+    #[DataProvider('provideRejectedUrisCases')]
+    public function testRejectedUris(string $uri): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs(\sprintf(
+            'A well-known metadata URL cannot be built from "%s", which is not an absolute URI.',
+            $uri,
+        ));
+
+        MetadataDiscovery::buildAuthorizationServerUrls($uri);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function provideRejectedUrisCases(): iterable
+    {
+        yield 'an empty string is not a URI' => [''];
+
+        yield 'a bare authority has no scheme' => ['auth.example.com'];
+
+        yield 'a scheme with no host is not an origin' => ['file:///tmp/auth'];
+    }
+
+    public function testRejectedUrisAlsoFailForAProtectedResource(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('A well-known metadata URL cannot be built from "mcp.example.com", which is not an absolute URI.');
+
+        MetadataDiscovery::buildProtectedResourceUrls('mcp.example.com');
+    }
+
+    /**
      * @param array<string, mixed> $overrides
      *
      * @return array<string, mixed>

@@ -28,6 +28,7 @@ use Nexus\Mcp\Tests\Fixtures\Core\TestNotification;
 use Nexus\Mcp\Tests\Fixtures\Core\TestRequest;
 use Nexus\Mcp\Tests\Fixtures\Core\TestSecondNotification;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
@@ -200,12 +201,84 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
         ));
     }
 
-    public function testAddRejectsAMalformedIdentifier(): void
+    /**
+     * @param non-empty-string $identifier
+     */
+    #[DataProvider('provideAddAcceptsAWellFormedIdentifierCases')]
+    public function testAddAcceptsAWellFormedIdentifier(string $identifier): void
+    {
+        $collection = new ExtensionCollection();
+
+        $collection->add(new StubExtension(identifier: $identifier));
+
+        self::assertArrayHasKey($identifier, $collection->buildCapabilitySlot() ?? []);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function provideAddAcceptsAWellFormedIdentifierCases(): iterable
+    {
+        yield 'official tasks identifier' => ['io.modelcontextprotocol/tasks'];
+
+        yield 'official oauth identifier' => ['io.modelcontextprotocol/oauth-client-credentials'];
+
+        yield 'single-char prefix and name' => ['a/b'];
+
+        yield 'name starting with a digit' => ['a/1abc'];
+
+        yield 'prefix label ending with a digit' => ['a1/b'];
+
+        yield 'hyphenated prefix labels' => ['a-b.c-d/feature'];
+
+        yield 'name with inner dots, hyphens, and underscores' => ['com.example/x_y.z-1'];
+
+        yield 'uppercase letters' => ['Com.Example/Feature'];
+    }
+
+    /**
+     * @param non-empty-string $identifier
+     */
+    #[DataProvider('provideAddRejectsAMalformedIdentifierCases')]
+    public function testAddRejectsAMalformedIdentifier(string $identifier, string $exported): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('Extension identifier must be "{vendor-prefix}/{name}" following the "_meta" key grammar with a mandatory prefix, \'tasks\' given.');
+        $this->expectExceptionMessageIs(\sprintf(
+            'Extension identifier must be "{vendor-prefix}/{name}" following the "_meta" key grammar with a mandatory prefix, %s given.',
+            $exported,
+        ));
 
-        (new ExtensionCollection())->add(new StubExtension(identifier: 'tasks'));
+        (new ExtensionCollection())->add(new StubExtension(identifier: $identifier));
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function provideAddRejectsAMalformedIdentifierCases(): iterable
+    {
+        yield 'no prefix' => ['tasks', '\'tasks\''];
+
+        yield 'empty prefix' => ['/tasks', '\'/tasks\''];
+
+        yield 'empty name' => ['a/', '\'a/\''];
+
+        yield 'prefix label starting with a digit' => ['1a/b', '\'1a/b\''];
+
+        yield 'prefix label ending with a hyphen' => ['a-/b', '\'a-/b\''];
+
+        yield 'empty prefix label' => ['a..b/c', '\'a..b/c\''];
+
+        yield 'leading dot in prefix' => ['.a/b', '\'.a/b\''];
+
+        yield 'trailing dot in prefix' => ['a./b', '\'a./b\''];
+
+        yield 'name ending with a hyphen' => ['a/b-', '\'a/b-\''];
+
+        yield 'second slash' => ['a/b/c', '\'a/b/c\''];
+
+        yield 'whitespace in name' => ['a/b c', '\'a/b c\''];
+
+        yield 'underscore in prefix' => ['a_b/c', '\'a_b/c\''];
     }
 
     public function testAddRejectsADuplicateIdentifier(): void

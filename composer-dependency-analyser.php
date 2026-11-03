@@ -53,7 +53,7 @@ return (new Configuration())
     )
     ->ignoreErrorsOnPackageAndPath(
         'firebase/php-jwt',
-        __DIR__.'/src/Extension/Auth/ClientAssertionSigner.php',
+        __DIR__.'/src/Extension/Auth/ClientCredentials/ClientCredentialsGrant.php',
         [ErrorType::DEV_DEPENDENCY_IN_PROD],
     )
     ->ignoreErrorsOnPackageAndPath(

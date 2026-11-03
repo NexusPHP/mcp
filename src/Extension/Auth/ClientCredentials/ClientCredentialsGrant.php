@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Extension\Auth\ClientCredentials;
 
 use Amp\Cancellation;
+use Firebase\JWT\JWT;
 use Nexus\Clock\Clock;
 use Nexus\Clock\SystemClock;
 use Nexus\Mcp\Client\Auth\AccessToken;
@@ -25,7 +26,7 @@ use Nexus\Mcp\Core\Auth\AuthorizationServerMetadata;
 use Nexus\Mcp\Core\Auth\TokenEndpointAuthMethod;
 use Nexus\Mcp\Core\Exception\RuntimeException;
 use Nexus\Mcp\Core\SafeDisplay;
-use Nexus\Mcp\Extension\Auth\ClientAssertionSigner;
+use Nexus\Mcp\Core\Validation\SuggestedDependencyGuard;
 use Nexus\Mcp\Extension\Auth\GrantTypeAdvertisement;
 
 /**
@@ -36,7 +37,8 @@ use Nexus\Mcp\Extension\Auth\GrantTypeAdvertisement;
  */
 final readonly class ClientCredentialsGrant implements GrantStrategyInterface
 {
-    private ?ClientAssertionSigner $privateKeyJwtSigner;
+    private const int ASSERTION_LIFETIME_SECONDS = 300;
+
     private TokenEndpointAuthMethod $authMethod;
     private ?string $clientSecret;
 
@@ -47,15 +49,15 @@ final readonly class ClientCredentialsGrant implements GrantStrategyInterface
 
     public function __construct(
         private ClientSecretCredential|PrivateKeyJwtCredential $credential,
-        Clock $clock = new SystemClock(),
+        private Clock $clock = new SystemClock(),
     ) {
         if ($credential instanceof PrivateKeyJwtCredential) {
-            $this->privateKeyJwtSigner = new ClientAssertionSigner($credential, $clock);
+            SuggestedDependencyGuard::verify(self::class, JWT::class, 'firebase/php-jwt', '^7.0');
+
             $this->authMethod = TokenEndpointAuthMethod::PrivateKeyJwt;
             $this->clientSecret = null;
             $this->signingAlgorithm = $credential->algorithm;
         } else {
-            $this->privateKeyJwtSigner = null;
             $this->authMethod = TokenEndpointAuthMethod::ClientSecretBasic;
             $this->clientSecret = $credential->clientSecret;
             $this->signingAlgorithm = null;
@@ -90,9 +92,9 @@ final readonly class ClientCredentialsGrant implements GrantStrategyInterface
             $parameters['scope'] = $scope;
         }
 
-        if (null !== $this->privateKeyJwtSigner) {
+        if ($this->credential instanceof PrivateKeyJwtCredential) {
             $parameters['client_assertion_type'] = ClientCredentials::CLIENT_ASSERTION_TYPE;
-            $parameters['client_assertion'] = $this->privateKeyJwtSigner->signAssertion($server->issuer);
+            $parameters['client_assertion'] = $this->signAssertion($this->credential, $server->issuer);
         }
 
         $registration = new ClientRegistration(
@@ -142,5 +144,26 @@ final readonly class ClientCredentialsGrant implements GrantStrategyInterface
         }
 
         GrantTypeAdvertisement::verify($server, ClientCredentials::GRANT_TYPE);
+    }
+
+    /**
+     * Signs an RFC 7523 JWT client assertion naming the client as both issuer and subject, presentable to `$audience`.
+     *
+     * @param non-empty-string $audience
+     *
+     * @see https://datatracker.ietf.org/doc/html/rfc7523#section-3
+     */
+    private function signAssertion(PrivateKeyJwtCredential $credential, string $audience): string
+    {
+        $issuedAt = $this->clock->now()->getTimestamp();
+
+        return JWT::encode([
+            'iss' => $credential->clientId,
+            'sub' => $credential->clientId,
+            'aud' => $audience,
+            'jti' => bin2hex(random_bytes(16)),
+            'iat' => $issuedAt,
+            'exp' => $issuedAt + self::ASSERTION_LIFETIME_SECONDS,
+        ], $credential->privateKeyPem, $credential->algorithm, $credential->keyId);
     }
 }

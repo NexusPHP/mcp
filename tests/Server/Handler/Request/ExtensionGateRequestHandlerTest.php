@@ -114,6 +114,35 @@ final class ExtensionGateRequestHandlerTest extends AbstractMcpTestCase
         }
     }
 
+    public function testDeclaresReadsThePerRequestCapabilities(): void
+    {
+        self::assertTrue(ExtensionGateRequestHandler::declares(
+            $this->makeContext(new ClientCapabilities(extensions: ['com.example/snapshot' => []])),
+            'com.example/snapshot',
+        ));
+        self::assertFalse(ExtensionGateRequestHandler::declares(
+            $this->makeContext(new ClientCapabilities(extensions: ['com.example/other' => []])),
+            'com.example/snapshot',
+        ));
+        self::assertFalse(ExtensionGateRequestHandler::declares(
+            $this->makeContext(new ClientCapabilities()),
+            'com.example/snapshot',
+        ));
+    }
+
+    public function testRefuseNamesTheMissingExtension(): void
+    {
+        $exception = ExtensionGateRequestHandler::refuse(
+            $this->makeContext(new ClientCapabilities()),
+            'com.example/snapshot',
+        );
+
+        self::assertSame(
+            ['requiredCapabilities' => ['extensions' => ['com.example/snapshot' => []]]],
+            $exception->errorData,
+        );
+    }
+
     private function makeContext(ClientCapabilities $clientCapabilities): ServerContext
     {
         return new ServerContext(

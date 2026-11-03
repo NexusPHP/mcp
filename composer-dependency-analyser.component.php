@@ -57,7 +57,7 @@ if ('Extension' === basename($component)) {
     $config
         ->ignoreErrorsOnPackageAndPath(
             'firebase/php-jwt',
-            $component.'/Auth/ClientAssertionSigner.php',
+            $component.'/Auth/ClientCredentials/ClientCredentialsGrant.php',
             [ErrorType::SHADOW_DEPENDENCY],
         )
         ->ignoreErrorsOnPackageAndPath(

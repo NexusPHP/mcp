@@ -15,7 +15,7 @@ namespace Nexus\Mcp\Core\Schema\Resource;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
-use Nexus\Mcp\Core\Validation\Rfc6570UriTemplateValidator;
+use Nexus\Mcp\Core\UriTemplate\Validator;
 
 /**
  * A reference to a resource or resource template definition.
@@ -36,7 +36,7 @@ final readonly class ResourceTemplateReference implements Arrayable
      */
     public function __construct(public string $uri)
     {
-        Rfc6570UriTemplateValidator::validate($uri, 'resource template reference "uri"');
+        Validator::validateShape($uri, 'resource template reference "uri"');
     }
 
     #[\Override]

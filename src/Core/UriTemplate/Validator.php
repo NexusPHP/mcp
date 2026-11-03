@@ -16,12 +16,11 @@ namespace Nexus\Mcp\Core\UriTemplate;
 use Nexus\Assert\Assert;
 
 /**
- * Enforces the subset of RFC 6570 that `Matcher` can reverse-match: Level 1 `{name}` expressions over
- * `[A-Za-z_][A-Za-z0-9_]*` of at most 32 characters, separated by at least one literal.
+ * Validator for RFC 6570 URI templates, at the shape a schema accepts and at the subset `Matcher` can reverse-match.
  *
  * @internal
  *
- * @see https://datatracker.ietf.org/doc/html/rfc6570#section-3.2.2
+ * @see https://datatracker.ietf.org/doc/html/rfc6570
  */
 final class Validator
 {
@@ -31,6 +30,37 @@ final class Validator
     private const int MAX_VARIABLE_NAME_LENGTH = 32;
 
     /**
+     * Enforces ASCII-printable characters only, an RFC 3986 scheme prefix, and a body of literals and
+     * well-formed `{expression}` segments.
+     *
+     * @param non-empty-string $context Label prefix for the error message (e.g. "ResourceTemplate", "ResourceTemplateReference")
+     *
+     * @throws \InvalidArgumentException
+     *
+     * @phpstan-assert non-empty-string $uriTemplate
+     */
+    public static function validateShape(string $uriTemplate, string $context): void
+    {
+        Assert::that($uriTemplate)
+            ->isNonEmptyString(\sprintf('%s must be a non-empty string.', $context))
+            ->matchesRegularExpression(
+                '/\A[\x21-\x7E]+\z/',
+                \sprintf(
+                    '%s must contain only ASCII printable characters (no whitespace or control characters), {value} given.',
+                    $context,
+                ),
+            )
+            ->matchesRegularExpression(
+                '/\A[A-Za-z][A-Za-z0-9+.\-]*:[^{}]*(?:\{[^{}]+\}[^{}]*)*\z/',
+                \sprintf('%s must be a valid RFC 6570 URI template, {value} given.', $context),
+            )
+        ;
+    }
+
+    /**
+     * Enforces the subset of RFC 6570 that `Matcher` can reverse-match: Level 1 `{name}` expressions over
+     * `[A-Za-z_][A-Za-z0-9_]*` of at most 32 characters, separated by at least one literal.
+     *
      * @param non-empty-string $context Label prefix for the error message (e.g. "ResourceTemplate")
      *
      * @throws \InvalidArgumentException

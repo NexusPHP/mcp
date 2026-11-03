@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\JsonRpc\ResourceContentsDispatcher;
+use Nexus\Mcp\Core\JsonRpc\MessageDiscriminator;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Enum\ResultType;
@@ -67,7 +67,7 @@ final readonly class ReadResourceResult extends CacheableResult implements Serve
             ->isMap('each "result.contents" must be a string-keyed object.')
         ;
         $contents = array_map(
-            static fn(array $entry): BlobResourceContents|TextResourceContents => ResourceContentsDispatcher::fromArray(
+            static fn(array $entry): BlobResourceContents|TextResourceContents => MessageDiscriminator::decodeResourceContents(
                 $entry,
                 'ReadResourceResult contents',
             ),

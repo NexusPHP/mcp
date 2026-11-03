@@ -23,7 +23,6 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\Request\ClientRequest;
 use Nexus\Mcp\Core\Schema\Result;
-use Nexus\Mcp\Core\Validation\ExtensionIdentifierValidator;
 
 /**
  * Collection of the extensions enabled by a builder, owning the method-ownership ledgers.
@@ -36,6 +35,15 @@ use Nexus\Mcp\Core\Validation\ExtensionIdentifierValidator;
  */
 final class ExtensionCollection
 {
+    /**
+     * Dot-separated vendor-prefix labels, a slash, then a name, all drawn from the `_meta` key grammar with
+     * the prefix mandatory.
+     *
+     * @see https://modelcontextprotocol.io/seps/2133-extensions
+     * @see https://modelcontextprotocol.io/specification/2026-07-28/basic#meta
+     */
+    private const string IDENTIFIER_PATTERN = '/\A[A-Za-z](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\.[A-Za-z](?:[A-Za-z0-9-]*[A-Za-z0-9])?)*\/[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?\z/';
+
     /**
      * @var array<non-empty-string, array<string, mixed>>
      */
@@ -101,7 +109,10 @@ final class ExtensionCollection
         array $requestDecorators = [],
     ): void {
         $identifier = $extension->getIdentifier();
-        ExtensionIdentifierValidator::validate($identifier);
+        Assert::that($identifier)->matchesRegularExpression(
+            self::IDENTIFIER_PATTERN,
+            'Extension identifier must be "{vendor-prefix}/{name}" following the "_meta" key grammar with a mandatory prefix, {value} given.',
+        );
 
         if (\array_key_exists($identifier, $this->settings)) {
             self::refuseDuplicateDeclaration($identifier);

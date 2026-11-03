@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Result;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\JsonRpc\ContentBlockDispatcher;
+use Nexus\Mcp\Core\JsonRpc\MessageDiscriminator;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\ContentBlock;
 use Nexus\Mcp\Core\Schema\ContentBlock\AudioContent;
@@ -69,7 +69,7 @@ final readonly class CallToolResult extends Result implements ServerResult
             ->isMap('each "result.content" must be a string-keyed object.')
         ;
         $content = array_map(
-            static fn(array $block): AudioContent|EmbeddedResource|ImageContent|ResourceLink|TextContent => ContentBlockDispatcher::fromArray(
+            static fn(array $block): AudioContent|EmbeddedResource|ImageContent|ResourceLink|TextContent => MessageDiscriminator::decodeContentBlock(
                 $block,
                 'CallToolResult content',
             ),

@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Server\Transport\Http;
 
-use Nexus\Mcp\Client\Auth\WellKnownUri;
+use Nexus\Mcp\Client\Auth\MetadataDiscovery;
 use Nexus\Mcp\Server\Transport\Http\ProtectedResourceMetadataHandler;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nyholm\Psr7\Factory\Psr17Factory;
@@ -160,7 +160,7 @@ final class ProtectedResourceMetadataHandlerTest extends AbstractMcpTestCase
         $factory = new Psr17Factory();
         $handler = new ProtectedResourceMetadataHandler($resource, [self::ISSUER], $factory, $factory);
 
-        foreach (WellKnownUri::forProtectedResource($resource) as $url) {
+        foreach (MetadataDiscovery::buildProtectedResourceUrls($resource) as $url) {
             $response = $handler->handle($factory->createServerRequest('GET', $url));
 
             self::assertSame(200, $response->getStatusCode(), \sprintf('The client probes "%s".', $url));

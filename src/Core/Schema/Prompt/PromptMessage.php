@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\Prompt;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\JsonRpc\ContentBlockDispatcher;
+use Nexus\Mcp\Core\JsonRpc\MessageDiscriminator;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\ContentBlock\AudioContent;
 use Nexus\Mcp\Core\Schema\ContentBlock\EmbeddedResource;
@@ -61,7 +61,7 @@ final readonly class PromptMessage implements Arrayable
 
         return new self(
             role: $role,
-            content: ContentBlockDispatcher::fromArray($data['content'], 'prompt message "content"'),
+            content: MessageDiscriminator::decodeContentBlock($data['content'], 'prompt message "content"'),
         );
     }
 

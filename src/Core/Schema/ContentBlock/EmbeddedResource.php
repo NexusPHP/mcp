@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Core\Schema\ContentBlock;
 
 use Nexus\Assert\Assert;
-use Nexus\Mcp\Core\JsonRpc\ResourceContentsDispatcher;
+use Nexus\Mcp\Core\JsonRpc\MessageDiscriminator;
 use Nexus\Mcp\Core\Schema\Annotations;
 use Nexus\Mcp\Core\Schema\Arrayable;
 use Nexus\Mcp\Core\Schema\ContentBlock;
@@ -61,7 +61,7 @@ final readonly class EmbeddedResource implements Arrayable, ContentBlock
             ->isArray('embedded resource "resource" must be an object, {type} given.')
             ->isMap('embedded resource "resource" must be a string-keyed object.')
         ;
-        $resource = ResourceContentsDispatcher::fromArray($data['resource'], 'EmbeddedResource resource');
+        $resource = MessageDiscriminator::decodeResourceContents($data['resource'], 'EmbeddedResource resource');
 
         $annotations = new Annotations();
 

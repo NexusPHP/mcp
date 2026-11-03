@@ -16,6 +16,8 @@ namespace Nexus\Mcp\Tests\Extension\Auth\ClientCredentials;
 use Amp\Http\Client\Request;
 use Amp\NullCancellation;
 use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
+use Nexus\Clock\FrozenClock;
 use Nexus\Mcp\Client\Auth\AuthorizationOptions;
 use Nexus\Mcp\Client\Auth\ClientRegistrar;
 use Nexus\Mcp\Client\Auth\ClientRegistration;
@@ -123,6 +125,77 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
             $form['client_assertion_type'] ?? null,
         );
         self::assertSame(self::ISSUER, $this->readClaims($form['client_assertion'] ?? '')['aud'] ?? null);
+    }
+
+    public function testTheAssertionNamesTheClientAsIssuerAndSubject(): void
+    {
+        [$privatePem, $publicPem] = $this->generateKeyPair();
+        // JWT::decode rejects an assertion it reads as expired, so the frozen instant must track real time.
+        $now = time();
+        $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse());
+        $grant = new ClientCredentialsGrant(
+            new PrivateKeyJwtCredential('the-client', $privatePem, 'ES256', 'key-1'),
+            new FrozenClock(\sprintf('@%d', $now)),
+        );
+
+        $grant->grant(
+            $this->buildContext($http, $this->buildMetadata(methods: ['private_key_jwt'])),
+            new NullCancellation(),
+        );
+
+        $assertion = $this->readForm($http->readRequest())['client_assertion'] ?? '';
+        $claims = (array) JWT::decode($assertion, new Key($publicPem, 'ES256'));
+        self::assertSame('the-client', $claims['iss'] ?? null);
+        self::assertSame('the-client', $claims['sub'] ?? null);
+        self::assertSame(self::ISSUER, $claims['aud'] ?? null);
+        self::assertSame($now, $claims['iat'] ?? null);
+        self::assertSame($now + 300, $claims['exp'] ?? null);
+
+        $identifier = $claims['jti'] ?? null;
+        self::assertIsString($identifier);
+        self::assertMatchesRegularExpression('/^[0-9a-f]{32}$/', $identifier);
+
+        $header = $this->readHeader($assertion);
+        self::assertSame('ES256', $header['alg'] ?? null);
+        self::assertSame('key-1', $header['kid'] ?? null);
+    }
+
+    public function testEveryAssertionCarriesAFreshIdentifier(): void
+    {
+        $http = (new RecordingHttpClient())
+            ->willAnswerJson($this->buildTokenResponse())
+            ->willAnswerJson($this->buildTokenResponse())
+        ;
+        $grant = new ClientCredentialsGrant(
+            new PrivateKeyJwtCredential('the-client', $this->generatePrivateKey(), 'ES256'),
+        );
+        $context = $this->buildContext($http, $this->buildMetadata(methods: ['private_key_jwt']));
+
+        $grant->grant($context, new NullCancellation());
+        $grant->grant($context, new NullCancellation());
+
+        self::assertNotSame(
+            $this->readClaims($this->readForm($http->readRequest(0))['client_assertion'] ?? '')['jti'] ?? null,
+            $this->readClaims($this->readForm($http->readRequest(1))['client_assertion'] ?? '')['jti'] ?? null,
+        );
+    }
+
+    public function testTheKeyIdHeaderIsLeftOffWhenTheCredentialCarriesNone(): void
+    {
+        $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse());
+        $grant = new ClientCredentialsGrant(
+            new PrivateKeyJwtCredential('the-client', $this->generatePrivateKey(), 'ES256'),
+        );
+
+        $grant->grant(
+            $this->buildContext($http, $this->buildMetadata(methods: ['private_key_jwt'])),
+            new NullCancellation(),
+        );
+
+        self::assertArrayNotHasKey(
+            'kid',
+            $this->readHeader($this->readForm($http->readRequest())['client_assertion'] ?? ''),
+        );
     }
 
     public function testAnAbsentMethodListIsRefused(): void
@@ -326,6 +399,14 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
      */
     private function generatePrivateKey(): string
     {
+        return $this->generateKeyPair()[0];
+    }
+
+    /**
+     * @return array{non-empty-string, non-empty-string}
+     */
+    private function generateKeyPair(): array
+    {
         $key = openssl_pkey_new(['curve_name' => 'prime256v1', 'private_key_type' => \OPENSSL_KEYTYPE_EC]);
 
         if (
@@ -334,10 +415,31 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
             || ! \is_string($privatePem)
             || '' === $privatePem
         ) {
-            self::fail('The EC key could not be generated.');
+            self::fail('The EC key pair could not be generated.');
         }
 
-        return $privatePem;
+        $details = openssl_pkey_get_details($key);
+
+        if (false === $details || ! isset($details['key']) || ! \is_string($details['key']) || '' === $details['key']) {
+            self::fail('The EC public key could not be exported.');
+        }
+
+        return [$privatePem, $details['key']];
+    }
+
+    /**
+     * @return array<array-key, mixed>
+     */
+    private function readHeader(string $assertion): array
+    {
+        [$header] = explode('.', $assertion, 2);
+        $decoded = json_decode(JWT::urlsafeB64Decode($header), associative: true, flags: \JSON_THROW_ON_ERROR);
+
+        if (! \is_array($decoded)) {
+            self::fail('The assertion header is not a JSON object.');
+        }
+
+        return $decoded;
     }
 
     /**

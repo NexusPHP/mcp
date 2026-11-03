@@ -24,7 +24,7 @@ use Nexus\Mcp\Extension\Tasks\Server\TaskOwnership;
 use Nexus\Mcp\Extension\Tasks\Server\TaskSupport;
 use Nexus\Mcp\Extension\Tasks\Server\ToolTaskPolicy;
 use Nexus\Mcp\Extension\Tasks\Server\ToolTaskRunner;
-use Nexus\Mcp\Server\Handler\Request\ExtensionDeclarationGate;
+use Nexus\Mcp\Server\Handler\Request\ExtensionGateRequestHandler;
 use Nexus\Mcp\Server\ServerContext;
 
 /**
@@ -64,9 +64,9 @@ final readonly class TaskBrokeringCallToolHandler implements RequestHandlerInter
             return $this->inner->handle($request, $context);
         }
 
-        if (! ExtensionDeclarationGate::declares($context, $this->identifier)) {
+        if (! ExtensionGateRequestHandler::declares($context, $this->identifier)) {
             if (TaskSupport::Required === $policy->support) {
-                throw ExtensionDeclarationGate::refuse($context, $this->identifier);
+                throw ExtensionGateRequestHandler::refuse($context, $this->identifier);
             }
 
             return $this->inner->handle($request, $context);
