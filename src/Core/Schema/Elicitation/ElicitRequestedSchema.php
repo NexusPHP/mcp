@@ -88,7 +88,9 @@ final readonly class ElicitRequestedSchema implements Arrayable
         if (isset($data['required'])) {
             Assert::that($data['required'])
                 ->isList('"requestedSchema.required" must be a list, non-list array given.')
-                ->values()->isNonEmptyString('each "requestedSchema.required" must be a non-empty string, {type} given.')
+                ->values()->isNonEmptyString(
+                    'each "requestedSchema.required" must be a non-empty string, {type} given.',
+                )
             ;
             $required = $data['required'];
         }

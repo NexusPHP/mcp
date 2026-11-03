@@ -181,7 +181,7 @@ final class SkillClientTest extends AbstractMcpTestCase
         } catch (ServerCapabilityNotSupportedException $e) {
             self::assertSame(
                 \sprintf(
-                    'Request method "%s" requires a server capability that was not advertised by server/discover. Check getServerCapabilities() before calling.',
+                    'Request method "%s" needs a server capability that server/discover did not advertise.',
                     $method,
                 ),
                 $e->getMessage(),
@@ -458,7 +458,9 @@ final class SkillClientTest extends AbstractMcpTestCase
         $this->respond($transport, 0, 'resources/read', self::textRead($uri, 'notes!!'));
 
         $this->expectException(SkillVerificationFailedException::class);
-        $this->expectExceptionMessageIs('Skill file "skill://refunds/notes.md" failed verification: it is 7 bytes, above the limit of 6.');
+        $this->expectExceptionMessageIs(
+            'Skill file "skill://refunds/notes.md" failed verification: it is 7 bytes, above the limit of 6.',
+        );
 
         $call->await();
     }

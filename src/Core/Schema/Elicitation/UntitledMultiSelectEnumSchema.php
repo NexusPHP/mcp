@@ -105,7 +105,7 @@ final readonly class UntitledMultiSelectEnumSchema implements MultiSelectEnumSch
         Assert::that($itemsEnum)
             ->isArray('untitled multi-select enum schema "items.enum" must be a list, {type} given.')
             ->isList('untitled multi-select enum schema "items.enum" must be a list, non-list array given.')
-            ->values()->isNonEmptyString('each untitled multi-select enum schema "items.enum" must be a non-empty string, {type} given.')
+            ->values()->isNonEmptyString('each "items.enum" must be a non-empty string, {type} given.')
         ;
 
         $title = $data['title'] ?? null;

@@ -111,7 +111,7 @@ final class IconTest extends AbstractMcpTestCase
 
         yield 'embedded whitespace' => [
             'https://example.com/icon a.png',
-            '"icons.src" must contain only ASCII printable characters (no whitespace or control characters), \'https://example.com/icon a.png\' given.',
+            '"icons.src" must be ASCII printable without whitespace or control characters, \'https://example.com/icon a.png\' given.',
         ];
     }
 

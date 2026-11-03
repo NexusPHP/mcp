@@ -83,7 +83,7 @@ final class ResourceIdentifierTest extends AbstractMcpTestCase
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(\sprintf(
-            'The MCP server resource identifier must be an absolute URI carrying no fragment or userinfo, "%s" given.',
+            'MCP server resource identifier must be an absolute URI without fragment or userinfo, "%s" given.',
             $uri,
         ));
 
@@ -313,7 +313,7 @@ final class ResourceIdentifierTest extends AbstractMcpTestCase
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(\sprintf(
-            'The MCP server resource identifier must be an absolute URI carrying no fragment or userinfo, "%s..." given.',
+            'MCP server resource identifier must be an absolute URI without fragment or userinfo, "%s..." given.',
             str_repeat('u', 253),
         ));
 

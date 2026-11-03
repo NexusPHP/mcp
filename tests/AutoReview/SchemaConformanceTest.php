@@ -453,7 +453,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
             $pageUrl,
             $snapshot,
             \sprintf(
-                'Schema class "%s" references docs page "%s", but that page is not in the spec anchor snapshot. Add the page to McpAnchorSnapshot::SPEC_PAGES and run `composer spec:snapshot-anchors`.',
+                'Schema class "%s" references docs page "%s", which is not in McpAnchorSnapshot::SPEC_PAGES.',
                 $schemaClass,
                 $pageUrl,
             ),
@@ -467,7 +467,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
             $fragment,
             $snapshot[$pageUrl],
             \sprintf(
-                'Schema class "%s" references "%s#%s", but the snapshot of "%s" has no anchor "%s". Either fix the URL or refresh the snapshot via `composer spec:snapshot-anchors`.',
+                'Schema class "%s" references "%s#%s", but "%s" has no anchor "%s". Fix the URL or the snapshot.',
                 $schemaClass,
                 $pageUrl,
                 $fragment,
@@ -548,7 +548,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
             [],
             $missing,
             \sprintf(
-                'Params classes for spec defs carrying "inputResponses" or "requestState" must implement "%s", since PHP cannot inherit the spec\'s second base. Missing: %s.',
+                'Params classes carrying "inputResponses" or "requestState" must implement "%s". Missing: %s.',
                 InputResponseCarrierInterface::class,
                 implode(', ', $missing),
             ),
@@ -620,7 +620,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
                     $key,
                     $properties,
                     \sprintf(
-                        'Deprecated property "%s.%s" is gone from the spec. Remove the DEPRECATED_OMITTED_PROPERTIES entry.',
+                        'Deprecated property "%s.%s" left the spec. Remove its DEPRECATED_OMITTED_PROPERTIES entry.',
                         $schema,
                         $key,
                     ),
@@ -630,7 +630,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
                     $key,
                     $required,
                     \sprintf(
-                        'Deprecated property "%s.%s" is now required and can no longer be omitted. The SDK must implement it.',
+                        'Deprecated property "%s.%s" is now required, so it can no longer be omitted.',
                         $schema,
                         $key,
                     ),
@@ -643,7 +643,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
                 self::assertFalse(
                     $modelled,
                     \sprintf(
-                        'Deprecated property "%s.%s" now has a PHP representation. Remove its DEPRECATED_OMITTED_PROPERTIES entry so conformance enforces it.',
+                        'Deprecated property "%s.%s" is implemented now. Drop its DEPRECATED_OMITTED_PROPERTIES entry.',
                         $schema,
                         $key,
                     ),
@@ -843,7 +843,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
 
                         if (! $accessor->isPublic() || ! $accessor->isStatic()) {
                             $findings[] = \sprintf(
-                                '"%s" must be backed by public static method %s::%s() but its visibility/staticness is wrong.',
+                                '"%s" must be backed by public static method %s::%s().',
                                 $key,
                                 $reflection->getShortName(),
                                 $rep['name'],
@@ -863,7 +863,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
 
                 if (! $isRequired) {
                     $findings[] = \sprintf(
-                        '"%s" is optional but is backed by an always-present constant/method. Consider whether the spec marks it as required.',
+                        '"%s" is optional but backed by an always-present constant or method.',
                         $key,
                     );
                 }
@@ -887,7 +887,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
                 $source = \sprintf('property $%s', $phpName);
             } else {
                 $findings[] = \sprintf(
-                    '"%s" has no constructor parameter $%s, no public property $%s, no class constant, and no public static method on %s.',
+                    '"%s" has no constructor parameter $%s, public property $%s, constant or static method on %s.',
                     $key,
                     $phpName,
                     $phpName,
@@ -917,7 +917,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
                 }
             } elseif (! $hasDefault && ! $allowsNull) {
                 $findings[] = \sprintf(
-                    '"%s" is optional but %s is neither nullable nor has a default value. Add `= null` (or any default) so callers can omit it, or change the type to `?T`.',
+                    '"%s" is optional but %s is not nullable and has no default. Add `= null` or make the type `?T`.',
                     $key,
                     $source,
                 );

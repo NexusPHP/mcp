@@ -100,7 +100,7 @@ final class OperationScopeMiddlewareTest extends AbstractMcpTestCase
             self::fail('The request should have been refused.');
         } catch (LogicException $e) {
             self::assertSame(
-                'Operation scopes need the validated token an authentication middleware stores on the "nexus.mcp.access_token" request attribute, and none was found.',
+                'Operation scopes need the validated token that authentication stores on the "nexus.mcp.access_token" request attribute.',
                 $e->getMessage(),
             );
             self::assertFalse($handler->called);
@@ -406,7 +406,9 @@ final class OperationScopeMiddlewareTest extends AbstractMcpTestCase
         $factory = new Psr17Factory();
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageIs('Pass operation scopes either as $operationScopes or as $tools, $prompts and $resources, not both.');
+        $this->expectExceptionMessageIs(
+            'Pass operation scopes either as $operationScopes or as $tools, $prompts and $resources, not both.',
+        );
 
         new OperationScopeMiddleware(
             self::METADATA_URL,
@@ -623,7 +625,7 @@ final class OperationScopeMiddlewareTest extends AbstractMcpTestCase
             [],
             ['file:///{a}{b}' => ['files:read']],
             [],
-            'Operation scope resource URI template must include literal text between adjacent expressions, got "file:///{a}{b}".',
+            'Operation scope resource URI template needs literal text between expressions, got "file:///{a}{b}".',
         ];
     }
 

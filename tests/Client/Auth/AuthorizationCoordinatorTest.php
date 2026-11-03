@@ -884,7 +884,7 @@ final class AuthorizationCoordinatorTest extends AbstractMcpTestCase
             self::fail('The refusal should have surfaced.');
         } catch (ClientRegistrationRejectedException $e) {
             self::assertSame(
-                'The authorization server does not recognise the client identifier presented to it, so the client must register again.',
+                'The authorization server does not recognise the client identifier, so the client must register again.',
                 $e->getMessage(),
             );
         }

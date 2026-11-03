@@ -59,7 +59,9 @@ final class ValidatorTest extends AbstractMcpTestCase
     public function testRejectsLevel2OrHigherExpression(string $template): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches('/^ResourceTemplate URI template must use only RFC 6570 Level 1 simple-name expressions/');
+        $this->expectExceptionMessageMatches(
+            '/^ResourceTemplate URI template must use only Level 1 `{name}` expressions/',
+        );
 
         Validator::validate($template, 'ResourceTemplate');
     }
@@ -116,7 +118,9 @@ final class ValidatorTest extends AbstractMcpTestCase
     public function testRejectsAdjacentExpressions(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches('/^ResourceTemplate URI template must include literal text between adjacent expressions, got "file:\/\/\/{a}{b}"\.$/');
+        $this->expectExceptionMessageMatches(
+            '/^ResourceTemplate URI template needs literal text between expressions, got "file:\/\/\/{a}{b}"\.$/',
+        );
 
         Validator::validate('file:///{a}{b}', 'ResourceTemplate');
     }
@@ -124,7 +128,7 @@ final class ValidatorTest extends AbstractMcpTestCase
     public function testContextLabelIsInterpolatedIntoErrorMessage(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches('/^Custom label URI template must use only RFC 6570 Level 1 simple-name expressions/');
+        $this->expectExceptionMessageMatches('/^Custom label URI template must use only Level 1 `{name}` expressions/');
 
         Validator::validate('file:///{+path}', 'Custom label');
     }
@@ -213,31 +217,31 @@ final class ValidatorTest extends AbstractMcpTestCase
         yield 'embedded space' => [
             'file:///path/{name with space}',
             'resource template "uriTemplate"',
-            '/\Aresource template "uriTemplate" must contain only ASCII printable/',
+            '/\Aresource template "uriTemplate" must be ASCII printable/',
         ];
 
         yield 'tab character' => [
             "file:///x\t{y}",
             'resource template "uriTemplate"',
-            '/\Aresource template "uriTemplate" must contain only ASCII printable/',
+            '/\Aresource template "uriTemplate" must be ASCII printable/',
         ];
 
         yield 'newline' => [
             "file:///x\n{y}",
             'resource template "uriTemplate"',
-            '/\Aresource template "uriTemplate" must contain only ASCII printable/',
+            '/\Aresource template "uriTemplate" must be ASCII printable/',
         ];
 
         yield 'null byte' => [
             "file:///x\0{y}",
             'resource template "uriTemplate"',
-            '/\Aresource template "uriTemplate" must contain only ASCII printable/',
+            '/\Aresource template "uriTemplate" must be ASCII printable/',
         ];
 
         yield 'non-ASCII path' => [
             'file:///résumé/{x}',
             'resource template "uriTemplate"',
-            '/\Aresource template "uriTemplate" must contain only ASCII printable/',
+            '/\Aresource template "uriTemplate" must be ASCII printable/',
         ];
 
         yield 'unbalanced opening brace' => [

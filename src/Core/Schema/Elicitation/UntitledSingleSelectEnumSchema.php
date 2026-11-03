@@ -74,7 +74,7 @@ final readonly class UntitledSingleSelectEnumSchema implements SingleSelectEnumS
         );
         Assert::that($data['enum'])
             ->isList('untitled single select enum schema "enum" must be a list, non-list array given.')
-            ->values()->isNonEmptyString('each untitled single select enum schema "enum" must be a non-empty string, {type} given.')
+            ->values()->isNonEmptyString('each untitled single select "enum" must be a non-empty string, {type} given.')
         ;
         $enum = $data['enum'];
 

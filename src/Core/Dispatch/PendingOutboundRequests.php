@@ -62,7 +62,7 @@ final class PendingOutboundRequests implements \Countable
 
         if (\array_key_exists($key, $this->map)) {
             throw new LogicException(\sprintf(
-                'Outbound request id %s is already pending. The id-generation strategy must produce unique ids per in-flight request.',
+                'Outbound request ID %s is already pending, so the ID strategy must yield unique IDs per request.',
                 var_export($id->id, true),
             ));
         }

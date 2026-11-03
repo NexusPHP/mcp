@@ -178,7 +178,9 @@ final class ToolStoreTest extends AbstractMcpTestCase
         $store = new ToolStore();
 
         $this->expectException(ToolNotFoundException::class);
-        $this->expectExceptionMessageMatches('/^No tool registered under name "missing"\. The server registers tools with addTool\(\) or register\(\)\.$/');
+        $this->expectExceptionMessageMatches(
+            '/^No tool registered under name "missing"\. The server registers tools with addTool\(\) or register\(\)\.$/',
+        );
 
         $store->call('missing', null, $this->makeContext());
     }
@@ -404,7 +406,9 @@ final class ToolStoreTest extends AbstractMcpTestCase
         ]);
 
         $this->expectException(ToolOutputValidationException::class);
-        $this->expectExceptionMessageMatches('/^Tool "report" returned structuredContent that does not conform to its outputSchema: /');
+        $this->expectExceptionMessageMatches(
+            '/^Tool "report" returned structuredContent that does not conform to its outputSchema: /',
+        );
 
         $store->call('report', null, $this->makeContext());
     }
@@ -419,7 +423,9 @@ final class ToolStoreTest extends AbstractMcpTestCase
         ]);
 
         $this->expectException(ToolOutputValidationException::class);
-        $this->expectExceptionMessageIs('Tool "report" declares an outputSchema but its result carries no structuredContent.');
+        $this->expectExceptionMessageIs(
+            'Tool "report" declares an outputSchema but its result carries no structuredContent.',
+        );
 
         $store->call('report', null, $this->makeContext());
     }
@@ -584,7 +590,9 @@ final class ToolStoreTest extends AbstractMcpTestCase
     public function testConstructorRefusesAnUnconventionalName(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('tool "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.');
+        $this->expectExceptionMessageIs(
+            'tool "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.',
+        );
 
         new ToolStore(['Project Files' => new ToolEntry(
             new Tool(name: 'Project Files', inputSchema: ['type' => 'object']),
@@ -597,7 +605,9 @@ final class ToolStoreTest extends AbstractMcpTestCase
     public function testAddRefusesAnUnconventionalName(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('tool "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.');
+        $this->expectExceptionMessageIs(
+            'tool "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.',
+        );
 
         (new ToolStore())->addTool(
             new Tool(name: 'Project Files', inputSchema: ['type' => 'object']),
@@ -610,7 +620,9 @@ final class ToolStoreTest extends AbstractMcpTestCase
     public function testConstructorRefusesANonConservativeIconSrc(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('tool "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.');
+        $this->expectExceptionMessageIs(
+            'tool "icons.src" must be an HTTP(S) URL or a base64 data: URI, \'ftp://example.com/icon.png\' given.',
+        );
 
         new ToolStore(['t' => new ToolEntry(
             new Tool(
@@ -627,7 +639,9 @@ final class ToolStoreTest extends AbstractMcpTestCase
     public function testAddRefusesANonConservativeIconSrc(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('tool "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.');
+        $this->expectExceptionMessageIs(
+            'tool "icons.src" must be an HTTP(S) URL or a base64 data: URI, \'ftp://example.com/icon.png\' given.',
+        );
 
         (new ToolStore())->addTool(
             new Tool(

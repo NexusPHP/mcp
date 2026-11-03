@@ -103,7 +103,9 @@ final class UntitledMultiSelectEnumSchemaTest extends AbstractMcpTestCase
     public function testConstructorRejectsNonListItems(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('untitled multi-select enum schema "items" must be a list, non-list array given.');
+        $this->expectExceptionMessageIs(
+            'untitled multi-select enum schema "items" must be a list, non-list array given.',
+        );
 
         // @phpstan-ignore argument.type
         new UntitledMultiSelectEnumSchema(items: ['k' => 'v']);
@@ -121,7 +123,9 @@ final class UntitledMultiSelectEnumSchemaTest extends AbstractMcpTestCase
     public function testConstructorRejectsEmptyTitle(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('untitled multi-select enum schema "title" must be a non-empty string or null.');
+        $this->expectExceptionMessageIs(
+            'untitled multi-select enum schema "title" must be a non-empty string or null.',
+        );
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new UntitledMultiSelectEnumSchema(items: ['a'], title: '');
@@ -130,7 +134,9 @@ final class UntitledMultiSelectEnumSchemaTest extends AbstractMcpTestCase
     public function testConstructorRejectsEmptyDescription(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('untitled multi-select enum schema "description" must be a non-empty string or null.');
+        $this->expectExceptionMessageIs(
+            'untitled multi-select enum schema "description" must be a non-empty string or null.',
+        );
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new UntitledMultiSelectEnumSchema(items: ['a'], description: '');
@@ -139,7 +145,9 @@ final class UntitledMultiSelectEnumSchemaTest extends AbstractMcpTestCase
     public function testConstructorRejectsNegativeMinItems(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('untitled multi-select enum schema "minItems" must be a non-negative integer or null.');
+        $this->expectExceptionMessageIs(
+            'untitled multi-select enum schema "minItems" must be a non-negative integer or null.',
+        );
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new UntitledMultiSelectEnumSchema(items: ['a'], minItems: -1);
@@ -148,7 +156,9 @@ final class UntitledMultiSelectEnumSchemaTest extends AbstractMcpTestCase
     public function testConstructorRejectsNegativeMaxItems(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('untitled multi-select enum schema "maxItems" must be a non-negative integer or null.');
+        $this->expectExceptionMessageIs(
+            'untitled multi-select enum schema "maxItems" must be a non-negative integer or null.',
+        );
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new UntitledMultiSelectEnumSchema(items: ['a'], maxItems: -1);
@@ -157,7 +167,9 @@ final class UntitledMultiSelectEnumSchemaTest extends AbstractMcpTestCase
     public function testConstructorRejectsNonListDefault(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('untitled multi-select enum schema "default" must be a list, non-list array given.');
+        $this->expectExceptionMessageIs(
+            'untitled multi-select enum schema "default" must be a list, non-list array given.',
+        );
 
         // @phpstan-ignore argument.type
         new UntitledMultiSelectEnumSchema(items: ['a'], default: ['k' => 'v']);
@@ -222,7 +234,7 @@ final class UntitledMultiSelectEnumSchemaTest extends AbstractMcpTestCase
 
         yield 'items.enum entry not a string' => [
             ['type' => 'array', 'items' => ['type' => 'string', 'enum' => [1]]],
-            'each untitled multi-select enum schema "items.enum" must be a non-empty string, int given.',
+            'each "items.enum" must be a non-empty string, int given.',
         ];
 
         yield 'title not a string' => [

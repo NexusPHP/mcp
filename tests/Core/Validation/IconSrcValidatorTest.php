@@ -63,7 +63,7 @@ final class IconSrcValidatorTest extends AbstractMcpTestCase
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(\sprintf(
-            'tool "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'%s\' given.',
+            'tool "icons.src" must be an HTTP(S) URL or a base64 data: URI, \'%s\' given.',
             $src,
         ));
 
@@ -92,7 +92,9 @@ final class IconSrcValidatorTest extends AbstractMcpTestCase
     public function testEveryIconInTheListIsChecked(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('prompt "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/b.png\' given.');
+        $this->expectExceptionMessageIs(
+            'prompt "icons.src" must be an HTTP(S) URL or a base64 data: URI, \'ftp://example.com/b.png\' given.',
+        );
 
         IconSrcValidator::validate([
             new Icon(src: 'https://example.com/a.png'),

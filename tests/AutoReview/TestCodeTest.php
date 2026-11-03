@@ -65,7 +65,7 @@ final class TestCodeTest extends AbstractMcpTestCase
         self::assertTrue(
             class_exists($expectedTestClassName),
             \sprintf(
-                'Expected test class "%s" for "%s" was not found. Add a same-named test class or reference the source class via #[CoversClass] in some test.',
+                'No test class "%s" found for "%s". Add one by that name or reference it via #[CoversClass].',
                 $expectedTestClassName,
                 $class,
             ),

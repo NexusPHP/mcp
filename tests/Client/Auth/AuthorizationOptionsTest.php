@@ -70,7 +70,9 @@ final class AuthorizationOptionsTest extends AbstractMcpTestCase
     public function testARemoteCleartextRedirectUriIsRefused(): void
     {
         $this->expectException(InsecureAuthorizationEndpointException::class);
-        $this->expectExceptionMessageIs('The redirect URI must be served over HTTPS or from a loopback host, "http://attacker.example.com/cb" given.');
+        $this->expectExceptionMessageIs(
+            'The redirect URI must be served over HTTPS or from a loopback host, "http://attacker.example.com/cb" given.',
+        );
 
         new AuthorizationOptions('Example MCP Client', 'http://attacker.example.com/cb');
     }
@@ -91,7 +93,9 @@ final class AuthorizationOptionsTest extends AbstractMcpTestCase
     public function testAPreRegisteredClientAuthenticatingWithAJwtAssertionIsRefused(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('Pre-registered credentials cannot authenticate with "private_key_jwt". Configure a ClientCredentialsGrant with a PrivateKeyJwtCredential instead.');
+        $this->expectExceptionMessageIs(
+            'Pre-registered credentials cannot use "private_key_jwt". Use ClientCredentialsGrant with PrivateKeyJwtCredential.',
+        );
 
         new AuthorizationOptions(
             'Example MCP Client',

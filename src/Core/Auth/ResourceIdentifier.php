@@ -33,7 +33,7 @@ final readonly class ResourceIdentifier
         $canonical = $this->canonicalise($uri);
 
         Assert::that($canonical)->isArray(\sprintf(
-            'The MCP server resource identifier must be an absolute URI carrying no fragment or userinfo, "%s" given.',
+            'MCP server resource identifier must be an absolute URI without fragment or userinfo, "%s" given.',
             SafeDisplay::sanitiseCause($uri),
         ));
 

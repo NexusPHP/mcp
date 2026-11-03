@@ -136,7 +136,7 @@ final readonly class SkillStore implements SkillStoreInterface
 
             if (\count($skill->files) > Skills::MAX_RESOURCES_PER_SKILL || $bytes > Skills::MAX_BYTES_PER_SKILL) {
                 $logger->warning(
-                    'Skill {uri} exceeds the limits accepted by every host ({files} files, {bytes} bytes), so a host may decline it.',
+                    'Skill {uri} exceeds the limits every host accepts ({files} files, {bytes} bytes).',
                     ['uri' => $entry->uri, 'files' => \count($skill->files), 'bytes' => $bytes],
                 );
             }

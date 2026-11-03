@@ -49,7 +49,7 @@ final class SkillStoreTest extends AbstractMcpTestCase
 {
     private const string FIXTURES = __DIR__.'/../../../../Fixtures/Extension/Skills';
     private const string GIT = 'skill://git-workflow';
-    private const string LIMITS_WARNING = 'Skill {uri} exceeds the limits accepted by every host ({files} files, {bytes} bytes), so a host may decline it.';
+    private const string LIMITS_WARNING = 'Skill {uri} exceeds the limits every host accepts ({files} files, {bytes} bytes).';
 
     private TemporarySkillDirectory $directory;
 
@@ -533,7 +533,9 @@ final class SkillStoreTest extends AbstractMcpTestCase
             $inner = new DirectorySkill('outer/inner', $elsewhere->path);
 
             $this->expectException(\InvalidArgumentException::class);
-            $this->expectExceptionMessageIs('Skill file "skill://outer/inner/SKILL.md" is served with different contents by two skills.');
+            $this->expectExceptionMessageIs(
+                'Skill file "skill://outer/inner/SKILL.md" is served with different contents by two skills.',
+            );
 
             new SkillStore([$outer, $inner]);
         } finally {

@@ -124,7 +124,7 @@ final class JsonRpcMessageParser
         try {
             Assert::that($message)->hasOffset(
                 'method',
-                'JSON-RPC envelope must carry a "method" (request or notification), an "error" (error response), or a "result" (success response).',
+                'JSON-RPC envelope must carry a "method", an "error", or a "result".',
             );
             Assert::that($message['method'])->isNonEmptyString(
                 'JSON-RPC envelope "method" must be a non-empty string, {type} given.',

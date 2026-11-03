@@ -120,7 +120,9 @@ final class MessageDiscriminatorTest extends AbstractMcpTestCase
     public function testDecodeContentBlockRejectsUnknownType(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('prompt message "content" "type" must be one of "text", "image", "audio", "resource_link", "resource", \'unknown\' given.');
+        $this->expectExceptionMessageIs(
+            'prompt message "content" "type" must be one of "text", "image", "audio", "resource_link", "resource", \'unknown\' given.',
+        );
 
         MessageDiscriminator::decodeContentBlock(['type' => 'unknown'], 'prompt message "content"');
     }
@@ -199,7 +201,9 @@ final class MessageDiscriminatorTest extends AbstractMcpTestCase
     public function testDecodeInputRequestRejectsAnUnsupportedMethod(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('each "result.inputRequests" entry must use a supported input-request method, \'sampling/createMessage\' given.');
+        $this->expectExceptionMessageIs(
+            'each "result.inputRequests" entry must use a supported input-request method, \'sampling/createMessage\' given.',
+        );
 
         MessageDiscriminator::decodeInputRequest(['method' => 'sampling/createMessage']);
     }

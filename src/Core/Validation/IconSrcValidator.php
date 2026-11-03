@@ -36,7 +36,7 @@ final class IconSrcValidator
         foreach ($icons ?? [] as $icon) {
             Assert::that($icon->src)->matchesRegularExpression(
                 '/\A(?:https?:\/\/\S+|data:[^,]*;base64,[A-Za-z0-9+\/]+={0,2})\z/',
-                \sprintf('%s "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, {value} given.', $context),
+                \sprintf('%s "icons.src" must be an HTTP(S) URL or a base64 data: URI, {value} given.', $context),
             );
         }
     }

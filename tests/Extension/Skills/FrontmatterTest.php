@@ -95,7 +95,9 @@ final class FrontmatterTest extends AbstractMcpTestCase
 
     public function testAMappingThatWouldEncodeAsAListStaysAnObject(): void
     {
-        $frontmatter = Frontmatter::parse("---\nname: a\ndescription: b\nmetadata: {}\ntags: []\nsteps: {0: plan, 1: ship}\nnested:\n  empty: {}\n---\n");
+        $frontmatter = Frontmatter::parse(
+            "---\nname: a\ndescription: b\nmetadata: {}\ntags: []\nsteps: {0: plan, 1: ship}\nnested:\n  empty: {}\n---\n",
+        );
 
         self::assertSame(
             '{"name":"a","description":"b","metadata":{},"tags":[],"steps":{"0":"plan","1":"ship"},"nested":{"empty":{}}}',

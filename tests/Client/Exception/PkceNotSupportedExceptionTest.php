@@ -29,7 +29,7 @@ final class PkceNotSupportedExceptionTest extends AbstractMcpTestCase
     public function testMessageNamesTheAuthorizationServer(): void
     {
         self::assertSame(
-            'The authorization server "https://auth.example.com" does not advertise the S256 code challenge method, so authorization cannot proceed.',
+            'The authorization server "https://auth.example.com" does not advertise PKCE S256, so authorization cannot proceed.',
             (new PkceNotSupportedException('https://auth.example.com'))->getMessage(),
         );
     }
@@ -38,7 +38,7 @@ final class PkceNotSupportedExceptionTest extends AbstractMcpTestCase
     {
         self::assertSame(
             \sprintf(
-                'The authorization server "%s..." does not advertise the S256 code challenge method, so authorization cannot proceed.',
+                'The authorization server "%s..." does not advertise PKCE S256, so authorization cannot proceed.',
                 str_repeat('i', 253),
             ),
             (new PkceNotSupportedException(str_repeat('i', 300)."\x1b"))->getMessage(),

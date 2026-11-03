@@ -183,7 +183,7 @@ final class LegacyTitledEnumSchemaTest extends AbstractMcpTestCase
 
         yield 'enum entry not a string' => [
             ['type' => 'string', 'enum' => [1]],
-            'each legacy titled enum schema "enum" must be a non-empty string, int given.',
+            'each legacy enum "enum" must be a non-empty string, int given.',
         ];
 
         yield 'title not a string' => [
@@ -203,7 +203,7 @@ final class LegacyTitledEnumSchemaTest extends AbstractMcpTestCase
 
         yield 'enumNames entry not a string' => [
             ['type' => 'string', 'enum' => ['a'], 'enumNames' => [1]],
-            'each legacy titled enum schema "enumNames" must be a non-empty string, int given.',
+            'each legacy enum "enumNames" must be a non-empty string, int given.',
         ];
 
         yield 'default not a string' => [

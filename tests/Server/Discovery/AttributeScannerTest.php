@@ -62,7 +62,7 @@ final class AttributeScannerTest extends AbstractMcpTestCase
     {
         $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs(\sprintf(
-            '%s::__construct() is a magic method and cannot be a #[AsTool] handler. Move the attribute to a regular public method.',
+            '%s::__construct() is a magic method and cannot be a #[AsTool] handler. Use a regular public method.',
             ConstructorMarkedTool::class,
         ));
 
@@ -74,7 +74,7 @@ final class AttributeScannerTest extends AbstractMcpTestCase
     {
         $this->expectException(LogicException::class);
         $this->expectExceptionMessageMatches(\sprintf(
-            '/ is a magic method and cannot be a #\[%s\] handler\. Move the attribute to a regular public method\.$/',
+            '/ is a magic method and cannot be a #\[%s\] handler\. Use a regular public method\.$/',
             $attribute,
         ));
 
@@ -331,7 +331,7 @@ final class AttributeScannerTest extends AbstractMcpTestCase
     public function testVariadicPromptParameterIsRejected(): void
     {
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageMatches('/^\S+\:\:brief\(\) declares a variadic parameter "\$topics"\./');
+        $this->expectExceptionMessageMatches('/^\S+\:\:brief\(\) declares variadic parameter "\$topics",/');
 
         $source = new class {
             #[AsPrompt(description: 'A prompt.')]
@@ -346,7 +346,7 @@ final class AttributeScannerTest extends AbstractMcpTestCase
     public function testVariadicResourceParameterIsRejected(): void
     {
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageMatches('/^\S+\:\:notes\(\) declares a variadic parameter "\$ids"\./');
+        $this->expectExceptionMessageMatches('/^\S+\:\:notes\(\) declares variadic parameter "\$ids",/');
 
         $source = new class {
             #[AsResource(uri: 'mem://notes')]
@@ -361,7 +361,7 @@ final class AttributeScannerTest extends AbstractMcpTestCase
     public function testVariadicResourceTemplateParameterIsRejected(): void
     {
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageMatches('/^\S+\:\:note\(\) declares a variadic parameter "\$ids"\./');
+        $this->expectExceptionMessageMatches('/^\S+\:\:note\(\) declares variadic parameter "\$ids",/');
 
         $source = new class {
             #[AsResourceTemplate(uriTemplate: 'mem://notes/{id}')]
@@ -502,7 +502,9 @@ final class AttributeScannerTest extends AbstractMcpTestCase
     public function testUnsupportedResourceParameterTypeIsRejected(): void
     {
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageMatches('/^\S+\:\:config\(\) declares parameter "\$uri" of unsupported type "int"\. It is bound from a string value\./');
+        $this->expectExceptionMessageMatches(
+            '/^\S+\:\:config\(\) declares parameter "\$uri" of unsupported type "int"\. It is bound from a string value\./',
+        );
 
         $source = new class {
             #[AsResource(uri: 'mem://config')]
@@ -517,7 +519,9 @@ final class AttributeScannerTest extends AbstractMcpTestCase
     public function testATemplateVariableNamedUriIsRejected(): void
     {
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageMatches('/^\S+\:\:doc\(\) declares template variable "\{uri\}", which is reserved for the injected request URI\. Rename the variable\.$/');
+        $this->expectExceptionMessageMatches(
+            '/^\S+\:\:doc\(\) declares template variable "\{uri\}", which is reserved for the request URI\. Rename it\.$/',
+        );
 
         $source = new class {
             #[AsResourceTemplate(uriTemplate: 'res://{uri}')]
@@ -532,7 +536,9 @@ final class AttributeScannerTest extends AbstractMcpTestCase
     public function testUnsupportedResourceTemplateParameterTypeIsRejected(): void
     {
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageMatches('/^\S+\:\:profile\(\) declares parameter "\$id" of unsupported type "int"\. It is bound from a string value\./');
+        $this->expectExceptionMessageMatches(
+            '/^\S+\:\:profile\(\) declares parameter "\$id" of unsupported type "int"\. It is bound from a string value\./',
+        );
 
         $source = new class {
             #[AsResourceTemplate(uriTemplate: 'users://{id}')]
@@ -642,7 +648,9 @@ final class AttributeScannerTest extends AbstractMcpTestCase
         };
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageMatches('/^\S+::complete\(\) declares parameter "\$limit" of unsupported type "int"\. It is bound from a string value\.$/');
+        $this->expectExceptionMessageMatches(
+            '/^\S+::complete\(\) declares parameter "\$limit" of unsupported type "int"\. It is bound from a string value\.$/',
+        );
 
         iterator_to_array((new AttributeScanner())->scan($source), false);
     }
@@ -715,7 +723,9 @@ final class AttributeScannerTest extends AbstractMcpTestCase
         };
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageMatches('/^class@anonymous.*::complete\(\) declares an invalid #\[AsCompletion\] attribute: it must name the completed "prompt" or "uriTemplate"\.$/');
+        $this->expectExceptionMessageMatches(
+            '/^class@anonymous.*::complete\(\) declares an invalid #\[AsCompletion\] attribute: it must name the completed "prompt" or "uriTemplate"\.$/',
+        );
 
         iterator_to_array((new AttributeScanner())->scan($source), false);
     }
@@ -734,7 +744,9 @@ final class AttributeScannerTest extends AbstractMcpTestCase
         };
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageMatches('/^class@anonymous.*::complete\(\) declares an invalid #\[AsCompletion\] attribute: it must name either a "prompt" or a "uriTemplate", not both\.$/');
+        $this->expectExceptionMessageMatches(
+            '/^class@anonymous.*::complete\(\) declares an invalid #\[AsCompletion\] attribute: it must name either a "prompt" or a "uriTemplate", not both\.$/',
+        );
 
         iterator_to_array((new AttributeScanner())->scan($source), false);
     }
@@ -753,7 +765,9 @@ final class AttributeScannerTest extends AbstractMcpTestCase
         };
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageMatches('/^class@anonymous.*::complete\(\) declares an invalid #\[AsCompletion\] attribute: its "argument" must be a non-empty string\.$/');
+        $this->expectExceptionMessageMatches(
+            '/^class@anonymous.*::complete\(\) declares an invalid #\[AsCompletion\] attribute: its "argument" must be a non-empty string\.$/',
+        );
 
         iterator_to_array((new AttributeScanner())->scan($source), false);
     }
@@ -772,7 +786,9 @@ final class AttributeScannerTest extends AbstractMcpTestCase
         };
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageMatches('/^class@anonymous.*::complete\(\) declares an invalid #\[AsCompletion\] attribute: it must name the completed "prompt" or "uriTemplate"\.$/');
+        $this->expectExceptionMessageMatches(
+            '/^class@anonymous.*::complete\(\) declares an invalid #\[AsCompletion\] attribute: it must name the completed "prompt" or "uriTemplate"\.$/',
+        );
 
         iterator_to_array((new AttributeScanner())->scan($source), false);
     }

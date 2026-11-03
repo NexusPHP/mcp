@@ -67,7 +67,9 @@ final class HandlerRegistryTest extends AbstractMcpTestCase
     public function testConstructorRejectsValueNotImplementingHandlerInterface(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches('/^Request handler registry value must implement .+RequestHandlerInterface\'\\.$/');
+        $this->expectExceptionMessageMatches(
+            '/^Request handler registry value must implement .+RequestHandlerInterface\'\\.$/',
+        );
 
         new HandlerRegistry(
             [DiscoverRequest::getMethod() => new \stdClass()],
@@ -92,7 +94,9 @@ final class HandlerRegistryTest extends AbstractMcpTestCase
     public function testNotificationHandlerBindingRejectsNonHandlerValue(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches('/^Notification handler registry value must implement .+NotificationHandlerInterface\'\\.$/');
+        $this->expectExceptionMessageMatches(
+            '/^Notification handler registry value must implement .+NotificationHandlerInterface\'\\.$/',
+        );
 
         new HandlerRegistry(
             [ToolListChangedNotification::getMethod() => new \stdClass()],

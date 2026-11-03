@@ -50,7 +50,7 @@ abstract class AbstractRoundTripTestCase extends AbstractMcpTestCase
             $jsonString,
             $reEncoded,
             \sprintf(
-                'Canonical shape for "%s/%s" does not round-trip. Fixture is the source of truth: either the schema class\'s `toArray`/`jsonSerialize` drifted from the spec, or the fixture needs updating.',
+                'Canonical shape for "%s/%s" does not round-trip: fix the schema class or update the fixture.',
                 $dir,
                 basename($fixturePath, '.json'),
             ),
@@ -65,7 +65,7 @@ abstract class AbstractRoundTripTestCase extends AbstractMcpTestCase
                 $reEncoded,
                 json_encode($instance->toArray(), self::JSON_FLAGS | \JSON_THROW_ON_ERROR),
                 \sprintf(
-                    'Encoding paths diverge for "%s/%s": `json_encode($instance)` (via `jsonSerialize`) does not match `json_encode($instance->toArray())`. Either fix `toArray()` so the two paths agree, or set "encodingPathsDiverge" => true on the registry entry when `jsonSerialize` intentionally substitutes `\stdClass` for an empty object slot that `toArray` returns as `[]`.',
+                    'Encoding paths diverge for "%s/%s". Fix `toArray()` or set "encodingPathsDiverge" => true.',
                     $dir,
                     basename($fixturePath, '.json'),
                 ),
@@ -132,7 +132,7 @@ abstract class AbstractRoundTripTestCase extends AbstractMcpTestCase
             [],
             $orphans,
             \sprintf(
-                'Fixture directories without a matching entry in static::registry(): %s. Either register them or remove the directory.',
+                'Fixture directories without a registry() entry: %s. Register them or remove the directory.',
                 implode(', ', $orphans),
             ),
         );

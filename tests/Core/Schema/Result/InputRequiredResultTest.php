@@ -206,7 +206,9 @@ final class InputRequiredResultTest extends AbstractMcpTestCase
     public function testFromArrayRejectsUnsupportedInputRequestMethod(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('each "result.inputRequests" entry must use a supported input-request method, \'sampling/createMessage\' given.');
+        $this->expectExceptionMessageIs(
+            'each "result.inputRequests" entry must use a supported input-request method, \'sampling/createMessage\' given.',
+        );
 
         InputRequiredResult::fromArray([
             'resultType' => 'input_required',
@@ -217,7 +219,9 @@ final class InputRequiredResultTest extends AbstractMcpTestCase
     public function testFromArraySanitisesNonScalarInputRequestMethod(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('each "result.inputRequests" entry must use a supported input-request method, array (\x0a  0 => \'nested\',\x0a) given.');
+        $this->expectExceptionMessageIs(
+            'each "result.inputRequests" entry must use a supported input-request method, array (\x0a  0 => \'nested\',\x0a) given.',
+        );
 
         InputRequiredResult::fromArray([
             'resultType' => 'input_required',

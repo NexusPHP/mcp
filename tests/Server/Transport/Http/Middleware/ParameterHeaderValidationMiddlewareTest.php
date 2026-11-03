@@ -306,7 +306,7 @@ final class ParameterHeaderValidationMiddlewareTest extends AbstractMcpTestCase
 
         $matches = $logger->recordsMatching(
             LogLevel::WARNING,
-            'Tool {tool} declares an invalid "x-mcp-header", so only its {checked} valid declarations are checked.',
+            'Tool {tool} declares an invalid "x-mcp-header", so only {checked} valid ones are checked.',
         );
         self::assertCount(1, $matches);
         self::assertSame('broken', $matches[0]['context']['tool'] ?? null);
@@ -347,7 +347,7 @@ final class ParameterHeaderValidationMiddlewareTest extends AbstractMcpTestCase
         self::assertSame(200, $response->getStatusCode());
         $matches = $logger->recordsMatching(
             LogLevel::WARNING,
-            'Tool {tool} declares an invalid "x-mcp-header", so only its {checked} valid declarations are checked.',
+            'Tool {tool} declares an invalid "x-mcp-header", so only {checked} valid ones are checked.',
         );
         self::assertCount(1, $matches);
         self::assertSame(0, $matches[0]['context']['checked'] ?? null);

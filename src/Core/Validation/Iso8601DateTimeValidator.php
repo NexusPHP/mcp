@@ -39,7 +39,7 @@ final class Iso8601DateTimeValidator
     {
         if (preg_match(self::RFC3339_PATTERN, $value, $matches) !== 1) {
             throw new \InvalidArgumentException(\sprintf(
-                '%s must be an RFC 3339 datetime: "YYYY-MM-DDThh:mm:ss", an optional "." fraction, then "Z" or "+hh:mm"/"-hh:mm".',
+                '%s must be an RFC 3339 datetime, e.g. "2026-01-02T03:04:05Z" or "...+hh:mm".',
                 $context,
             ));
         }

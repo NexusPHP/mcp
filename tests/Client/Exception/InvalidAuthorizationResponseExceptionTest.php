@@ -29,7 +29,7 @@ final class InvalidAuthorizationResponseExceptionTest extends AbstractMcpTestCas
     public function testMessageAppendsTheReason(): void
     {
         self::assertSame(
-            'The authorization response cannot be used because it carries no authorization code.',
+            'Unusable authorization response: it carries no authorization code.',
             (new InvalidAuthorizationResponseException('it carries no authorization code.'))->getMessage(),
         );
     }

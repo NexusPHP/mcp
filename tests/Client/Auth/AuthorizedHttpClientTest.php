@@ -761,7 +761,9 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
         $user = new ScriptedUserAuthorization();
 
         $this->expectException(InsufficientScopeException::class);
-        $this->expectExceptionMessageIs('The MCP server named only scopes that are not RFC 6749 scope-tokens, so none can be requested.');
+        $this->expectExceptionMessageIs(
+            'The MCP server named only scopes that are not RFC 6749 scope-tokens, so none can be requested.',
+        );
 
         $this->buildClient(
             $http,
@@ -1310,7 +1312,9 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     public function testAClientWithNeitherAUserAuthorizationNorAGrantStrategyIsRefused(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('The client needs a user authorization or a grant strategy to obtain tokens, and neither was given.');
+        $this->expectExceptionMessageIs(
+            'The client needs a user authorization or a grant strategy to obtain tokens, and neither was given.',
+        );
 
         new AuthorizedHttpClient(
             self::RESOURCE,
@@ -1323,7 +1327,9 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     public function testAUserAuthorizationWithoutARedirectUriIsRefused(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('A user authorization needs a redirect URI, and the authorization options carry none.');
+        $this->expectExceptionMessageIs(
+            'A user authorization needs a redirect URI, and the authorization options carry none.',
+        );
 
         new AuthorizedHttpClient(
             self::RESOURCE,
@@ -1336,7 +1342,9 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
     public function testAClientWithBothAUserAuthorizationAndAGrantStrategyIsRefused(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('A user authorization and a grant strategy were both given, and the client can run only one.');
+        $this->expectExceptionMessageIs(
+            'A user authorization and a grant strategy were both given, and the client can run only one.',
+        );
 
         new AuthorizedHttpClient(
             self::RESOURCE,

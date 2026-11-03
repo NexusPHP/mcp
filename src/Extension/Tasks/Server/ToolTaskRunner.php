@@ -155,7 +155,7 @@ final class ToolTaskRunner
                         $taskId,
                         ErrorFactory::create(
                             ProtocolErrorCode::InternalError,
-                            'The tool parked the task with a "requestState" that does not verify under the server\'s signer.',
+                            'The tool parked the task with a "requestState" the server cannot verify.',
                         )->toArray(),
                     );
                 } else {

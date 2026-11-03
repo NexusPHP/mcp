@@ -126,7 +126,7 @@ final class ElicitResultTest extends AbstractMcpTestCase
     public function testConstructorRejectsNonScalarContentValue(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('elicit result "x" must be a string, int, float, bool, or list of strings, non-list array given.');
+        $this->expectExceptionMessageIs('elicit result "x" must be a scalar or a list of strings, array given.');
 
         // @phpstan-ignore argument.type
         new ElicitResult(action: ElicitAction::Accept, content: ['x' => ['k' => 'v']]);
@@ -153,7 +153,7 @@ final class ElicitResultTest extends AbstractMcpTestCase
     public function testConstructorRejectsListWithNonStringEntries(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('each elicit result "x" list entry must be a string, int given.');
+        $this->expectExceptionMessageIs('each "x" list entry must be a string, int given.');
 
         // @phpstan-ignore argument.type
         new ElicitResult(action: ElicitAction::Accept, content: ['x' => [1, 2]]);
@@ -198,12 +198,12 @@ final class ElicitResultTest extends AbstractMcpTestCase
 
         yield 'content entry nested object' => [
             ['action' => 'accept', 'content' => ['x' => ['k' => 'v']]],
-            'elicit result "content entry x" must be a string, int, float, bool, or list of strings, non-list array given.',
+            'elicit result "content entry x" must be a scalar or a list of strings, array given.',
         ];
 
         yield 'content entry list with non-string' => [
             ['action' => 'accept', 'content' => ['x' => [1]]],
-            'each elicit result "content entry x" list entry must be a string, int given.',
+            'each "content entry x" list entry must be a string, int given.',
         ];
     }
 }

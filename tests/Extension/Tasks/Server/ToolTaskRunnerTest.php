@@ -62,7 +62,9 @@ final class ToolTaskRunnerTest extends AbstractMcpTestCase
         $runner = new ToolTaskRunner(new InMemoryTaskStore(), new TaskCancellationRegistry(), new ArrayLogger());
 
         $this->expectException(\LogicException::class);
-        $this->expectExceptionMessageIs('The tasks broker has not been applied, so no tool handler can serve the task.');
+        $this->expectExceptionMessageIs(
+            'The tasks broker has not been applied, so no tool handler can serve the task.',
+        );
 
         $runner->startTask('task-1', $this->buildRequest(), $this->buildContext(), null, null);
     }
@@ -170,7 +172,7 @@ final class ToolTaskRunnerTest extends AbstractMcpTestCase
         self::assertSame(
             [
                 'code' => -32_603,
-                'message' => 'The tool parked the task with a "requestState" that does not verify under the server\'s signer.',
+                'message' => 'The tool parked the task with a "requestState" the server cannot verify.',
             ],
             $record->error,
         );

@@ -287,7 +287,10 @@ final class InMemoryTaskStore implements OwnedTaskStoreInterface
         }
 
         if ($this->hasOverstayed($record, $nowMs)) {
-            $error = ErrorFactory::create(ProtocolErrorCode::InternalError, 'The task did not settle within its ttl.')->toArray();
+            $error = ErrorFactory::create(
+                ProtocolErrorCode::InternalError,
+                'The task did not settle within its ttl.',
+            )->toArray();
 
             return $this->replaceRecord(
                 $record,

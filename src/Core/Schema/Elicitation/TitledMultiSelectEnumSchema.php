@@ -53,7 +53,7 @@ final readonly class TitledMultiSelectEnumSchema implements MultiSelectEnumSchem
     ) {
         Assert::that($items)
             ->isList('titled multi-select enum schema "items" must be a list, non-list array given.')
-            ->values()->isInstanceOf(EnumOption::class, 'each titled multi-select enum schema "items" must be an enum option, {type} given.')
+            ->values()->isInstanceOf(EnumOption::class, 'each "items" must be an enum option, {type} given.')
         ;
         Assert::that($title)->nullOr()->isNonEmptyString(
             'titled multi-select enum schema "title" must be a non-empty string or null.',

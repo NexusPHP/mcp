@@ -128,7 +128,9 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
     public function testAnUnusableResourceIsRefusedAtConstruction(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('The MCP server resource identifier must be an absolute URI carrying no fragment or userinfo, "not a uri" given.');
+        $this->expectExceptionMessageIs(
+            'MCP server resource identifier must be an absolute URI without fragment or userinfo, "not a uri" given.',
+        );
 
         new JwksAccessTokenValidator([self::KID => new Key(self::SECRET, 'HS256')], self::ISSUER, 'not a uri');
     }

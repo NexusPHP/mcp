@@ -361,7 +361,9 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
     public function testParseRejectsEmptyStringIdWithTypedResultAsInvalidRequest(): void
     {
         $this->expectException(InvalidRequestException::class);
-        $this->expectExceptionMessageIs('Invalid success response: "id" must be an int or non-empty string, string given.');
+        $this->expectExceptionMessageIs(
+            'Invalid success response: "id" must be an int or non-empty string, string given.',
+        );
 
         $parser = new JsonRpcMessageParser();
         $parser->parse(['jsonrpc' => '2.0', 'id' => '', 'result' => []], CallToolResultResponse::class);
@@ -441,7 +443,9 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
     public function testParseRejectsMissingVersion(): void
     {
         $this->expectException(InvalidRequestException::class);
-        $this->expectExceptionMessageIs('Invalid JSON-RPC version: expected "2.0", got null for method \'tests/test-request\'.');
+        $this->expectExceptionMessageIs(
+            'Invalid JSON-RPC version: expected "2.0", got null for method \'tests/test-request\'.',
+        );
 
         $parser = new JsonRpcMessageParser();
         $parser->parse(['id' => 1, 'method' => 'tests/test-request']);
@@ -547,7 +551,9 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
     public function testParseRejectsAMethodCarryingAResponsePayloadWithoutAnId(): void
     {
         $this->expectException(InvalidRequestException::class);
-        $this->expectExceptionMessageIs('JSON-RPC envelope must not carry a "method" together with a "result" or an "error".');
+        $this->expectExceptionMessageIs(
+            'JSON-RPC envelope must not carry a "method" together with a "result" or an "error".',
+        );
 
         $parser = new JsonRpcMessageParser();
         $parser->parse(['jsonrpc' => '2.0', 'method' => 'tools/list', 'result' => null]);
@@ -565,7 +571,9 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
     public function testParseRejectsNonScalarIdOnResultEnvelopeEvenWhenResultClassOmitted(): void
     {
         $this->expectException(InvalidRequestException::class);
-        $this->expectExceptionMessageIs('Invalid success response: "id" must be an int or non-empty string, array given.');
+        $this->expectExceptionMessageIs(
+            'Invalid success response: "id" must be an int or non-empty string, array given.',
+        );
 
         $parser = new JsonRpcMessageParser();
         $parser->parse(['jsonrpc' => '2.0', 'id' => [], 'result' => []]);
@@ -593,7 +601,9 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
     public function testParseRejectsResultResponseWithBadIdType(): void
     {
         $this->expectException(InvalidRequestException::class);
-        $this->expectExceptionMessageIs('Invalid success response: "id" must be an int or non-empty string, array given.');
+        $this->expectExceptionMessageIs(
+            'Invalid success response: "id" must be an int or non-empty string, array given.',
+        );
 
         $parser = new JsonRpcMessageParser();
         $parser->parse(['jsonrpc' => '2.0', 'id' => [], 'result' => []], CallToolResultResponse::class);

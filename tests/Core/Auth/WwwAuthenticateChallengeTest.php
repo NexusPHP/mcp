@@ -227,7 +227,9 @@ final class WwwAuthenticateChallengeTest extends AbstractMcpTestCase
 
     public function testParseAllStripsControlOctetsFromAQuotedValue(): void
     {
-        $challenges = WwwAuthenticateChallenge::parseAll("Bearer scope=\"mcp:use \x1b[2K\x1b[1GFORGED-ADMIN-GRANT\x07\", realm=\"a\rb\nc\x7Fd\"");
+        $challenges = WwwAuthenticateChallenge::parseAll(
+            "Bearer scope=\"mcp:use \x1b[2K\x1b[1GFORGED-ADMIN-GRANT\x07\", realm=\"a\rb\nc\x7Fd\"",
+        );
 
         self::assertCount(1, $challenges);
         self::assertSame('mcp:use [2K[1GFORGED-ADMIN-GRANT', $challenges[0]->readParameter('scope'));

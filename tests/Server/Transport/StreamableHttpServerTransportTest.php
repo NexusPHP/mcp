@@ -451,7 +451,7 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
         self::assertSame([], $received, 'A foreign id space must never reach the cancellation registry.');
         $records = $logger->recordsMatching(
             LogLevel::DEBUG,
-            'Streamable HTTP server transport ignored a client cancellation notification: the response stream is the signal on this transport.',
+            'Streamable HTTP transport ignored a cancellation notification: the response stream signals it.',
         );
         self::assertCount(1, $records);
         self::assertSame([], $records[0]['context']);
@@ -1101,7 +1101,7 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
 
         $records = $logger->recordsMatching(
             LogLevel::ERROR,
-            'Streamable HTTP server transport replaced a response JSON cannot encode with an internal error: {reason}.',
+            'Streamable HTTP server transport replaced an unencodable response with an internal error: {reason}.',
         );
         self::assertCount(1, $records);
         self::assertSame([
@@ -2057,7 +2057,7 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
         self::assertCount(1, $cancelled, 'An overflowed stream abandons its request as a disconnect would.');
         $records = $logger->recordsMatching(
             LogLevel::WARNING,
-            'Streamable HTTP server transport abandoned a stream whose reader fell at least {limit} bytes behind.',
+            'Streamable HTTP transport abandoned a stream whose reader fell {limit} bytes behind.',
         );
         self::assertCount(1, $records);
         self::assertSame(['limit' => 1], $records[0]['context']);

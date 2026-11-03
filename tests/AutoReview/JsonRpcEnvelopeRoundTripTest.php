@@ -103,7 +103,7 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
             [],
             $missing,
             \sprintf(
-                'Concrete Result subclasses without a result-response fixture set: %s. Add fixtures under envelope-shapes/{ResultShortName}/ and register in self::registry().',
+                'Result subclasses without fixtures: %s. Add envelope-shapes/{ResultShortName}/ and register them.',
                 implode(', ', $missing),
             ),
         );
@@ -135,7 +135,7 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
             $payload,
             $rebuiltPayload,
             \sprintf(
-                'Rebuilding %s with a new `_meta` dropped or reordered part of the result. Its rebuildWithMeta() must carry every field the constructor takes.',
+                'Rebuilding %s with a new `_meta` lost part of the result. rebuildWithMeta() must carry every field.',
                 $resultClass,
             ),
         );
@@ -144,7 +144,7 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
             $result->meta::class,
             $rebuilt->meta,
             \sprintf(
-                'Rebuilding %s widened its `_meta` type. A result whose method names a narrower `_meta` must rebuild into that same type.',
+                'Rebuilding %s widened its `_meta` type. Rebuild into the narrower `_meta` the method names.',
                 $resultClass,
             ),
         );
@@ -185,7 +185,7 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
             [],
             $missing,
             \sprintf(
-                'Concrete Error subclasses without a JsonRpcErrorResponse fixture set: %s. Add fixtures under envelope-shapes/JsonRpcErrorResponse-{ShortName}/ and register in self::registry().',
+                'Error subclasses without fixtures: %s. Add envelope-shapes/JsonRpcErrorResponse-{ShortName}/.',
                 implode(', ', $missing),
             ),
         );
@@ -484,7 +484,7 @@ final class JsonRpcEnvelopeRoundTripTest extends AbstractRoundTripTestCase
             [],
             $missing,
             \sprintf(
-                'Concrete %s without envelope fixtures: %s. Add fixtures under envelope-shapes/{ShortName}/ and register in self::registry().',
+                'Concrete %s without fixtures: %s. Add envelope-shapes/{ShortName}/ and register them.',
                 $label,
                 implode(', ', $missing),
             ),

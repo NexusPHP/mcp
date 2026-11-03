@@ -84,7 +84,9 @@ final class UntitledSingleSelectEnumSchemaTest extends AbstractMcpTestCase
     public function testConstructorRejectsNonListEnum(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('untitled single select enum schema "enum" must be a list, non-list array given.');
+        $this->expectExceptionMessageIs(
+            'untitled single select enum schema "enum" must be a list, non-list array given.',
+        );
 
         // @phpstan-ignore argument.type
         new UntitledSingleSelectEnumSchema(enum: ['k' => 'v']);
@@ -102,7 +104,9 @@ final class UntitledSingleSelectEnumSchemaTest extends AbstractMcpTestCase
     public function testConstructorRejectsEmptyTitle(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('untitled single select enum schema "title" must be a non-empty string or null.');
+        $this->expectExceptionMessageIs(
+            'untitled single select enum schema "title" must be a non-empty string or null.',
+        );
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new UntitledSingleSelectEnumSchema(enum: ['a'], title: '');
@@ -111,7 +115,9 @@ final class UntitledSingleSelectEnumSchemaTest extends AbstractMcpTestCase
     public function testConstructorRejectsEmptyDescription(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('untitled single select enum schema "description" must be a non-empty string or null.');
+        $this->expectExceptionMessageIs(
+            'untitled single select enum schema "description" must be a non-empty string or null.',
+        );
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new UntitledSingleSelectEnumSchema(enum: ['a'], description: '');
@@ -156,7 +162,7 @@ final class UntitledSingleSelectEnumSchemaTest extends AbstractMcpTestCase
 
         yield 'enum entry not a string' => [
             ['type' => 'string', 'enum' => [1]],
-            'each untitled single select enum schema "enum" must be a non-empty string, int given.',
+            'each untitled single select "enum" must be a non-empty string, int given.',
         ];
 
         yield 'title not a string' => [

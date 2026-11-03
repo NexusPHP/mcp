@@ -29,7 +29,7 @@ final class UntrustedAuthorizationMetadataExceptionTest extends AbstractMcpTestC
     public function testMessageAppendsTheReason(): void
     {
         self::assertSame(
-            'The authorization metadata cannot be trusted because the issuer does not match.',
+            'Untrusted authorization metadata: the issuer does not match.',
             (new UntrustedAuthorizationMetadataException('the issuer does not match.'))->getMessage(),
         );
     }

@@ -31,7 +31,7 @@ final class ServerCapabilityNotSupportedExceptionTest extends AbstractMcpTestCas
         $exception = new ServerCapabilityNotSupportedException('tools/call');
 
         self::assertSame(
-            'Request method "tools/call" requires a server capability that was not advertised by server/discover. Check getServerCapabilities() before calling.',
+            'Request method "tools/call" needs a server capability that server/discover did not advertise.',
             $exception->getMessage(),
         );
     }

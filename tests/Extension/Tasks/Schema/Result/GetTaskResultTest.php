@@ -484,7 +484,9 @@ final class GetTaskResultTest extends AbstractMcpTestCase
     public function testFromArrayRejectsUnsupportedInputRequestMethod(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('each "result.inputRequests" entry must use a supported input-request method, \'sampling/createMessage\' given.');
+        $this->expectExceptionMessageIs(
+            'each "result.inputRequests" entry must use a supported input-request method, \'sampling/createMessage\' given.',
+        );
 
         GetTaskResult::fromArray([
             'taskId' => 'task-1',

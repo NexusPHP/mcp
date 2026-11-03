@@ -108,7 +108,9 @@ final class TitledMultiSelectEnumSchemaTest extends AbstractMcpTestCase
     public function testConstructorRejectsNonListItems(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('titled multi-select enum schema "items" must be a list, non-list array given.');
+        $this->expectExceptionMessageIs(
+            'titled multi-select enum schema "items" must be a list, non-list array given.',
+        );
 
         // @phpstan-ignore argument.type
         new TitledMultiSelectEnumSchema(items: ['k' => new EnumOption(const: 'a', title: 'A')]);
@@ -134,7 +136,9 @@ final class TitledMultiSelectEnumSchemaTest extends AbstractMcpTestCase
     public function testConstructorRejectsEmptyDescription(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('titled multi-select enum schema "description" must be a non-empty string or null.');
+        $this->expectExceptionMessageIs(
+            'titled multi-select enum schema "description" must be a non-empty string or null.',
+        );
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new TitledMultiSelectEnumSchema(items: [new EnumOption(const: 'r', title: 'Read')], description: '');
@@ -143,7 +147,9 @@ final class TitledMultiSelectEnumSchemaTest extends AbstractMcpTestCase
     public function testConstructorRejectsNegativeMinItems(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('titled multi-select enum schema "minItems" must be a non-negative integer or null.');
+        $this->expectExceptionMessageIs(
+            'titled multi-select enum schema "minItems" must be a non-negative integer or null.',
+        );
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new TitledMultiSelectEnumSchema(items: [new EnumOption(const: 'r', title: 'Read')], minItems: -1);
@@ -152,7 +158,9 @@ final class TitledMultiSelectEnumSchemaTest extends AbstractMcpTestCase
     public function testConstructorRejectsNegativeMaxItems(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('titled multi-select enum schema "maxItems" must be a non-negative integer or null.');
+        $this->expectExceptionMessageIs(
+            'titled multi-select enum schema "maxItems" must be a non-negative integer or null.',
+        );
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new TitledMultiSelectEnumSchema(items: [new EnumOption(const: 'r', title: 'Read')], maxItems: -1);
@@ -161,7 +169,9 @@ final class TitledMultiSelectEnumSchemaTest extends AbstractMcpTestCase
     public function testConstructorRejectsNonListDefault(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('titled multi-select enum schema "default" must be a list, non-list array given.');
+        $this->expectExceptionMessageIs(
+            'titled multi-select enum schema "default" must be a list, non-list array given.',
+        );
 
         // @phpstan-ignore argument.type
         new TitledMultiSelectEnumSchema(items: [new EnumOption(const: 'r', title: 'Read')], default: ['k' => 'v']);

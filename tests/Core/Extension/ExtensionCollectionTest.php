@@ -126,7 +126,9 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
         $collection = new ExtensionCollection();
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('Extension "com.example/feature" may only decorate spec-registry request methods, and \'acme/lookup\' is not one.');
+        $this->expectExceptionMessageIs(
+            'Extension "com.example/feature" may only decorate spec-registry request methods, not \'acme/lookup\'.',
+        );
 
         $collection->add(new StubExtension(identifier: 'com.example/feature'), requestDecorators: [
             'acme/lookup' => static fn(RequestHandlerInterface $handler): RequestHandlerInterface => $handler,
@@ -244,7 +246,7 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(\sprintf(
-            'Extension identifier must be "{vendor-prefix}/{name}" following the "_meta" key grammar with a mandatory prefix, %s given.',
+            'Extension identifier must be "{vendor-prefix}/{name}" in the "_meta" key grammar, %s given.',
             $exported,
         ));
 
@@ -317,7 +319,9 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
     public function testAddRejectsARequestClassWithoutTheClientMarkerWhenRequired(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('Extension "com.example/feature" request class "Nexus\Mcp\Tests\Fixtures\Core\TestRequest" must implement "Nexus\Mcp\Core\Schema\Request\ClientRequest" for the server to dispatch it.');
+        $this->expectExceptionMessageIs(
+            'Extension "com.example/feature" request class "Nexus\Mcp\Tests\Fixtures\Core\TestRequest" must implement "Nexus\Mcp\Core\Schema\Request\ClientRequest" for the server to dispatch it.',
+        );
 
         (new ExtensionCollection())->add(
             new StubExtension(
@@ -343,7 +347,9 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
     public function testAddRejectsARequestClassWithoutAHandler(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('Extension "com.example/feature" must declare its request classes and request handlers under the same method keys.');
+        $this->expectExceptionMessageIs(
+            'Extension "com.example/feature" request classes and request handlers must share method keys.',
+        );
 
         (new ExtensionCollection())->add(new StubExtension(
             identifier: 'com.example/feature',
@@ -354,7 +360,9 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
     public function testAddRejectsARequestHandlerWithoutAClass(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('Extension "com.example/feature" must declare its request classes and request handlers under the same method keys.');
+        $this->expectExceptionMessageIs(
+            'Extension "com.example/feature" request classes and request handlers must share method keys.',
+        );
 
         (new ExtensionCollection())->add(new StubExtension(
             identifier: 'com.example/feature',
@@ -365,7 +373,9 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
     public function testAddRejectsANotificationClassWithoutAHandler(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('Extension "com.example/feature" must declare its notification classes and notification handlers under the same method keys.');
+        $this->expectExceptionMessageIs(
+            'Extension "com.example/feature" notification classes and notification handlers must share method keys.',
+        );
 
         (new ExtensionCollection())->add(new StubExtension(
             identifier: 'com.example/feature',
@@ -376,7 +386,9 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
     public function testAddRejectsANotificationHandlerWithoutAClass(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('Extension "com.example/feature" must declare its notification classes and notification handlers under the same method keys.');
+        $this->expectExceptionMessageIs(
+            'Extension "com.example/feature" notification classes and notification handlers must share method keys.',
+        );
 
         (new ExtensionCollection())->add(new StubExtension(
             identifier: 'com.example/feature',
@@ -387,7 +399,9 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
     public function testAddRejectsARequestMethodTheSpecOwns(): void
     {
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageIs('Extension "com.example/feature" cannot claim the request method "tools/call" already owned by the MCP specification.');
+        $this->expectExceptionMessageIs(
+            'Extension "com.example/feature" cannot claim request method "tools/call" owned by the MCP specification.',
+        );
 
         (new ExtensionCollection())->add(new StubExtension(
             identifier: 'com.example/feature',
@@ -399,7 +413,9 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
     public function testAddRejectsANotificationMethodTheSpecOwns(): void
     {
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageIs('Extension "com.example/feature" cannot claim the notification method "notifications/progress" already owned by the MCP specification.');
+        $this->expectExceptionMessageIs(
+            'Extension "com.example/feature" cannot claim notification method "notifications/progress" owned by the MCP specification.',
+        );
 
         (new ExtensionCollection())->add(new StubExtension(
             identifier: 'com.example/feature',
@@ -419,7 +435,7 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
 
         $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs(\sprintf(
-            'Extension "com.example/other" cannot claim the request method "%s" already owned by extension "com.example/feature".',
+            'Extension "com.example/other" cannot claim request method "%s" owned by extension "com.example/feature".',
             TestRequest::getMethod(),
         ));
 
@@ -441,7 +457,7 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
 
         $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs(\sprintf(
-            'Extension "com.example/other" cannot claim the notification method "%s" already owned by extension "com.example/feature".',
+            'Extension "com.example/other" cannot claim notification method "%s" owned by extension "com.example/feature".',
             TestNotification::getMethod(),
         ));
 
@@ -456,7 +472,7 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
     {
         $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs(\sprintf(
-            'Extension "com.example/feature" cannot claim the request method "%s" already owned by a builder-registered handler.',
+            'Extension "com.example/feature" cannot claim request method "%s" owned by a builder-registered handler.',
             TestRequest::getMethod(),
         ));
 
@@ -474,7 +490,7 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
     {
         $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs(\sprintf(
-            'Extension "com.example/feature" cannot claim the notification method "%s" already owned by a builder-registered handler.',
+            'Extension "com.example/feature" cannot claim notification method "%s" owned by a builder-registered handler.',
             TestNotification::getMethod(),
         ));
 
@@ -491,7 +507,9 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
     public function testAddRejectsAnOutboundSpecMethod(): void
     {
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageIs('Extension "com.example/feature" cannot claim the request method "tools/call" already owned by the MCP specification.');
+        $this->expectExceptionMessageIs(
+            'Extension "com.example/feature" cannot claim request method "tools/call" owned by the MCP specification.',
+        );
 
         (new ExtensionCollection())->add(
             new StubExtension(identifier: 'com.example/feature'),
@@ -505,7 +523,9 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
         $collection->add(new StubExtension(identifier: 'com.example/feature'), outboundRequests: ['acme/lookup']);
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageIs('Extension "com.example/other" cannot claim the request method "acme/lookup" already owned by extension "com.example/feature".');
+        $this->expectExceptionMessageIs(
+            'Extension "com.example/other" cannot claim request method "acme/lookup" owned by extension "com.example/feature".',
+        );
 
         $collection->add(new StubExtension(identifier: 'com.example/other'), outboundRequests: ['acme/lookup']);
     }
@@ -521,7 +541,7 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
 
         $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs(\sprintf(
-            'A builder-registered handler cannot claim the request method "%s" already owned by extension "com.example/feature".',
+            'A builder-registered handler cannot claim request method "%s" owned by extension "com.example/feature".',
             TestRequest::getMethod(),
         ));
 
@@ -539,7 +559,7 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
 
         $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs(\sprintf(
-            'A builder-registered handler cannot claim the notification method "%s" already owned by extension "com.example/feature".',
+            'A builder-registered handler cannot claim notification method "%s" owned by extension "com.example/feature".',
             TestNotification::getMethod(),
         ));
 
@@ -558,7 +578,9 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
     public function testAddRejectsAnExtensionDeclaringARequestMethodTwice(): void
     {
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageIs('Extension "com.example/feature" declares the request method "tests/test-request" twice.');
+        $this->expectExceptionMessageIs(
+            'Extension "com.example/feature" declares the request method "tests/test-request" twice.',
+        );
 
         (new ExtensionCollection())->add(new StubExtension(
             identifier: 'com.example/feature',
@@ -570,7 +592,9 @@ final class ExtensionCollectionTest extends AbstractMcpTestCase
     public function testAddRejectsAnExtensionDeclaringANotificationMethodTwice(): void
     {
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageIs('Extension "com.example/feature" declares the notification method "tests/test-notification" twice.');
+        $this->expectExceptionMessageIs(
+            'Extension "com.example/feature" declares the notification method "tests/test-notification" twice.',
+        );
 
         (new ExtensionCollection())->add(new StubExtension(
             identifier: 'com.example/feature',

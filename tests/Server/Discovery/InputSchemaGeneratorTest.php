@@ -457,7 +457,7 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
     {
         $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs(\sprintf(
-            'Cannot generate the input schema for %s because it contains itself. Add #[InputSchema(...)] to describe it explicitly.',
+            'Cannot generate the input schema for %s because it contains itself. Add #[InputSchema(...)].',
             SelfReferencingDto::class,
         ));
 
@@ -468,7 +468,7 @@ final class InputSchemaGeneratorTest extends AbstractMcpTestCase
     {
         $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs(\sprintf(
-            'Cannot generate the input schema for %s because it contains itself. Add #[InputSchema(...)] to describe it explicitly.',
+            'Cannot generate the input schema for %s because it contains itself. Add #[InputSchema(...)].',
             MutualLeftDto::class,
         ));
 

@@ -272,7 +272,9 @@ final class CompletionStoreTest extends AbstractMcpTestCase
     public function testConstructorRejectsANonClosureProvider(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('Completion provider must be a closure or implement CompletionProviderInterface, string given.');
+        $this->expectExceptionMessageIs(
+            'Completion provider must be a closure or implement CompletionProviderInterface, string given.',
+        );
 
         // @phpstan-ignore argument.type
         new CompletionStore(promptCompletions: ['p' => ['arg' => 'strtoupper']]);

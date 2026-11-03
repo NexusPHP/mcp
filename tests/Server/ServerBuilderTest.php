@@ -127,7 +127,9 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     public function testBuildFailsWithoutServerInfo(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('Server information must be set before build() via setServerInfo() or a class-level #[AsServer].');
+        $this->expectExceptionMessageIs(
+            'Server information must be set before build() via setServerInfo() or a class-level #[AsServer].',
+        );
 
         (new ServerBuilder())->build();
     }
@@ -1199,7 +1201,9 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     public function testRegisterNamesBothSourcesOnACollision(): void
     {
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageIs('"Nexus\Mcp\Tests\Fixtures\Server\Discovery\CollidingSearchTool" declares tool "search", which "Nexus\Mcp\Tests\Fixtures\Server\Discovery\CollidingSearchTool" already declares.');
+        $this->expectExceptionMessageIs(
+            '"Nexus\Mcp\Tests\Fixtures\Server\Discovery\CollidingSearchTool" declares tool "search", which "Nexus\Mcp\Tests\Fixtures\Server\Discovery\CollidingSearchTool" already declares.',
+        );
 
         (new ServerBuilder())->register(new CollidingSearchTool(), new CollidingSearchTool());
     }
@@ -1257,7 +1261,9 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         $builder = (new ServerBuilder())->setServerInfo('demo', '1.0.0');
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches('/^ResourceTemplate URI template must use only RFC 6570 Level 1 simple-name expressions/');
+        $this->expectExceptionMessageMatches(
+            '/^ResourceTemplate URI template must use only Level 1 `{name}` expressions/',
+        );
 
         $builder->addResourceTemplate(
             new ResourceTemplate(name: 'files', uriTemplate: 'file:///{+path}'),
@@ -1301,7 +1307,9 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     public function testAddRequestHandlerRejectsAClassWithoutTheClientMarker(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('Request class "Nexus\Mcp\Tests\Fixtures\Core\TestRequest" must implement "Nexus\Mcp\Core\Schema\Request\ClientRequest" for the server to dispatch it.');
+        $this->expectExceptionMessageIs(
+            'Request class "Nexus\Mcp\Tests\Fixtures\Core\TestRequest" must implement "Nexus\Mcp\Core\Schema\Request\ClientRequest" for the server to dispatch it.',
+        );
 
         (new ServerBuilder())->addRequestHandler(TestRequest::class, new ClosureRequestHandler(
             static fn(): EmptyResult => new EmptyResult(),
@@ -1636,7 +1644,9 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         ;
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('Extension "com.example/feature" decorates "tools/call", but no handler serves that method.');
+        $this->expectExceptionMessageIs(
+            'Extension "com.example/feature" decorates "tools/call", but no handler serves that method.',
+        );
 
         $builder->build();
     }
@@ -1659,7 +1669,9 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         ;
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('Extension "com.example/feature" decorator for "tools/call" must return a request handler, string given.');
+        $this->expectExceptionMessageIs(
+            'Extension "com.example/feature" decorator for "tools/call" must return a request handler, string given.',
+        );
 
         $builder->build();
     }
@@ -1788,7 +1800,9 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         ));
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageIs('Extension "com.example/feature" cannot claim the request method "tests/test-client-request" already owned by a builder-registered handler.');
+        $this->expectExceptionMessageIs(
+            'Extension "com.example/feature" cannot claim request method "tests/test-client-request" owned by a builder-registered handler.',
+        );
 
         $builder->enableExtension($this->buildServerExtension());
     }
@@ -1801,7 +1815,9 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         );
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageIs('Extension "com.example/feature" cannot claim the notification method "tests/test-notification" already owned by a builder-registered handler.');
+        $this->expectExceptionMessageIs(
+            'Extension "com.example/feature" cannot claim notification method "tests/test-notification" owned by a builder-registered handler.',
+        );
 
         $builder->enableExtension(new StubServerExtension(
             identifier: 'com.example/feature',
@@ -1817,7 +1833,9 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         $builder = (new ServerBuilder())->enableExtension($this->buildServerExtension());
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageIs('A builder-registered handler cannot claim the request method "tests/test-client-request" already owned by extension "com.example/feature".');
+        $this->expectExceptionMessageIs(
+            'A builder-registered handler cannot claim request method "tests/test-client-request" owned by extension "com.example/feature".',
+        );
 
         $builder->addRequestHandler(TestClientRequest::class, new ClosureRequestHandler(
             static fn(): EmptyResult => new EmptyResult(),
@@ -1835,7 +1853,9 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         ));
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageIs('A builder-registered handler cannot claim the notification method "tests/test-notification" already owned by extension "com.example/feature".');
+        $this->expectExceptionMessageIs(
+            'A builder-registered handler cannot claim notification method "tests/test-notification" owned by extension "com.example/feature".',
+        );
 
         $builder->addNotificationHandler(TestNotification::class, new ClosureNotificationHandler(
             static function (): void {},
@@ -1845,7 +1865,9 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     public function testEnableExtensionRejectsARequestClassWithoutTheClientMarker(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('Extension "com.example/feature" request class "Nexus\Mcp\Tests\Fixtures\Core\TestRequest" must implement "Nexus\Mcp\Core\Schema\Request\ClientRequest" for the server to dispatch it.');
+        $this->expectExceptionMessageIs(
+            'Extension "com.example/feature" request class "Nexus\Mcp\Tests\Fixtures\Core\TestRequest" must implement "Nexus\Mcp\Core\Schema\Request\ClientRequest" for the server to dispatch it.',
+        );
 
         (new ServerBuilder())->enableExtension(new StubServerExtension(
             identifier: 'com.example/feature',
@@ -1859,7 +1881,9 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     public function testReplaceRequestHandlerRejectsVendorExtensionMethod(): void
     {
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageIs('Request method "acme/snapshot" is not reserved by the MCP specification. Use addRequestHandler() to register a vendor extension.');
+        $this->expectExceptionMessageIs(
+            'Request method "acme/snapshot" is not reserved by the MCP specification. Use addRequestHandler() to register a vendor extension.',
+        );
 
         (new ServerBuilder())->replaceRequestHandler('acme/snapshot', new ClosureRequestHandler(
             static fn(): EmptyResult => new EmptyResult(),
@@ -1869,7 +1893,9 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     public function testReplaceNotificationHandlerRejectsVendorExtensionMethod(): void
     {
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageIs('Notification method "acme/snapshot-done" is not reserved by the MCP specification. Use addNotificationHandler() to register a vendor extension.');
+        $this->expectExceptionMessageIs(
+            'Notification method "acme/snapshot-done" is not reserved by the MCP specification. Use addNotificationHandler() to register a vendor extension.',
+        );
 
         (new ServerBuilder())->replaceNotificationHandler('acme/snapshot-done', new ClosureNotificationHandler(
             static function (): void {},
@@ -2697,7 +2723,9 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         $builder->build();
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageIs('This builder has already been built. Construct a new ServerBuilder for another server.');
+        $this->expectExceptionMessageIs(
+            'This builder has already been built. Construct a new ServerBuilder for another server.',
+        );
 
         $mutate($builder);
     }
@@ -2815,7 +2843,9 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         $builder->build();
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageIs('This builder has already been built. Construct a new ServerBuilder for another server.');
+        $this->expectExceptionMessageIs(
+            'This builder has already been built. Construct a new ServerBuilder for another server.',
+        );
 
         $builder->build();
     }
@@ -3043,7 +3073,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
                 ),
                 static fn(?array $a, ServerContext $c): CallToolResult => new CallToolResult(content: []),
             ),
-            'tool "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.',
+            'tool "icons.src" must be an HTTP(S) URL or a base64 data: URI, \'ftp://example.com/icon.png\' given.',
         ];
 
         yield 'addPrompt' => [
@@ -3051,7 +3081,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
                 new Prompt(name: 'p', icons: [new Icon(src: 'ftp://example.com/icon.png')]),
                 static fn(?array $a, ServerContext $c): GetPromptResult => new GetPromptResult(messages: []),
             ),
-            'prompt "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.',
+            'prompt "icons.src" must be an HTTP(S) URL or a base64 data: URI, \'ftp://example.com/icon.png\' given.',
         ];
 
         yield 'addResource' => [
@@ -3063,7 +3093,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
                     cacheScope: CacheScope::Private,
                 ),
             ),
-            'resource "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.',
+            'resource "icons.src" must be an HTTP(S) URL or a base64 data: URI, \'ftp://example.com/icon.png\' given.',
         ];
 
         yield 'addResourceTemplate' => [
@@ -3079,7 +3109,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
                     cacheScope: CacheScope::Private,
                 ),
             ),
-            'resource template "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.',
+            'resource template "icons.src" must be an HTTP(S) URL or a base64 data: URI, \'ftp://example.com/icon.png\' given.',
         ];
 
         yield 'setServerInfo' => [
@@ -3088,7 +3118,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
                 '1.0.0',
                 icons: [new Icon(src: 'ftp://example.com/icon.png')],
             ),
-            'serverInfo "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.',
+            'serverInfo "icons.src" must be an HTTP(S) URL or a base64 data: URI, \'ftp://example.com/icon.png\' given.',
         ];
     }
 
@@ -3109,7 +3139,9 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         $builder = (new ServerBuilder())->register($source);
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('serverInfo "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.');
+        $this->expectExceptionMessageIs(
+            'serverInfo "icons.src" must be an HTTP(S) URL or a base64 data: URI, \'ftp://example.com/icon.png\' given.',
+        );
 
         $builder->build();
     }

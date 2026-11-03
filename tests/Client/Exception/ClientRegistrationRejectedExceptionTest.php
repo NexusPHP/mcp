@@ -29,7 +29,7 @@ final class ClientRegistrationRejectedExceptionTest extends AbstractMcpTestCase
     public function testItSaysTheClientMustRegisterAgain(): void
     {
         self::assertSame(
-            'The authorization server does not recognise the client identifier presented to it, so the client must register again.',
+            'The authorization server does not recognise the client identifier, so the client must register again.',
             (new ClientRegistrationRejectedException())->getMessage(),
         );
     }
@@ -37,7 +37,7 @@ final class ClientRegistrationRejectedExceptionTest extends AbstractMcpTestCase
     public function testItCarriesTheServersDescription(): void
     {
         self::assertSame(
-            'The authorization server does not recognise the client identifier presented to it, so the client must register again: The registration has lapsed.',
+            'The authorization server does not recognise the client identifier, so the client must register again: The registration has lapsed.',
             (new ClientRegistrationRejectedException('The registration has lapsed.'))->getMessage(),
         );
     }

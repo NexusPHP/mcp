@@ -155,7 +155,9 @@ final class UpdateTaskRequestParamsTest extends AbstractMcpTestCase
     public function testConstructorRejectsNonResponseEntry(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('each "params.inputResponses" entry must be an InputResponse or an object, string given.');
+        $this->expectExceptionMessageIs(
+            'each "params.inputResponses" entry must be an InputResponse or an object, string given.',
+        );
 
         // @phpstan-ignore argument.type
         new UpdateTaskRequestParams(taskId: 'task-1', inputResponses: ['github_login' => 'oops'], meta: RequestMetaObjectFactory::create());
@@ -164,7 +166,9 @@ final class UpdateTaskRequestParamsTest extends AbstractMcpTestCase
     public function testConstructorValidatesEntriesAfterAnInputResponse(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('each "params.inputResponses" entry must be an InputResponse or an object, string given.');
+        $this->expectExceptionMessageIs(
+            'each "params.inputResponses" entry must be an InputResponse or an object, string given.',
+        );
 
         new UpdateTaskRequestParams(
             taskId: 'task-1',
@@ -177,7 +181,9 @@ final class UpdateTaskRequestParamsTest extends AbstractMcpTestCase
     public function testConstructorRejectsAListKeyedRawEntry(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('each "params.inputResponses" entry must be an InputResponse or a string-keyed object.');
+        $this->expectExceptionMessageIs(
+            'each "params.inputResponses" entry must be an InputResponse or a string-keyed object.',
+        );
 
         // @phpstan-ignore argument.type
         new UpdateTaskRequestParams(taskId: 'task-1', inputResponses: ['github_login' => ['oops']], meta: RequestMetaObjectFactory::create());

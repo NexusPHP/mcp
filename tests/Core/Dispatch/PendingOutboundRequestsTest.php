@@ -47,7 +47,7 @@ final class PendingOutboundRequestsTest extends AbstractMcpTestCase
         $pending->register(new RequestId(id: 1), GenericResultResponse::class);
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageMatches('/^Outbound request id 1 is already pending\./');
+        $this->expectExceptionMessageMatches('/^Outbound request ID 1 is already pending,/');
 
         $pending->register(new RequestId(id: 1), GenericResultResponse::class);
     }
@@ -71,7 +71,7 @@ final class PendingOutboundRequestsTest extends AbstractMcpTestCase
         $pending->register(new RequestId(id: 'corr-token'), GenericResultResponse::class);
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageMatches('/^Outbound request id \'corr-token\' is already pending\\./');
+        $this->expectExceptionMessageMatches('/^Outbound request ID \'corr-token\' is already pending,/');
 
         $pending->register(new RequestId(id: 'corr-token'), GenericResultResponse::class);
     }

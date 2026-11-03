@@ -285,7 +285,7 @@ final class ReadResourceRequestParamsTest extends AbstractMcpTestCase
 
         yield 'embedded space' => [
             'file:///tmp/a b.txt',
-            '"params.uri" must contain only ASCII printable characters (no whitespace or control characters), \'file:///tmp/a b.txt\' given.',
+            '"params.uri" must be ASCII printable without whitespace or control characters, \'file:///tmp/a b.txt\' given.',
         ];
 
         yield 'relative reference' => [

@@ -111,7 +111,7 @@ final class ExtensionCollection
         $identifier = $extension->getIdentifier();
         Assert::that($identifier)->matchesRegularExpression(
             self::IDENTIFIER_PATTERN,
-            'Extension identifier must be "{vendor-prefix}/{name}" following the "_meta" key grammar with a mandatory prefix, {value} given.',
+            'Extension identifier must be "{vendor-prefix}/{name}" in the "_meta" key grammar, {value} given.',
         );
 
         if (\array_key_exists($identifier, $this->settings)) {
@@ -175,7 +175,7 @@ final class ExtensionCollection
         Assert::that($requestDecorators)->keys()->isOneOf(
             array_keys($specRequests),
             \sprintf(
-                'Extension "%s" may only decorate spec-registry request methods, and {value} is not one.',
+                'Extension "%s" may only decorate spec-registry request methods, not {value}.',
                 $identifier,
             ),
         );
@@ -376,7 +376,7 @@ final class ExtensionCollection
         Assert::that($handlerMethods)->isIdentical(
             $classMethods,
             \sprintf(
-                'Extension "%s" must declare its %s classes and %s handlers under the same method keys.',
+                'Extension "%s" %s classes and %s handlers must share method keys.',
                 $identifier,
                 $kind,
                 $kind,
@@ -440,7 +440,7 @@ final class ExtensionCollection
         bool $isNotification = false,
     ): never {
         throw new LogicException(\sprintf(
-            '%s cannot claim the %s method "%s" already owned by %s.',
+            '%s cannot claim %s method "%s" owned by %s.',
             $claimant,
             $isNotification ? 'notification' : 'request',
             $method,

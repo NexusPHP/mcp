@@ -53,7 +53,9 @@ final class GrantTypeAdvertisementTest extends AbstractMcpTestCase
     public function testAListWithoutTheGrantTypeIsRefused(): void
     {
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not advertise the "client_credentials" grant type.');
+        $this->expectExceptionMessageIs(
+            'The authorization server "https://auth.example.com" does not advertise the "client_credentials" grant type.',
+        );
 
         GrantTypeAdvertisement::verify(
             new AuthorizationServerMetadata(self::ISSUER, grantTypesSupported: ['authorization_code']),
@@ -64,7 +66,9 @@ final class GrantTypeAdvertisementTest extends AbstractMcpTestCase
     public function testAnEmptyListRefusesEveryGrantType(): void
     {
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not advertise the "urn:ietf:params:oauth:grant-type:jwt-bearer" grant type.');
+        $this->expectExceptionMessageIs(
+            'The authorization server "https://auth.example.com" does not advertise the "urn:ietf:params:oauth:grant-type:jwt-bearer" grant type.',
+        );
 
         GrantTypeAdvertisement::verify(
             new AuthorizationServerMetadata(self::ISSUER, grantTypesSupported: []),

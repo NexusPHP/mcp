@@ -124,7 +124,7 @@ Every exception below implements `McpExceptionInterface`.
 | `AuthorizationServerMismatchException` | Supplied credentials belong to a different authorization server. |
 | `InvalidAuthorizationResponseException` | The response failed `state`, `iss`, or code validation. |
 | `AuthorizationGrantRejectedException` | The token endpoint refused the request because the grant is spent. |
-| `ClientRegistrationRejectedException` | The token endpoint does not recognise the client identifier presented to it. |
+| `ClientRegistrationRejectedException` | The token endpoint does not recognise the client identifier. |
 | `MalformedAuthorizationResponseException` | An authorization or metadata endpoint answered with something other than a JSON object. |
 | `RedirectRefusedException` | A response arrived from a URL other than the one that the request was sent to. |
 | `InsufficientScopeException` | The server answered `insufficient_scope` and asking the resource owner cannot help: the client is set to report rather than ask, the upgrade budget is spent, or the challenge names nothing that the token lacks. |

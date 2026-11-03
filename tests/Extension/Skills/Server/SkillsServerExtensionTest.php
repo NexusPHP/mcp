@@ -119,8 +119,12 @@ final class SkillsServerExtensionTest extends AbstractMcpTestCase
 
         self::assertSame(['resources/list', 'resources/read'], array_keys($decorators));
 
-        $list = ($decorators['resources/list'] ?? self::fail('The skills extension must decorate "resources/list".'))($inner);
-        $read = ($decorators['resources/read'] ?? self::fail('The skills extension must decorate "resources/read".'))($inner);
+        $list = ($decorators['resources/list'] ?? self::fail(
+            'The skills extension must decorate "resources/list".',
+        ))($inner);
+        $read = ($decorators['resources/read'] ?? self::fail(
+            'The skills extension must decorate "resources/read".',
+        ))($inner);
 
         self::assertInstanceOf(SkillFileListResourcesHandler::class, $list);
         self::assertInstanceOf(SkillFileReadResourceHandler::class, $read);

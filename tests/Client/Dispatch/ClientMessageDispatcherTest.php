@@ -1800,7 +1800,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
         self::assertNull($listeners->get(new RequestId(id: 7)), 'The ended stream must leave the registry.');
         $matches = $logger->recordsMatching(
             LogLevel::WARNING,
-            'Ended subscription {subscriptionId} after shedding one of its deliveries at the in-flight dispatch cap.',
+            'Ended subscription {subscriptionId} after shedding a delivery at the in-flight dispatch cap.',
         );
         self::assertCount(1, $matches);
         self::assertSame([
@@ -1855,7 +1855,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
 
         $matches = $logger->recordsMatching(
             LogLevel::WARNING,
-            'Ended subscription {subscriptionId} after shedding one of its deliveries at the in-flight dispatch cap.',
+            'Ended subscription {subscriptionId} after shedding a delivery at the in-flight dispatch cap.',
         );
         self::assertCount(1, $matches, 'A stream ends once, so a later delivery must not settle its outcome again.');
     }

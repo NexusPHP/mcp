@@ -70,7 +70,9 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
     public function testPreRegisteredCredentialsForAnotherServerAreRefused(): void
     {
         $this->expectException(AuthorizationServerMismatchException::class);
-        $this->expectExceptionMessageIs('The supplied client credentials were registered with "https://old.example.com" but the protected resource now names "https://auth.example.com", and credentials are not portable between authorization servers.');
+        $this->expectExceptionMessageIs(
+            'Client credentials registered with "https://old.example.com" cannot be used: the resource now names "https://auth.example.com".',
+        );
 
         $this->resolve(
             new RecordingHttpClient(),
@@ -363,7 +365,9 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
     public function testRegistrationWithoutARedirectUriIsRefused(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('Dynamic Client Registration needs a redirect URI, and the authorization options carry none.');
+        $this->expectExceptionMessageIs(
+            'Dynamic Client Registration needs a redirect URI, and the authorization options carry none.',
+        );
 
         $this->resolve(
             new RecordingHttpClient(),
@@ -380,7 +384,9 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
         );
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageIs('Dynamic Client Registration failed with "invalid_redirect_uri": Loopback redirect URIs are not permitted.');
+        $this->expectExceptionMessageIs(
+            'Dynamic Client Registration failed with "invalid_redirect_uri": Loopback redirect URIs are not permitted.',
+        );
 
         $this->resolve(
             $http,
@@ -412,7 +418,9 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
         ]);
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('Client registration response "client_secret_expires_at" must be a non-negative integer, -1 given.');
+        $this->expectExceptionMessageIs(
+            'Client registration response "client_secret_expires_at" must be a non-negative integer, -1 given.',
+        );
 
         $this->resolve(
             $http,
@@ -452,7 +460,9 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
     public function testAnInsecureRegistrationEndpointIsRefused(): void
     {
         $this->expectException(UntrustedAuthorizationMetadataException::class);
-        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the registration endpoint "http://auth.example.com/register" is not an absolute HTTPS URL.');
+        $this->expectExceptionMessageIs(
+            'Untrusted authorization metadata: the registration endpoint "http://auth.example.com/register" is not an absolute HTTPS URL.',
+        );
 
         $this->resolve(
             new RecordingHttpClient(),
@@ -464,7 +474,9 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
     public function testALoopbackRegistrationEndpointIsRefusedUnlessOptedIn(): void
     {
         $this->expectException(UntrustedAuthorizationMetadataException::class);
-        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the registration endpoint "http://127.0.0.1:9000/register" is not an absolute HTTPS URL.');
+        $this->expectExceptionMessageIs(
+            'Untrusted authorization metadata: the registration endpoint "http://127.0.0.1:9000/register" is not an absolute HTTPS URL.',
+        );
 
         $this->resolve(
             new RecordingHttpClient(),
@@ -476,7 +488,9 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
     public function testAServerOfferingNoMechanismIsRefused(): void
     {
         $this->expectException(ClientRegistrationRequiredException::class);
-        $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" supports neither Client ID Metadata Documents nor Dynamic Client Registration, so a client identifier must be supplied for it.');
+        $this->expectExceptionMessageIs(
+            'Authorization server "https://auth.example.com" supports neither Client ID Metadata Documents nor Dynamic Client Registration.',
+        );
 
         $this->resolve(new RecordingHttpClient(), $this->buildMetadata(), $this->buildOptions());
     }

@@ -39,7 +39,7 @@ final class Rfc3986UriValidator
             ->matchesRegularExpression(
                 '/\A[\x21-\x7E]+\z/',
                 \sprintf(
-                    '%s must contain only ASCII printable characters (no whitespace or control characters), {value} given.',
+                    '%s must be ASCII printable without whitespace or control characters, {value} given.',
                     $context,
                 ),
             )

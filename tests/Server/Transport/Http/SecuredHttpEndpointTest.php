@@ -283,7 +283,9 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
     public function testOperationScopesWithNoAuthenticationAreRefused(): void
     {
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageIs('SecuredHttpEndpoint was given "operationScopes" with no "authentication" to validate the token they are checked against.');
+        $this->expectExceptionMessageIs(
+            'SecuredHttpEndpoint was given "operationScopes" without "authentication" to validate the token.',
+        );
 
         $this->buildEndpoint($this->buildHandler(), ['*'], operationScopes: $this->buildOperationScopes());
     }

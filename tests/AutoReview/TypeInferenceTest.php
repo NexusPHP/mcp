@@ -80,7 +80,7 @@ final class TypeInferenceTest extends TypeInferenceTestCase
             [],
             $missing,
             \sprintf(
-                'Concrete subclasses of %s without a method() type assertion in %s: %s. Add an `assertType(\'\\\'method-name\\\'\', %s::getMethod())` line.',
+                'Subclasses of %s lack a method() type assertion in %s: %s. Add one for %s::getMethod().',
                 $base,
                 basename($dataFile),
                 implode(', ', $missing),

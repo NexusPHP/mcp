@@ -752,7 +752,7 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         $logged = $records[0]['context']['exception'] ?? null;
         self::assertInstanceOf(\LogicException::class, $logged);
         self::assertSame(
-            'The handler for "tools/call" answered with a "requestState" that does not verify under the server\'s signer.',
+            'The handler for "tools/call" answered with a "requestState" the server cannot verify.',
             $logged->getMessage(),
         );
     }

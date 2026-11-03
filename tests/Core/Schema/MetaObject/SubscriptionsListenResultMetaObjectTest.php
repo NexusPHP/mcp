@@ -78,7 +78,9 @@ final class SubscriptionsListenResultMetaObjectTest extends AbstractMcpTestCase
     public function testFromArrayRejectsAMissingSubscriptionId(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('"result._meta" is missing the required "io.modelcontextprotocol/subscriptionId" key.');
+        $this->expectExceptionMessageIs(
+            '"result._meta" is missing the required "io.modelcontextprotocol/subscriptionId" key.',
+        );
 
         SubscriptionsListenResultMetaObject::fromArray(['vendor' => 'acme']);
     }
@@ -87,7 +89,9 @@ final class SubscriptionsListenResultMetaObjectTest extends AbstractMcpTestCase
     public function testFromArrayRejectsANonScalarSubscriptionId(mixed $value): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches('/^"_meta\.io\.modelcontextprotocol\/subscriptionId" must be an int or a non-empty string, /');
+        $this->expectExceptionMessageMatches(
+            '/^"_meta\.io\.modelcontextprotocol\/subscriptionId" must be an int or a non-empty string, /',
+        );
 
         SubscriptionsListenResultMetaObject::fromArray(['io.modelcontextprotocol/subscriptionId' => $value]);
     }

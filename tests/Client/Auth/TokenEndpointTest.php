@@ -345,7 +345,9 @@ final class TokenEndpointTest extends AbstractMcpTestCase
         $http = (new RecordingHttpClient())->willAnswerJson('<html>Bad Gateway</html>', 502);
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageIs('The token request failed with "invalid_request": The token endpoint answered 502 with a body that is not a JSON object.');
+        $this->expectExceptionMessageIs(
+            'The token request failed with "invalid_request": The token endpoint answered 502 with a body that is not a JSON object.',
+        );
 
         $this->exchange($http);
     }
@@ -368,7 +370,9 @@ final class TokenEndpointTest extends AbstractMcpTestCase
         );
 
         $this->expectException(AuthorizationGrantRejectedException::class);
-        $this->expectExceptionMessageIs('The token request failed with "invalid_grant": Expired.[2026-07-28] CRITICAL: approved');
+        $this->expectExceptionMessageIs(
+            'The token request failed with "invalid_grant": Expired.[2026-07-28] CRITICAL: approved',
+        );
 
         $this->exchange($http);
     }
@@ -430,7 +434,9 @@ final class TokenEndpointTest extends AbstractMcpTestCase
         );
 
         $this->expectException(ClientRegistrationRejectedException::class);
-        $this->expectExceptionMessageIs('The authorization server does not recognise the client identifier presented to it, so the client must register again: The registration has lapsed.');
+        $this->expectExceptionMessageIs(
+            'The authorization server does not recognise the client identifier, so the client must register again: The registration has lapsed.',
+        );
 
         $this->exchange($http);
     }
@@ -440,7 +446,9 @@ final class TokenEndpointTest extends AbstractMcpTestCase
         $http = (new RecordingHttpClient())->willAnswerJson($this->buildTokenResponse(['token_type' => 'DPoP']));
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageIs('The token request failed with "unsupported_token_type": MCP clients can only present bearer tokens, "DPoP" given.');
+        $this->expectExceptionMessageIs(
+            'The token request failed with "unsupported_token_type": MCP clients can only present bearer tokens, "DPoP" given.',
+        );
 
         $this->exchange($http);
     }
@@ -475,7 +483,9 @@ final class TokenEndpointTest extends AbstractMcpTestCase
     public function testAServerWithNoTokenEndpointIsRefused(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" publishes no token endpoint.');
+        $this->expectExceptionMessageIs(
+            'The authorization server "https://auth.example.com" publishes no token endpoint.',
+        );
 
         $this->exchange(new RecordingHttpClient(), metadata: new AuthorizationServerMetadata(self::ISSUER));
     }
@@ -483,7 +493,9 @@ final class TokenEndpointTest extends AbstractMcpTestCase
     public function testAnInsecureTokenEndpointIsRefused(): void
     {
         $this->expectException(UntrustedAuthorizationMetadataException::class);
-        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the token endpoint "http://auth.example.com/token" is not an absolute HTTPS URL.');
+        $this->expectExceptionMessageIs(
+            'Untrusted authorization metadata: the token endpoint "http://auth.example.com/token" is not an absolute HTTPS URL.',
+        );
 
         $this->exchange(
             new RecordingHttpClient(),
@@ -494,7 +506,9 @@ final class TokenEndpointTest extends AbstractMcpTestCase
     public function testALoopbackTokenEndpointIsRefusedUnlessOptedIn(): void
     {
         $this->expectException(UntrustedAuthorizationMetadataException::class);
-        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the token endpoint "http://127.0.0.1:9000/token" is not an absolute HTTPS URL.');
+        $this->expectExceptionMessageIs(
+            'Untrusted authorization metadata: the token endpoint "http://127.0.0.1:9000/token" is not an absolute HTTPS URL.',
+        );
 
         $this->exchange(
             new RecordingHttpClient(),
@@ -561,7 +575,9 @@ final class TokenEndpointTest extends AbstractMcpTestCase
     public function testAPrivateKeyJwtClientWithoutAnAssertionIsRefused(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('Client "the-client" must carry a "client_assertion" parameter to authenticate with "private_key_jwt".');
+        $this->expectExceptionMessageIs(
+            'Client "the-client" must carry a "client_assertion" parameter to authenticate with "private_key_jwt".',
+        );
 
         (new TokenEndpoint(new RecordingHttpClient()))->requestToken(
             $this->buildMetadata(),

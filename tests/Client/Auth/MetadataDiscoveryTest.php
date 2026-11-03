@@ -127,7 +127,9 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
         $http = (new RecordingHttpClient())->willAnswerJson($document);
 
         $this->expectException(UntrustedAuthorizationMetadataException::class);
-        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the document served for "https://mcp.example.com/mcp" names the resource "https://attacker.example/mcp".');
+        $this->expectExceptionMessageIs(
+            'Untrusted authorization metadata: the document served for "https://mcp.example.com/mcp" names the resource "https://attacker.example/mcp".',
+        );
 
         (new MetadataDiscovery($http))->discoverResource(
             new ResourceIdentifier(self::RESOURCE),
@@ -162,7 +164,9 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
         ;
 
         $this->expectException(UntrustedAuthorizationMetadataException::class);
-        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the document served for "https://mcp.example.com/mcp" names the resource "https://attacker.example".');
+        $this->expectExceptionMessageIs(
+            'Untrusted authorization metadata: the document served for "https://mcp.example.com/mcp" names the resource "https://attacker.example".',
+        );
 
         (new MetadataDiscovery($http))->discoverResource(
             new ResourceIdentifier(self::RESOURCE),
@@ -177,7 +181,9 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
         $http = (new RecordingHttpClient())->willAnswerJson($document);
 
         $this->expectException(UntrustedAuthorizationMetadataException::class);
-        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the document served for "https://mcp.example.com/mcp" names the resource "https://mcp.example.com/other".');
+        $this->expectExceptionMessageIs(
+            'Untrusted authorization metadata: the document served for "https://mcp.example.com/mcp" names the resource "https://mcp.example.com/other".',
+        );
 
         (new MetadataDiscovery($http))->discoverResource(
             new ResourceIdentifier(self::RESOURCE),
@@ -194,7 +200,9 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
         ;
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageIs('No protected resource metadata was served for "https://mcp.example.com/mcp". Probed: https://mcp.example.com/.well-known/oauth-protected-resource/mcp, https://mcp.example.com/.well-known/oauth-protected-resource.');
+        $this->expectExceptionMessageIs(
+            'No protected resource metadata was served for "https://mcp.example.com/mcp". Probed: https://mcp.example.com/.well-known/oauth-protected-resource/mcp, https://mcp.example.com/.well-known/oauth-protected-resource.',
+        );
 
         (new MetadataDiscovery($http))->discoverResource(
             new ResourceIdentifier(self::RESOURCE),
@@ -347,7 +355,9 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
         ;
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageIs('No protected resource metadata was served for "https://mcp.example.com/mcp". Probed: https://mcp.example.com/.well-known/oauth-protected-resource/mcp, https://mcp.example.com/.well-known/oauth-protected-resource.');
+        $this->expectExceptionMessageIs(
+            'No protected resource metadata was served for "https://mcp.example.com/mcp". Probed: https://mcp.example.com/.well-known/oauth-protected-resource/mcp, https://mcp.example.com/.well-known/oauth-protected-resource.',
+        );
 
         (new MetadataDiscovery($http))->discoverResource(
             new ResourceIdentifier(self::RESOURCE),
@@ -378,7 +388,9 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
         $http = (new RecordingHttpClient())->willAnswerJson(['resource' => 'not a resource identifier']);
 
         $this->expectException(UntrustedAuthorizationMetadataException::class);
-        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the protected resource metadata URL answered with a document off the shape the spec fixes.');
+        $this->expectExceptionMessageIs(
+            'Untrusted authorization metadata: the protected resource metadata URL answered with a document off the shape the spec fixes.',
+        );
 
         (new MetadataDiscovery($http))->discoverResource(
             new ResourceIdentifier(self::RESOURCE),
@@ -392,7 +404,9 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
         $http = (new RecordingHttpClient())->willAnswerJson(['issuer' => ['not', 'a', 'string']]);
 
         $this->expectException(UntrustedAuthorizationMetadataException::class);
-        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the authorization server metadata URL answered with a document off the shape the spec fixes.');
+        $this->expectExceptionMessageIs(
+            'Untrusted authorization metadata: the authorization server metadata URL answered with a document off the shape the spec fixes.',
+        );
 
         (new MetadataDiscovery($http))->discoverServer(self::ISSUER, new NullCancellation());
     }
@@ -450,7 +464,9 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
         $http = (new RecordingHttpClient())->willAnswerJson($document);
 
         $this->expectException(UntrustedAuthorizationMetadataException::class);
-        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the document served for "https://auth.example.com" names the issuer "https://honest.example".');
+        $this->expectExceptionMessageIs(
+            'Untrusted authorization metadata: the document served for "https://auth.example.com" names the issuer "https://honest.example".',
+        );
 
         (new MetadataDiscovery($http))->discoverServer(self::ISSUER, new NullCancellation());
     }
@@ -462,7 +478,7 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
 
         $this->expectException(UntrustedAuthorizationMetadataException::class);
         $this->expectExceptionMessageIs(\sprintf(
-            'The authorization metadata cannot be trusted because the authorization server issuer "%s" is not an absolute HTTPS URL.',
+            'Untrusted authorization metadata: the authorization server issuer "%s" is not an absolute HTTPS URL.',
             $issuer,
         ));
 
@@ -505,7 +521,9 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
         ;
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageIs('No authorization server metadata was served for "https://auth.example.com". Probed: https://auth.example.com/.well-known/oauth-authorization-server, https://auth.example.com/.well-known/openid-configuration.');
+        $this->expectExceptionMessageIs(
+            'No authorization server metadata was served for "https://auth.example.com". Probed: https://auth.example.com/.well-known/oauth-authorization-server, https://auth.example.com/.well-known/openid-configuration.',
+        );
 
         (new MetadataDiscovery($http))->discoverServer(self::ISSUER, new NullCancellation());
     }
@@ -753,7 +771,9 @@ final class MetadataDiscoveryTest extends AbstractMcpTestCase
     public function testRejectedUrisAlsoFailForAProtectedResource(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('A well-known metadata URL cannot be built from "mcp.example.com", which is not an absolute URI.');
+        $this->expectExceptionMessageIs(
+            'A well-known metadata URL cannot be built from "mcp.example.com", which is not an absolute URI.',
+        );
 
         MetadataDiscovery::buildProtectedResourceUrls('mcp.example.com');
     }

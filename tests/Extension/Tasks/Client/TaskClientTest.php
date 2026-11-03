@@ -137,7 +137,9 @@ final class TaskClientTest extends AbstractMcpTestCase
     {
         [$tasks, $transport] = $this->buildTaskClient();
 
-        $call = async(static fn(): CallToolResult|CreateTaskResult|InputRequiredResult => $tasks->callToolAsTask('greet'));
+        $call = async(static fn(): CallToolResult|CreateTaskResult|InputRequiredResult => $tasks->callToolAsTask(
+            'greet',
+        ));
         $transport->nextSend()->await();
         self::assertArrayHasKey(0, $transport->sent);
         $sent = $transport->sent[0]['message'];

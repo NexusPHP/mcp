@@ -1035,7 +1035,7 @@ final class ClientTest extends AbstractMcpTestCase
 
         $this->expectException(ServerCapabilityNotSupportedException::class);
         $this->expectExceptionMessageIs(\sprintf(
-            'Request method "%s" requires a server capability that was not advertised by server/discover. Check getServerCapabilities() before calling.',
+            'Request method "%s" needs a server capability that server/discover did not advertise.',
             $method,
         ));
 
@@ -1951,7 +1951,7 @@ final class ClientTest extends AbstractMcpTestCase
 
         $matches = $logger->recordsMatching(
             LogLevel::WARNING,
-            'Server sent cursor {cursor} again while re-listing tool {tool}, first seen on page {page}, so the refresh stopped.',
+            'Server repeated cursor {cursor} (page {page}) while re-listing {tool}, so the refresh stopped.',
         );
         self::assertCount(1, $matches);
         self::assertSame(['cursor' => 'stuck', 'tool' => 'good', 'page' => 1], $matches[0]['context']);
@@ -1987,7 +1987,7 @@ final class ClientTest extends AbstractMcpTestCase
 
         $matches = $logger->recordsMatching(
             LogLevel::WARNING,
-            'Server sent cursor {cursor} again while re-listing tool {tool}, first seen on page {page}, so the refresh stopped.',
+            'Server repeated cursor {cursor} (page {page}) while re-listing {tool}, so the refresh stopped.',
         );
         self::assertCount(1, $matches);
         self::assertSame(str_repeat('c', 77).'...', $matches[0]['context']['cursor'] ?? null);
@@ -2182,7 +2182,9 @@ final class ClientTest extends AbstractMcpTestCase
         $this->discover($client, $transport, capabilities: []);
 
         $this->expectException(ServerCapabilityNotSupportedException::class);
-        $this->expectExceptionMessageIs('Request method "tests/test-request" requires a server capability that was not advertised by server/discover. Check getServerCapabilities() before calling.');
+        $this->expectExceptionMessageIs(
+            'Request method "tests/test-request" needs a server capability that server/discover did not advertise.',
+        );
 
         $client->sendRequest(new TestRequest(new RequestId(id: 51)), GenericResultResponse::class);
     }

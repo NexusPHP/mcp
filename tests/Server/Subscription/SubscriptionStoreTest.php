@@ -675,7 +675,9 @@ final class SubscriptionStoreTest extends AbstractMcpTestCase
         $store->open(new RequestId(id: 3), new SubscriptionFilter(), new RecordingSender(), peer: 'alice');
 
         $this->expectException(SubscriptionLimitReachedException::class);
-        $this->expectExceptionMessageIs('Subscription limit reached: this server holds at most 2 open streams per client.');
+        $this->expectExceptionMessageIs(
+            'Subscription limit reached: this server holds at most 2 open streams per client.',
+        );
 
         $store->open(new RequestId(id: 4), new SubscriptionFilter(), new RecordingSender(), peer: 'alice');
     }

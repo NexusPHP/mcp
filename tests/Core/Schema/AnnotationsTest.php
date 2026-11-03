@@ -112,7 +112,7 @@ final class AnnotationsTest extends AbstractMcpTestCase
      */
     public static function provideAnnotationsRejectsInvalidLastModifiedCases(): iterable
     {
-        $shapeMessage = '"annotations.lastModified" must be an RFC 3339 datetime: "YYYY-MM-DDThh:mm:ss", an optional "." fraction, then "Z" or "+hh:mm"/"-hh:mm".';
+        $shapeMessage = '"annotations.lastModified" must be an RFC 3339 datetime, e.g. "2026-01-02T03:04:05Z" or "...+hh:mm".';
 
         yield 'invalid text' => ['not-a-date', $shapeMessage];
 
@@ -159,7 +159,9 @@ final class AnnotationsTest extends AbstractMcpTestCase
     public function testAnnotationsFromArrayRejectsInvalidAudienceValue(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('each "annotations.audience" must be one of [\'user\', \'assistant\'], \'invalid-role\' given.');
+        $this->expectExceptionMessageIs(
+            'each "annotations.audience" must be one of [\'user\', \'assistant\'], \'invalid-role\' given.',
+        );
 
         Annotations::fromArray(['audience' => ['invalid-role']]);
     }
@@ -167,7 +169,9 @@ final class AnnotationsTest extends AbstractMcpTestCase
     public function testAnnotationsFromArrayRejectsNonStringAudienceEntry(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('each "annotations.audience" must be one of [\'user\', \'assistant\'], 42 given.');
+        $this->expectExceptionMessageIs(
+            'each "annotations.audience" must be one of [\'user\', \'assistant\'], 42 given.',
+        );
 
         Annotations::fromArray(['audience' => [42]]);
     }

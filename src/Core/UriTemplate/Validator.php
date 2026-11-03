@@ -46,7 +46,7 @@ final class Validator
             ->matchesRegularExpression(
                 '/\A[\x21-\x7E]+\z/',
                 \sprintf(
-                    '%s must contain only ASCII printable characters (no whitespace or control characters), {value} given.',
+                    '%s must be ASCII printable without whitespace or control characters, {value} given.',
                     $context,
                 ),
             )
@@ -69,15 +69,20 @@ final class Validator
     {
         Assert::that(substr_count($template, '{'))->isIdentical(
             preg_match_all('/\{[A-Za-z_][A-Za-z0-9_]*\}/', $template),
-            \sprintf('%s URI template must use only RFC 6570 Level 1 simple-name expressions (e.g. `{name}`), got "%s".', $context, $template),
+            \sprintf('%s URI template must use only Level 1 `{name}` expressions, got "%s".', $context, $template),
         );
         Assert::that($template)->not()->contains(
             '}{',
-            \sprintf('%s URI template must include literal text between adjacent expressions, got "%s".', $context, $template),
+            \sprintf('%s URI template needs literal text between expressions, got "%s".', $context, $template),
         );
         Assert::that($template)->not()->matchesRegularExpression(
             \sprintf('/\{[A-Za-z_][A-Za-z0-9_]{%d,}\}/', self::MAX_VARIABLE_NAME_LENGTH),
-            \sprintf('%s URI template variable names must be at most %d characters, got "%s".', $context, self::MAX_VARIABLE_NAME_LENGTH, $template),
+            \sprintf(
+                '%s URI template variable names must be at most %d characters, got "%s".',
+                $context,
+                self::MAX_VARIABLE_NAME_LENGTH,
+                $template,
+            ),
         );
     }
 }

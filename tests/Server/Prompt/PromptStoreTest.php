@@ -234,7 +234,9 @@ final class PromptStoreTest extends AbstractMcpTestCase
     public function testConstructorRefusesAnUnconventionalName(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('prompt "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.');
+        $this->expectExceptionMessageIs(
+            'prompt "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.',
+        );
 
         new PromptStore(['Project Files' => new PromptEntry(new Prompt(name: 'Project Files'), $this->makeRenderer())]);
     }
@@ -242,7 +244,9 @@ final class PromptStoreTest extends AbstractMcpTestCase
     public function testAddRefusesAnUnconventionalName(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('prompt "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.');
+        $this->expectExceptionMessageIs(
+            'prompt "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.',
+        );
 
         (new PromptStore())->addPrompt(new Prompt(name: 'Project Files'), $this->makeRenderer());
     }
@@ -250,7 +254,9 @@ final class PromptStoreTest extends AbstractMcpTestCase
     public function testConstructorRefusesANonConservativeIconSrc(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('prompt "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.');
+        $this->expectExceptionMessageIs(
+            'prompt "icons.src" must be an HTTP(S) URL or a base64 data: URI, \'ftp://example.com/icon.png\' given.',
+        );
 
         new PromptStore(['p' => new PromptEntry(
             new Prompt(
@@ -264,7 +270,9 @@ final class PromptStoreTest extends AbstractMcpTestCase
     public function testAddRefusesANonConservativeIconSrc(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('prompt "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.');
+        $this->expectExceptionMessageIs(
+            'prompt "icons.src" must be an HTTP(S) URL or a base64 data: URI, \'ftp://example.com/icon.png\' given.',
+        );
 
         (new PromptStore())->addPrompt(
             new Prompt(

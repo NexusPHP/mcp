@@ -147,7 +147,7 @@ final class SecureEndpointTest extends AbstractMcpTestCase
     {
         $this->expectException(UntrustedAuthorizationMetadataException::class);
         $this->expectExceptionMessageIs(\sprintf(
-            'The authorization metadata cannot be trusted because the token endpoint "%s" is not an absolute HTTPS URL.',
+            'Untrusted authorization metadata: the token endpoint "%s" is not an absolute HTTPS URL.',
             $url,
         ));
 
@@ -207,7 +207,7 @@ final class SecureEndpointTest extends AbstractMcpTestCase
     {
         $this->expectException(UntrustedAuthorizationMetadataException::class);
         $this->expectExceptionMessageIs(\sprintf(
-            'The authorization metadata cannot be trusted because the token endpoint "%s" is not an absolute HTTPS URL.',
+            'Untrusted authorization metadata: the token endpoint "%s" is not an absolute HTTPS URL.',
             $url,
         ));
 
@@ -237,7 +237,9 @@ final class SecureEndpointTest extends AbstractMcpTestCase
     public function testOptingIntoLoopbackStillRefusesAFragment(): void
     {
         $this->expectException(UntrustedAuthorizationMetadataException::class);
-        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the authorization endpoint "http://127.0.0.1:9000/authorize#done" carries a fragment.');
+        $this->expectExceptionMessageIs(
+            'Untrusted authorization metadata: the authorization endpoint "http://127.0.0.1:9000/authorize#done" carries a fragment.',
+        );
 
         (new SecureEndpoint(allowLoopback: true))->verifyAuthorizationServerUrl(
             'http://127.0.0.1:9000/authorize#done',
@@ -248,7 +250,9 @@ final class SecureEndpointTest extends AbstractMcpTestCase
     public function testAnAuthorizationServerUrlCarryingAFragmentIsRefused(): void
     {
         $this->expectException(UntrustedAuthorizationMetadataException::class);
-        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the authorization endpoint "https://auth.example.com/authorize#done" carries a fragment.');
+        $this->expectExceptionMessageIs(
+            'Untrusted authorization metadata: the authorization endpoint "https://auth.example.com/authorize#done" carries a fragment.',
+        );
 
         (new SecureEndpoint())->verifyAuthorizationServerUrl(
             'https://auth.example.com/authorize#done',
@@ -260,7 +264,7 @@ final class SecureEndpointTest extends AbstractMcpTestCase
     {
         $this->expectException(UntrustedAuthorizationMetadataException::class);
         $this->expectExceptionMessageIs(\sprintf(
-            'The authorization metadata cannot be trusted because the token endpoint "%s..." is not an absolute HTTPS URL.',
+            'Untrusted authorization metadata: the token endpoint "%s..." is not an absolute HTTPS URL.',
             'ftp://'.str_repeat('a', 247),
         ));
 
@@ -303,7 +307,9 @@ final class SecureEndpointTest extends AbstractMcpTestCase
     public function testAMetadataDocumentUrlThatIsNotAbsoluteIsRefused(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('The Client ID Metadata Document URL must be an absolute URL, "client.json" given.');
+        $this->expectExceptionMessageIs(
+            'The Client ID Metadata Document URL must be an absolute URL, "client.json" given.',
+        );
 
         (new SecureEndpoint())->verifyClientIdMetadataDocumentUrl('client.json');
     }

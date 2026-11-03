@@ -69,7 +69,7 @@ final readonly class ClientCredentialsGrant implements GrantStrategyInterface
     {
         if (null !== $context->options->preRegistered) {
             throw new RuntimeException(
-                'The client credentials grant authenticates with the credential it was given, so the authorization options must not carry a pre-registered one as well.',
+                'The client credentials grant has its own credential, so the options must not pre-register one.',
             );
         }
 

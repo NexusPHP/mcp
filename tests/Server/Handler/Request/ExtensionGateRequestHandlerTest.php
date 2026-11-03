@@ -73,7 +73,9 @@ final class ExtensionGateRequestHandlerTest extends AbstractMcpTestCase
         ));
 
         $this->expectException(MissingRequiredClientCapabilityException::class);
-        $this->expectExceptionMessageIs('This request requires client capabilities the client did not declare: extensions.com.example/feature.');
+        $this->expectExceptionMessageIs(
+            'This request requires client capabilities the client did not declare: extensions.com.example/feature.',
+        );
 
         $handler->handle(
             TestClientRequest::fromArray(['id' => 7, 'params' => ['_meta' => RequestMetaObjectFactory::shape()]]),
@@ -88,7 +90,9 @@ final class ExtensionGateRequestHandlerTest extends AbstractMcpTestCase
         ));
 
         $this->expectException(MissingRequiredClientCapabilityException::class);
-        $this->expectExceptionMessageIs('This request requires client capabilities the client did not declare: extensions.com.example/feature.');
+        $this->expectExceptionMessageIs(
+            'This request requires client capabilities the client did not declare: extensions.com.example/feature.',
+        );
 
         $handler->handle(
             TestClientRequest::fromArray(['id' => 7, 'params' => ['_meta' => RequestMetaObjectFactory::shape()]]),

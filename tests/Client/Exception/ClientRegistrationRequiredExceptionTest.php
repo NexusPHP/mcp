@@ -29,7 +29,7 @@ final class ClientRegistrationRequiredExceptionTest extends AbstractMcpTestCase
     public function testMessageNamesTheAuthorizationServer(): void
     {
         self::assertSame(
-            'The authorization server "https://auth.example.com" supports neither Client ID Metadata Documents nor Dynamic Client Registration, so a client identifier must be supplied for it.',
+            'Authorization server "https://auth.example.com" supports neither Client ID Metadata Documents nor Dynamic Client Registration.',
             (new ClientRegistrationRequiredException('https://auth.example.com'))->getMessage(),
         );
     }
@@ -38,7 +38,7 @@ final class ClientRegistrationRequiredExceptionTest extends AbstractMcpTestCase
     {
         self::assertSame(
             \sprintf(
-                'The authorization server "%s..." supports neither Client ID Metadata Documents nor Dynamic Client Registration, so a client identifier must be supplied for it.',
+                'Authorization server "%s..." supports neither Client ID Metadata Documents nor Dynamic Client Registration.',
                 str_repeat('i', 253),
             ),
             (new ClientRegistrationRequiredException(str_repeat('i', 300)."\x1b"))->getMessage(),

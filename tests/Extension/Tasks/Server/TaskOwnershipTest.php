@@ -124,7 +124,9 @@ final class TaskOwnershipTest extends AbstractMcpTestCase
         $store = self::createStub(TaskStoreInterface::class);
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageMatches('/^.+ must implement Nexus\\\\Mcp\\\\Extension\\\\Tasks\\\\Server\\\\Store\\\\OwnedTaskStoreInterface to serve authenticated requests\.$/');
+        $this->expectExceptionMessageMatches(
+            '/^.+ must implement Nexus\\\\Mcp\\\\Extension\\\\Tasks\\\\Server\\\\Store\\\\OwnedTaskStoreInterface to serve authenticated requests\.$/',
+        );
 
         TaskOwnership::createTask(
             $store,

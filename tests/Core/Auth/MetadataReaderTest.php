@@ -131,7 +131,9 @@ final class MetadataReaderTest extends AbstractMcpTestCase
     public function testReadStringListRejectsANonStringEntry(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('Test Metadata "scopes_supported" must hold only non-empty strings, int given.');
+        $this->expectExceptionMessageIs(
+            'Test Metadata "scopes_supported" must hold only non-empty strings, int given.',
+        );
 
         (new MetadataReader(self::LABEL))->readStringList(
             ['scopes_supported' => ['files:read', 42]],
@@ -205,7 +207,9 @@ final class MetadataReaderTest extends AbstractMcpTestCase
     public function testReadBoolRejectsANonBoolean(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('Test Metadata "client_id_metadata_document_supported" must be a boolean, string given.');
+        $this->expectExceptionMessageIs(
+            'Test Metadata "client_id_metadata_document_supported" must be a boolean, string given.',
+        );
 
         (new MetadataReader(self::LABEL))->readBool([
             'client_id_metadata_document_supported' => 'true',

@@ -98,7 +98,9 @@ final class TitledSingleSelectEnumSchemaTest extends AbstractMcpTestCase
     public function testConstructorRejectsNonListOneOf(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('titled single select enum schema "oneOf" must be a list, non-list array given.');
+        $this->expectExceptionMessageIs(
+            'titled single select enum schema "oneOf" must be a list, non-list array given.',
+        );
 
         // @phpstan-ignore argument.type
         new TitledSingleSelectEnumSchema(oneOf: ['k' => new EnumOption(const: 'a', title: 'A')]);
@@ -124,7 +126,9 @@ final class TitledSingleSelectEnumSchemaTest extends AbstractMcpTestCase
     public function testConstructorRejectsEmptyDescription(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('titled single select enum schema "description" must be a non-empty string or null.');
+        $this->expectExceptionMessageIs(
+            'titled single select enum schema "description" must be a non-empty string or null.',
+        );
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new TitledSingleSelectEnumSchema(oneOf: [new EnumOption(const: 'a', title: 'A')], description: '');

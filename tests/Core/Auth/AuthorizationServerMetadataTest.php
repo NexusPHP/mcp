@@ -111,7 +111,9 @@ final class AuthorizationServerMetadataTest extends AbstractMcpTestCase
     public function testFromArrayRejectsAMistypedEndpoint(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('Authorization Server Metadata "token_endpoint" must be a non-empty string, int given.');
+        $this->expectExceptionMessageIs(
+            'Authorization Server Metadata "token_endpoint" must be a non-empty string, int given.',
+        );
 
         AuthorizationServerMetadata::fromArray([
             'issuer' => 'https://auth.example.com',

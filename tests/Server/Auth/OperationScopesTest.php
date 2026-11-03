@@ -180,7 +180,7 @@ final class OperationScopesTest extends AbstractMcpTestCase
             [],
             [],
             ['file:///{a}{b}' => ['files:read']],
-            'Operation scope resource URI template must include literal text between adjacent expressions, got "file:///{a}{b}".',
+            'Operation scope resource URI template needs literal text between expressions, got "file:///{a}{b}".',
         ];
     }
 }

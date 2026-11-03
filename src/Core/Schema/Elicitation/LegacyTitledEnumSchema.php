@@ -78,7 +78,7 @@ final readonly class LegacyTitledEnumSchema implements EnumSchema
         Assert::that($data)->hasOffset('enum', 'legacy titled enum schema is missing the required "enum" key.');
         Assert::that($data['enum'])
             ->isList('legacy titled enum schema "enum" must be a list, non-list array given.')
-            ->values()->isNonEmptyString('each legacy titled enum schema "enum" must be a non-empty string, {type} given.')
+            ->values()->isNonEmptyString('each legacy enum "enum" must be a non-empty string, {type} given.')
         ;
         $enum = $data['enum'];
 
@@ -97,7 +97,7 @@ final readonly class LegacyTitledEnumSchema implements EnumSchema
         if (isset($data['enumNames'])) {
             Assert::that($data['enumNames'])
                 ->isList('legacy titled enum schema "enumNames" must be a list, non-list array given.')
-                ->values()->isNonEmptyString('each legacy titled enum schema "enumNames" must be a non-empty string, {type} given.')
+                ->values()->isNonEmptyString('each legacy enum "enumNames" must be a non-empty string, {type} given.')
             ;
             $enumNames = $data['enumNames'];
         }

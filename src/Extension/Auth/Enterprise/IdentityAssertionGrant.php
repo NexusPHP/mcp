@@ -104,7 +104,7 @@ final readonly class IdentityAssertionGrant implements GrantStrategyInterface
         $profiles = $server->authorizationGrantProfilesSupported;
 
         if (null === $profiles) {
-            $logger->info('The authorization server {issuer} publishes no authorization grant profiles, so ID-JAG support is taken on trust.', [
+            $logger->info('Server {issuer} publishes no grant profiles, so ID-JAG support is taken on trust.', [
                 'issuer' => SafeDisplay::sanitiseCause($server->issuer),
             ]);
 
@@ -132,7 +132,7 @@ final readonly class IdentityAssertionGrant implements GrantStrategyInterface
 
         if (null === $options->preRegistered && null === $options->clientIdMetadataDocumentUrl) {
             throw new RuntimeException(
-                'Enterprise-managed authorization needs pre-registered credentials or a Client ID Metadata Document URL, and the authorization options carry neither.',
+                'Enterprise-managed authorization needs pre-registered credentials or a metadata document URL.',
             );
         }
 

@@ -203,7 +203,9 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
         $grant = new ClientCredentialsGrant(new ClientSecretCredential('the-client', 'the-secret'));
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not advertise the "client_secret_basic" token endpoint authentication method.');
+        $this->expectExceptionMessageIs(
+            'The authorization server "https://auth.example.com" does not advertise the "client_secret_basic" token endpoint authentication method.',
+        );
 
         $grant->grant(
             $this->buildContext(new RecordingHttpClient(), $this->buildMetadata(methods: null)),
@@ -220,7 +222,9 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
         ));
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not advertise the "private_key_jwt" token endpoint authentication method.');
+        $this->expectExceptionMessageIs(
+            'The authorization server "https://auth.example.com" does not advertise the "private_key_jwt" token endpoint authentication method.',
+        );
 
         $grant->grant(
             $this->buildContext(
@@ -240,7 +244,9 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
         ));
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not advertise the "ES256" client assertion signing algorithm.');
+        $this->expectExceptionMessageIs(
+            'The authorization server "https://auth.example.com" does not advertise the "ES256" client assertion signing algorithm.',
+        );
 
         $grant->grant(
             $this->buildContext(
@@ -272,7 +278,9 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
         $grant = new ClientCredentialsGrant(new ClientSecretCredential('the-client', 'the-secret'));
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not advertise the "client_credentials" grant type.');
+        $this->expectExceptionMessageIs(
+            'The authorization server "https://auth.example.com" does not advertise the "client_credentials" grant type.',
+        );
 
         $grant->grant(
             $this->buildContext(new RecordingHttpClient(), $this->buildMetadata(grantTypes: ['authorization_code'])),
@@ -310,7 +318,7 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
             self::fail('The grant should have been refused.');
         } catch (RuntimeException $e) {
             self::assertSame(
-                'The client credentials grant authenticates with the credential it was given, so the authorization options must not carry a pre-registered one as well.',
+                'The client credentials grant has its own credential, so the options must not pre-register one.',
                 $e->getMessage(),
             );
             self::assertSame([], $http->requests);
@@ -331,7 +339,7 @@ final class ClientCredentialsGrantTest extends AbstractMcpTestCase
             self::fail('The grant should have been refused.');
         } catch (AuthorizationServerMismatchException $e) {
             self::assertSame(
-                'The supplied client credentials were registered with "https://login.example.com" but the protected resource now names "https://auth.example.com", and credentials are not portable between authorization servers.',
+                'Client credentials registered with "https://login.example.com" cannot be used: the resource now names "https://auth.example.com".',
                 $e->getMessage(),
             );
             self::assertSame([], $http->requests);

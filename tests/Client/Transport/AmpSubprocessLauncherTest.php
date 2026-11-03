@@ -42,7 +42,9 @@ final class AmpSubprocessLauncherTest extends AbstractMcpTestCase
         parent::setUp();
 
         if ('Windows' === \PHP_OS_FAMILY) {
-            self::markTestSkipped('amphp/process kills only its wrapper on Windows, so the child survives and the exit watch hangs.');
+            self::markTestSkipped(
+                'amphp/process kills only its wrapper on Windows, so the child survives and the exit watch hangs.',
+            );
         }
     }
 

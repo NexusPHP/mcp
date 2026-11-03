@@ -95,7 +95,7 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
 
         $records = $logger->recordsMatching(
             LogLevel::INFO,
-            'The authorization server {issuer} publishes no authorization grant profiles, so ID-JAG support is taken on trust.',
+            'Server {issuer} publishes no grant profiles, so ID-JAG support is taken on trust.',
         );
         self::assertCount(1, $records);
         self::assertSame(['issuer' => self::ISSUER], $records[0]['context']);
@@ -128,7 +128,9 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
         $grant = new IdentityAssertionGrant(self::IDP_ENDPOINT, $this->buildProvider());
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not advertise the "urn:ietf:params:oauth:grant-type:jwt-bearer" grant type.');
+        $this->expectExceptionMessageIs(
+            'The authorization server "https://auth.example.com" does not advertise the "urn:ietf:params:oauth:grant-type:jwt-bearer" grant type.',
+        );
 
         $grant->grant(
             $this->buildContext(
@@ -145,7 +147,9 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
         $grant = new IdentityAssertionGrant(self::IDP_ENDPOINT, $this->buildProvider());
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not advertise the "urn:ietf:params:oauth:grant-profile:id-jag" authorization grant profile.');
+        $this->expectExceptionMessageIs(
+            'The authorization server "https://auth.example.com" does not advertise the "urn:ietf:params:oauth:grant-profile:id-jag" authorization grant profile.',
+        );
 
         $grant->grant(
             $this->buildContext(
@@ -195,7 +199,7 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
             self::fail('The grant should have been refused.');
         } catch (RuntimeException $e) {
             self::assertSame(
-                'Enterprise-managed authorization needs pre-registered credentials or a Client ID Metadata Document URL, and the authorization options carry neither.',
+                'Enterprise-managed authorization needs pre-registered credentials or a metadata document URL.',
                 $e->getMessage(),
             );
             self::assertSame([], $http->requests);
@@ -207,7 +211,9 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
         $grant = new IdentityAssertionGrant(self::IDP_ENDPOINT, $this->buildProvider());
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not support Client ID Metadata Documents.');
+        $this->expectExceptionMessageIs(
+            'The authorization server "https://auth.example.com" does not support Client ID Metadata Documents.',
+        );
 
         $grant->grant(
             $this->buildContext(new RecordingHttpClient(), $this->buildMetadata(), $this->buildCimdOptions()),
@@ -264,7 +270,9 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
     public function testACleartextIdpEndpointIsRefusedAtConstruction(): void
     {
         $this->expectException(UntrustedAuthorizationMetadataException::class);
-        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the IdP token endpoint "http://idp.example.com/token" is not an absolute HTTPS URL.');
+        $this->expectExceptionMessageIs(
+            'Untrusted authorization metadata: the IdP token endpoint "http://idp.example.com/token" is not an absolute HTTPS URL.',
+        );
 
         new IdentityAssertionGrant('http://idp.example.com/token', $this->buildProvider());
     }
@@ -279,7 +287,9 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
     public function testACleartextLoopbackIdpEndpointIsRefusedWithoutOptingIn(): void
     {
         $this->expectException(UntrustedAuthorizationMetadataException::class);
-        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the IdP token endpoint "http://127.0.0.1:1/token" is not an absolute HTTPS URL.');
+        $this->expectExceptionMessageIs(
+            'Untrusted authorization metadata: the IdP token endpoint "http://127.0.0.1:1/token" is not an absolute HTTPS URL.',
+        );
 
         new IdentityAssertionGrant('http://127.0.0.1:1/token', $this->buildProvider());
     }

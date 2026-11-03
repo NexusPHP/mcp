@@ -83,7 +83,9 @@ final class TaskBrokeringCallToolHandlerTest extends AbstractMcpTestCase
         )], new CallToolResult(content: []));
 
         $this->expectException(MissingRequiredClientCapabilityException::class);
-        $this->expectExceptionMessageIs('This request requires client capabilities the client did not declare: extensions.io.modelcontextprotocol/tasks.');
+        $this->expectExceptionMessageIs(
+            'This request requires client capabilities the client did not declare: extensions.io.modelcontextprotocol/tasks.',
+        );
 
         $broker->handle($this->buildRequest('failing_job'), $this->buildContext(declared: false));
     }

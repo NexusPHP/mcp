@@ -118,7 +118,9 @@ final class AuthorizationCodeGrantStrategyTest extends AbstractMcpTestCase
         $http = new RecordingHttpClient();
 
         $this->expectException(PkceNotSupportedException::class);
-        $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" does not advertise the S256 code challenge method, so authorization cannot proceed.');
+        $this->expectExceptionMessageIs(
+            'The authorization server "https://auth.example.com" does not advertise PKCE S256, so authorization cannot proceed.',
+        );
 
         (new AuthorizationCodeGrantStrategy(new ScriptedUserAuthorization()))->grant(
             $this->buildContext($http, new ScopeSet(), methods: $methods),
@@ -139,7 +141,9 @@ final class AuthorizationCodeGrantStrategyTest extends AbstractMcpTestCase
     public function testGrantRefusesToRunWithoutARedirectUri(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('The authorization-code grant needs a redirect URI, and the authorization options carry none.');
+        $this->expectExceptionMessageIs(
+            'The authorization-code grant needs a redirect URI, and the authorization options carry none.',
+        );
 
         (new AuthorizationCodeGrantStrategy(new ScriptedUserAuthorization()))->grant(
             $this->buildContext(
@@ -259,7 +263,9 @@ final class AuthorizationCodeGrantStrategyTest extends AbstractMcpTestCase
     public function testGrantRejectsAServerWithNoAuthorizationEndpoint(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('The authorization server "https://auth.example.com" publishes no authorization endpoint.');
+        $this->expectExceptionMessageIs(
+            'The authorization server "https://auth.example.com" publishes no authorization endpoint.',
+        );
 
         $this->authorize(new ScopeSet(), null);
     }
@@ -283,22 +289,22 @@ final class AuthorizationCodeGrantStrategyTest extends AbstractMcpTestCase
     {
         yield 'an insecure endpoint' => [
             'http://auth.example.com/authorize',
-            'The authorization metadata cannot be trusted because the authorization endpoint "http://auth.example.com/authorize" is not an absolute HTTPS URL.',
+            'Untrusted authorization metadata: the authorization endpoint "http://auth.example.com/authorize" is not an absolute HTTPS URL.',
         ];
 
         yield 'a loopback endpoint without the opt-in' => [
             'http://127.0.0.1:9000/authorize',
-            'The authorization metadata cannot be trusted because the authorization endpoint "http://127.0.0.1:9000/authorize" is not an absolute HTTPS URL.',
+            'Untrusted authorization metadata: the authorization endpoint "http://127.0.0.1:9000/authorize" is not an absolute HTTPS URL.',
         ];
 
         yield 'a non-HTTP endpoint' => [
             'javascript:alert(1)//',
-            'The authorization metadata cannot be trusted because the authorization endpoint "javascript:alert(1)//" is not an absolute HTTPS URL.',
+            'Untrusted authorization metadata: the authorization endpoint "javascript:alert(1)//" is not an absolute HTTPS URL.',
         ];
 
         yield 'an endpoint carrying a fragment' => [
             'https://auth.example.com/authorize#done',
-            'The authorization metadata cannot be trusted because the authorization endpoint "https://auth.example.com/authorize#done" carries a fragment.',
+            'Untrusted authorization metadata: the authorization endpoint "https://auth.example.com/authorize#done" carries a fragment.',
         ];
     }
 
@@ -333,7 +339,9 @@ final class AuthorizationCodeGrantStrategyTest extends AbstractMcpTestCase
     public function testGrantRejectsAStateMismatch(array $parameters): void
     {
         $this->expectException(InvalidAuthorizationResponseException::class);
-        $this->expectExceptionMessageIs('The authorization response cannot be used because its "state" does not echo the authorization request.');
+        $this->expectExceptionMessageIs(
+            'Unusable authorization response: its "state" does not echo the authorization request.',
+        );
 
         $this->exchange(new RawCallbackUserAuthorization($parameters));
     }
@@ -353,7 +361,9 @@ final class AuthorizationCodeGrantStrategyTest extends AbstractMcpTestCase
     public function testGrantRejectsAnAbsentIssuerTheServerAdvertises(): void
     {
         $this->expectException(InvalidAuthorizationResponseException::class);
-        $this->expectExceptionMessageIs('The authorization response cannot be used because it omits the "iss" the authorization server advertises that it emits.');
+        $this->expectExceptionMessageIs(
+            'Unusable authorization response: it omits the "iss" the authorization server advertises that it emits.',
+        );
 
         $this->exchange(new ScriptedUserAuthorization(['code' => 'abc123']), issuerParameterSupported: true);
     }
@@ -365,7 +375,9 @@ final class AuthorizationCodeGrantStrategyTest extends AbstractMcpTestCase
     public function testGrantRejectsAnIssuerMismatch(array $parameters, bool $issuerParameterSupported): void
     {
         $this->expectException(InvalidAuthorizationResponseException::class);
-        $this->expectExceptionMessageIs('The authorization response cannot be used because its "iss" names an authorization server other than the one the request was sent to.');
+        $this->expectExceptionMessageIs(
+            'Unusable authorization response: its "iss" names an authorization server other than the one the request was sent to.',
+        );
 
         $this->exchange(new ScriptedUserAuthorization($parameters), issuerParameterSupported: $issuerParameterSupported);
     }
@@ -409,7 +421,9 @@ final class AuthorizationCodeGrantStrategyTest extends AbstractMcpTestCase
     public function testGrantRejectsAMismatchedIssuerBeforeSurfacingTheError(): void
     {
         $this->expectException(InvalidAuthorizationResponseException::class);
-        $this->expectExceptionMessageIs('The authorization response cannot be used because its "iss" names an authorization server other than the one the request was sent to.');
+        $this->expectExceptionMessageIs(
+            'Unusable authorization response: its "iss" names an authorization server other than the one the request was sent to.',
+        );
 
         $this->exchange(new ScriptedUserAuthorization([
             'iss' => 'https://attacker.example',
@@ -421,7 +435,9 @@ final class AuthorizationCodeGrantStrategyTest extends AbstractMcpTestCase
     public function testGrantSurfacesTheErrorWithItsDescription(): void
     {
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageIs('The authorization server denied the request with "access_denied": The user refused consent.');
+        $this->expectExceptionMessageIs(
+            'The authorization server denied the request with "access_denied": The user refused consent.',
+        );
 
         $this->exchange(new ScriptedUserAuthorization([
             'error' => 'access_denied',
@@ -440,7 +456,9 @@ final class AuthorizationCodeGrantStrategyTest extends AbstractMcpTestCase
     public function testGrantRejectsAResponseWithNoCode(): void
     {
         $this->expectException(InvalidAuthorizationResponseException::class);
-        $this->expectExceptionMessageIs('The authorization response cannot be used because it carries no authorization code.');
+        $this->expectExceptionMessageIs(
+            'Unusable authorization response: it carries no authorization code.',
+        );
 
         $this->exchange(new ScriptedUserAuthorization([]));
     }

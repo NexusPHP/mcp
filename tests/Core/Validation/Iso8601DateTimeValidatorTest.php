@@ -58,7 +58,9 @@ final class Iso8601DateTimeValidatorTest extends AbstractMcpTestCase
     public function testParseRejectsANonRfc3339Shape(string $value): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('Test field must be an RFC 3339 datetime: "YYYY-MM-DDThh:mm:ss", an optional "." fraction, then "Z" or "+hh:mm"/"-hh:mm".');
+        $this->expectExceptionMessageIs(
+            'Test field must be an RFC 3339 datetime, e.g. "2026-01-02T03:04:05Z" or "...+hh:mm".',
+        );
 
         Iso8601DateTimeValidator::parse($value, 'Test field');
     }

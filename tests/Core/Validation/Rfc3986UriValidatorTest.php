@@ -96,23 +96,23 @@ final class Rfc3986UriValidatorTest extends AbstractMcpTestCase
         yield 'embedded space' => [
             'file:///path with space',
             'resource "uri"',
-            '/\Aresource "uri" must contain only ASCII printable/',
+            '/\Aresource "uri" must be ASCII printable/',
         ];
 
         yield 'tab character' => [
             "file:///x\ty",
             'resource "uri"',
-            '/\Aresource "uri" must contain only ASCII printable/',
+            '/\Aresource "uri" must be ASCII printable/',
         ];
 
-        yield 'newline' => ["file:///x\n", 'resource "uri"', '/\Aresource "uri" must contain only ASCII printable/'];
+        yield 'newline' => ["file:///x\n", 'resource "uri"', '/\Aresource "uri" must be ASCII printable/'];
 
-        yield 'null byte' => ["file:///x\0", 'resource "uri"', '/\Aresource "uri" must contain only ASCII printable/'];
+        yield 'null byte' => ["file:///x\0", 'resource "uri"', '/\Aresource "uri" must be ASCII printable/'];
 
         yield 'non-ASCII path' => [
             'file:///résumé',
             'resource "uri"',
-            '/\Aresource "uri" must contain only ASCII printable/',
+            '/\Aresource "uri" must be ASCII printable/',
         ];
 
         yield 'just a colon' => [':rest', 'resource "uri"', '/\Aresource "uri" must be a valid RFC 3986/'];

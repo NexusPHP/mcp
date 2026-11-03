@@ -60,7 +60,7 @@ final class PublicParameterNameTest extends AbstractMcpTestCase
                 [],
                 array_values(array_diff($releasedNames, $currentNames)),
                 \sprintf(
-                    'The released parameter names of "%s::%s()" must survive. A schema class is constructed with named arguments, so its parameters may move, but not be renamed or removed.',
+                    'The released parameter names of "%s::%s()" must survive: schema classes take named arguments.',
                     $class,
                     $method,
                 ),
@@ -73,7 +73,7 @@ final class PublicParameterNameTest extends AbstractMcpTestCase
             $releasedNames,
             \array_slice($currentNames, 0, \count($releasedNames)),
             \sprintf(
-                'The released parameter names of "%s::%s()" must stay in place and in order, since PHP 8 named arguments make each one part of the signature and `composer bc:check` cannot see a rename on a final class. Appending a parameter is fine.',
+                'The released parameter names of "%s::%s()" must stay in place and in order. Appending one is fine.',
                 $class,
                 $method,
             ),

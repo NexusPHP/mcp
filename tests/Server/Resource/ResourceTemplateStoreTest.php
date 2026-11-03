@@ -105,7 +105,9 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
     public function testConstructorRejectsNonPositivePageSize(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches('/^Resource template store page size must be a positive integer, 0 given\.$/');
+        $this->expectExceptionMessageMatches(
+            '/^Resource template store page size must be a positive integer, 0 given\.$/',
+        );
 
         new ResourceTemplateStore([], 0);
     }
@@ -139,7 +141,9 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
     public function testConstructorRejectsEntryKeyThatDoesNotMatchTemplateUri(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches('/^Resource template store entry key "\'file:\/\/\/{x}\.one\'" must match its template URI "\'file:\/\/\/{y}\.one\'"\.$/');
+        $this->expectExceptionMessageMatches(
+            '/^Resource template store entry key "\'file:\/\/\/{x}\.one\'" must match its template URI "\'file:\/\/\/{y}\.one\'"\.$/',
+        );
 
         new ResourceTemplateStore([
             'file:///{x}.one' => $this->buildEntry(new ResourceTemplate(name: 'one', uriTemplate: 'file:///{y}.one')),
@@ -149,7 +153,9 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
     public function testConstructorRejectsTemplateWithLevel2Expression(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches('/^ResourceTemplate URI template must use only RFC 6570 Level 1 simple-name expressions/');
+        $this->expectExceptionMessageMatches(
+            '/^ResourceTemplate URI template must use only Level 1 `{name}` expressions/',
+        );
 
         new ResourceTemplateStore([
             'file:///{+path}' => $this->buildEntry(new ResourceTemplate(name: 'paths', uriTemplate: 'file:///{+path}')),
@@ -159,7 +165,7 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
     public function testConstructorRejectsTemplateWithAdjacentExpressions(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches('/^ResourceTemplate URI template must include literal text between adjacent expressions/');
+        $this->expectExceptionMessageMatches('/^ResourceTemplate URI template needs literal text between expressions/');
 
         new ResourceTemplateStore([
             'file:///{a}{b}' => $this->buildEntry(new ResourceTemplate(name: 'ab', uriTemplate: 'file:///{a}{b}')),
@@ -350,7 +356,9 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
         $store = new ResourceTemplateStore();
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches('/^ResourceTemplate URI template must use only RFC 6570 Level 1 simple-name expressions/');
+        $this->expectExceptionMessageMatches(
+            '/^ResourceTemplate URI template must use only Level 1 `{name}` expressions/',
+        );
 
         $store->addResourceTemplate(
             new ResourceTemplate(name: 'files', uriTemplate: 'file:///{+path}'),
@@ -404,7 +412,9 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
     public function testConstructorRefusesAnUnconventionalName(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('resource template "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.');
+        $this->expectExceptionMessageIs(
+            'resource template "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.',
+        );
 
         new ResourceTemplateStore(
             ['mem://{p}' => $this->buildEntry(new ResourceTemplate(name: 'Project Files', uriTemplate: 'mem://{p}'))],
@@ -414,7 +424,9 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
     public function testAddRefusesAnUnconventionalName(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('resource template "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.');
+        $this->expectExceptionMessageIs(
+            'resource template "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.',
+        );
 
         (new ResourceTemplateStore())->addResourceTemplate(
             new ResourceTemplate(name: 'Project Files', uriTemplate: 'mem://{p}'),
@@ -425,7 +437,9 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
     public function testConstructorRefusesANonConservativeIconSrc(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('resource template "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.');
+        $this->expectExceptionMessageIs(
+            'resource template "icons.src" must be an HTTP(S) URL or a base64 data: URI, \'ftp://example.com/icon.png\' given.',
+        );
 
         new ResourceTemplateStore(['mem://{p}' => $this->buildEntry(new ResourceTemplate(
             name: 't',
@@ -437,7 +451,9 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
     public function testAddRefusesANonConservativeIconSrc(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('resource template "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.');
+        $this->expectExceptionMessageIs(
+            'resource template "icons.src" must be an HTTP(S) URL or a base64 data: URI, \'ftp://example.com/icon.png\' given.',
+        );
 
         (new ResourceTemplateStore())->addResourceTemplate(new ResourceTemplate(
             name: 't',
@@ -461,7 +477,9 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
         ]);
 
         $this->expectException(InvalidParamsException::class);
-        $this->expectExceptionMessageIs('Invalid arguments for resource "file:///z.txt": "name" must be one of [\'a\', \'b\'], \'z\' given.');
+        $this->expectExceptionMessageIs(
+            'Invalid arguments for resource "file:///z.txt": "name" must be one of [\'a\', \'b\'], \'z\' given.',
+        );
 
         $store->read('file:///z.txt', $this->makeContext());
     }

@@ -73,7 +73,9 @@ final class JsonHttpExchangeTest extends AbstractMcpTestCase
         $http = (new RecordingHttpClient())->willAnswerFrom('http://127.0.0.1:6379/token');
 
         $this->expectException(RedirectRefusedException::class);
-        $this->expectExceptionMessageIs('The request to "https://auth.example.com/token" was answered from "http://127.0.0.1:6379/token" after a redirect. Credentials are never carried across one.');
+        $this->expectExceptionMessageIs(
+            'The request to "https://auth.example.com/token" was answered from "http://127.0.0.1:6379/token" after a redirect. Credentials are never carried across one.',
+        );
 
         (new JsonHttpExchange($http, 'token endpoint'))->send(new Request(self::URL), new NullCancellation());
     }
@@ -110,7 +112,9 @@ final class JsonHttpExchangeTest extends AbstractMcpTestCase
             (new JsonHttpExchange(
                 new RecordingHttpClient(),
                 'token endpoint',
-            ))->decode('{"issuer":"https://auth.example.com","token_endpoint":"https://auth.example.com/token","scopes_supported":["files:read"]}'),
+            ))->decode(
+                '{"issuer":"https://auth.example.com","token_endpoint":"https://auth.example.com/token","scopes_supported":["files:read"]}',
+            ),
         );
     }
 

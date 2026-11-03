@@ -125,7 +125,9 @@ final class ResourceStoreTest extends AbstractMcpTestCase
     public function testConstructorRejectsAnEntryKeyThatDoesNotMatchItsResourceUri(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('Resource store entry key "\'file:///WRONG\'" must match its resource URI "\'file:///actual\'".');
+        $this->expectExceptionMessageIs(
+            'Resource store entry key "\'file:///WRONG\'" must match its resource URI "\'file:///actual\'".',
+        );
 
         new ResourceStore(['file:///WRONG' => new ResourceEntry(
             new Resource(name: 'r', uri: 'file:///actual'),
@@ -253,7 +255,9 @@ final class ResourceStoreTest extends AbstractMcpTestCase
     public function testConstructorRefusesAnUnconventionalName(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('resource "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.');
+        $this->expectExceptionMessageIs(
+            'resource "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.',
+        );
 
         new ResourceStore(['file:///x' => new ResourceEntry(
             new Resource(name: 'Project Files', uri: 'file:///x'),
@@ -264,7 +268,9 @@ final class ResourceStoreTest extends AbstractMcpTestCase
     public function testAddRefusesAnUnconventionalName(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('resource "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.');
+        $this->expectExceptionMessageIs(
+            'resource "name" must be 1-128 characters of A-Z, a-z, 0-9, ".", "-", or "_", \'Project Files\' given.',
+        );
 
         (new ResourceStore())->addResource(new Resource(name: 'Project Files', uri: 'file:///x'), $this->makeReader());
     }
@@ -272,7 +278,9 @@ final class ResourceStoreTest extends AbstractMcpTestCase
     public function testConstructorRefusesANonConservativeIconSrc(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('resource "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.');
+        $this->expectExceptionMessageIs(
+            'resource "icons.src" must be an HTTP(S) URL or a base64 data: URI, \'ftp://example.com/icon.png\' given.',
+        );
 
         new ResourceStore(['file:///x' => new ResourceEntry(
             new Resource(
@@ -287,7 +295,9 @@ final class ResourceStoreTest extends AbstractMcpTestCase
     public function testAddRefusesANonConservativeIconSrc(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('resource "icons.src" must be an HTTP/HTTPS URL or a data: URI with base64-encoded data, \'ftp://example.com/icon.png\' given.');
+        $this->expectExceptionMessageIs(
+            'resource "icons.src" must be an HTTP(S) URL or a base64 data: URI, \'ftp://example.com/icon.png\' given.',
+        );
 
         (new ResourceStore())->addResource(
             new Resource(
@@ -311,7 +321,9 @@ final class ResourceStoreTest extends AbstractMcpTestCase
         ]);
 
         $this->expectException(InvalidParamsException::class);
-        $this->expectExceptionMessageIs('Invalid arguments for resource "file:///a.txt": "uri" must be a string, int given.');
+        $this->expectExceptionMessageIs(
+            'Invalid arguments for resource "file:///a.txt": "uri" must be a string, int given.',
+        );
 
         $store->read('file:///a.txt', $this->makeContext());
     }

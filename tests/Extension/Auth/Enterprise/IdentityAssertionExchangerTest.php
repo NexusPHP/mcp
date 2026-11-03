@@ -99,7 +99,9 @@ final class IdentityAssertionExchangerTest extends AbstractMcpTestCase
         );
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageIs('The enterprise IdP refused the token exchange with "invalid_grant": The assertion has expired.');
+        $this->expectExceptionMessageIs(
+            'The enterprise IdP refused the token exchange with "invalid_grant": The assertion has expired.',
+        );
 
         $this->exchange($http);
     }
@@ -140,7 +142,9 @@ final class IdentityAssertionExchangerTest extends AbstractMcpTestCase
         ]));
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageIs('The enterprise IdP issued a "urn:ietf:params:oauth:token-type:access_token" token where an ID-JAG was requested.');
+        $this->expectExceptionMessageIs(
+            'The enterprise IdP issued a "urn:ietf:params:oauth:token-type:access_token" token where an ID-JAG was requested.',
+        );
 
         $this->exchange($http);
     }
@@ -163,7 +167,9 @@ final class IdentityAssertionExchangerTest extends AbstractMcpTestCase
     public function testACleartextIdpEndpointIsRefused(): void
     {
         $this->expectException(UntrustedAuthorizationMetadataException::class);
-        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the IdP token endpoint "http://idp.example.com/token" is not an absolute HTTPS URL.');
+        $this->expectExceptionMessageIs(
+            'Untrusted authorization metadata: the IdP token endpoint "http://idp.example.com/token" is not an absolute HTTPS URL.',
+        );
 
         new IdentityAssertionExchanger('http://idp.example.com/token', new RecordingHttpClient());
     }
@@ -171,7 +177,9 @@ final class IdentityAssertionExchangerTest extends AbstractMcpTestCase
     public function testACleartextLoopbackIdpEndpointIsRefusedByDefault(): void
     {
         $this->expectException(UntrustedAuthorizationMetadataException::class);
-        $this->expectExceptionMessageIs('The authorization metadata cannot be trusted because the IdP token endpoint "http://127.0.0.1:1/token" is not an absolute HTTPS URL.');
+        $this->expectExceptionMessageIs(
+            'Untrusted authorization metadata: the IdP token endpoint "http://127.0.0.1:1/token" is not an absolute HTTPS URL.',
+        );
 
         new IdentityAssertionExchanger('http://127.0.0.1:1/token', new RecordingHttpClient());
     }
