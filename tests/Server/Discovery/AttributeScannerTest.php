@@ -284,12 +284,17 @@ final class AttributeScannerTest extends AbstractMcpTestCase
         $kinds = ['tools' => 0, 'prompts' => 0, 'resources' => 0, 'templates' => 0];
 
         foreach ($this->buildEntries() as $entry) {
-            ++$kinds[match (true) {
-                $entry instanceof ToolEntry => 'tools',
-                $entry instanceof PromptEntry => 'prompts',
-                $entry instanceof ResourceEntry => 'resources',
-                default => 'templates',
-            }];
+            $kind = 'templates';
+
+            if ($entry instanceof ToolEntry) {
+                $kind = 'tools';
+            } elseif ($entry instanceof PromptEntry) {
+                $kind = 'prompts';
+            } elseif ($entry instanceof ResourceEntry) {
+                $kind = 'resources';
+            }
+
+            ++$kinds[$kind];
         }
 
         self::assertSame(['tools' => 2, 'prompts' => 4, 'resources' => 2, 'templates' => 2], $kinds);

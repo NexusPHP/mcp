@@ -253,6 +253,38 @@ final class GetTaskResultTest extends AbstractMcpTestCase
             'a failed "result" must carry "error" and neither "result" nor "inputRequests".',
         ];
 
+        yield 'failed with result' => [
+            TaskStatus::Failed,
+            ['resultType' => 'complete'],
+            ['code' => -32_603],
+            false,
+            'a failed "result" must carry "error" and neither "result" nor "inputRequests".',
+        ];
+
+        yield 'failed with inputRequests' => [
+            TaskStatus::Failed,
+            null,
+            ['code' => -32_603],
+            true,
+            'a failed "result" must carry "error" and neither "result" nor "inputRequests".',
+        ];
+
+        yield 'input_required with result' => [
+            TaskStatus::InputRequired,
+            ['resultType' => 'complete'],
+            null,
+            true,
+            'an input_required "result" must carry "inputRequests" and neither "result" nor "error".',
+        ];
+
+        yield 'input_required with error' => [
+            TaskStatus::InputRequired,
+            null,
+            ['code' => -32_603],
+            true,
+            'an input_required "result" must carry "inputRequests" and neither "result" nor "error".',
+        ];
+
         yield 'input_required without inputRequests' => [
             TaskStatus::InputRequired,
             null,

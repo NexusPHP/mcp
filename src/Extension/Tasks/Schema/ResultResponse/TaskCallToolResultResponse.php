@@ -44,13 +44,15 @@ final readonly class TaskCallToolResultResponse extends JsonRpcResultResponse
         $id = self::parseId($data);
         $payload = self::parseResult($data);
 
-        $result = match (true) {
-            ($payload['resultType'] ?? null) === ResultType::Task->value => CreateTaskResult::fromArray($payload),
-            self::isInputRequired($payload) => InputRequiredResult::fromArray($payload),
-            default => CallToolResult::fromArray($payload),
-        };
+        if (($payload['resultType'] ?? null) === ResultType::Task->value) {
+            return new self(id: $id, result: CreateTaskResult::fromArray($payload));
+        }
 
-        return new self(id: $id, result: $result);
+        if (self::isInputRequired($payload)) {
+            return new self(id: $id, result: InputRequiredResult::fromArray($payload));
+        }
+
+        return new self(id: $id, result: CallToolResult::fromArray($payload));
     }
 
     #[\Override]

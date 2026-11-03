@@ -309,28 +309,32 @@ final readonly class GetTaskResult extends Result implements ServerResult
      */
     private function assertStatusPayload(TaskStatus $status, ?array $result, ?array $error, ?array $inputRequests): void
     {
-        match ($status) {
-            TaskStatus::Completed => null !== $result && null === $error && null === $inputRequests
-                ? null
-                : throw new \InvalidArgumentException(
-                    'a completed "result" must carry "result" and neither "error" nor "inputRequests".',
-                ),
-            TaskStatus::Failed => null !== $error && null === $result && null === $inputRequests
-                ? null
-                : throw new \InvalidArgumentException(
-                    'a failed "result" must carry "error" and neither "result" nor "inputRequests".',
-                ),
-            TaskStatus::InputRequired => null !== $inputRequests && null === $result && null === $error
-                ? null
-                : throw new \InvalidArgumentException(
-                    'an input_required "result" must carry "inputRequests" and neither "result" nor "error".',
-                ),
-            TaskStatus::Working, TaskStatus::Cancelled => null === $result && null === $error && null === $inputRequests
-                ? null
-                : throw new \InvalidArgumentException(\sprintf(
-                    'a %s "result" must carry none of "result", "error", or "inputRequests".',
-                    $status->value,
-                )),
-        };
+        if (TaskStatus::Completed === $status && (null === $result || null !== $error || null !== $inputRequests)) {
+            throw new \InvalidArgumentException(
+                'a completed "result" must carry "result" and neither "error" nor "inputRequests".',
+            );
+        }
+
+        if (TaskStatus::Failed === $status && (null === $error || null !== $result || null !== $inputRequests)) {
+            throw new \InvalidArgumentException(
+                'a failed "result" must carry "error" and neither "result" nor "inputRequests".',
+            );
+        }
+
+        if (TaskStatus::InputRequired === $status && (null === $inputRequests || null !== $result || null !== $error)) {
+            throw new \InvalidArgumentException(
+                'an input_required "result" must carry "inputRequests" and neither "result" nor "error".',
+            );
+        }
+
+        if (
+            \in_array($status, [TaskStatus::Working, TaskStatus::Cancelled], true)
+            && ! (null === $result && null === $error && null === $inputRequests)
+        ) {
+            throw new \InvalidArgumentException(\sprintf(
+                'a %s "result" must carry none of "result", "error", or "inputRequests".',
+                $status->value,
+            ));
+        }
     }
 }

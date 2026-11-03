@@ -187,18 +187,23 @@ if ($writeBadges) {
         }
 
         $percent = (int) round($tally['passed'] / $tally['scored'] * 100);
+        $color = 'orange';
+
+        if ($percent >= 95) {
+            $color = 'brightgreen';
+        } elseif ($percent >= 85) {
+            $color = 'green';
+        } elseif ($percent >= 70) {
+            $color = 'yellow';
+        }
+
         $badge = [
             'schemaVersion' => 1,
             'label' => 'spec' === $tally['bucket']
                 ? sprintf('core (%s)', $tally['mode'])
                 : sprintf('%s (%s)', $tally['bucket'], $tally['mode']),
             'message' => sprintf('%d/%d (%d%%)', $tally['passed'], $tally['scored'], $percent),
-            'color' => match (true) {
-                $percent >= 95 => 'brightgreen',
-                $percent >= 85 => 'green',
-                $percent >= 70 => 'yellow',
-                default => 'orange',
-            },
+            'color' => $color,
         ];
 
         file_put_contents(

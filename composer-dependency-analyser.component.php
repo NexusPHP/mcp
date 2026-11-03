@@ -37,18 +37,24 @@ if ([] !== $siblings) {
     $config->ignoreErrorsOnPackages($siblings, [ErrorType::UNUSED_DEPENDENCY]);
 }
 
-match (basename($component)) {
-    'Server' => $config->ignoreErrorsOnPackageAndPath(
+if ('Server' === basename($component)) {
+    $config->ignoreErrorsOnPackageAndPath(
         'firebase/php-jwt',
         $component.'/Auth/JwksAccessTokenValidator.php',
         [ErrorType::SHADOW_DEPENDENCY],
-    ),
-    'Client' => $config->ignoreErrorsOnExtensionAndPath(
+    );
+}
+
+if ('Client' === basename($component)) {
+    $config->ignoreErrorsOnExtensionAndPath(
         'ext-sodium',
         $component.'/Auth/EncryptedFileTokenStore.php',
         [ErrorType::SHADOW_DEPENDENCY],
-    ),
-    'Extension' => $config
+    );
+}
+
+if ('Extension' === basename($component)) {
+    $config
         ->ignoreErrorsOnPackageAndPath(
             'firebase/php-jwt',
             $component.'/Auth/ClientAssertionSigner.php',
@@ -58,8 +64,8 @@ match (basename($component)) {
             'symfony/yaml',
             $component.'/Skills/Frontmatter.php',
             [ErrorType::SHADOW_DEPENDENCY],
-        ),
-    default => null,
-};
+        )
+    ;
+}
 
 return $config;
