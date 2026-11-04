@@ -85,6 +85,9 @@
             "Nexus\\Mcp\\Tests\\": "tests/",
             "Nexus\\Mcp\\Tools\\": "tools/src/"
         },
+        "exclude-from-classmap": [
+            "tests/Fixtures/Server/Discovery/Names/MultipleNamespaces.php"
+        ],
         "classmap": [
             "conformance/ConformanceClient.php",
             "conformance/HeadlessUserAuthorization.php",
