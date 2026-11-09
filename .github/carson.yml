@@ -47,12 +47,15 @@ settings:
       - maintain
       - write
 
+  conflicts-notifier:
+    sweep: true
+
   lock-old-issues:
     days: 90
     reason: resolved
 
   no-merge-commits:
-    name: Linear history
+    name: Carson / no-merge-commits
 
   no-response-closer:
     label: awaiting feedback
