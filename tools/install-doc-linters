@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+#
+# Installs the documentation linters (typos, markdownlint-cli2) through Homebrew when they are missing.
+
+set -euo pipefail
+
+missing=()
+
+command -v typos >/dev/null 2>&1 || missing+=("typos-cli")
+command -v markdownlint-cli2 >/dev/null 2>&1 || missing+=("markdownlint-cli2")
+
+if [ "${#missing[@]}" -eq 0 ]; then
+    exit 0
+fi
+
+list="${missing[*]}"
+list="${list// /, }"
+
+if [ "$(uname -s)" != "Darwin" ]; then
+    echo "Doc linters not installed: ${list}. Install them with your platform's package manager." >&2
+    exit 0
+fi
+
+if ! command -v brew >/dev/null 2>&1; then
+    echo "Homebrew not found. Install doc linters manually: ${list}." >&2
+    exit 0
+fi
+
+brew install "${missing[@]}" || {
+    echo "brew install failed for: ${list}" >&2
+    exit 1
+}

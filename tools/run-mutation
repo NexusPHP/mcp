@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+#
+# Runs Infection with the shipped artefact's INI (zend.assertions=-1), like the CI mutation job.
+#
+#     tools/run-mutation [paths...]              whole tree, or the given paths
+#     tools/run-mutation --filtered              diff against origin/1.x, untracked files included
+#
+# Infection's forked PHPUnit children scan tools/ini after the default INI directory.
+
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$REPO_ROOT"
+
+INFECTION_BIN="tools/vendor/bin/infection"
+INFECTION_TMP_DIR="build/infection"
+
+export XDEBUG_MODE=coverage
+export PHP_INI_SCAN_DIR=":${REPO_ROOT}/tools/ini"
+
+prune_result_caches() {
+    rm -rf "${INFECTION_TMP_DIR}"/.phpunit.result.cache.*/
+}
+
+untracked=""
+
+cleanup() {
+    prune_result_caches
+
+    if [ -n "$untracked" ]; then
+        printf '%s\n' "$untracked" | xargs git reset --quiet HEAD -- || true
+    fi
+}
+
+trap cleanup EXIT
+
+prune_result_caches
+
+if [ "${1:-}" = "--filtered" ]; then
+    shift
+
+    untracked="$(git ls-files --others --exclude-standard -- src tests)"
+
+    if [ -n "$untracked" ]; then
+        printf '%s\n' "$untracked" | xargs git add --intent-to-add --
+    fi
+
+    "$INFECTION_BIN" \
+        --with-uncovered \
+        --static-analysis-tool=phpstan \
+        --git-diff-filter=AM \
+        --git-diff-base=origin/1.x \
+        --ignore-msi-with-no-mutations \
+        "$@"
+else
+    "$INFECTION_BIN" --with-uncovered --static-analysis-tool=phpstan "$@"
+fi

@@ -23,17 +23,10 @@ final class ComposerScripts
     private const string PHPSTAN_PHAR = self::PROJECT_ROOT.'/vendor/phpstan/phpstan/phpstan.phar';
     private const string PHPSTAN_EXTRACTED_DIR = self::PROJECT_ROOT.'/vendor/phpstan/phpstan-phar';
     private const string INTELEPHENSE_INCLUDE_ENTRY = 'vendor/phpstan/phpstan-phar/';
-    private const string INFECTION_BIN = self::PROJECT_ROOT.'/tools/vendor/bin/infection';
-    private const string INFECTION_TMP_DIR = self::PROJECT_ROOT.'/build/infection';
-    private const array MUTATION_SOURCE_DIRECTORIES = ['src', 'tests'];
     private const array COMPONENT_DIRECTORIES = ['Core', 'Server', 'Client', 'Extension'];
     private const string DEPENDENCY_ANALYSER_BIN = self::PROJECT_ROOT.'/tools/vendor/bin/composer-dependency-analyser';
     private const string COMPONENT_ANALYSER_CONFIG = self::PROJECT_ROOT.'/composer-dependency-analyser.component.php';
     private const string PHPUNIT_CLOVER = self::PROJECT_ROOT.'/build/phpunit/clover.xml';
-    private const array DOC_LINTER_BINARIES = [
-        'typos' => 'typos-cli',
-        'markdownlint-cli2' => 'markdownlint-cli2',
-    ];
 
     public static function postUpdate(): void
     {
@@ -58,113 +51,6 @@ final class ComposerScripts
         }
 
         self::updateVscodeIntelephenseEnvironmentIncludePaths($settingsContents);
-    }
-
-    public static function installDocLinters(): void
-    {
-        $missing = [];
-
-        foreach (self::DOC_LINTER_BINARIES as $binary => $formula) {
-            if (! self::hasCommand($binary)) {
-                $missing[$formula] = true;
-            }
-        }
-
-        if ([] === $missing) {
-            return;
-        }
-
-        $formulas = array_keys($missing);
-
-        if ('Darwin' !== \PHP_OS_FAMILY) {
-            fwrite(
-                \STDERR,
-                \sprintf(
-                    "Doc linters not installed: %s. Install them with your platform's package manager.\n",
-                    implode(', ', $formulas),
-                ),
-            );
-
-            return;
-        }
-
-        if (! self::hasCommand('brew')) {
-            fwrite(
-                \STDERR,
-                \sprintf("Homebrew not found. Install doc linters manually: %s.\n", implode(', ', $formulas)),
-            );
-
-            return;
-        }
-
-        $proc = proc_open(['brew', 'install', ...$formulas], [0 => \STDIN, 1 => \STDOUT, 2 => \STDERR], $pipes);
-
-        if (false === $proc) {
-            self::fail('Failed to launch brew.');
-        }
-
-        $exitCode = proc_close($proc);
-
-        if (0 !== $exitCode) {
-            self::fail(\sprintf('brew install failed for: %s', implode(', ', $formulas)));
-        }
-    }
-
-    /**
-     * Scans `tools/ini` after the default INI directory, so Infection's forked PHPUnit children run
-     * with the shipped artefact's `zend.assertions=-1` like the CI mutation job. Composer builds child
-     * environments from `$_SERVER` and `$_ENV`, not the `putenv` store, so all three must be written.
-     */
-    public static function exportMutationIni(): void
-    {
-        $scanDir = \PATH_SEPARATOR.self::PROJECT_ROOT.'/tools/ini';
-        putenv('PHP_INI_SCAN_DIR='.$scanDir);
-        $_SERVER['PHP_INI_SCAN_DIR'] = $scanDir;
-        $_ENV['PHP_INI_SCAN_DIR'] = $scanDir;
-    }
-
-    public static function cleanInfectionResultCaches(): void
-    {
-        self::pruneInfectionResultCaches();
-        register_shutdown_function(self::pruneInfectionResultCaches(...));
-    }
-
-    /**
-     * Runs Infection scoped to the diff against `origin/1.x`.
-     */
-    public static function runFilteredMutation(): void
-    {
-        chdir(self::PROJECT_ROOT);
-
-        $untracked = self::listUntrackedSourceFiles();
-
-        if ([] !== $untracked) {
-            self::runGitCommand('add', '--intent-to-add', '--', ...$untracked);
-            register_shutdown_function(static function () use ($untracked): void {
-                self::runGitCommand('reset', '--quiet', 'HEAD', '--', ...$untracked);
-            });
-        }
-
-        $command = [
-            self::INFECTION_BIN,
-            '--with-uncovered',
-            '--static-analysis-tool=phpstan',
-            '--git-diff-filter=AM',
-            '--git-diff-base=origin/1.x',
-            '--ignore-msi-with-no-mutations',
-        ];
-
-        $proc = proc_open($command, [0 => \STDIN, 1 => \STDOUT, 2 => \STDERR], $pipes);
-
-        if (false === $proc) {
-            self::fail('Failed to launch infection.');
-        }
-
-        $exitCode = proc_close($proc);
-
-        if (0 !== $exitCode) {
-            exit($exitCode);
-        }
     }
 
     /**
@@ -327,65 +213,6 @@ final class ComposerScripts
         }
 
         return $target;
-    }
-
-    private static function pruneInfectionResultCaches(): void
-    {
-        $caches = glob(self::INFECTION_TMP_DIR.'/.phpunit.result.cache.*', \GLOB_ONLYDIR);
-
-        if (false === $caches) {
-            return;
-        }
-
-        foreach ($caches as $cache) {
-            self::deleteRecursively($cache);
-        }
-    }
-
-    /**
-     * @return list<string>
-     */
-    private static function listUntrackedSourceFiles(): array
-    {
-        $output = shell_exec(implode(
-            ' ',
-            array_map(escapeshellarg(...), [
-                'git',
-                'ls-files',
-                '--others',
-                '--exclude-standard',
-                '--',
-                ...self::MUTATION_SOURCE_DIRECTORIES,
-            ]),
-        ));
-
-        if (! \is_string($output) || trim($output) === '') {
-            return [];
-        }
-
-        $lines = preg_split('/\R/', trim($output));
-
-        if (false === $lines) {
-            return [];
-        }
-
-        return array_values(array_filter($lines, static fn(string $line): bool => '' !== $line));
-    }
-
-    private static function runGitCommand(string ...$args): void
-    {
-        passthru(implode(' ', array_map(escapeshellarg(...), ['git', ...$args])));
-    }
-
-    private static function hasCommand(string $command): bool
-    {
-        $probe = 'Windows' === \PHP_OS_FAMILY
-            ? \sprintf('where %s 2>NUL', escapeshellarg($command))
-            : \sprintf('command -v %s 2>/dev/null', escapeshellarg($command));
-
-        $output = shell_exec($probe);
-
-        return \is_string($output) && trim($output) !== '';
     }
 
     private static function deleteRecursively(string $directory): void
