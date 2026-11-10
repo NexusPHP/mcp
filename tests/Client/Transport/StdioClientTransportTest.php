@@ -48,6 +48,7 @@ use function Amp\delay;
 final class StdioClientTransportTest extends AbstractMcpTestCase
 {
     private const array COMMAND = ['mcp-server', '--stdio'];
+    private const float SHORT_SHUTDOWN_TIMEOUT = 0.01;
 
     public function testEmptyCommandThrows(): void
     {
@@ -271,6 +272,45 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
         self::assertSame(1, $subprocess->killCount);
     }
 
+    public function testCloseLetsASubprocessExitingOnEndOfInputFinishBeforeTheKill(): void
+    {
+        $launcher = new ScriptedSubprocessLauncher();
+        $transport = $this->buildTransport($launcher);
+        $transport->start();
+        $subprocess = $launcher->lastSubprocess();
+
+        $transport->close();
+
+        self::assertFalse($subprocess->killedWhileRunning);
+    }
+
+    public function testCloseKillsASubprocessStillRunningPastTheShutdownTimeout(): void
+    {
+        $launcher = new ScriptedSubprocessLauncher();
+        $transport = $this->buildTransport($launcher, shutdownTimeout: self::SHORT_SHUTDOWN_TIMEOUT);
+        $transport->start();
+        $subprocess = $launcher->lastSubprocess();
+        $subprocess->exitsOnEndOfInput = false;
+
+        $this->closePastTheShutdownTimeout($transport);
+
+        self::assertTrue($subprocess->killedWhileRunning);
+    }
+
+    public function testCloseKillsASubprocessEndingWithoutAnExitStatus(): void
+    {
+        $launcher = new ScriptedSubprocessLauncher();
+        $transport = $this->buildTransport($launcher);
+        $transport->start();
+        $subprocess = $launcher->lastSubprocess();
+        $subprocess->exitsOnEndOfInput = false;
+        $subprocess->getStdin()->onClose($subprocess->failToReportExit(...));
+
+        $transport->close();
+
+        self::assertSame(1, $subprocess->killCount);
+    }
+
     public function testCloseLogsAtInfoLevel(): void
     {
         $logger = new ArrayLogger();
@@ -486,14 +526,15 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
     {
         $logger = new ArrayLogger();
         $launcher = new ScriptedSubprocessLauncher();
-        $transport = $this->buildTransport($launcher, $logger);
+        $transport = $this->buildTransport($launcher, $logger, self::SHORT_SHUTDOWN_TIMEOUT);
         $notified = 0;
         $transport->onUnexpectedExit(static function () use (&$notified): void {
             ++$notified;
         });
 
         $transport->start();
-        $transport->close();
+        $launcher->lastSubprocess()->exitsOnEndOfInput = false;
+        $this->closePastTheShutdownTimeout($transport);
         EventLoop::run();
         $launcher->lastSubprocess()->exitWith(3);
         EventLoop::run();
@@ -658,12 +699,24 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
     private function buildTransport(
         ScriptedSubprocessLauncher $launcher,
         ?ArrayLogger $logger = null,
+        float $shutdownTimeout = 2.0,
     ): StdioClientTransport {
         return new StdioClientTransport(
             self::COMMAND,
             logger: $logger ?? new ArrayLogger(),
             launcher: $launcher,
+            shutdownTimeout: $shutdownTimeout,
         );
+    }
+
+    /**
+     * Closes a transport whose subprocess ignores EOF, holding the loop open past the shutdown timeout.
+     */
+    private function closePastTheShutdownTimeout(StdioClientTransport $transport): void
+    {
+        $anchor = async(static fn() => delay(self::SHORT_SHUTDOWN_TIMEOUT * 5));
+        $transport->close();
+        $anchor->await();
     }
 
     private function buildRequest(): DiscoverRequest

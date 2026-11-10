@@ -96,6 +96,7 @@ $transport = new StdioClientTransport(
     env: null,                                       // optional; null prunes to a safe allowlist
     logger: $psrLogger,                              // optional; default: NullLogger
     maxLineBytes: 4_194_304,                         // optional cap; default 4 MiB
+    shutdownTimeout: 2.0,                            // optional; seconds to wait for exit on close
 );
 ```
 
@@ -125,9 +126,10 @@ sequences into the logs. An error during the pump logs a warning and does not ch
 
 ### Close
 
-`close()` closes the subprocess's stdin, which signals EOF. If the subprocess still runs, the transport sends
-`SIGKILL`. `amphp/process` runs subprocesses behind a shell wrapper that
-ignores `SIGTERM`, so `SIGKILL` is the only signal guaranteed to terminate the child.
+`close()` closes the subprocess's stdin, which signals EOF, and waits up to `$shutdownTimeout` seconds (default 2)
+for the subprocess to exit. If it still runs after that, the transport sends `SIGKILL`. `amphp/process` runs
+subprocesses behind a shell wrapper that ignores `SIGTERM`, so `SIGKILL` is the only signal guaranteed
+to terminate the child.
 
 ### Unexpected exit
 

@@ -30,6 +30,8 @@ final class ScriptedSubprocess implements SubprocessInterface
     private const int BUFFER_SIZE = 8_192;
 
     public int $killCount = 0;
+    public bool $killedWhileRunning = false;
+    public bool $exitsOnEndOfInput = true;
     private readonly Pipe $stdin;
     private readonly Pipe $stdout;
     private readonly Pipe $stderr;
@@ -45,6 +47,11 @@ final class ScriptedSubprocess implements SubprocessInterface
         $this->stdout = new Pipe(self::BUFFER_SIZE);
         $this->stderr = new Pipe(self::BUFFER_SIZE);
         $this->exit = new DeferredFuture();
+        $this->stdin->getSink()->onClose(function (): void {
+            if ($this->exitsOnEndOfInput && ! $this->exit->isComplete()) {
+                $this->exitWith(0);
+            }
+        });
     }
 
     #[\Override]
@@ -81,6 +88,7 @@ final class ScriptedSubprocess implements SubprocessInterface
     public function kill(): void
     {
         ++$this->killCount;
+        $this->killedWhileRunning = $this->killedWhileRunning || ! $this->exit->isComplete();
         $this->endOutputStreams();
     }
 
