@@ -134,6 +134,13 @@ final class DirectorySkillTest extends AbstractMcpTestCase
         self::assertSame($name, (new DirectorySkill($name, $this->directory->path))->entry->frontmatter['name']);
     }
 
+    public function testAPrefixSegmentMayStartWithAnUnderscore(): void
+    {
+        $skill = new DirectorySkill('_shared/acme/_internal/refunds', self::FIXTURES.'/refunds');
+
+        self::assertSame('skill://_shared/acme/_internal/refunds/SKILL.md', $skill->entry->uri);
+    }
+
     public function testDotPrefixedEntriesAreLeftOutWithEverythingBeneathThem(): void
     {
         $this->directory->writeManifest('public-only');
@@ -291,6 +298,10 @@ final class DirectorySkillTest extends AbstractMcpTestCase
         yield 'a current-directory segment' => ['acme/./refunds'];
 
         yield 'a percent-encoded segment' => ['acme%20inc/refunds'];
+
+        yield 'a prefix segment starting with a dot' => ['.acme/refunds'];
+
+        yield 'a prefix segment starting with a hyphen' => ['-acme/refunds'];
 
         yield 'a name in upper case' => ['acme/Refunds'];
 

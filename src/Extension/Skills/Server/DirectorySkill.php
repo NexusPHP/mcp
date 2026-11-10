@@ -24,7 +24,7 @@ use Nexus\Mcp\Extension\Skills\Skills;
  */
 final readonly class DirectorySkill
 {
-    private const string PATH_PATTERN = '/\A(?:[A-Za-z0-9][A-Za-z0-9._~-]*\/)*(?=[^\/]{1,64}\z)[a-z0-9]+(?:-[a-z0-9]+)*\z/';
+    private const string PATH_PATTERN = '/\A(?:[A-Za-z0-9_][A-Za-z0-9._~-]*\/)*(?=[^\/]{1,64}\z)[a-z0-9]+(?:-[a-z0-9]+)*\z/';
     private const array MIME_TYPES = [
         'css' => 'text/css',
         'csv' => 'text/csv',
