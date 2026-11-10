@@ -19,6 +19,7 @@ use Nexus\Mcp\Core\Schema\Result\InputRequiredResult;
 use Nexus\Mcp\Core\Schema\ResultResponse\CallToolResultResponse;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
@@ -49,5 +50,33 @@ final class CallToolResultResponseTest extends AbstractMcpTestCase
         ]);
 
         self::assertInstanceOf(InputRequiredResult::class, $response->result);
+    }
+
+    #[DataProvider('provideRefusesAnUnknownResultTypeCases')]
+    public function testRefusesAnUnknownResultType(mixed $resultType): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs(\sprintf(
+            '"result.resultType" must be a result type supported by the method, %s given.',
+            var_export($resultType, true),
+        ));
+
+        CallToolResultResponse::fromArray([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'result' => ['resultType' => $resultType, 'content' => []],
+        ]);
+    }
+
+    /**
+     * @return iterable<string, array{mixed}>
+     */
+    public static function provideRefusesAnUnknownResultTypeCases(): iterable
+    {
+        yield 'unknown value' => ['bogus'];
+
+        yield 'non-string value' => [1];
+
+        yield 'task, without the tasks extension' => ['task'];
     }
 }

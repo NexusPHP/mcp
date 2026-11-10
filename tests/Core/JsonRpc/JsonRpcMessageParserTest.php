@@ -657,17 +657,17 @@ final class JsonRpcMessageParserTest extends AbstractMcpTestCase
         self::assertSame(7, $parsed->id->id);
     }
 
-    public function testParseDecodesUnknownResultTypeAsExpectedClass(): void
+    public function testParseRefusesAnUnknownResultTypeAsAnInvalidRequest(): void
     {
-        $parser = new JsonRpcMessageParser();
-        $parsed = $parser->parse(
+        $this->expectException(InvalidRequestException::class);
+        $this->expectExceptionMessageIs(
+            'Invalid success response: "result.resultType" must be a result type supported by the method, \'task\' given.',
+        );
+
+        (new JsonRpcMessageParser())->parse(
             ['jsonrpc' => '2.0', 'id' => 8, 'result' => ['resultType' => 'task', 'content' => []]],
             CallToolResultResponse::class,
         );
-
-        self::assertInstanceOf(JsonRpcResultResponse::class, $parsed);
-
-        self::assertInstanceOf(CallToolResult::class, $parsed->result);
     }
 
     public function testParseWrapsInvalidInputRequiredResultPayloadAsInvalidRequest(): void

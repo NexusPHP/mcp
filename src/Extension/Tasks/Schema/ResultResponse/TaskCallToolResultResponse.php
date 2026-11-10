@@ -64,4 +64,10 @@ final readonly class TaskCallToolResultResponse extends JsonRpcResultResponse
             'result' => $this->result->toArray(),
         ];
     }
+
+    #[\Override]
+    protected static function listSupportedResultTypes(): array
+    {
+        return [ResultType::Complete->value, ResultType::InputRequired->value, ResultType::Task->value];
+    }
 }

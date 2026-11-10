@@ -76,7 +76,23 @@ abstract readonly class JsonRpcResultResponse implements Arrayable, JsonRpcRespo
             ->isMap('"result" must be a string-keyed object.')
         ;
 
+        // Spec, "Result Types": a resultType unknown to the client MUST be considered invalid.
+        if (\array_key_exists('resultType', $result)) {
+            Assert::that($result['resultType'])->isOneOf(
+                static::listSupportedResultTypes(),
+                '"result.resultType" must be a result type supported by the method, {value} given.',
+            );
+        }
+
         return $result;
+    }
+
+    /**
+     * @return non-empty-list<non-empty-string>
+     */
+    protected static function listSupportedResultTypes(): array
+    {
+        return [ResultType::Complete->value, ResultType::InputRequired->value];
     }
 
     /**
