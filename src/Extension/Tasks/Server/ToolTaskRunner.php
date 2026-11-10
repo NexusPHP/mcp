@@ -19,6 +19,7 @@ use Nexus\Mcp\Core\Exception\AbstractJsonRpcProtocolException;
 use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
 use Nexus\Mcp\Core\JsonRpc\ErrorFactory;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
+use Nexus\Mcp\Core\Schema\Error;
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result;
@@ -143,21 +144,15 @@ final class ToolTaskRunner
                     : $context->requestStateSigner->verify($state);
 
                 if (null === $result->inputRequests) {
-                    $this->store->trySetFailed(
-                        $taskId,
-                        ErrorFactory::create(
-                            ProtocolErrorCode::InternalError,
-                            'The tool parked the task without any input requests.',
-                        )->toArray(),
-                    );
+                    $this->failTask($taskId, ErrorFactory::create(
+                        ProtocolErrorCode::InternalError,
+                        'The tool parked the task without any input requests.',
+                    ));
                 } elseif (null === $payload && null !== $state) {
-                    $this->store->trySetFailed(
-                        $taskId,
-                        ErrorFactory::create(
-                            ProtocolErrorCode::InternalError,
-                            'The tool parked the task with a "requestState" the server cannot verify.',
-                        )->toArray(),
-                    );
+                    $this->failTask($taskId, ErrorFactory::create(
+                        ProtocolErrorCode::InternalError,
+                        'The tool parked the task with a "requestState" the server cannot verify.',
+                    ));
                 } else {
                     $this->store->trySetInputRequired($taskId, $result->inputRequests, $payload);
                 }
@@ -169,25 +164,24 @@ final class ToolTaskRunner
         } catch (CancelledException) {
             $this->store->trySetCancelled($taskId);
         } catch (InputRequestKeyReusedException $e) {
-            $this->store->trySetFailed(
-                $taskId,
-                ErrorFactory::create(ProtocolErrorCode::InternalError, $e->getMessage())->toArray(),
-            );
+            $this->failTask($taskId, ErrorFactory::create(ProtocolErrorCode::InternalError, $e->getMessage()));
         } catch (AbstractJsonRpcProtocolException $e) {
-            $this->store->trySetFailed(
-                $taskId,
-                ErrorFactory::create($e::getErrorCode(), $e->getMessage(), $e->errorData)->toArray(),
-            );
+            $this->failTask($taskId, ErrorFactory::create($e::getErrorCode(), $e->getMessage(), $e->errorData));
         } catch (\Throwable $e) {
             $this->logger->error(
                 'Uncaught task executor exception. Failing task {taskId} with a generic error.',
                 ['taskId' => $taskId, 'exception' => $e],
             );
 
-            $this->store->trySetFailed(
-                $taskId,
-                ErrorFactory::create(ProtocolErrorCode::InternalError, 'Task execution failed.')->toArray(),
-            );
+            $this->failTask($taskId, ErrorFactory::create(ProtocolErrorCode::InternalError, 'Task execution failed.'));
         }
+    }
+
+    /**
+     * @param non-empty-string $taskId
+     */
+    private function failTask(string $taskId, Error $error): void
+    {
+        $this->store->trySetFailed($taskId, $error->toArray(), $error->message);
     }
 }

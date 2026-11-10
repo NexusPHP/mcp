@@ -358,6 +358,7 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
 
         self::assertSame(TaskStatus::Failed, $record->status);
         self::assertSame(['code' => -32_603, 'message' => 'The task did not settle within its ttl.'], $record->error);
+        self::assertSame('The task did not settle within its ttl.', $record->statusMessage);
     }
 
     public function testAParkedTaskFailingOnItsTtlClearsThePark(): void

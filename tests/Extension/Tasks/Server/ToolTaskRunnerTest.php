@@ -281,6 +281,7 @@ final class ToolTaskRunnerTest extends AbstractMcpTestCase
         self::assertInstanceOf(TaskRecord::class, $record);
         self::assertSame(TaskStatus::Failed, $record->status);
         self::assertSame(['code' => -32_603, 'message' => 'Task execution failed.'], $record->error);
+        self::assertSame('Task execution failed.', $record->statusMessage);
         $records = $logger->recordsMatching(
             LogLevel::ERROR,
             'Uncaught task executor exception. Failing task {taskId} with a generic error.',

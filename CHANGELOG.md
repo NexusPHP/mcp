@@ -58,6 +58,7 @@ in `0.x`, minor releases may include breaking changes.
 - A redirect URI on a loopback host must use `http`. Previously, any scheme was accepted.
 - The input schema for an unsealed shape (`array{a: int, ...<string, int>}`, `list{int, ...}`) allows the extra
   entries. Previously, it rejected them or ignored their type.
+- A failed task carries its error message as `statusMessage` in `tasks/get`. Previously, it carried none.
 - `StdioClientTransport::close()` waits for the server subprocess to exit after closing its stdin, and kills it only
   after `$shutdownTimeout` seconds (default 2). Previously, it killed the subprocess at once.
 - The client reads a Bearer challenge from any `WWW-Authenticate` header line. Previously, it read only the first, and
