@@ -34,9 +34,9 @@ use Nexus\Mcp\Extension\Tasks\Schema\Enum\TaskStatus;
  *   status: non-empty-string,
  *   createdAt: non-empty-string,
  *   lastUpdatedAt: non-empty-string,
- *   ttlMs: null|int,
+ *   ttlMs: null|int<0, max>,
  *   statusMessage?: non-empty-string,
- *   pollIntervalMs?: int,
+ *   pollIntervalMs?: int<0, max>,
  *   result?: array<array-key, mixed>,
  *   error?: array<array-key, mixed>,
  *   inputRequests?: array<int|non-empty-string, array<string, mixed>>,
@@ -55,10 +55,12 @@ final readonly class GetTaskResult extends Result implements ServerResult
      * @param non-empty-string                               $taskId
      * @param non-empty-string                               $createdAt
      * @param non-empty-string                               $lastUpdatedAt
+     * @param null|int<0, max>                               $ttlMs
      * @param null|array<array-key, mixed>                   $result
      * @param null|array<array-key, mixed>                   $error
      * @param null|array<int|non-empty-string, InputRequest> $inputRequests
      * @param null|non-empty-string                          $statusMessage
+     * @param null|int<0, max>                               $pollIntervalMs
      */
     public function __construct(
         public string $taskId,
@@ -126,8 +128,8 @@ final readonly class GetTaskResult extends Result implements ServerResult
 
         Assert::that($data)->hasOffset('ttlMs', '"result" is missing the required "ttlMs" key.');
         $ttlMs = $data['ttlMs'];
-        Assert::that($ttlMs)->nullOr()->isPositiveInt(
-            '"result.ttlMs" must be null or a positive integer, {value} given.',
+        Assert::that($ttlMs)->nullOr()->isNaturalInt(
+            '"result.ttlMs" must be null or a non-negative integer, {value} given.',
         );
 
         $result = null;
@@ -177,8 +179,8 @@ final readonly class GetTaskResult extends Result implements ServerResult
 
         if (\array_key_exists('pollIntervalMs', $data)) {
             $pollIntervalMs = $data['pollIntervalMs'];
-            Assert::that($pollIntervalMs)->isPositiveInt(
-                '"result.pollIntervalMs" must be a positive integer, {value} given.',
+            Assert::that($pollIntervalMs)->isNaturalInt(
+                '"result.pollIntervalMs" must be a non-negative integer, {value} given.',
             );
         }
 

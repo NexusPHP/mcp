@@ -34,6 +34,7 @@ in `0.x`, minor releases may include breaking changes.
   `ext-tokenizer` is now required.
 - `RequestStateSigner::deriveBinding()` binds the authenticated client as well as the subject, so a state minted
   for one client is refused for another. A state minted before the upgrade is refused once.
+- `TasksServerExtension` refuses a negative `$defaultTtlMs` or `$defaultPollIntervalMs`. Previously, it accepted one.
 
 ### Deprecated
 
@@ -58,6 +59,7 @@ in `0.x`, minor releases may include breaking changes.
 - A redirect URI on a loopback host must use `http`. Previously, any scheme was accepted.
 - The input schema for an unsealed shape (`array{a: int, ...<string, int>}`, `list{int, ...}`) allows the extra
   entries. Previously, it rejected them or ignored their type.
+- A task result with a `ttlMs` or `pollIntervalMs` of `0` is accepted when decoded. Previously, it was refused.
 - `DirectorySkill` refuses a `SKILL.md` frontmatter over the Agent Skills limits: a `description` over 1024
   characters, a `compatibility` outside 1-500 characters, or `metadata` with a value that is not a string.
   Previously, it served them.

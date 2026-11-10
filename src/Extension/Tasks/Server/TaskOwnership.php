@@ -32,6 +32,8 @@ final class TaskOwnership
     /**
      * @param non-empty-string             $toolName
      * @param null|array<array-key, mixed> $arguments
+     * @param null|int<0, max>             $ttlMs
+     * @param int<0, max>                  $pollIntervalMs
      */
     public static function createTask(
         TaskStoreInterface $store,

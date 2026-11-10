@@ -67,6 +67,29 @@ final class TasksServerExtensionTest extends AbstractMcpTestCase
         self::assertSame([], $extension->getNotificationHandlers());
     }
 
+    public function testAcceptsAZeroDefaultTtlAndPollInterval(): void
+    {
+        $this->expectNotToPerformAssertions();
+
+        new TasksServerExtension(defaultTtlMs: 0, defaultPollIntervalMs: 0);
+    }
+
+    public function testRefusesANegativeDefaultTtl(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('Default task ttl must be null or a non-negative integer, -1 given.');
+
+        new TasksServerExtension(defaultTtlMs: -1); // @phpstan-ignore argument.type
+    }
+
+    public function testRefusesANegativeDefaultPollInterval(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('Default task poll interval must be a non-negative integer, -1 given.');
+
+        new TasksServerExtension(defaultPollIntervalMs: -1); // @phpstan-ignore argument.type
+    }
+
     public function testDeclaresTheThreeTasksMethods(): void
     {
         $extension = new TasksServerExtension();

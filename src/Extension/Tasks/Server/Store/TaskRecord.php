@@ -27,6 +27,8 @@ final readonly class TaskRecord
      * @param non-empty-string                           $toolName             The `tools/call` tool run by the task
      * @param non-empty-string                           $createdAt            ISO 8601
      * @param non-empty-string                           $lastUpdatedAt        ISO 8601
+     * @param null|int<0, max>                           $ttlMs
+     * @param int<0, max>                                $pollIntervalMs
      * @param null|array<array-key, mixed>               $arguments            The original call arguments
      * @param null|array<string, mixed>                  $result               The stored result payload, once completed
      * @param null|array<string, mixed>                  $error                The stored error payload, once failed

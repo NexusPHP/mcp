@@ -99,6 +99,22 @@ final class CreateTaskResultTest extends AbstractMcpTestCase
         self::assertSame($original->toArray(), CreateTaskResult::fromArray($original->toArray())->toArray());
     }
 
+    public function testFromArrayAcceptsAZeroTtlAndPollInterval(): void
+    {
+        $result = CreateTaskResult::fromArray([
+            'resultType' => 'task',
+            'taskId' => 'task-1',
+            'status' => 'working',
+            'createdAt' => '2026-08-04T12:00:00+00:00',
+            'lastUpdatedAt' => '2026-08-04T12:00:00+00:00',
+            'ttlMs' => 0,
+            'pollIntervalMs' => 0,
+        ]);
+
+        self::assertSame(0, $result->ttlMs);
+        self::assertSame(0, $result->pollIntervalMs);
+    }
+
     public function testRebuildWithMetaCarriesEveryField(): void
     {
         $result = new CreateTaskResult(
@@ -194,12 +210,12 @@ final class CreateTaskResultTest extends AbstractMcpTestCase
 
         yield 'ttlMs not an int' => [
             ['ttlMs' => '300'] + $valid,
-            '"result.ttlMs" must be null or a positive integer, \'300\' given.',
+            '"result.ttlMs" must be null or a non-negative integer, \'300\' given.',
         ];
 
-        yield 'ttlMs zero' => [
-            ['ttlMs' => 0] + $valid,
-            '"result.ttlMs" must be null or a positive integer, 0 given.',
+        yield 'ttlMs negative' => [
+            ['ttlMs' => -1] + $valid,
+            '"result.ttlMs" must be null or a non-negative integer, -1 given.',
         ];
 
         yield 'statusMessage not a string' => [
@@ -209,12 +225,12 @@ final class CreateTaskResultTest extends AbstractMcpTestCase
 
         yield 'pollIntervalMs not an int' => [
             ['pollIntervalMs' => '1000'] + $valid,
-            '"result.pollIntervalMs" must be a positive integer, \'1000\' given.',
+            '"result.pollIntervalMs" must be a non-negative integer, \'1000\' given.',
         ];
 
         yield 'pollIntervalMs negative' => [
             ['pollIntervalMs' => -1] + $valid,
-            '"result.pollIntervalMs" must be a positive integer, -1 given.',
+            '"result.pollIntervalMs" must be a non-negative integer, -1 given.',
         ];
 
         yield '_meta not an object' => [

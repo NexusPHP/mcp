@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Extension\Tasks\Server;
 
+use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Extension\Tasks\Schema\Request\CancelTaskRequest;
@@ -44,10 +45,11 @@ final readonly class TasksServerExtension implements RequestHandlerDecoratorInte
     private ToolTaskRunner $runner;
 
     /**
-     * @param array<non-empty-string, ToolTaskPolicy> $toolPolicies    Keyed by tool name, absence meaning always-synchronous
-     * @param null|int                                $defaultTtlMs    Retention after a terminal transition, `null` for unlimited
-     * @param int<1, max>                             $maxRunningTasks Tasks running at once before a further one is refused
-     * @param null|OperationScopes                    $operationScopes The scopes of each tool, which `tasks/get`, `tasks/update` and `tasks/cancel` require of a task's tool
+     * @param array<non-empty-string, ToolTaskPolicy> $toolPolicies          Keyed by tool name, absence meaning always-synchronous
+     * @param null|int<0, max>                        $defaultTtlMs          Retention after a terminal transition, `null` for unlimited
+     * @param int<0, max>                             $defaultPollIntervalMs
+     * @param int<1, max>                             $maxRunningTasks       Tasks running at once before a further one is refused
+     * @param null|OperationScopes                    $operationScopes       The scopes of each tool, which `tasks/get`, `tasks/update` and `tasks/cancel` require of a task's tool
      */
     public function __construct(
         private TaskStoreInterface $store = new InMemoryTaskStore(),
@@ -58,6 +60,13 @@ final readonly class TasksServerExtension implements RequestHandlerDecoratorInte
         int $maxRunningTasks = self::DEFAULT_MAX_RUNNING_TASKS,
         private ?OperationScopes $operationScopes = null,
     ) {
+        Assert::that($defaultTtlMs)->nullOr()->isNaturalInt(
+            'Default task ttl must be null or a non-negative integer, {value} given.',
+        );
+        Assert::that($defaultPollIntervalMs)->isNaturalInt(
+            'Default task poll interval must be a non-negative integer, {value} given.',
+        );
+
         $this->cancellations = new TaskCancellationRegistry();
         $this->runner = new ToolTaskRunner($store, $this->cancellations, $logger, $maxRunningTasks);
     }
