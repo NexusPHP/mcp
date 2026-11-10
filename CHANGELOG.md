@@ -58,6 +58,11 @@ in `0.x`, minor releases may include breaking changes.
 - A redirect URI on a loopback host must use `http`. Previously, any scheme was accepted.
 - The input schema for an unsealed shape (`array{a: int, ...<string, int>}`, `list{int, ...}`) allows the extra
   entries. Previously, it rejected them or ignored their type.
+- `DirectorySkill` refuses a `SKILL.md` frontmatter over the Agent Skills limits: a `description` over 1024
+  characters, a `compatibility` outside 1-500 characters, or `metadata` with a value that is not a string.
+  Previously, it served them.
+- A `SKILL.md` frontmatter holding an infinite or NaN number is refused when read. Previously, the client's
+  frontmatter check could pass one against a different value.
 - A `prompts/get` missing an argument declared `required: true` is answered `-32602` before the renderer runs, for
   every prompt. Previously, only attribute-discovered prompts enforced it.
 - A result with an unrecognised `resultType`, or `task` outside a task-aware `tools/call`, is refused as an invalid

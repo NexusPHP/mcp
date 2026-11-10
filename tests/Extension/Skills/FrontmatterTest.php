@@ -217,6 +217,111 @@ final class FrontmatterTest extends AbstractMcpTestCase
             "---\nname: a\ndescription: ''\n---\n",
             '/^"SKILL\.md" frontmatter "description" must be a non-empty string, string given\.$/',
         ];
+
+        $nonFinite = '/^"SKILL\.md" frontmatter must not hold an infinite or NaN number\.$/';
+
+        yield 'an infinite number' => ["---\nname: a\ndescription: b\nx: .inf\n---\n", $nonFinite];
+
+        yield 'a negative infinite number nested in a mapping' => [
+            "---\nname: a\ndescription: b\nmetadata:\n  x: -.inf\n---\n",
+            $nonFinite,
+        ];
+
+        yield 'NaN' => ["---\nname: a\ndescription: b\nx: .nan\n---\n", $nonFinite];
+    }
+
+    /**
+     * @param array{name: non-empty-string, description: non-empty-string, ...<string, mixed>} $frontmatter
+     */
+    #[DataProvider('provideVerifyConformanceAcceptsTheAgentSkillsLimitsCases')]
+    public function testVerifyConformanceAcceptsTheAgentSkillsLimits(array $frontmatter): void
+    {
+        $this->expectNotToPerformAssertions();
+
+        Frontmatter::verifyConformance($frontmatter);
+    }
+
+    /**
+     * @return iterable<string, array{array{name: non-empty-string, description: non-empty-string, ...<string, mixed>}}>
+     */
+    public static function provideVerifyConformanceAcceptsTheAgentSkillsLimitsCases(): iterable
+    {
+        yield 'the required fields alone' => [['name' => 'a', 'description' => 'b']];
+
+        yield 'a description of 1024 multibyte characters' => [
+            ['name' => 'a', 'description' => str_repeat('é', 1_024)],
+        ];
+
+        yield 'a compatibility of 500 characters' => [
+            ['name' => 'a', 'description' => 'b', 'compatibility' => str_repeat('c', 500)],
+        ];
+
+        yield 'string metadata' => [['name' => 'a', 'description' => 'b', 'metadata' => ['version' => '1.0']]];
+
+        yield 'empty metadata' => [['name' => 'a', 'description' => 'b', 'metadata' => new \stdClass()]];
+
+        yield 'integer-keyed metadata' => [['name' => 'a', 'description' => 'b', 'metadata' => (object) ['x']]];
+    }
+
+    /**
+     * @param array{name: non-empty-string, description: non-empty-string, ...<string, mixed>} $frontmatter
+     */
+    #[DataProvider('provideVerifyConformanceRefusesAFieldOverItsLimitCases')]
+    public function testVerifyConformanceRefusesAFieldOverItsLimit(array $frontmatter, string $expectedMessage): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs($expectedMessage);
+
+        Frontmatter::verifyConformance($frontmatter);
+    }
+
+    /**
+     * @return iterable<string, array{
+     *   array{name: non-empty-string, description: non-empty-string, ...<string, mixed>},
+     *   string,
+     * }>
+     */
+    public static function provideVerifyConformanceRefusesAFieldOverItsLimitCases(): iterable
+    {
+        yield 'a description over 1024 characters' => [
+            ['name' => 'a', 'description' => str_repeat('é', 1_025)],
+            '"SKILL.md" frontmatter "description" must be 1-1024 characters.',
+        ];
+
+        yield 'a compatibility over 500 characters' => [
+            ['name' => 'a', 'description' => 'b', 'compatibility' => str_repeat('c', 501)],
+            '"SKILL.md" frontmatter "compatibility" must be 1-500 characters.',
+        ];
+
+        yield 'an empty compatibility' => [
+            ['name' => 'a', 'description' => 'b', 'compatibility' => ''],
+            '"SKILL.md" frontmatter "compatibility" must be 1-500 characters.',
+        ];
+
+        yield 'a compatibility that is not text' => [
+            ['name' => 'a', 'description' => 'b', 'compatibility' => 5],
+            '"SKILL.md" frontmatter "compatibility" must be a string, int given.',
+        ];
+
+        yield 'metadata that is not a mapping' => [
+            ['name' => 'a', 'description' => 'b', 'metadata' => 'x'],
+            '"SKILL.md" frontmatter "metadata" must be a mapping, string given.',
+        ];
+
+        yield 'metadata that is a list' => [
+            ['name' => 'a', 'description' => 'b', 'metadata' => ['x', 'y']],
+            '"SKILL.md" frontmatter "metadata" must be a mapping, list given.',
+        ];
+
+        yield 'a metadata value that is not text' => [
+            ['name' => 'a', 'description' => 'b', 'metadata' => ['x' => 1]],
+            'each "SKILL.md" frontmatter "metadata" value must be a string, int given.',
+        ];
+
+        yield 'an integer-keyed metadata value that is not text' => [
+            ['name' => 'a', 'description' => 'b', 'metadata' => (object) [1]],
+            'each "SKILL.md" frontmatter "metadata" value must be a string, int given.',
+        ];
     }
 
     public function testAParseFailureKeepsItsCause(): void
@@ -287,6 +392,8 @@ final class FrontmatterTest extends AbstractMcpTestCase
         yield 'a whole float against the integer it is sent as' => [['version' => 1.0], ['version' => 1], true];
 
         yield 'a fractional float against an integer' => [['version' => 1.5], ['version' => 1], false];
+
+        yield 'an unencodable value against the zero it would degrade to' => [['x' => \INF], ['x' => 0], false];
 
         yield 'a list in another order' => [['tags' => ['a', 'b']], ['tags' => ['b', 'a']], false];
 

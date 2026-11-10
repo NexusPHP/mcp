@@ -56,8 +56,9 @@ of a [gated extension](extensions.md).
 
 The final segment must equal the `name` in the frontmatter, which makes it a skill name: lowercase letters,
 digits and single hyphens, 64 characters at most. The segments before it take letters, digits, `.`, `_`, `~` and
-`-`, and start with a letter or a digit. The frontmatter must carry a `name` and a `description`. Construction
-fails otherwise.
+`-`, and start with a letter or a digit. The frontmatter must carry a `name` and a `description` of at most 1024
+characters, keep `compatibility` to 1-500 characters and `metadata` to string values, and hold no infinite or NaN
+number. Construction fails otherwise.
 
 Every regular file under the directory joins the skill, at any depth, under a URI that mirrors its relative path
 with each segment percent-encoded. Two kinds of entry are left out, along with everything beneath them: symbolic

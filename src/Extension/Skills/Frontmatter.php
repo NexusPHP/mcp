@@ -78,13 +78,54 @@ final class Frontmatter
     }
 
     /**
+     * Holds a frontmatter about to be served to the field limits of the Agent Skills specification.
+     *
+     * @param array{name: non-empty-string, description: non-empty-string, ...<string, mixed>} $frontmatter
+     *
+     * @throws \InvalidArgumentException
+     */
+    public static function verifyConformance(array $frontmatter): void
+    {
+        Assert::that($frontmatter['description'])->matchesRegularExpression(
+            '/\A.{1,1024}\z/su',
+            '"SKILL.md" frontmatter "description" must be 1-1024 characters.',
+        );
+
+        if (\array_key_exists('compatibility', $frontmatter)) {
+            Assert::that($frontmatter['compatibility'])
+                ->isString('"SKILL.md" frontmatter "compatibility" must be a string, {type} given.')
+                ->matchesRegularExpression(
+                    '/\A.{1,500}\z/su',
+                    '"SKILL.md" frontmatter "compatibility" must be 1-500 characters.',
+                )
+            ;
+        }
+
+        if (\array_key_exists('metadata', $frontmatter)) {
+            $metadata = $frontmatter['metadata'];
+
+            if (! $metadata instanceof \stdClass) {
+                Assert::that($metadata)
+                    ->isArray('"SKILL.md" frontmatter "metadata" must be a mapping, {type} given.')
+                    ->not()->isList('"SKILL.md" frontmatter "metadata" must be a mapping, list given.')
+                ;
+            }
+
+            Assert::that((array) $metadata)->values()->isString(
+                'each "SKILL.md" frontmatter "metadata" value must be a string, {type} given.',
+            );
+        }
+    }
+
+    /**
      * Whether two frontmatter values encode to the same JSON, key order and the list-or-object form of a
      * collection that could be either aside.
      */
     public static function equals(mixed $left, mixed $right): bool
     {
-        return json_encode(self::sortKeys($left), \JSON_PARTIAL_OUTPUT_ON_ERROR)
-            === json_encode(self::sortKeys($right), \JSON_PARTIAL_OUTPUT_ON_ERROR);
+        $encoded = json_encode(self::sortKeys($left));
+
+        return false !== $encoded && json_encode(self::sortKeys($right)) === $encoded;
     }
 
     /**
@@ -101,6 +142,10 @@ final class Frontmatter
             throw new \InvalidArgumentException(
                 \sprintf('"SKILL.md" frontmatter holds more than %d values.', self::MAX_VALUES),
             );
+        }
+
+        if (\is_float($value) && ! is_finite($value)) {
+            throw new \InvalidArgumentException('"SKILL.md" frontmatter must not hold an infinite or NaN number.');
         }
 
         if ($value instanceof \DateTimeInterface) {

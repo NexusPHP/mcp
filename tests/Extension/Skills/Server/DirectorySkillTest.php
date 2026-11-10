@@ -113,6 +113,19 @@ final class DirectorySkillTest extends AbstractMcpTestCase
         );
     }
 
+    public function testAFrontmatterOverTheAgentSkillsLimitsIsRefused(): void
+    {
+        $this->directory->write(
+            'SKILL.md',
+            \sprintf("---\nname: long\ndescription: %s\n---\n", str_repeat('a', 1_025)),
+        );
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('"SKILL.md" frontmatter "description" must be 1-1024 characters.');
+
+        new DirectorySkill('long', $this->directory->path);
+    }
+
     public function testASkillNameMayRunToSixtyFourCharacters(): void
     {
         $name = str_repeat('a', 64);

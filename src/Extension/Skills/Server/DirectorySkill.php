@@ -105,13 +105,12 @@ final readonly class DirectorySkill
             );
         }
 
+        $frontmatter = Frontmatter::parse($manifestFile->contents);
+        Frontmatter::verifyConformance($frontmatter);
+
         $this->rootUri = $rootUri;
         $this->files = $files;
-        $this->entry = new Skill(
-            uri: $manifestUri,
-            frontmatter: Frontmatter::parse($manifestFile->contents),
-            resources: $resources,
-        );
+        $this->entry = new Skill(uri: $manifestUri, frontmatter: $frontmatter, resources: $resources);
     }
 
     /**
