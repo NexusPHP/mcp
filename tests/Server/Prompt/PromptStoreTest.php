@@ -18,6 +18,7 @@ use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Schema\Enum\CacheScope;
 use Nexus\Mcp\Core\Schema\Icon;
 use Nexus\Mcp\Core\Schema\Prompt\Prompt;
+use Nexus\Mcp\Core\Schema\Prompt\PromptArgument;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
 use Nexus\Mcp\Server\Exception\PromptNotFoundException;
@@ -29,6 +30,7 @@ use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
@@ -298,6 +300,61 @@ final class PromptStoreTest extends AbstractMcpTestCase
         $this->expectExceptionMessageIs('Invalid arguments for prompt "brief": missing the required "topic" key.');
 
         $store->get('brief', [], $this->makeContext());
+    }
+
+    public function testGetRefusesAMissingRequiredArgumentBeforeRendering(): void
+    {
+        $rendered = false;
+        $store = new PromptStore([
+            'brief' => new PromptEntry(
+                new Prompt(name: 'brief', arguments: [
+                    new PromptArgument(name: 'tone'),
+                    new PromptArgument(name: 'topic', required: true),
+                ]),
+                new ClosurePromptRenderer(static function () use (&$rendered): GetPromptResult {
+                    $rendered = true;
+
+                    return new GetPromptResult(messages: []);
+                }),
+            ),
+        ]);
+
+        try {
+            $store->get('brief', ['tone' => 'dry'], $this->makeContext());
+            self::fail('A missing required argument must be refused.');
+        } catch (InvalidParamsException $e) {
+            self::assertSame('Invalid arguments for prompt "brief": missing the required "topic" key.', $e->getMessage());
+        }
+
+        self::assertFalse($rendered);
+    }
+
+    /**
+     * @param null|array<array-key, string> $arguments
+     */
+    #[DataProvider('provideGetRendersWhenEveryRequiredArgumentIsPresentCases')]
+    public function testGetRendersWhenEveryRequiredArgumentIsPresent(?array $arguments, ?bool $required): void
+    {
+        $store = new PromptStore([
+            'brief' => new PromptEntry(
+                new Prompt(name: 'brief', arguments: [new PromptArgument(name: 'topic', required: $required)]),
+                $this->makeRenderer(),
+            ),
+        ]);
+
+        self::assertInstanceOf(GetPromptResult::class, $store->get('brief', $arguments, $this->makeContext()));
+    }
+
+    /**
+     * @return iterable<string, array{null|array<array-key, string>, null|bool}>
+     */
+    public static function provideGetRendersWhenEveryRequiredArgumentIsPresentCases(): iterable
+    {
+        yield 'required and present' => [['topic' => 'cats'], true];
+
+        yield 'optional and absent' => [[], false];
+
+        yield 'unflagged and absent' => [null, null];
     }
 
     /**

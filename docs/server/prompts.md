@@ -20,7 +20,8 @@ use Nexus\Mcp\Core\Schema\Result\GetPromptResult;
 )
 ```
 
-The renderer is a `\Closure` or a `PromptRendererInterface`.
+The renderer is a `\Closure` or a `PromptRendererInterface`. A `prompts/get` that leaves out an argument declared
+`required: true` is answered `-32602` before the renderer runs.
 
 ## Attribute sugar
 
