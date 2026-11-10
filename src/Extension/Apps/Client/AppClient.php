@@ -26,6 +26,8 @@ use Nexus\Mcp\Core\Schema\Tool\Tool;
 use Nexus\Mcp\Extension\Apps\Apps;
 use Nexus\Mcp\Extension\Apps\Schema\UiResourceMeta;
 use Nexus\Mcp\Extension\Apps\Schema\UiToolMeta;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * App-aware client surface for the MCP Apps extension.
@@ -38,6 +40,7 @@ final readonly class AppClient implements AppClientInterface
     public function __construct(
         private Client $client,
         private array $mimeTypes = [Apps::MIME_TYPE],
+        private LoggerInterface $logger = new NullLogger(),
     ) {
         Assert::that($mimeTypes)->isList('"mimeTypes" must be a list, {type} given.');
         Assert::that($mimeTypes)->hasMinCount(1, '"mimeTypes" must not be empty.');
@@ -104,7 +107,15 @@ final readonly class AppClient implements AppClientInterface
         foreach ($result->tools as $tool) {
             try {
                 $uiMeta = $this->resolveToolMeta($tool);
-            } catch (\InvalidArgumentException) {
+            } catch (\InvalidArgumentException $e) {
+                $this->logger->warning(
+                    'Excluding tool {tool} from the app tools: its "_meta.ui" is invalid.',
+                    [
+                        'tool' => SafeDisplay::sanitise($tool->name),
+                        'reason' => SafeDisplay::sanitiseCause($e->getMessage()),
+                    ],
+                );
+
                 continue;
             }
 

@@ -59,6 +59,11 @@ in `0.x`, minor releases may include breaking changes.
 - A redirect URI on a loopback host must use `http`. Previously, any scheme was accepted.
 - The input schema for an unsealed shape (`array{a: int, ...<string, int>}`, `list{int, ...}`) allows the extra
   entries. Previously, it rejected them or ignored their type.
+- A UI resource permission (`camera`, `microphone`, `geolocation`, `clipboardWrite`) counts as requested when its key
+  holds any value other than `null` or `false`. Previously, a value that was not an object made the resource
+  undecodable.
+- `AppClient::findAppTools()` logs a warning for each tool it skips because its `_meta.ui` is invalid, to the new
+  `$logger` argument. Previously, it skipped silently.
 - `DirectorySkill` accepts a prefix segment starting with `_` in a skill path. Previously, it required a letter or
   a digit.
 - A task result with a `ttlMs` or `pollIntervalMs` of `0` is accepted when decoded. Previously, it was refused.

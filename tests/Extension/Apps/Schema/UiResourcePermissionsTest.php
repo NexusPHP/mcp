@@ -75,39 +75,40 @@ final class UiResourcePermissionsTest extends AbstractMcpTestCase
         self::assertFalse($permissions->clipboardWrite);
     }
 
-    #[DataProvider('provideFromArrayRejectsANonObjectValueCases')]
-    public function testFromArrayRejectsANonObjectValue(mixed $value, string $slot, string $expectedMessage): void
+    #[DataProvider('provideFromArrayReadsAnyPresentValueAsRequestedCases')]
+    public function testFromArrayReadsAnyPresentValueAsRequested(mixed $value, bool $expected): void
     {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs($expectedMessage);
+        $permissions = UiResourcePermissions::fromArray([
+            'camera' => $value,
+            'microphone' => $value,
+            'geolocation' => $value,
+            'clipboardWrite' => $value,
+        ]);
 
-        UiResourcePermissions::fromArray([$slot => $value]);
+        self::assertSame($expected, $permissions->camera);
+        self::assertSame($expected, $permissions->microphone);
+        self::assertSame($expected, $permissions->geolocation);
+        self::assertSame($expected, $permissions->clipboardWrite);
     }
 
     /**
-     * @return iterable<string, array{mixed, string, string}>
+     * @return iterable<string, array{mixed, bool}>
      */
-    public static function provideFromArrayRejectsANonObjectValueCases(): iterable
+    public static function provideFromArrayReadsAnyPresentValueAsRequestedCases(): iterable
     {
-        yield 'camera false' => [false, 'camera', '"_meta.ui.permissions.camera" must be an object, bool given.'];
+        yield 'true' => [true, true];
 
-        yield 'microphone null' => [
-            null,
-            'microphone',
-            '"_meta.ui.permissions.microphone" must be an object, null given.',
-        ];
+        yield 'an empty object' => [new \stdClass(), true];
 
-        yield 'geolocation string' => [
-            'granted',
-            'geolocation',
-            '"_meta.ui.permissions.geolocation" must be an object, string given.',
-        ];
+        yield 'an empty array' => [[], true];
 
-        yield 'clipboardWrite int' => [
-            1,
-            'clipboardWrite',
-            '"_meta.ui.permissions.clipboardWrite" must be an object, int given.',
-        ];
+        yield 'a string' => ['granted', true];
+
+        yield 'an int' => [1, true];
+
+        yield 'false' => [false, false];
+
+        yield 'null' => [null, false];
     }
 
     public function testRoundTripsTheDecodedForm(): void

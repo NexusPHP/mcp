@@ -83,25 +83,11 @@ final readonly class UiResourcePermissions implements Arrayable
     /**
      * @param array<string, mixed> $data
      * @param non-empty-string     $slot
-     *
-     * @throws \InvalidArgumentException
      */
     private static function parseRequested(array $data, string $slot): bool
     {
-        if (! \array_key_exists($slot, $data)) {
-            return false;
-        }
+        $value = $data[$slot] ?? null;
 
-        $value = $data[$slot];
-
-        if (! \is_array($value) && ! $value instanceof \stdClass) {
-            throw new \InvalidArgumentException(\sprintf(
-                '"_meta.ui.permissions.%s" must be an object, %s given.',
-                $slot,
-                get_debug_type($value),
-            ));
-        }
-
-        return true;
+        return null !== $value && false !== $value;
     }
 }

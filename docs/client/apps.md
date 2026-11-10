@@ -43,8 +43,9 @@ foreach ($apps->findAppTools($tools) as $appTool) {
 ```
 
 The filter skips a tool whose `_meta.ui` cannot be decoded rather than abort the listing, since the unprefixed
-`ui` meta key is peer-controlled data. `resolveToolMeta()` on a single tool stays strict and throws on malformed
-metadata.
+`ui` meta key is peer-controlled data. It logs a warning naming the tool and the reason, to the PSR-3 logger passed
+as `new AppClient($client, logger: $logger)`. `resolveToolMeta()` on a single tool stays strict and throws on
+malformed metadata.
 
 The reader tolerates the deprecated flat `_meta["ui/resourceUri"]` key as a fallback when the nested form is
 absent or carries no `resourceUri`. Servers that predate the nested shape, or migrated it partially, still
@@ -68,6 +69,9 @@ if ($read instanceof ReadResourceResult) {
     // $meta?->csp, $meta?->permissions, $meta?->domain, $meta?->prefersBorder
 }
 ```
+
+A permission counts as requested when its key is present with any value other than `null` or `false`. The spec
+writes the value as `{}`, and a host that sends `true` is read the same way.
 
 `resolveResourceMeta()` accepts both a `resources/list` descriptor and a read content item, since the spec carries
 the same `UiResourceMeta` shape in both positions.

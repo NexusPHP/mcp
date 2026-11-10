@@ -29,9 +29,11 @@ use Nexus\Mcp\Extension\Apps\Client\AppClient;
 use Nexus\Mcp\Extension\Apps\Client\AppsClientExtension;
 use Nexus\Mcp\Extension\Apps\Schema\Enum\ToolVisibility;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
+use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
 use Nexus\Mcp\Tests\Fixtures\Core\Transport\RecordingTransport;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
+use Psr\Log\LogLevel;
 
 use function Amp\async;
 
@@ -195,6 +197,26 @@ final class AppClientTest extends AbstractMcpTestCase
 
         self::assertCount(1, $found);
         self::assertSame($linked, $found[0]->tool);
+    }
+
+    public function testLogsTheToolItSkipsWhenFiltering(): void
+    {
+        $logger = new ArrayLogger();
+        [$app] = $this->buildAppClient(logger: $logger);
+        $malformed = $this->buildTool(['ui' => 'oops'], name: 'malformed');
+        $result = new ListToolsResult(tools: [$malformed], ttlMs: 0, cacheScope: CacheScope::Private);
+
+        self::assertSame([], $app->findAppTools($result));
+
+        $records = $logger->recordsMatching(
+            LogLevel::WARNING,
+            'Excluding tool {tool} from the app tools: its "_meta.ui" is invalid.',
+        );
+        self::assertCount(1, $records);
+        self::assertSame(
+            ['tool' => 'malformed', 'reason' => 'tool "_meta.ui" must be an array, string given.'],
+            $records[0]['context'],
+        );
     }
 
     public function testMergesTheFlatKeyIntoAUriLessNestedObject(): void
@@ -421,7 +443,7 @@ final class AppClientTest extends AbstractMcpTestCase
      *
      * @return array{AppClient, RecordingTransport}
      */
-    private function buildAppClient(?array $mimeTypes = null): array
+    private function buildAppClient(?array $mimeTypes = null, ?ArrayLogger $logger = null): array
     {
         $client = (new ClientBuilder())
             ->setClientInfo('demo', '1.0.0')
@@ -434,7 +456,10 @@ final class AppClientTest extends AbstractMcpTestCase
         $transport = new RecordingTransport();
         $client->connect($transport);
 
-        $app = null === $mimeTypes ? new AppClient($client) : new AppClient($client, mimeTypes: $mimeTypes);
+        $logger ??= new ArrayLogger();
+        $app = null === $mimeTypes
+            ? new AppClient($client, logger: $logger)
+            : new AppClient($client, mimeTypes: $mimeTypes, logger: $logger);
 
         return [$app, $transport];
     }
