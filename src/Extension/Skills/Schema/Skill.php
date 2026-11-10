@@ -31,7 +31,7 @@ use Nexus\Mcp\Extension\Skills\Skills;
  *   _meta?: template-type<PayloadMetaObject, MetaObject, 'T'>,
  * }>
  *
- * @see https://github.com/modelcontextprotocol/ext-skills/blob/main/specification/stable/skills.mdx
+ * @see https://github.com/modelcontextprotocol/ext-skills/blob/main/specification/beta/skills.mdx
  */
 final readonly class Skill implements Arrayable
 {

@@ -25,7 +25,7 @@ use Nexus\Mcp\Core\Schema\Arrayable;
  *   size: int<0, max>,
  * }>
  *
- * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/2640-skills-extension.md
+ * @see https://github.com/modelcontextprotocol/ext-skills/blob/main/specification/beta/skills.mdx
  */
 final readonly class SkillResource implements Arrayable
 {

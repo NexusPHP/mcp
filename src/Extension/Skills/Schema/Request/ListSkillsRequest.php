@@ -32,7 +32,7 @@ use Nexus\Mcp\Core\Schema\RequestParams\PaginatedRequestParams;
  *   params: template-type<PaginatedRequestParams, RequestParams, 'T'>,
  * }>
  *
- * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/2640-skills-extension.md
+ * @see https://github.com/modelcontextprotocol/ext-skills/blob/main/specification/beta/skills.mdx
  */
 final readonly class ListSkillsRequest extends PaginatedRequest implements ClientRequest
 {

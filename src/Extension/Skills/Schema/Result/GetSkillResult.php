@@ -35,7 +35,7 @@ use Nexus\Mcp\Extension\Skills\Schema\Skill;
  *   cacheScope: value-of<CacheScope>,
  * }>
  *
- * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/2640-skills-extension.md
+ * @see https://github.com/modelcontextprotocol/ext-skills/blob/main/specification/beta/skills.mdx
  */
 final readonly class GetSkillResult extends CacheableResult implements ServerResult
 {
