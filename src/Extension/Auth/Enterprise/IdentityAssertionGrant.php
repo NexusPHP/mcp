@@ -59,6 +59,7 @@ final readonly class IdentityAssertionGrant implements GrantStrategyInterface
         $server = $context->discovered->server;
         $this->verifyAdvertisedSupport($server, $context->logger);
         $registration = $this->resolveRegistration($context, $cancellation);
+        $scope = $context->scopes->toParameter();
 
         $idJag = (new IdentityAssertionExchanger(
             $this->idpTokenEndpoint,
@@ -71,6 +72,7 @@ final readonly class IdentityAssertionGrant implements GrantStrategyInterface
             $server->issuer,
             $context->resource,
             $cancellation,
+            $scope,
         );
 
         $parameters = [
@@ -78,7 +80,6 @@ final readonly class IdentityAssertionGrant implements GrantStrategyInterface
             'assertion' => $idJag,
             'resource' => $context->resource->value,
         ];
-        $scope = $context->scopes->toParameter();
 
         if (null !== $scope) {
             $parameters['scope'] = $scope;

@@ -70,6 +70,21 @@ final class IdentityAssertionExchangerTest extends AbstractMcpTestCase
         ], $this->readForm($request));
     }
 
+    public function testTheRequestedScopeIsSentWhenGiven(): void
+    {
+        $http = (new RecordingHttpClient())->willAnswerJson($this->exchangeResponse());
+
+        (new IdentityAssertionExchanger(self::IDP_ENDPOINT, $http))->exchangeForGrant(
+            new IdentityAssertion('the-id-token', IdentityAssertionType::IdToken),
+            self::ISSUER,
+            new ResourceIdentifier(self::RESOURCE),
+            new NullCancellation(),
+            'files:read files:write',
+        );
+
+        self::assertSame('files:read files:write', $this->readForm($http->readRequest())['scope'] ?? null);
+    }
+
     public function testTheClientIdentifierIsLeftOffWhenNoneIsConfigured(): void
     {
         $http = (new RecordingHttpClient())->willAnswerJson($this->exchangeResponse());

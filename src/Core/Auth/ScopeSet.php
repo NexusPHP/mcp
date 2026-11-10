@@ -112,6 +112,8 @@ final readonly class ScopeSet
 
     /**
      * Renders the set as a `scope` parameter, or `null` when the set is empty and the parameter is omitted.
+     *
+     * @return null|non-empty-string
      */
     public function toParameter(): ?string
     {

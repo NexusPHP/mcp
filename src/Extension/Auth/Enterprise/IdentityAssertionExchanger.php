@@ -56,7 +56,8 @@ final readonly class IdentityAssertionExchanger
     /**
      * The ID-JAG issued by the enterprise IdP for the assertion.
      *
-     * @param non-empty-string $audience The resource authorization server's issuer identifier
+     * @param non-empty-string      $audience The resource authorization server's issuer identifier
+     * @param null|non-empty-string $scope    Space-separated scopes
      *
      * @return non-empty-string
      */
@@ -65,6 +66,7 @@ final readonly class IdentityAssertionExchanger
         string $audience,
         ResourceIdentifier $resource,
         Cancellation $cancellation,
+        ?string $scope = null,
     ): string {
         $parameters = [
             'grant_type' => EnterpriseAuthorization::TOKEN_EXCHANGE_GRANT_TYPE,
@@ -74,6 +76,10 @@ final readonly class IdentityAssertionExchanger
             'audience' => $audience,
             'resource' => $resource->value,
         ];
+
+        if (null !== $scope) {
+            $parameters['scope'] = $scope;
+        }
 
         if (null !== $this->clientId) {
             $parameters['client_id'] = $this->clientId;

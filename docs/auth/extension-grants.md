@@ -126,8 +126,9 @@ An OIDC ID token rides the exchange as-is. A SAML sign-on is first exchanged for
 then offered as `IdentityAssertionType::RefreshToken`.
 
 The exchange asks for `urn:ietf:params:oauth:token-type:id-jag`, with the resource authorization server's issuer
-as the `audience` and the MCP server's resource identifier as `resource`. The answer must say it issued an
-ID-JAG, or the grant fails with `RuntimeException`. The ID-JAG itself stays opaque to the client.
+as the `audience`, the MCP server's resource identifier as `resource`, and the selected scopes.
+The answer must say it issued an ID-JAG, or the grant fails with `RuntimeException`.
+The ID-JAG itself stays opaque to the client.
 
 ### The resource authorization server
 

@@ -120,6 +120,7 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
         );
 
         self::assertSame(['files:read'], $token->scopes);
+        self::assertSame('files:read', $this->readForm($http->readRequest(0))['scope'] ?? null);
         self::assertSame('files:read', $this->readForm($http->readRequest(1))['scope'] ?? null);
     }
 
