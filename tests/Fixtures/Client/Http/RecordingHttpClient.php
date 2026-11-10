@@ -113,7 +113,10 @@ final class RecordingHttpClient implements DelegateHttpClient
         return $this;
     }
 
-    public function willChallenge(int $status, string $challenge, string $body = '{}'): self
+    /**
+     * @param list<string>|string $challenge One `WWW-Authenticate` field value, or one per header line
+     */
+    public function willChallenge(int $status, array|string $challenge, string $body = '{}'): self
     {
         return $this->scheduleAnswer($status, [
             'content-type' => 'application/json',

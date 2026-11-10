@@ -58,6 +58,8 @@ in `0.x`, minor releases may include breaking changes.
 - A redirect URI on a loopback host must use `http`. Previously, any scheme was accepted.
 - The input schema for an unsealed shape (`array{a: int, ...<string, int>}`, `list{int, ...}`) allows the extra
   entries. Previously, it rejected them or ignored their type.
+- The client reads a Bearer challenge from any `WWW-Authenticate` header line. Previously, it read only the first, and
+  missed a Bearer challenge sent after another scheme's.
 
 ## [v1.4.0](https://github.com/NexusPHP/mcp/compare/v1.3.0...v1.4.0) - 2026-10-27
 

@@ -484,6 +484,22 @@ final class AuthorizedHttpClientTest extends AbstractMcpTestCase
         self::assertSame('https://127.0.0.1:1/custom/prm', (string) $http->readRequest(1)->getUri());
     }
 
+    public function testABearerChallengeOnALaterHeaderLineIsStillRead(): void
+    {
+        $http = (new RecordingHttpClient())
+            ->willChallenge(401, ['Basic realm="mcp"', 'Bearer resource_metadata="https://127.0.0.1:1/custom/prm"'])
+            ->willAnswerJson($this->buildResourceDocument())
+            ->willAnswerJson($this->buildServerDocument())
+            ->willAnswerJson(['client_id' => 'the-client'])
+            ->willAnswerJson(['access_token' => 'the-access-token', 'token_type' => 'Bearer'])
+            ->willAnswerJson(['ok' => true])
+        ;
+
+        $this->buildClient($http)->request($this->buildMcpRequest(), new NullCancellation());
+
+        self::assertSame('https://127.0.0.1:1/custom/prm', (string) $http->readRequest(1)->getUri());
+    }
+
     public function testTheChallengeScopeIsRequested(): void
     {
         $http = (new RecordingHttpClient())
