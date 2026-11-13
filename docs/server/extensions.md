@@ -82,12 +82,21 @@ that never declared the extension, so any per-request refusal is the decorator's
 [tasks extension](tasks.md) is the worked example. It decorates `tools/call` with a broker that only diverts a
 call into a task when the client declared the capability.
 
+## Validating registrations
+
+An extension whose rules reach the tools, resources and templates registered on the builder implements
+`RegistrationValidatorInterface`. `build()` passes each of them to `validateRegistrations()` once, and a
+`LogicException` thrown there fails the build. A custom store set with `setToolStore()`, `setResourceStore()` or
+`setResourceTemplateStore()` replaces the matching `add*()` entries, so neither its own entries nor the replaced
+ones are passed. The [apps extension](apps.md) uses it to hold
+`ui://` resources and `_meta.ui` metadata to the extension's rules.
+
 ## Official extensions
 
 Five official extensions ship with the SDK. The [tasks extension](tasks.md) exercises the whole surface above:
 owned methods, handlers, and a `tools/call` decorator. The [apps extension](apps.md) sits at the other end. It
-defines no methods, so `AppsServerExtension` only advertises the capability slot, and the substance is typed
-`_meta.ui` metadata on the tools and resources you already register. The [skills extension](skills.md) owns
+defines no methods, so `AppsServerExtension` advertises the capability slot and validates the typed `_meta.ui`
+metadata on the tools and resources you already register. The [skills extension](skills.md) owns
 `skills/list`, `skills/get`, and `resources/directory/read`, and decorates `resources/list` and `resources/read`
 so skill files travel as ordinary resources.
 

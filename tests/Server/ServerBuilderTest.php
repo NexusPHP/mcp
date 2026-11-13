@@ -104,6 +104,7 @@ use Nexus\Mcp\Tests\Fixtures\Server\Discovery\CollidingSearchTool;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\CompletionHandlers;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\DiscoverableServer;
 use Nexus\Mcp\Tests\Fixtures\Server\Discovery\SelfDescribingServer;
+use Nexus\Mcp\Tests\Fixtures\Server\Extension\RecordingRegistrationValidatorExtension;
 use Nexus\Mcp\Tests\Fixtures\Server\Extension\StubDecoratingServerExtension;
 use Nexus\Mcp\Tests\Fixtures\Server\Extension\StubOptionalClientDeclarationServerExtension;
 use Nexus\Mcp\Tests\Fixtures\Server\Extension\StubServerExtension;
@@ -1420,6 +1421,94 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             '"extensions":{"com.example/feature":{}}',
             json_encode($result->capabilities, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES),
         );
+    }
+
+    public function testBuildHandsTheRegistrationsToEachValidatingExtension(): void
+    {
+        $validator = new RecordingRegistrationValidatorExtension();
+        $tool = new Tool(name: 'echo', inputSchema: ['type' => 'object']);
+        $resource = new Resource(name: 'notes', uri: 'file:///notes.txt');
+        $template = new ResourceTemplate(name: 'files', uriTemplate: 'file:///{path}');
+        $read = static fn(): ReadResourceResult => new ReadResourceResult(
+            contents: [],
+            ttlMs: 0,
+            cacheScope: CacheScope::Private,
+        );
+
+        (new ServerBuilder())
+            ->setServerInfo('demo', '1.0.0')
+            ->enableExtension($validator)
+            ->addTool($tool, static fn(): CallToolResult => new CallToolResult(content: []))
+            ->addResource($resource, $read)
+            ->addResourceTemplate($template, $read)
+            ->build()
+        ;
+
+        self::assertSame([[[$tool], [$resource], [$template]]], $validator->calls);
+    }
+
+    /**
+     * @param \Closure(ServerBuilder): ServerBuilder                    $override
+     * @param array{list<Tool>, list<Resource>, list<ResourceTemplate>} $expected
+     */
+    #[DataProvider('provideBuildSkipsTheRegistrationsACustomStoreOverridesCases')]
+    public function testBuildSkipsTheRegistrationsACustomStoreOverrides(\Closure $override, array $expected): void
+    {
+        $validator = new RecordingRegistrationValidatorExtension();
+        $read = static fn(): ReadResourceResult => new ReadResourceResult(
+            contents: [],
+            ttlMs: 0,
+            cacheScope: CacheScope::Private,
+        );
+
+        $override((new ServerBuilder())
+            ->setServerInfo('demo', '1.0.0')
+            ->enableExtension($validator)
+            ->addTool(self::validatedTool(), static fn(): CallToolResult => new CallToolResult(content: []))
+            ->addResource(self::validatedResource(), $read)
+            ->addResourceTemplate(self::validatedTemplate(), $read))
+            ->build()
+        ;
+
+        self::assertCount(1, $validator->calls);
+        self::assertSame(
+            json_encode($expected, \JSON_THROW_ON_ERROR),
+            json_encode($validator->calls[0], \JSON_THROW_ON_ERROR),
+        );
+    }
+
+    /**
+     * @return iterable<string, array{\Closure(ServerBuilder): ServerBuilder, array{list<Tool>, list<Resource>, list<ResourceTemplate>}}>
+     */
+    public static function provideBuildSkipsTheRegistrationsACustomStoreOverridesCases(): iterable
+    {
+        yield 'a custom tool store' => [
+            static fn(ServerBuilder $builder): ServerBuilder => $builder->setToolStore(new ToolStore()),
+            [[], [self::validatedResource()], [self::validatedTemplate()]],
+        ];
+
+        yield 'a custom resource store' => [
+            static fn(ServerBuilder $builder): ServerBuilder => $builder->setResourceStore(new ResourceStore()),
+            [[self::validatedTool()], [], [self::validatedTemplate()]],
+        ];
+
+        yield 'a custom template store' => [
+            static fn(ServerBuilder $builder): ServerBuilder => $builder->setResourceTemplateStore(
+                new ResourceTemplateStore(),
+            ),
+            [[self::validatedTool()], [self::validatedResource()], []],
+        ];
+
+        yield 'the default stores, resolved early' => [
+            static function (ServerBuilder $builder): ServerBuilder {
+                $builder->getToolStore();
+                $builder->getResourceStore();
+                $builder->getResourceTemplateStore();
+
+                return $builder;
+            },
+            [[self::validatedTool()], [self::validatedResource()], [self::validatedTemplate()]],
+        ];
     }
 
     public function testAGatedExtensionMethodServesADeclaringClient(): void
@@ -3650,6 +3739,21 @@ final class ServerBuilderTest extends AbstractMcpTestCase
                 $withEntry->resourceTemplates,
             ),
         );
+    }
+
+    private static function validatedTool(): Tool
+    {
+        return new Tool(name: 'echo', inputSchema: ['type' => 'object']);
+    }
+
+    private static function validatedResource(): Resource
+    {
+        return new Resource(name: 'notes', uri: 'file:///notes.txt');
+    }
+
+    private static function validatedTemplate(): ResourceTemplate
+    {
+        return new ResourceTemplate(name: 'files', uriTemplate: 'file:///{path}');
     }
 
     /**

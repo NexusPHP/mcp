@@ -29,6 +29,8 @@ in `0.x`, minor releases may include breaking changes.
 - `IdentityAssertionGrant` takes an `$idpCredential`, a `ClientSecretCredential` or a `PrivateKeyJwtCredential`, to
   authenticate the token exchange at an enterprise IdP that requires client authentication. A credential bound to an
   `issuer` is refused unless `$idpIssuer` names the same IdP.
+- `RegistrationValidatorInterface` lets a server extension check the tools, resources and templates registered on
+  the builder when `build()` runs.
 - `IdentityAssertionGrant` takes a `$resourceCredential` to authenticate with `private_key_jwt` at the resource
   authorization server.
 
@@ -69,6 +71,9 @@ in `0.x`, minor releases may include breaking changes.
   undecodable.
 - `AppClient::findAppTools()` logs a warning for each tool it skips because its `_meta.ui` is invalid, to the new
   `$logger` argument. Previously, it skipped silently.
+- With `AppsServerExtension` enabled, `build()` refuses a `ui://` resource or template without the
+  `text/html;profile=mcp-app` mime type, that mime type outside `ui://`, and a tool or resource whose `_meta.ui` does
+  not decode. Previously, only `UiResource` and `UiToolMeta` checked them.
 - A request's progress notifications, from `reportProgress()` or sent through `$context->sender`, are dropped when
   the value is not above the last one sent, or once the request has completed or been cancelled. Previously, they
   were sent.

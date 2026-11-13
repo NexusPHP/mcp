@@ -41,6 +41,17 @@ capability slot. Everything else is metadata on the tools and resources already 
 The spec binds a UI resource to three MUSTs. The URI starts with `ui://`. The mime type is exactly
 `text/html;profile=mcp-app`. The content is a valid HTML5 document.
 
+With the extension enabled, `build()` holds every tool, resource and template registered on the builder to the same
+rules and throws `LogicException` on a violation:
+
+- A `ui://` resource or template must carry the `text/html;profile=mcp-app` mime type, and that mime type is
+  refused outside `ui://`.
+- A tool's `_meta.ui` must decode as `UiToolMeta`, so its `resourceUri` starts with `ui://`.
+- A resource's `_meta.ui` must decode as `UiResourceMeta`.
+
+A custom store set with `setToolStore()`, `setResourceStore()` or `setResourceTemplateStore()` is not inspected,
+and neither are the `add*()` entries it replaces.
+
 `UiResource` composes a `Resource` that upholds the first two by construction. It attaches the optional
 `_meta.ui` metadata, kept readable on `$uiResource->uiMeta`, and exposes the result on `$uiResource->resource` for
 `addResource()`.
