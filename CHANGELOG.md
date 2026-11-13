@@ -29,6 +29,8 @@ in `0.x`, minor releases may include breaking changes.
 - `IdentityAssertionGrant` takes an `$idpCredential`, a `ClientSecretCredential` or a `PrivateKeyJwtCredential`, to
   authenticate the token exchange at an enterprise IdP that requires client authentication. A credential bound to an
   `issuer` is refused unless `$idpIssuer` names the same IdP.
+- `IdentityAssertionGrant` takes a `$resourceCredential` to authenticate with `private_key_jwt` at the resource
+  authorization server.
 
 ### Changed
 

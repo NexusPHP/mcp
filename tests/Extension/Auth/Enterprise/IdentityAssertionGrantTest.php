@@ -25,6 +25,7 @@ use Nexus\Mcp\Client\Auth\DiscoveredResource;
 use Nexus\Mcp\Client\Auth\GrantContext;
 use Nexus\Mcp\Client\Auth\InMemoryClientRegistrationStore;
 use Nexus\Mcp\Client\Auth\TokenEndpoint;
+use Nexus\Mcp\Client\Exception\AuthorizationServerMismatchException;
 use Nexus\Mcp\Client\Exception\UntrustedAuthorizationMetadataException;
 use Nexus\Mcp\Core\Auth\AuthorizationServerMetadata;
 use Nexus\Mcp\Core\Auth\ProtectedResourceMetadata;
@@ -250,6 +251,120 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new IdentityAssertionGrant(self::IDP_ENDPOINT, $this->buildProvider(), idpIssuer: '');
+    }
+
+    public function testGrantSignsTheClientAssertionAtTheResourceAuthorizationServer(): void
+    {
+        $http = (new RecordingHttpClient())
+            ->willAnswerJson($this->exchangeResponse())
+            ->willAnswerJson($this->buildTokenResponse())
+        ;
+        $grant = new IdentityAssertionGrant(
+            self::IDP_ENDPOINT,
+            $this->buildProvider(),
+            resourceCredential: new PrivateKeyJwtCredential(
+                'the-client',
+                EcPrivateKey::generatePem(),
+                'ES256',
+                issuer: self::ISSUER,
+            ),
+            clock: new FrozenClock('@1800000000'),
+        );
+
+        $grant->grant(
+            $this->buildContext($http, $this->buildMetadata(), new AuthorizationOptions('Example MCP Client')),
+            new NullCancellation(),
+        );
+
+        $redemption = $http->readRequest(1);
+        self::assertNull($redemption->getHeader('Authorization'));
+
+        $form = $this->readForm($redemption);
+        self::assertSame(
+            ['grant_type', 'assertion', 'resource', 'client_assertion_type', 'client_assertion'],
+            array_keys($form),
+        );
+        self::assertSame(
+            'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+            $form['client_assertion_type'] ?? null,
+        );
+
+        $parts = explode('.', $form['client_assertion'] ?? '', 3);
+        self::assertArrayHasKey(1, $parts);
+
+        $claims = json_decode(JWT::urlsafeB64Decode($parts[1]), associative: true, flags: \JSON_THROW_ON_ERROR);
+        self::assertIsArray($claims);
+        self::assertSame('the-client', $claims['iss'] ?? null);
+        self::assertSame('the-client', $claims['sub'] ?? null);
+        self::assertSame(self::ISSUER, $claims['aud'] ?? null);
+        self::assertSame(1_800_000_000, $claims['iat'] ?? null);
+    }
+
+    /**
+     * @param \Closure(self): AuthorizationOptions $buildOptions
+     */
+    #[DataProvider('provideAResourceCredentialAlongsideAnotherRegistrationIsRefusedCases')]
+    public function testAResourceCredentialAlongsideAnotherRegistrationIsRefused(\Closure $buildOptions): void
+    {
+        $http = new RecordingHttpClient();
+        $grant = new IdentityAssertionGrant(
+            self::IDP_ENDPOINT,
+            $this->buildProvider(),
+            resourceCredential: new PrivateKeyJwtCredential('the-client', 'pem', 'ES256'),
+        );
+
+        try {
+            $grant->grant(
+                $this->buildContext($http, $this->buildMetadata(), $buildOptions($this)),
+                new NullCancellation(),
+            );
+            self::fail('The grant should have been refused.');
+        } catch (RuntimeException $e) {
+            self::assertSame(
+                'The resource credential is the client, so the options must not pre-register one or name a metadata document.',
+                $e->getMessage(),
+            );
+            self::assertSame([], $http->requests);
+        }
+    }
+
+    /**
+     * @return iterable<string, array{\Closure(self): AuthorizationOptions}>
+     */
+    public static function provideAResourceCredentialAlongsideAnotherRegistrationIsRefusedCases(): iterable
+    {
+        yield 'pre-registered' => [static fn(self $test): AuthorizationOptions => $test->buildPreRegisteredOptions()];
+
+        yield 'a metadata document' => [static fn(self $test): AuthorizationOptions => $test->buildCimdOptions()];
+    }
+
+    public function testAResourceCredentialBoundToAnotherAuthorizationServerIsRefused(): void
+    {
+        $http = new RecordingHttpClient();
+        $grant = new IdentityAssertionGrant(
+            self::IDP_ENDPOINT,
+            $this->buildProvider(),
+            resourceCredential: new PrivateKeyJwtCredential(
+                'the-client',
+                'pem',
+                'ES256',
+                issuer: 'https://login.example.com',
+            ),
+        );
+
+        try {
+            $grant->grant(
+                $this->buildContext($http, $this->buildMetadata(), new AuthorizationOptions('Example MCP Client')),
+                new NullCancellation(),
+            );
+            self::fail('The grant should have been refused.');
+        } catch (AuthorizationServerMismatchException $e) {
+            self::assertSame(
+                'Client credentials registered with "https://login.example.com" cannot be used: the resource now names "https://auth.example.com".',
+                $e->getMessage(),
+            );
+            self::assertSame([], $http->requests);
+        }
     }
 
     public function testAnIdpClientIdAlongsideAnIdpCredentialIsRefused(): void

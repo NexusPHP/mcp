@@ -18,15 +18,19 @@ use Nexus\Assert\Assert;
 use Nexus\Clock\Clock;
 use Nexus\Clock\SystemClock;
 use Nexus\Mcp\Client\Auth\AccessToken;
+use Nexus\Mcp\Client\Auth\AuthorizationOptions;
 use Nexus\Mcp\Client\Auth\ClientRegistration;
 use Nexus\Mcp\Client\Auth\GrantContext;
 use Nexus\Mcp\Client\Auth\GrantStrategyInterface;
 use Nexus\Mcp\Client\Auth\SecureEndpoint;
+use Nexus\Mcp\Client\Exception\AuthorizationServerMismatchException;
 use Nexus\Mcp\Core\Auth\AuthorizationServerMetadata;
+use Nexus\Mcp\Core\Auth\TokenEndpointAuthMethod;
 use Nexus\Mcp\Core\Exception\LogicException;
 use Nexus\Mcp\Core\Exception\RuntimeException;
 use Nexus\Mcp\Core\SafeDisplay;
 use Nexus\Mcp\Extension\Auth\ClientCredentials\ClientAssertionSigner;
+use Nexus\Mcp\Extension\Auth\ClientCredentials\ClientCredentials;
 use Nexus\Mcp\Extension\Auth\ClientCredentials\ClientSecretCredential;
 use Nexus\Mcp\Extension\Auth\ClientCredentials\PrivateKeyJwtCredential;
 use Nexus\Mcp\Extension\Auth\GrantTypeAdvertisement;
@@ -48,6 +52,7 @@ final readonly class IdentityAssertionGrant implements GrantStrategyInterface
      * @param bool                                                $allowInsecureLoopback Admits an IdP reached over cleartext HTTP on a loopback host, which the spec does not exempt. For local development and conformance runs, never production
      * @param null|ClientSecretCredential|PrivateKeyJwtCredential $idpCredential         Authenticates the token exchange at the IdP, for an IdP that requires client authentication
      * @param null|non-empty-string                               $idpIssuer             The IdP's issuer identifier, which a credential bound to an issuer must match
+     * @param null|PrivateKeyJwtCredential                        $resourceCredential    The client's `private_key_jwt` identity at the resource authorization server, in place of a pre-registration
      */
     public function __construct(
         private string $idpTokenEndpoint,
@@ -57,6 +62,7 @@ final readonly class IdentityAssertionGrant implements GrantStrategyInterface
         private null|ClientSecretCredential|PrivateKeyJwtCredential $idpCredential = null,
         ?string $idpIssuer = null,
         Clock $clock = new SystemClock(),
+        private ?PrivateKeyJwtCredential $resourceCredential = null,
     ) {
         Assert::that($idpTokenEndpoint)->isNonEmptyString('"idpTokenEndpoint" must be a non-empty string.');
         Assert::that($idpClientId)->nullOr()->isNonEmptyString('"idpClientId" must be a non-empty string or null.');
@@ -97,7 +103,10 @@ final readonly class IdentityAssertionGrant implements GrantStrategyInterface
     {
         $server = $context->discovered->server;
         $this->verifyAdvertisedSupport($server, $context->logger);
-        $registration = $this->resolveRegistration($context, $cancellation);
+        $credential = $this->resourceCredential;
+        $registration = null === $credential
+            ? $this->resolveRegistration($context, $cancellation)
+            : $this->registerCredential($credential, $context->options, $server->issuer);
         $scope = $context->scopes->toParameter();
 
         $idJag = (new IdentityAssertionExchanger(
@@ -122,6 +131,11 @@ final readonly class IdentityAssertionGrant implements GrantStrategyInterface
             'resource' => $context->resource->value,
         ];
 
+        if (null !== $credential) {
+            $parameters['client_assertion_type'] = ClientCredentials::CLIENT_ASSERTION_TYPE;
+            $parameters['client_assertion'] = $this->signer->sign($credential, $server->issuer);
+        }
+
         if (null !== $scope) {
             $parameters['scope'] = $scope;
         }
@@ -133,6 +147,27 @@ final readonly class IdentityAssertionGrant implements GrantStrategyInterface
     public function renewsByFreshGrant(): bool
     {
         return true;
+    }
+
+    /**
+     * The credential is the client at the resource authorization server, so no other registration may be configured.
+     */
+    private function registerCredential(
+        PrivateKeyJwtCredential $credential,
+        AuthorizationOptions $options,
+        string $issuer,
+    ): ClientRegistration {
+        if (null !== $options->preRegistered || null !== $options->clientIdMetadataDocumentUrl) {
+            throw new RuntimeException(
+                'The resource credential is the client, so the options must not pre-register one or name a metadata document.',
+            );
+        }
+
+        if (null !== $credential->issuer && $credential->issuer !== $issuer) {
+            throw new AuthorizationServerMismatchException($credential->issuer, $issuer);
+        }
+
+        return new ClientRegistration($credential->clientId, $issuer, null, TokenEndpointAuthMethod::PrivateKeyJwt);
     }
 
     /**

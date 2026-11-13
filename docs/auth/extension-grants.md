@@ -137,6 +137,19 @@ At the resource's authorization server, the client authenticates with credential
 published `authorization_grant_profiles_supported` list without `urn:ietf:params:oauth:grant-profile:id-jag` is
 refused. An absent list only logs, since most authorization servers do not publish the field yet.
 
+A client registered for `private_key_jwt` there passes its key as `resourceCredential` instead of a
+pre-registration, and each redemption carries a fresh assertion whose audience is the authorization server's
+issuer. The credential is the client, so options that also pre-register one or name a metadata document are
+refused, and a credential bound to another `issuer` throws `AuthorizationServerMismatchException`:
+
+```php
+new IdentityAssertionGrant(
+    'https://idp.example.com/token',
+    new SessionAssertionProvider(),
+    resourceCredential: new PrivateKeyJwtCredential('acme-app', $privateKeyPem, 'ES256'),
+);
+```
+
 The IdP token endpoint must be HTTPS. The grant checks that when you construct it, not at the first request that
 needs a token. Pass `allowInsecureLoopback: true` to admit a cleartext loopback IdP for local development.
 
