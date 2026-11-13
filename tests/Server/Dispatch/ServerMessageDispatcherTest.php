@@ -203,6 +203,58 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
         self::assertSame([], $logger->recordsMatching(LogLevel::WARNING, self::ORPHAN_LOG_MESSAGE));
     }
 
+    public function testALegacyInitializeIsAnsweredWithTheSupportedVersions(): void
+    {
+        $transport = new RecordingTransport();
+        $dispatcher = $this->buildDispatcher();
+
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'initialize',
+            'params' => [
+                'protocolVersion' => '2025-11-25',
+                'capabilities' => [],
+                'clientInfo' => ['name' => 'legacy', 'version' => '1.0.0'],
+            ],
+        ], $transport, new ReceiveContext());
+        $dispatcher->flushPending();
+
+        self::assertCount(1, $transport->sent);
+        $message = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
+        self::assertSame(1, $message->id?->id);
+        self::assertSame(ProtocolErrorCode::MethodNotFound->value, $message->error->code);
+        self::assertSame(
+            \sprintf(
+                'This server does not support the "initialize" handshake. Supported protocol versions: %s.',
+                implode(', ', ProtocolVersion::SUPPORTED_VERSIONS),
+            ),
+            $message->error->message,
+        );
+        self::assertSame(['supported' => ProtocolVersion::SUPPORTED_VERSIONS], $message->error->data);
+    }
+
+    public function testAnotherUnknownMethodKeepsTheGenericError(): void
+    {
+        $transport = new RecordingTransport();
+        $dispatcher = $this->buildDispatcher();
+
+        $dispatcher->dispatch(
+            ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'acme/unknown', 'params' => []],
+            $transport,
+            new ReceiveContext(),
+        );
+        $dispatcher->flushPending();
+
+        self::assertCount(1, $transport->sent);
+        $message = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
+        self::assertSame(ProtocolErrorCode::MethodNotFound->value, $message->error->code);
+        self::assertSame('No registration found for method "acme/unknown".', $message->error->message);
+        self::assertNull($message->error->data);
+    }
+
     public function testAnEnvelopeNamingBothAMethodAndAResultWithoutAnIdStaysUnanswered(): void
     {
         $transport = new RecordingTransport();

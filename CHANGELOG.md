@@ -69,6 +69,8 @@ in `0.x`, minor releases may include breaking changes.
   undecodable.
 - `AppClient::findAppTools()` logs a warning for each tool it skips because its `_meta.ui` is invalid, to the new
   `$logger` argument. Previously, it skipped silently.
+- A server answers a legacy `initialize` with a `-32601` that names the supported protocol versions, in the message
+  and in `data.supported`. Previously, it sent the generic method-not-found error.
 - A server answers `-32021` when an `InputRequiredResult` asks for an elicitation mode that the client did not declare,
   with an empty `elicitation` declaring form only. Previously, it sent the request anyway.
 - `DirectorySkill` accepts a prefix segment starting with `_` in a skill path. Previously, it required a letter or

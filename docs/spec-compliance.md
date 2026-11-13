@@ -6,7 +6,8 @@ revision, the whole revision, and none of its deprecated behaviours.
 ## The targeted revision
 
 The SDK targets **MCP spec 2026-07-28** only. There are no back-compat shims for earlier revisions: no JSON-RPC
-batching, and no protocol-version negotiation against older drafts.
+batching, and no protocol-version negotiation against older drafts. A legacy client's `initialize` is answered
+with `-32601`, naming the supported protocol versions in the message and in `data.supported`.
 
 ## How conformance is enforced
 
