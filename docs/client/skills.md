@@ -115,5 +115,25 @@ foreach ($children->resources as $resource) {
 Directory reads are optional for a server. The method throws `ServerCapabilityNotSupportedException` unless the
 server advertised the extension with `directoryRead: true`.
 
+## Host responsibilities
+
+`SkillClient` verifies what a server returns. The rest of the extension's client obligations belong to the host that
+loads skills:
+
+- **Approval.** Approve a skill before acting on it, and bind the approval to its `resources` set. When
+  `getSkill()` or a refreshed listing returns a different set, the approval is revoked. A `"dynamic"` skill cannot be
+  content-bound, so a host may decline it.
+- **Digests are not a trust anchor.** The server supplies both the content and its digests, so a match proves
+  consistency and nothing more.
+- **Identity.** A skill is the pair of the server and its `uri`. Key the registry, approvals, caches and any
+  materialised path on both, and never on the `uri` alone. Skills with the same `name` from different servers or from
+  the filesystem need distinct namespaces, and none may shadow another.
+- **Loading.** Reading a `SKILL.md` is not a load. Only the host's own skill-loading path, after verification and
+  approval, activates a skill. A nested `SKILL.md` is ordinary content until the user approves it separately.
+- **Relative references.** Resolve a reference such as `references/GUIDE.md` against the directory that holds the
+  `SKILL.md` that contains it, and read it through `readSkillFile()` so that the manifest check applies.
+- **Freshness.** `ttlMs` and `cacheScope` on a listing or entry are freshness hints, not integrity properties.
+  Re-verify content however fresh the cached entry is.
+
 [examples/skills-client.php](../../examples/skills-client.php) runs every call above against
 [examples/skills-server.php](../../examples/skills-server.php).
