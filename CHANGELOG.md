@@ -50,6 +50,9 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- The client refuses an authorization URL with a backslash, whitespace or control character, so
+  `http://evil.example\@localhost` no longer passes as loopback. It also refuses a percent-encoded or non-ASCII
+  host, `0.0.0.0`, `::`, an IPv4-mapped IPv6 address and a non-canonical IPv4 form such as `127.1`.
 - Over stdio, a response that cannot be encoded as JSON, such as text that is not valid UTF-8, is answered with
   `-32603` and the transport stays open, as over HTTP. Previously, it closed the transport.
 - A task is bound to the authenticated caller that created it, and `tasks/get`, `tasks/update` and `tasks/cancel`

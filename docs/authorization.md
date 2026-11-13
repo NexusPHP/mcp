@@ -69,6 +69,11 @@ authorization, token, and registration endpoints it publishes.
 The redirect URI is the one URL that the spec lets address a loopback listener over plain HTTP, so a local
 development callback keeps working.
 
+Each of these URLs must also be an RFC 3986 URI whose host every reader agrees on. The client refuses a backslash,
+whitespace or control character, which browsers and PHP's URL parser read differently. It also refuses a
+percent-encoded or non-ASCII host (give an internationalised name in punycode), the unspecified address (`0.0.0.0`,
+`::`), an IPv4-mapped IPv6 address, and any IPv4 form other than the dotted quad, such as `127.1`, `0x7f.0.0.1` or `127.0.0.1.` with a trailing dot.
+
 This check covers the transport that a URL names, not where it leads. The client admits an HTTPS URL that names a
 private-network or link-local address. An operator who needs those blocked should block them in the HTTP client
 handed to the decorator. See

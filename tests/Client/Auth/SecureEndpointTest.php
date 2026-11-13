@@ -116,6 +116,80 @@ final class SecureEndpointTest extends AbstractMcpTestCase
         yield 'a bare authority has no scheme' => ['auth.example.com/token'];
 
         yield 'a scheme with no host is not an endpoint' => ['file:///tmp/token'];
+
+        yield 'a backslash that browsers read as ending the host' => ['http://evil.example\@localhost/callback'];
+
+        yield 'whitespace' => ['http://localhost/call back'];
+    }
+
+    #[DataProvider('provideAnAmbiguousHostIsRefusedEvenOnLoopbackCases')]
+    public function testAnAmbiguousHostIsRefusedEvenOnLoopback(string $url): void
+    {
+        $this->expectException(UntrustedAuthorizationMetadataException::class);
+
+        (new SecureEndpoint(allowLoopback: true))->verifyAuthorizationServerUrl($url, 'token endpoint');
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function provideAnAmbiguousHostIsRefusedEvenOnLoopbackCases(): iterable
+    {
+        yield 'a backslash before the userinfo' => ['http://evil.example\@localhost/token'];
+
+        yield 'the unspecified IPv4 address' => ['https://0.0.0.0/token'];
+
+        yield 'the unspecified IPv6 address' => ['https://[::]/token'];
+
+        yield 'an IPv4-mapped IPv6 address' => ['https://[::ffff:127.0.0.1]/token'];
+
+        yield 'a shortened IPv4 address' => ['https://127.1/token'];
+
+        yield 'a hexadecimal IPv4 address' => ['https://0x7f.0.0.1/token'];
+
+        yield 'an uppercase hexadecimal IPv4 address' => ['https://0X7F.0.0.1/token'];
+
+        yield 'an IPv4 address as one integer' => ['https://2130706433/token'];
+
+        yield 'an IPv4 octet with a leading zero' => ['https://0127.0.0.1/token'];
+
+        yield 'a shortened IPv4 address with a trailing dot' => ['https://127.1./token'];
+
+        yield 'a hexadecimal IPv4 address with a trailing dot' => ['https://0x7f.0.0.1./token'];
+
+        yield 'the unspecified IPv4 address with a trailing dot' => ['https://0.0.0.0./token'];
+
+        yield 'a canonical IPv4 address with a trailing dot' => ['https://127.0.0.1./token'];
+
+        yield 'a percent-encoded host' => ['https://ex%61mple.com/token'];
+
+        yield 'a non-ASCII host' => ['https://例え.jp/token'];
+    }
+
+    #[DataProvider('provideAnUnambiguousHostIsAcceptedCases')]
+    public function testAnUnambiguousHostIsAccepted(string $url): void
+    {
+        $this->expectNotToPerformAssertions();
+
+        (new SecureEndpoint())->verifyAuthorizationServerUrl($url, 'token endpoint');
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function provideAnUnambiguousHostIsAcceptedCases(): iterable
+    {
+        yield 'a name made of hexadecimal letters' => ['https://face.cafe/token'];
+
+        yield 'a name with a numeric label' => ['https://1.example/token'];
+
+        yield 'a canonical IPv4 address' => ['https://192.0.2.10/token'];
+
+        yield 'a global IPv6 address' => ['https://[2001:db8::1]/token'];
+
+        yield 'a punycode name' => ['https://xn--r8jz45g.jp/token'];
+
+        yield 'a fully qualified name with a trailing dot' => ['https://auth.example.com./token'];
     }
 
     #[DataProvider('provideAnAuthorizationServerUrlOverHttpsIsAcceptedCases')]
