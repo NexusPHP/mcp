@@ -70,7 +70,7 @@
     },
     "suggest": {
         "ext-sodium": "Required with EncryptedFileTokenStore.",
-        "firebase/php-jwt": "Required with JwksAccessTokenValidator and with ClientCredentialsGrant (^7.0).",
+        "firebase/php-jwt": "Required with JwksAccessTokenValidator and with a private_key_jwt credential (^7.0).",
         "symfony/yaml": "Required with the skills extension, to read SKILL.md frontmatter (^7.0 || ^8.0)."
     },
     "minimum-stability": "dev",

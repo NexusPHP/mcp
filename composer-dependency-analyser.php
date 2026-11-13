@@ -57,6 +57,11 @@ return (new Configuration())
         [ErrorType::DEV_DEPENDENCY_IN_PROD],
     )
     ->ignoreErrorsOnPackageAndPath(
+        'firebase/php-jwt',
+        __DIR__.'/src/Extension/Auth/ClientCredentials/ClientAssertionSigner.php',
+        [ErrorType::DEV_DEPENDENCY_IN_PROD],
+    )
+    ->ignoreErrorsOnPackageAndPath(
         'symfony/yaml',
         __DIR__.'/src/Extension/Skills/Frontmatter.php',
         [ErrorType::DEV_DEPENDENCY_IN_PROD],

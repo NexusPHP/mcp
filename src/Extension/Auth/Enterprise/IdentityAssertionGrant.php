@@ -15,14 +15,20 @@ namespace Nexus\Mcp\Extension\Auth\Enterprise;
 
 use Amp\Cancellation;
 use Nexus\Assert\Assert;
+use Nexus\Clock\Clock;
+use Nexus\Clock\SystemClock;
 use Nexus\Mcp\Client\Auth\AccessToken;
 use Nexus\Mcp\Client\Auth\ClientRegistration;
 use Nexus\Mcp\Client\Auth\GrantContext;
 use Nexus\Mcp\Client\Auth\GrantStrategyInterface;
 use Nexus\Mcp\Client\Auth\SecureEndpoint;
 use Nexus\Mcp\Core\Auth\AuthorizationServerMetadata;
+use Nexus\Mcp\Core\Exception\LogicException;
 use Nexus\Mcp\Core\Exception\RuntimeException;
 use Nexus\Mcp\Core\SafeDisplay;
+use Nexus\Mcp\Extension\Auth\ClientCredentials\ClientAssertionSigner;
+use Nexus\Mcp\Extension\Auth\ClientCredentials\ClientSecretCredential;
+use Nexus\Mcp\Extension\Auth\ClientCredentials\PrivateKeyJwtCredential;
 use Nexus\Mcp\Extension\Auth\GrantTypeAdvertisement;
 use Psr\Log\LoggerInterface;
 
@@ -34,20 +40,53 @@ use Psr\Log\LoggerInterface;
 final readonly class IdentityAssertionGrant implements GrantStrategyInterface
 {
     private SecureEndpoint $secureEndpoint;
+    private ClientAssertionSigner $signer;
 
     /**
-     * @param non-empty-string      $idpTokenEndpoint
-     * @param null|non-empty-string $idpClientId
-     * @param bool                  $allowInsecureLoopback Admits an IdP reached over cleartext HTTP on a loopback host, which the spec does not exempt. For local development and conformance runs, never production
+     * @param non-empty-string                                    $idpTokenEndpoint
+     * @param null|non-empty-string                               $idpClientId
+     * @param bool                                                $allowInsecureLoopback Admits an IdP reached over cleartext HTTP on a loopback host, which the spec does not exempt. For local development and conformance runs, never production
+     * @param null|ClientSecretCredential|PrivateKeyJwtCredential $idpCredential         Authenticates the token exchange at the IdP, for an IdP that requires client authentication
+     * @param null|non-empty-string                               $idpIssuer             The IdP's issuer identifier, which a credential bound to an issuer must match
      */
     public function __construct(
         private string $idpTokenEndpoint,
         private IdentityAssertionProviderInterface $assertions,
         private ?string $idpClientId = null,
         bool $allowInsecureLoopback = false,
+        private null|ClientSecretCredential|PrivateKeyJwtCredential $idpCredential = null,
+        ?string $idpIssuer = null,
+        Clock $clock = new SystemClock(),
     ) {
         Assert::that($idpTokenEndpoint)->isNonEmptyString('"idpTokenEndpoint" must be a non-empty string.');
         Assert::that($idpClientId)->nullOr()->isNonEmptyString('"idpClientId" must be a non-empty string or null.');
+
+        if (null !== $idpCredential && null !== $idpClientId) {
+            throw new LogicException('"idpClientId" and "idpCredential" are mutually exclusive.');
+        }
+
+        Assert::that($idpIssuer)->nullOr()->isNonEmptyString('"idpIssuer" must be a non-empty string or null.');
+
+        $boundIssuer = $idpCredential?->issuer;
+
+        if (null !== $boundIssuer) {
+            if (null === $idpIssuer) {
+                throw new LogicException(\sprintf(
+                    'The IdP credential is bound to "%s", so "idpIssuer" must name the IdP to verify it.',
+                    $boundIssuer,
+                ));
+            }
+
+            if ($boundIssuer !== $idpIssuer) {
+                throw new RuntimeException(\sprintf(
+                    'The IdP credential is registered with "%s" and cannot be used at "%s".',
+                    $boundIssuer,
+                    SafeDisplay::sanitiseCause($idpIssuer),
+                ));
+            }
+        }
+
+        $this->signer = new ClientAssertionSigner($clock);
 
         $this->secureEndpoint = new SecureEndpoint($allowInsecureLoopback);
         $this->secureEndpoint->verifyAuthorizationServerUrl($idpTokenEndpoint, 'IdP token endpoint');
@@ -67,6 +106,8 @@ final readonly class IdentityAssertionGrant implements GrantStrategyInterface
             $this->idpClientId,
             $context->options->timeout,
             $this->secureEndpoint,
+            $this->idpCredential,
+            $this->signer,
         ))->exchangeForGrant(
             $this->assertions->provideAssertion($cancellation),
             $server->issuer,

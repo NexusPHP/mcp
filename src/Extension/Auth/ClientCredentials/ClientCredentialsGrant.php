@@ -37,10 +37,9 @@ use Nexus\Mcp\Extension\Auth\GrantTypeAdvertisement;
  */
 final readonly class ClientCredentialsGrant implements GrantStrategyInterface
 {
-    private const int ASSERTION_LIFETIME_SECONDS = 300;
-
     private TokenEndpointAuthMethod $authMethod;
     private ?string $clientSecret;
+    private ClientAssertionSigner $signer;
 
     /**
      * @var null|non-empty-string
@@ -49,8 +48,10 @@ final readonly class ClientCredentialsGrant implements GrantStrategyInterface
 
     public function __construct(
         private ClientSecretCredential|PrivateKeyJwtCredential $credential,
-        private Clock $clock = new SystemClock(),
+        Clock $clock = new SystemClock(),
     ) {
+        $this->signer = new ClientAssertionSigner($clock);
+
         if ($credential instanceof PrivateKeyJwtCredential) {
             SuggestedDependencyGuard::verify(self::class, JWT::class, 'firebase/php-jwt', '^7.0');
 
@@ -94,7 +95,7 @@ final readonly class ClientCredentialsGrant implements GrantStrategyInterface
 
         if ($this->credential instanceof PrivateKeyJwtCredential) {
             $parameters['client_assertion_type'] = ClientCredentials::CLIENT_ASSERTION_TYPE;
-            $parameters['client_assertion'] = $this->signAssertion($this->credential, $server->issuer);
+            $parameters['client_assertion'] = $this->signer->sign($this->credential, $server->issuer);
         }
 
         $registration = new ClientRegistration(
@@ -144,26 +145,5 @@ final readonly class ClientCredentialsGrant implements GrantStrategyInterface
         }
 
         GrantTypeAdvertisement::verify($server, ClientCredentials::GRANT_TYPE);
-    }
-
-    /**
-     * Signs an RFC 7523 JWT client assertion naming the client as both issuer and subject, presentable to `$audience`.
-     *
-     * @param non-empty-string $audience
-     *
-     * @see https://datatracker.ietf.org/doc/html/rfc7523#section-3
-     */
-    private function signAssertion(PrivateKeyJwtCredential $credential, string $audience): string
-    {
-        $issuedAt = $this->clock->now()->getTimestamp();
-
-        return JWT::encode([
-            'iss' => $credential->clientId,
-            'sub' => $credential->clientId,
-            'aud' => $audience,
-            'jti' => bin2hex(random_bytes(16)),
-            'iat' => $issuedAt,
-            'exp' => $issuedAt + self::ASSERTION_LIFETIME_SECONDS,
-        ], $credential->privateKeyPem, $credential->algorithm, $credential->keyId);
     }
 }

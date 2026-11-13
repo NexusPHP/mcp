@@ -24,6 +24,10 @@ use Nexus\Mcp\Core\Auth\ResourceIdentifier;
 use Nexus\Mcp\Core\Exception\RuntimeException;
 use Nexus\Mcp\Core\Http\HttpStatus;
 use Nexus\Mcp\Core\SafeDisplay;
+use Nexus\Mcp\Extension\Auth\ClientCredentials\ClientAssertionSigner;
+use Nexus\Mcp\Extension\Auth\ClientCredentials\ClientCredentials;
+use Nexus\Mcp\Extension\Auth\ClientCredentials\ClientSecretCredential;
+use Nexus\Mcp\Extension\Auth\ClientCredentials\PrivateKeyJwtCredential;
 
 /**
  * The RFC 8693 token exchange at the enterprise IdP: an identity assertion in, an ID-JAG out.
@@ -47,6 +51,8 @@ final readonly class IdentityAssertionExchanger
         private ?string $clientId = null,
         float $timeout = 10.0,
         SecureEndpoint $secureEndpoint = new SecureEndpoint(),
+        private null|ClientSecretCredential|PrivateKeyJwtCredential $credential = null,
+        private ClientAssertionSigner $signer = new ClientAssertionSigner(),
     ) {
         $secureEndpoint->verifyAuthorizationServerUrl($tokenEndpoint, 'IdP token endpoint');
         $this->exchange = new JsonHttpExchange($client, 'IdP token endpoint', $timeout);
@@ -85,8 +91,24 @@ final readonly class IdentityAssertionExchanger
             $parameters['client_id'] = $this->clientId;
         }
 
+        if ($this->credential instanceof PrivateKeyJwtCredential) {
+            $parameters['client_assertion_type'] = ClientCredentials::CLIENT_ASSERTION_TYPE;
+            $parameters['client_assertion'] = $this->signer->sign($this->credential, $this->tokenEndpoint);
+        }
+
         $request = new Request($this->tokenEndpoint, 'POST', http_build_query($parameters));
         $request->setHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+        if ($this->credential instanceof ClientSecretCredential) {
+            $request->setHeader('Authorization', \sprintf(
+                'Basic %s',
+                base64_encode(\sprintf(
+                    '%s:%s',
+                    urlencode($this->credential->clientId),
+                    urlencode($this->credential->clientSecret),
+                )),
+            ));
+        }
 
         [$status, $payload] = $this->exchange->send($request, $cancellation);
 

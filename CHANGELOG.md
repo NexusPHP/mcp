@@ -26,6 +26,9 @@ in `0.x`, minor releases may include breaking changes.
   Previously, the argument arrived as raw values.
 - `OperationScopes` holds the scopes of each tool, prompt and resource, and both `OperationScopeMiddleware` and
   `TasksServerExtension` take it.
+- `IdentityAssertionGrant` takes an `$idpCredential`, a `ClientSecretCredential` or a `PrivateKeyJwtCredential`, to
+  authenticate the token exchange at an enterprise IdP that requires client authentication. A credential bound to an
+  `issuer` is refused unless `$idpIssuer` names the same IdP.
 
 ### Changed
 

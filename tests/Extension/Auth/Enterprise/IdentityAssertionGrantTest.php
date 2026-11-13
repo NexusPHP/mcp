@@ -16,6 +16,8 @@ namespace Nexus\Mcp\Tests\Extension\Auth\Enterprise;
 use Amp\Cancellation;
 use Amp\Http\Client\Request;
 use Amp\NullCancellation;
+use Firebase\JWT\JWT;
+use Nexus\Clock\FrozenClock;
 use Nexus\Mcp\Client\Auth\AuthorizationOptions;
 use Nexus\Mcp\Client\Auth\ClientRegistrar;
 use Nexus\Mcp\Client\Auth\ClientRegistration;
@@ -29,7 +31,10 @@ use Nexus\Mcp\Core\Auth\ProtectedResourceMetadata;
 use Nexus\Mcp\Core\Auth\ResourceIdentifier;
 use Nexus\Mcp\Core\Auth\ScopeSet;
 use Nexus\Mcp\Core\Auth\TokenEndpointAuthMethod;
+use Nexus\Mcp\Core\Exception\LogicException;
 use Nexus\Mcp\Core\Exception\RuntimeException;
+use Nexus\Mcp\Extension\Auth\ClientCredentials\ClientSecretCredential;
+use Nexus\Mcp\Extension\Auth\ClientCredentials\PrivateKeyJwtCredential;
 use Nexus\Mcp\Extension\Auth\Enterprise\IdentityAssertion;
 use Nexus\Mcp\Extension\Auth\Enterprise\IdentityAssertionGrant;
 use Nexus\Mcp\Extension\Auth\Enterprise\IdentityAssertionProviderInterface;
@@ -37,7 +42,9 @@ use Nexus\Mcp\Extension\Auth\Enterprise\IdentityAssertionType;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Client\Http\RecordingHttpClient;
 use Nexus\Mcp\Tests\Fixtures\Core\ArrayLogger;
+use Nexus\Mcp\Tests\Fixtures\Core\EcPrivateKey;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use Psr\Log\LogLevel;
 
@@ -122,6 +129,142 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
         self::assertSame(['files:read'], $token->scopes);
         self::assertSame('files:read', $this->readForm($http->readRequest(0))['scope'] ?? null);
         self::assertSame('files:read', $this->readForm($http->readRequest(1))['scope'] ?? null);
+    }
+
+    public function testGrantAuthenticatesTheExchangeWithTheIdpCredential(): void
+    {
+        $http = (new RecordingHttpClient())
+            ->willAnswerJson($this->exchangeResponse())
+            ->willAnswerJson($this->buildTokenResponse())
+        ;
+        $grant = new IdentityAssertionGrant(
+            self::IDP_ENDPOINT,
+            $this->buildProvider(),
+            idpCredential: new ClientSecretCredential('the-idp-client', 'the-idp-secret'),
+        );
+
+        $grant->grant(
+            $this->buildContext($http, $this->buildMetadata(), $this->buildPreRegisteredOptions()),
+            new NullCancellation(),
+        );
+
+        $exchange = $http->readRequest(0);
+        self::assertSame(
+            'Basic '.base64_encode('the-idp-client:the-idp-secret'),
+            $exchange->getHeader('Authorization'),
+        );
+        self::assertArrayNotHasKey('client_id', $this->readForm($exchange));
+        self::assertSame(
+            'Basic '.base64_encode('the-client:the-secret'),
+            $http->readRequest(1)->getHeader('Authorization'),
+        );
+    }
+
+    public function testGrantSignsTheExchangeAssertionWithItsClock(): void
+    {
+        $http = (new RecordingHttpClient())
+            ->willAnswerJson($this->exchangeResponse())
+            ->willAnswerJson($this->buildTokenResponse())
+        ;
+        $grant = new IdentityAssertionGrant(
+            self::IDP_ENDPOINT,
+            $this->buildProvider(),
+            idpCredential: new PrivateKeyJwtCredential('the-idp-client', EcPrivateKey::generatePem(), 'ES256'),
+            clock: new FrozenClock('@1800000000'),
+        );
+
+        $grant->grant(
+            $this->buildContext($http, $this->buildMetadata(), $this->buildPreRegisteredOptions()),
+            new NullCancellation(),
+        );
+
+        $assertion = $this->readForm($http->readRequest(0))['client_assertion'] ?? '';
+        $parts = explode('.', $assertion, 3);
+        self::assertArrayHasKey(1, $parts);
+
+        $claims = json_decode(JWT::urlsafeB64Decode($parts[1]), associative: true, flags: \JSON_THROW_ON_ERROR);
+        self::assertIsArray($claims);
+        self::assertSame(1_800_000_000, $claims['iat'] ?? null);
+        self::assertSame(1_800_000_300, $claims['exp'] ?? null);
+        self::assertSame(self::IDP_ENDPOINT, $claims['aud'] ?? null);
+    }
+
+    #[DataProvider('provideAnIdpCredentialBoundToAnotherIssuerIsRefusedCases')]
+    public function testAnIdpCredentialBoundToAnotherIssuerIsRefused(string $kind): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessageIs(
+            'The IdP credential is registered with "https://trusted.example" and cannot be used at "https://other.example".',
+        );
+
+        new IdentityAssertionGrant(
+            'https://other.example/token',
+            $this->buildProvider(),
+            idpCredential: $this->buildBoundCredential($kind),
+            idpIssuer: 'https://other.example',
+        );
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function provideAnIdpCredentialBoundToAnotherIssuerIsRefusedCases(): iterable
+    {
+        yield 'a client secret' => ['secret'];
+
+        yield 'a private key' => ['key'];
+    }
+
+    #[DataProvider('provideAnIdpCredentialBoundToAnotherIssuerIsRefusedCases')]
+    public function testAnIdpCredentialBoundToAnIssuerNeedsTheIdpIssuer(string $kind): void
+    {
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessageIs(
+            'The IdP credential is bound to "https://trusted.example", so "idpIssuer" must name the IdP to verify it.',
+        );
+
+        new IdentityAssertionGrant(
+            self::IDP_ENDPOINT,
+            $this->buildProvider(),
+            idpCredential: $this->buildBoundCredential($kind),
+        );
+    }
+
+    #[DataProvider('provideAnIdpCredentialBoundToAnotherIssuerIsRefusedCases')]
+    public function testAnIdpCredentialBoundToTheIdpIssuerIsAccepted(string $kind): void
+    {
+        $this->expectNotToPerformAssertions();
+
+        new IdentityAssertionGrant(
+            self::IDP_ENDPOINT,
+            $this->buildProvider(),
+            idpCredential: $this->buildBoundCredential($kind),
+            idpIssuer: 'https://trusted.example',
+        );
+    }
+
+    public function testAnEmptyIdpIssuerIsRefused(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('"idpIssuer" must be a non-empty string or null.');
+
+        // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
+        new IdentityAssertionGrant(self::IDP_ENDPOINT, $this->buildProvider(), idpIssuer: '');
+    }
+
+    public function testAnIdpClientIdAlongsideAnIdpCredentialIsRefused(): void
+    {
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessageIs(
+            '"idpClientId" and "idpCredential" are mutually exclusive.',
+        );
+
+        new IdentityAssertionGrant(
+            self::IDP_ENDPOINT,
+            $this->buildProvider(),
+            'the-idp-client',
+            idpCredential: new ClientSecretCredential('the-idp-client', 'the-idp-secret'),
+        );
     }
 
     public function testAGrantTypeListWithoutJwtBearerIsRefused(): void
@@ -302,6 +445,13 @@ final class IdentityAssertionGrantTest extends AbstractMcpTestCase
 
         // @phpstan-ignore argument.type (deliberately malformed to exercise the runtime guard)
         new IdentityAssertionGrant(self::IDP_ENDPOINT, $this->buildProvider(), '');
+    }
+
+    private function buildBoundCredential(string $kind): ClientSecretCredential|PrivateKeyJwtCredential
+    {
+        return 'key' === $kind
+            ? new PrivateKeyJwtCredential('c', 'pem', 'ES256', issuer: 'https://trusted.example')
+            : new ClientSecretCredential('c', 's', 'https://trusted.example');
     }
 
     private function buildProvider(): IdentityAssertionProviderInterface

@@ -15,15 +15,19 @@ namespace Nexus\Mcp\Tests\Extension\Auth\Enterprise;
 
 use Amp\Http\Client\Request;
 use Amp\NullCancellation;
+use Firebase\JWT\JWT;
 use Nexus\Mcp\Client\Exception\MalformedAuthorizationResponseException;
 use Nexus\Mcp\Client\Exception\UntrustedAuthorizationMetadataException;
 use Nexus\Mcp\Core\Auth\ResourceIdentifier;
 use Nexus\Mcp\Core\Exception\RuntimeException;
+use Nexus\Mcp\Extension\Auth\ClientCredentials\ClientSecretCredential;
+use Nexus\Mcp\Extension\Auth\ClientCredentials\PrivateKeyJwtCredential;
 use Nexus\Mcp\Extension\Auth\Enterprise\IdentityAssertion;
 use Nexus\Mcp\Extension\Auth\Enterprise\IdentityAssertionExchanger;
 use Nexus\Mcp\Extension\Auth\Enterprise\IdentityAssertionType;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Client\Http\RecordingHttpClient;
+use Nexus\Mcp\Tests\Fixtures\Core\EcPrivateKey;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 
@@ -197,6 +201,114 @@ final class IdentityAssertionExchangerTest extends AbstractMcpTestCase
         );
 
         new IdentityAssertionExchanger('http://127.0.0.1:1/token', new RecordingHttpClient());
+    }
+
+    public function testAClientSecretAuthenticatesTheExchangeWithBasic(): void
+    {
+        $http = (new RecordingHttpClient())->willAnswerJson($this->exchangeResponse());
+
+        (new IdentityAssertionExchanger(
+            self::IDP_ENDPOINT,
+            $http,
+            credential: new ClientSecretCredential('the-client', 'the-secret'),
+        ))->exchangeForGrant(
+            new IdentityAssertion('the-id-token', IdentityAssertionType::IdToken),
+            self::ISSUER,
+            new ResourceIdentifier(self::RESOURCE),
+            new NullCancellation(),
+        );
+
+        $request = $http->readRequest();
+        self::assertSame('Basic '.base64_encode('the-client:the-secret'), $request->getHeader('Authorization'));
+        self::assertSame('application/x-www-form-urlencoded', $request->getHeader('Content-Type'));
+        self::assertSame(
+            ['grant_type', 'requested_token_type', 'subject_token', 'subject_token_type', 'audience', 'resource'],
+            array_keys($this->readForm($request)),
+        );
+    }
+
+    public function testBasicCredentialsAreFormEncoded(): void
+    {
+        $http = (new RecordingHttpClient())->willAnswerJson($this->exchangeResponse());
+
+        (new IdentityAssertionExchanger(
+            self::IDP_ENDPOINT,
+            $http,
+            credential: new ClientSecretCredential('a b', 's:ec/ret'),
+        ))->exchangeForGrant(
+            new IdentityAssertion('the-id-token', IdentityAssertionType::IdToken),
+            self::ISSUER,
+            new ResourceIdentifier(self::RESOURCE),
+            new NullCancellation(),
+        );
+
+        self::assertSame(
+            'Basic '.base64_encode('a+b:s%3Aec%2Fret'),
+            $http->readRequest()->getHeader('Authorization'),
+        );
+    }
+
+    public function testAPrivateKeyJwtSignsAnAssertionForTheIdpTokenEndpoint(): void
+    {
+        $http = (new RecordingHttpClient())->willAnswerJson($this->exchangeResponse());
+
+        (new IdentityAssertionExchanger(
+            self::IDP_ENDPOINT,
+            $http,
+            credential: new PrivateKeyJwtCredential('the-client', EcPrivateKey::generatePem(), 'ES256'),
+        ))->exchangeForGrant(
+            new IdentityAssertion('the-id-token', IdentityAssertionType::IdToken),
+            self::ISSUER,
+            new ResourceIdentifier(self::RESOURCE),
+            new NullCancellation(),
+        );
+
+        $request = $http->readRequest();
+        self::assertNull($request->getHeader('Authorization'));
+
+        $form = $this->readForm($request);
+        self::assertSame(
+            [
+                'grant_type',
+                'requested_token_type',
+                'subject_token',
+                'subject_token_type',
+                'audience',
+                'resource',
+                'client_assertion_type',
+                'client_assertion',
+            ],
+            array_keys($form),
+        );
+        self::assertSame(
+            'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+            $form['client_assertion_type'] ?? null,
+        );
+
+        $claims = $this->readClaims($form['client_assertion'] ?? '');
+        self::assertSame('the-client', $claims['iss'] ?? null);
+        self::assertSame('the-client', $claims['sub'] ?? null);
+        self::assertSame(self::IDP_ENDPOINT, $claims['aud'] ?? null);
+    }
+
+    /**
+     * @return array<array-key, mixed>
+     */
+    private function readClaims(string $assertion): array
+    {
+        $parts = explode('.', $assertion, 3);
+
+        if (! isset($parts[1])) {
+            self::fail('The assertion is not a JWS.');
+        }
+
+        $decoded = json_decode(JWT::urlsafeB64Decode($parts[1]), associative: true, flags: \JSON_THROW_ON_ERROR);
+
+        if (! \is_array($decoded)) {
+            self::fail('The assertion payload is not a JSON object.');
+        }
+
+        return $decoded;
     }
 
     private function exchange(RecordingHttpClient $http): string

@@ -61,6 +61,11 @@ if ('Extension' === basename($component)) {
             [ErrorType::SHADOW_DEPENDENCY],
         )
         ->ignoreErrorsOnPackageAndPath(
+            'firebase/php-jwt',
+            $component.'/Auth/ClientCredentials/ClientAssertionSigner.php',
+            [ErrorType::SHADOW_DEPENDENCY],
+        )
+        ->ignoreErrorsOnPackageAndPath(
             'symfony/yaml',
             $component.'/Skills/Frontmatter.php',
             [ErrorType::SHADOW_DEPENDENCY],

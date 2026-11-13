@@ -140,6 +140,35 @@ refused. An absent list only logs, since most authorization servers do not publi
 The IdP token endpoint must be HTTPS. The grant checks that when you construct it, not at the first request that
 needs a token. Pass `allowInsecureLoopback: true` to admit a cleartext loopback IdP for local development.
 
+### Authenticating at the IdP
+
+An IdP that requires client authentication for the exchange is given a credential, the same two types as the
+[client credentials grant](#client-credentials-sep-1046). A `ClientSecretCredential` authenticates with HTTP
+Basic, and a `PrivateKeyJwtCredential` signs an assertion whose audience is the IdP token endpoint. The credential
+names the client, so it replaces `idpClientId`, and passing both throws `LogicException`.
+
+A credential bound to an `issuer` is sent only to the IdP that issuer names. Pass the IdP's issuer identifier as
+`idpIssuer`. The grant refuses a mismatch when you construct it, before any request, and a bound credential given
+without `idpIssuer` throws `LogicException`, since the grant has no other way to learn which IdP it is talking to:
+
+```php
+use Nexus\Mcp\Extension\Auth\ClientCredentials\PrivateKeyJwtCredential;
+
+new IdentityAssertionGrant(
+    'https://idp.example.com/token',
+    new SessionAssertionProvider(),
+    idpCredential: new PrivateKeyJwtCredential(
+        'acme-app-at-idp',
+        $privateKeyPem,
+        'ES256',
+        issuer: 'https://idp.example.com',
+    ),
+    idpIssuer: 'https://idp.example.com',
+);
+```
+
+Signing needs `firebase/php-jwt`, and a missing install surfaces on the first exchange.
+
 ## Declaring and advertising the extensions
 
 Each extension has a settings-free capability declaration for the client (`ClientCredentialsClientExtension`,
