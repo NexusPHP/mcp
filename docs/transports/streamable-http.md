@@ -172,7 +172,13 @@ is disabled outright, since it would sever a healthy stream mid-flight.
 ### The HTTP client seam
 
 `client` accepts any `Amp\Http\Client\DelegateHttpClient`. That is the seam for interceptors, custom TLS, or a
-test double. It defaults to the amphp default client.
+test double. It defaults to an amphp client that follows no redirect, so a `3xx` fails the exchange with an
+`UnexpectedHttpStatusException`.
+
+Whatever the client, an answer from another origin (scheme, host or port) fails the exchange with a
+`RedirectRefusedException`. A client that follows redirects has already resent the request body by then, and an
+interceptor's headers with it, so a client you pass should not follow a redirect to another origin. A redirect
+within the origin, such as the one that `AuthorizedHttpClient` follows within the protected resource, is served.
 
 ### Exchange failures
 

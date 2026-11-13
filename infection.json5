@@ -35,6 +35,11 @@
                 ".*followRedirects\\(0\\).*"
             ]
         },
+        "IncrementInteger": {
+            "ignoreSourceCodeByRegex": [
+                ".*\\$client \\?\\? \\(new HttpClientBuilder\\(\\)\\)->followRedirects\\(0\\).*"
+            ]
+        },
         "MethodCallRemoval": {
             "ignore": [
                 "Nexus\\Mcp\\Core\\Dispatch\\PendingCoroutines::track",

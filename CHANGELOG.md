@@ -41,6 +41,9 @@ in `0.x`, minor releases may include breaking changes.
   `ext-tokenizer` is now required.
 - `RequestStateSigner::deriveBinding()` binds the authenticated client as well as the subject, so a state minted
   for one client is refused for another. A state minted before the upgrade is refused once.
+- `StreamableHttpClientTransport`'s default client follows no redirect, and any client's answer from another
+  origin fails the exchange with `RedirectRefusedException`. Previously, the default client followed redirects and
+  resent the request body to wherever they led.
 - `TasksServerExtension` refuses a negative `$defaultTtlMs` or `$defaultPollIntervalMs`. Previously, it accepted one.
 
 ### Deprecated

@@ -13,8 +13,13 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Client\Transport;
 
+use Amp\Cancellation;
 use Amp\DeferredFuture;
+use Amp\Http\Client\DelegateHttpClient;
 use Amp\Http\Client\HttpException;
+use Amp\Http\Client\Request;
+use Amp\Http\Client\Response;
+use Nexus\Mcp\Client\Exception\RedirectRefusedException;
 use Nexus\Mcp\Client\Transport\StreamableHttpClientTransport;
 use Nexus\Mcp\Core\Exception\OutboundRequestFailedException;
 use Nexus\Mcp\Core\Exception\ResponseTooLargeException;
@@ -799,6 +804,95 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
             $received->envelopes,
             'A response already on the way must still land.',
         );
+    }
+
+    #[DataProvider('provideAResponseAnsweredFromAnotherOriginIsRefusedCases')]
+    public function testAResponseAnsweredFromAnotherOriginIsRefused(string $origin): void
+    {
+        $http = (new RecordingHttpClient())->willAnswerFrom($origin);
+        $transport = $this->makeTransport($http);
+        $received = $this->captureMessages($transport);
+        $faults = $this->captureFaults($transport);
+
+        $this->exchange($transport, $this->discoverRequest());
+
+        self::assertSame([], $received->envelopes);
+        $cause = $faults->readFault()->getPrevious();
+        self::assertInstanceOf(RedirectRefusedException::class, $cause);
+        self::assertSame(
+            \sprintf(
+                'The request to "https://mcp.test/mcp" was answered from "%s" after a redirect. Credentials are never carried across one.',
+                $origin,
+            ),
+            $cause->getMessage(),
+        );
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function provideAResponseAnsweredFromAnotherOriginIsRefusedCases(): iterable
+    {
+        yield 'another host' => ['https://elsewhere.test/mcp'];
+
+        yield 'another port' => ['https://mcp.test:8443/mcp'];
+
+        yield 'another scheme' => ['http://mcp.test/mcp'];
+    }
+
+    public function testAClientThatRewritesTheRequestUriInPlaceIsStillRefused(): void
+    {
+        $http = (new RecordingHttpClient())->willAnswerJson(['jsonrpc' => '2.0', 'id' => 1, 'result' => []]);
+        $rewriting = new class ($http) implements DelegateHttpClient {
+            public function __construct(private readonly DelegateHttpClient $inner)
+            {
+            }
+
+            #[\Override]
+            public function request(Request $request, Cancellation $cancellation): Response
+            {
+                $request->setUri('https://elsewhere.test/mcp');
+
+                return $this->inner->request($request, $cancellation);
+            }
+        };
+        $transport = new StreamableHttpClientTransport('https://mcp.test/mcp', $rewriting, new ArrayLogger());
+        $transport->start();
+        $received = $this->captureMessages($transport);
+        $faults = $this->captureFaults($transport);
+
+        $this->exchange($transport, $this->discoverRequest());
+
+        self::assertSame([], $received->envelopes);
+        self::assertInstanceOf(RedirectRefusedException::class, $faults->readFault()->getPrevious());
+    }
+
+    public function testAResponseAnsweredFromTheSameOriginIsServed(): void
+    {
+        $http = (new RecordingHttpClient())->willAnswerFrom('https://mcp.test/mcp/', [
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'result' => ['resultType' => 'complete'],
+        ]);
+        $transport = $this->makeTransport($http);
+        $received = $this->captureMessages($transport);
+
+        $this->exchange($transport, $this->discoverRequest());
+
+        self::assertCount(1, $received->envelopes);
+    }
+
+    public function testAnUnfollowedRedirectFailsWithItsStatus(): void
+    {
+        $http = (new RecordingHttpClient())->willRedirectTo('https://elsewhere.test/mcp', 307);
+        $transport = $this->makeTransport($http);
+        $faults = $this->captureFaults($transport);
+
+        $this->exchange($transport, $this->discoverRequest());
+
+        $cause = $faults->readFault()->getPrevious();
+        self::assertInstanceOf(UnexpectedHttpStatusException::class, $cause);
+        self::assertSame(307, $cause->status);
     }
 
     public function testAnErrorStatusFailsTheRequestItsExchangeCarries(): void
