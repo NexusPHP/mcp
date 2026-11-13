@@ -69,6 +69,9 @@ in `0.x`, minor releases may include breaking changes.
   undecodable.
 - `AppClient::findAppTools()` logs a warning for each tool it skips because its `_meta.ui` is invalid, to the new
   `$logger` argument. Previously, it skipped silently.
+- A request's progress notifications, from `reportProgress()` or sent through `$context->sender`, are dropped when
+  the value is not above the last one sent, or once the request has completed or been cancelled. Previously, they
+  were sent.
 - `completion/complete` answers `-32602` for a ref naming no registered prompt, resource or template. Previously, it
   answered an empty list. A custom store opts in through the new `RegistrationLookupInterface`, which the built-in
   prompt, resource and template stores implement.

@@ -13,10 +13,13 @@ declare(strict_types=1);
 
 namespace Nexus\Mcp\Tests\Core\Dispatch;
 
+use Amp\DeferredCancellation;
 use Nexus\Mcp\Core\Dispatch\RequestBoundSender;
 use Nexus\Mcp\Core\Exception\OutboundRequestsNotSupportedException;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
+use Nexus\Mcp\Core\Schema\Notification\ToolListChangedNotification;
+use Nexus\Mcp\Core\Schema\NotificationParams\EmptyNotificationParams;
 use Nexus\Mcp\Core\Schema\NotificationParams\ProgressNotificationParams;
 use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
@@ -55,6 +58,34 @@ final class RequestBoundSenderTest extends AbstractMcpTestCase
         self::assertSame($requestId, $context->relatedRequestId);
     }
 
+    public function testSendNotificationDropsProgressNotAboveTheLastSent(): void
+    {
+        $transport = new RecordingTransport();
+        $sender = new RequestBoundSender($transport, new RequestId(id: 1));
+
+        foreach ([2.0, 1.0, 2.0, 3.0] as $progress) {
+            $sender->sendNotification(self::buildProgress($progress));
+        }
+
+        self::assertSame([2.0, 3.0], self::readProgressValues($transport));
+    }
+
+    public function testSendNotificationDropsProgressOnceTheRequestHasEnded(): void
+    {
+        $transport = new RecordingTransport();
+        $source = new DeferredCancellation();
+        $sender = new RequestBoundSender($transport, new RequestId(id: 1), $source->getCancellation());
+
+        $sender->sendNotification(self::buildProgress(1.0));
+        $source->cancel();
+        $sender->sendNotification(self::buildProgress(2.0));
+        $sender->sendNotification(new ToolListChangedNotification(params: new EmptyNotificationParams()));
+
+        self::assertSame([1.0], self::readProgressValues($transport));
+        self::assertCount(2, $transport->sent);
+        self::assertInstanceOf(ToolListChangedNotification::class, $transport->sent[1]['message']);
+    }
+
     public function testSendRequestThrowsTypedExceptionCarryingTheInboundRequestId(): void
     {
         $inboundId = new RequestId(id: 1);
@@ -73,5 +104,28 @@ final class RequestBoundSenderTest extends AbstractMcpTestCase
             );
             self::assertSame(ProtocolErrorCode::InternalError, OutboundRequestsNotSupportedException::getErrorCode());
         }
+    }
+
+    private static function buildProgress(float $progress): ProgressNotification
+    {
+        return new ProgressNotification(
+            params: new ProgressNotificationParams(progressToken: new ProgressToken(token: 'tok-1'), progress: $progress),
+        );
+    }
+
+    /**
+     * @return list<float>
+     */
+    private static function readProgressValues(RecordingTransport $transport): array
+    {
+        $values = [];
+
+        foreach ($transport->sent as ['message' => $message]) {
+            if ($message instanceof ProgressNotification) {
+                $values[] = $message->params->progress;
+            }
+        }
+
+        return $values;
     }
 }

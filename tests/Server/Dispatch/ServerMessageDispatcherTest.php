@@ -41,6 +41,7 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\ResultMetaObject;
 use Nexus\Mcp\Core\Schema\Notification\ProgressNotification;
+use Nexus\Mcp\Core\Schema\NotificationParams\ProgressNotificationParams;
 use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
@@ -1882,6 +1883,54 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
 
         self::assertNotNull($progressSend);
         self::assertSame(99, $progressSend['context']?->relatedRequestId?->id);
+    }
+
+    public function testProgressMustIncreaseAndStopsOnceTheRequestEnds(): void
+    {
+        $transport = new RecordingTransport();
+        $captured = null;
+
+        $dispatcher = $this->buildDispatcher(requestHandlers: [
+            'tools/list' => new ClosureRequestHandler(static function ($req, $ctx) use (&$captured): EmptyResult {
+                \assert($ctx instanceof ServerContext);
+                $captured = $ctx;
+
+                $ctx->reportProgress(2.0);
+                $ctx->sender->sendNotification(new ProgressNotification(params: new ProgressNotificationParams(
+                    progressToken: new ProgressToken(token: 'tok-1'),
+                    progress: 1.0,
+                )));
+                $ctx->reportProgress(3.0);
+
+                return new EmptyResult();
+            }),
+        ]);
+
+        $dispatcher->dispatch([
+            'jsonrpc' => '2.0',
+            'id' => 99,
+            'method' => 'tools/list',
+            'params' => ['_meta' => RequestMetaObjectFactory::shape(progressToken: new ProgressToken(token: 'tok-1'))],
+        ], $transport, new ReceiveContext());
+        $dispatcher->flushPending();
+
+        self::assertInstanceOf(ServerContext::class, $captured);
+        $captured->reportProgress(4.0);
+        $captured->sender->sendNotification(new ProgressNotification(params: new ProgressNotificationParams(
+            progressToken: new ProgressToken(token: 'tok-1'),
+            progress: 5.0,
+        )));
+
+        $progress = [];
+
+        foreach ($transport->sent as ['message' => $message]) {
+            if ($message instanceof ProgressNotification) {
+                $progress[] = $message->params->progress;
+            }
+        }
+
+        self::assertSame([2.0, 3.0], $progress);
+        self::assertCount(3, $transport->sent);
     }
 
     public function testRequestHandlerReceivesTheThreadedReceiveContext(): void

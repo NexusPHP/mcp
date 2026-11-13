@@ -49,7 +49,9 @@ executor: static function (?array $args, ServerContext $context): CallToolResult
 },
 ```
 
-The spec has `progress` increase with every notification. `total` and `message` are optional. When the original
+The spec has `progress` increase with every notification, so a value not above the last one sent is dropped. So is
+any progress once the request has ended, whether it completed or was cancelled. Both hold for a progress
+notification sent through `$context->sender` as well. `total` and `message` are optional. When the original
 request carried no `progressToken` in its `_meta`, the call does nothing. A handler therefore reports
 unconditionally, and the client decides whether progress flows by supplying the token. The client-side counterpart
 is [streaming progress from `callTool`](../client/progress-and-timeouts.md#streaming-progress-from-calltool).

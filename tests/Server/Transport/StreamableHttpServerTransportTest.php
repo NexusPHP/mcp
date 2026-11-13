@@ -1914,7 +1914,14 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
     {
         $logger = new ArrayLogger();
         $transport = $this->makeTransport($logger, ResponseMode::Sse, start: false);
-        $this->listen($transport, $this->buildProgressServer());
+        $this->listen($transport, (new ServerBuilder())
+            ->setServerInfo('demo', '1.0.0')
+            ->replaceRequestHandler('server/discover', new ClosureRequestHandler(static function (JsonRpcRequest $request, AbstractContext $context): Result {
+                $context->sender->sendNotification(new ToolListChangedNotification(params: new EmptyNotificationParams()));
+
+                return new EmptyResult();
+            }))
+            ->build());
 
         async(function () use ($transport): void {
             $response = $transport->handle($this->buildProgressRequest(7));
