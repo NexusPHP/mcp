@@ -95,6 +95,10 @@ The validator owns signature checking, the issuer, the audience, and expiry. `Be
 checks the audience again and enforces the endpoint's own rules on top. A token minted for another resource is
 refused even if a validator of your own lets it through, and so is a token handed over already expired.
 
+Scopes are compared as exact strings, so the validator also owns scope hierarchies. When a broader scope implies
+narrower ones (`files:*` implying `files:read`), expand it into `VerifiedAccessToken::$scopes` before returning,
+or the middleware answers `403` to a token that the authorization server meant to allow.
+
 The middleware's expiry check tolerates no clock skew by default, and a validator's own tolerance does not reach
 it. If you set `JWT::$leeway` for `firebase/php-jwt`, or your validator allows skew some other way, pass the same
 allowance as `expiryLeewaySeconds` to `BearerAuthenticationMiddleware`. Otherwise it refuses what the validator
