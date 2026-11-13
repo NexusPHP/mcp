@@ -19,7 +19,12 @@ follow-ups remain.
   notifications optional, so the polling-only `TaskClient` loop is conformant on its own. The upstream
   conformance scenario is a placeholder pending a harness rewrite against the subscriptions channel,
   and that rewrite is the trigger to pick this up. Settling the loop onto push updates starts with the
-  SEP's opt-in shape for the listen filter, which `SubscriptionFilter` has no slot for.
+  SEP's opt-in shape for the listen filter, which `SubscriptionFilter` has no slot for. The same slot
+  carries the SEP's MUST to answer `-32021` when a client asks for `taskIds` without declaring the
+  extension. How an extension adds its own listen filter fields is open upstream
+  ([typescript-sdk#3127](https://github.com/modelcontextprotocol/typescript-sdk/issues/3127),
+  [csharp-sdk#1704](https://github.com/modelcontextprotocol/csharp-sdk/issues/1704)), so the design
+  follows their outcome.
 - [ ] **Consistent SDK extension points (SEP-3371).** A draft upstream, picked up once it reaches
   Final. It asks an SDK for three public extension points, so that an extension can ship as its own
   package: registration, custom methods, and middleware. `enableExtension()` covers the first two.
