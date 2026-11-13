@@ -55,6 +55,18 @@ final class PromptStoreTest extends AbstractMcpTestCase
         self::assertSame(CacheScope::Private, $result->cacheScope);
     }
 
+    public function testIsRegisteredFollowsTheRegisteredNames(): void
+    {
+        $store = new PromptStore($this->makeEntries('alpha'));
+
+        self::assertTrue($store->isRegistered('alpha'));
+        self::assertFalse($store->isRegistered('beta'));
+
+        $store->removePrompt('alpha');
+
+        self::assertFalse($store->isRegistered('alpha'));
+    }
+
     public function testListPaginatesWithCursor(): void
     {
         $store = new PromptStore($this->makeEntries('a', 'b', 'c'), pageSize: 2);

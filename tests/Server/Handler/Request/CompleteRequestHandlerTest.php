@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Handler\Request;
 
 use Amp\NullCancellation;
+use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Schema\Prompt\PromptReference;
 use Nexus\Mcp\Core\Schema\Request\CompleteRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
@@ -27,6 +28,7 @@ use Nexus\Mcp\Tests\Fixtures\Core\Handler\RecordingSender;
 use Nexus\Mcp\Tests\Fixtures\Core\Schema\RequestMetaObjectFactory;
 use Nexus\Mcp\Tests\Fixtures\Server\Completion\RecordingCompletionStore;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
@@ -96,6 +98,54 @@ final class CompleteRequestHandlerTest extends AbstractMcpTestCase
         self::assertSame('file:///{folder}/{filename}', $ref->uri);
         self::assertSame('filename', $call['argumentName']);
         self::assertSame(['folder' => 'docs'], $call['contextArguments']);
+    }
+
+    #[DataProvider('provideRefusesAnUnregisteredRefCases')]
+    public function testRefusesAnUnregisteredRef(PromptReference|ResourceTemplateReference $ref, string $message): void
+    {
+        $store = new RecordingCompletionStore(new CompleteResult(completion: ['values' => ['x']]));
+        $seen = null;
+        $handler = new CompleteRequestHandler($store, static function (
+            PromptReference|ResourceTemplateReference $candidate,
+        ) use (&$seen): bool {
+            $seen = $candidate;
+
+            return false;
+        });
+
+        try {
+            $handler->handle($this->makeRequest($ref), $this->makeContext());
+            self::fail('The request should have been refused.');
+        } catch (InvalidParamsException $e) {
+            self::assertSame($message, $e->getMessage());
+            self::assertSame(9, $e->requestId?->id);
+        }
+
+        self::assertSame($ref, $seen);
+        self::assertSame([], $store->calls);
+    }
+
+    /**
+     * @return iterable<string, array{PromptReference|ResourceTemplateReference, string}>
+     */
+    public static function provideRefusesAnUnregisteredRefCases(): iterable
+    {
+        yield 'a prompt' => [new PromptReference(name: 'missing'), 'Prompt "missing" not found.'];
+
+        yield 'a template' => [
+            new ResourceTemplateReference(uri: 'file:///{missing}'),
+            'Resource template "file:///{missing}" not found.',
+        ];
+    }
+
+    public function testCompletesARegisteredRef(): void
+    {
+        $store = new RecordingCompletionStore(new CompleteResult(completion: ['values' => ['x']]));
+        $handler = new CompleteRequestHandler($store, static fn(): bool => true);
+
+        $result = $handler->handle($this->makeRequest(new PromptReference(name: 'known')), $this->makeContext());
+
+        self::assertSame(['x'], $result->completion['values']);
     }
 
     public function testTruncatesValuesBeyondTheSpecCapAndMarksTheOverflow(): void
@@ -174,6 +224,18 @@ final class CompleteRequestHandlerTest extends AbstractMcpTestCase
         $handler->handle($request, $this->makeContext());
 
         self::assertNull($this->readFirstCall($store)['contextArguments']);
+    }
+
+    private function makeRequest(PromptReference|ResourceTemplateReference $ref): CompleteRequest
+    {
+        return new CompleteRequest(
+            id: new RequestId(id: 9),
+            params: new CompleteRequestParams(
+                ref: $ref,
+                argument: ['name' => 'arg', 'value' => 'partial'],
+                meta: RequestMetaObjectFactory::create(),
+            ),
+        );
     }
 
     private function makePromptRequest(): CompleteRequest

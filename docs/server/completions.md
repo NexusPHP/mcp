@@ -22,7 +22,12 @@ $builder
 
 Registering any completion advertises the `completions` capability. The built-in handler routes each
 `completion/complete` request to the provider registered for that exact prompt name (or template URI) and
-argument. An unknown pair answers an empty `values` list.
+argument. A registered prompt or template with no provider for the argument answers an empty `values` list.
+
+A ref that names no registered prompt, resource or template is answered `-32602`, before any provider runs. A
+concrete URI served by a registered template counts as registered, and matching it runs no reader. The
+shipped stores answer that lookup through `RegistrationLookupInterface`. A custom store that does not implement it
+is taken at its word, so every ref it might serve is completed.
 
 A provider is a closure of the shape above, or a `CompletionProviderInterface` implementation. Its `complete()`
 receives the same three inputs: the partial value being typed, the values already resolved by the client for the

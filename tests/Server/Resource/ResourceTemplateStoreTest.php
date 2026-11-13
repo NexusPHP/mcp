@@ -63,6 +63,25 @@ final class ResourceTemplateStoreTest extends AbstractMcpTestCase
         self::assertSame(CacheScope::Private, $result->cacheScope);
     }
 
+    public function testIsRegisteredFollowsTheRegisteredUriTemplates(): void
+    {
+        $store = new ResourceTemplateStore([
+            'file:///{name}.txt' => $this->buildEntry(new ResourceTemplate(
+                name: 'alpha',
+                uriTemplate: 'file:///{name}.txt',
+            )),
+        ]);
+
+        self::assertTrue($store->isRegistered('file:///{name}.txt'));
+        self::assertTrue($store->isRegistered('file:///alpha.txt'));
+        self::assertFalse($store->isRegistered('file:///alpha.log'));
+
+        $store->removeResourceTemplate('file:///{name}.txt');
+
+        self::assertFalse($store->isRegistered('file:///{name}.txt'));
+        self::assertFalse($store->isRegistered('file:///alpha.txt'));
+    }
+
     public function testListReflectsConfiguredTtlAndCacheScope(): void
     {
         $store = new ResourceTemplateStore(

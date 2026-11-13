@@ -39,6 +39,10 @@ A custom store may implement `ListChangeSourceInterface` alone when it can obser
 make, such as a database-backed listing. It stays a plain read surface when it cannot. `CompositeResourceStore`
 forwards `onListChanged()` to whichever of its two inner stores reports changes.
 
+A custom prompt, resource or template store may also implement `RegistrationLookupInterface`, whose
+`isRegistered()` lets [completions](completions.md) refuse a ref naming nothing that the store holds. The built-in
+stores implement it.
+
 When a custom store and the matching `add*()` entries are both supplied, the custom store wins and the SDK ignores
 those entries.
 

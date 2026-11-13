@@ -69,6 +69,9 @@ in `0.x`, minor releases may include breaking changes.
   undecodable.
 - `AppClient::findAppTools()` logs a warning for each tool it skips because its `_meta.ui` is invalid, to the new
   `$logger` argument. Previously, it skipped silently.
+- `completion/complete` answers `-32602` for a ref naming no registered prompt, resource or template. Previously, it
+  answered an empty list. A custom store opts in through the new `RegistrationLookupInterface`, which the built-in
+  prompt, resource and template stores implement.
 - A server answers a legacy `initialize` with a `-32601` that names the supported protocol versions, in the message
   and in `data.supported`. Previously, it sent the generic method-not-found error.
 - A server answers `-32021` when an `InputRequiredResult` asks for an elicitation mode that the client did not declare,

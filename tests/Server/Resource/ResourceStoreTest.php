@@ -56,6 +56,18 @@ final class ResourceStoreTest extends AbstractMcpTestCase
         self::assertSame(CacheScope::Private, $result->cacheScope);
     }
 
+    public function testIsRegisteredFollowsTheRegisteredUris(): void
+    {
+        $store = new ResourceStore($this->makeEntries(['alpha', 'file:///tmp/a.txt']));
+
+        self::assertTrue($store->isRegistered('file:///tmp/a.txt'));
+        self::assertFalse($store->isRegistered('file:///tmp/b.txt'));
+
+        $store->removeResource('file:///tmp/a.txt');
+
+        self::assertFalse($store->isRegistered('file:///tmp/a.txt'));
+    }
+
     public function testListReflectsConfiguredTtlAndCacheScope(): void
     {
         $store = new ResourceStore(

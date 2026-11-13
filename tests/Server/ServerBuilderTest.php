@@ -1961,6 +1961,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
     {
         $server = (new ServerBuilder())
             ->setServerInfo('demo', '1.0.0')
+            ->addPrompt(new Prompt(name: 'hello'), static fn(): GetPromptResult => new GetPromptResult(messages: []))
             ->setCompletionStore(new RecordingCompletionStore(new CompleteResult(completion: ['values' => ['x']])))
             ->build()
         ;
@@ -1990,8 +1991,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             }
         };
 
-        $server = (new ServerBuilder())
-            ->setServerInfo('demo', '1.0.0')
+        $server = self::registerComposeAndFileTemplate((new ServerBuilder())->setServerInfo('demo', '1.0.0'))
             ->addPromptCompletion('compose', 'tone', static fn(): CompleteResult => new CompleteResult(
                 completion: ['values' => ['from-closure']],
             ))
@@ -2030,6 +2030,167 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         self::assertSame(['csv'], $closureTemplateResult->completion['values']);
     }
 
+    /**
+     * @param \Closure(ServerBuilder): ServerBuilder $configure
+     * @param array<string, string>                  $ref
+     */
+    #[DataProvider('provideCompletionRefusesAnUnregisteredRefCases')]
+    public function testCompletionRefusesAnUnregisteredRef(\Closure $configure, array $ref, string $message): void
+    {
+        $server = $configure((new ServerBuilder())->setServerInfo('demo', '1.0.0'))
+            ->setCompletionStore(new RecordingCompletionStore(new CompleteResult(completion: ['values' => ['x']])))
+            ->build()
+        ;
+
+        $transport = new RecordingTransport();
+        $serverRun = \Amp\async(static function () use ($server, $transport): void {
+            $server->run($transport);
+        });
+
+        EventLoop::queue(static function () use ($transport, $ref): void {
+            $transport->emitMessage([
+                'jsonrpc' => '2.0',
+                'id' => 2,
+                'method' => 'completion/complete',
+                'params' => [
+                    '_meta' => RequestMetaObjectFactory::shape(),
+                    'ref' => $ref,
+                    'argument' => ['name' => 'arg', 'value' => 'a'],
+                ],
+            ]);
+        });
+
+        EventLoop::queue(static function () use ($transport): void {
+            $transport->close();
+        });
+
+        $serverRun->await();
+
+        self::assertCount(1, $transport->sent);
+        $error = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $error);
+        self::assertSame(ProtocolErrorCode::InvalidParams->value, $error->error->code);
+        self::assertSame($message, $error->error->message);
+    }
+
+    /**
+     * @return iterable<string, array{\Closure(ServerBuilder): ServerBuilder, array<string, string>, string}>
+     */
+    public static function provideCompletionRefusesAnUnregisteredRefCases(): iterable
+    {
+        $registered = static fn(ServerBuilder $builder): ServerBuilder => self::registerComposeAndFileTemplate($builder);
+
+        yield 'an unknown prompt' => [
+            $registered,
+            ['type' => 'ref/prompt', 'name' => 'missing'],
+            'Prompt "missing" not found.',
+        ];
+
+        yield 'a prompt with no prompts registered' => [
+            static fn(ServerBuilder $builder): ServerBuilder => $builder,
+            ['type' => 'ref/prompt', 'name' => 'compose'],
+            'Prompt "compose" not found.',
+        ];
+
+        yield 'an unknown template' => [
+            $registered,
+            ['type' => 'ref/resource', 'uri' => 'mem:///{missing}'],
+            'Resource template "mem:///{missing}" not found.',
+        ];
+
+        yield 'a template with no resources registered' => [
+            static fn(ServerBuilder $builder): ServerBuilder => $builder,
+            ['type' => 'ref/resource', 'uri' => 'file:///{path}'],
+            'Resource template "file:///{path}" not found.',
+        ];
+    }
+
+    /**
+     * @param \Closure(ServerBuilder): ServerBuilder $configure
+     * @param array<string, string>                  $ref
+     */
+    #[DataProvider('provideCompletionCompletesARefTheStoresCannotRefuseCases')]
+    public function testCompletionCompletesARefTheStoresCannotRefuse(\Closure $configure, array $ref): void
+    {
+        $server = $configure((new ServerBuilder())->setServerInfo('demo', '1.0.0'))
+            ->setCompletionStore(new RecordingCompletionStore(new CompleteResult(completion: ['values' => ['x']])))
+            ->build()
+        ;
+
+        $result = $this->dispatch($server, 'completion/complete', [
+            'ref' => $ref,
+            'argument' => ['name' => 'arg', 'value' => 'a'],
+        ]);
+
+        self::assertInstanceOf(CompleteResult::class, $result);
+        self::assertSame(['x'], $result->completion['values']);
+    }
+
+    /**
+     * @return iterable<string, array{\Closure(ServerBuilder): ServerBuilder, array<string, string>}>
+     */
+    public static function provideCompletionCompletesARefTheStoresCannotRefuseCases(): iterable
+    {
+        yield 'a concrete URI served by a template' => [
+            static fn(ServerBuilder $builder): ServerBuilder => self::registerComposeAndFileTemplate($builder),
+            ['type' => 'ref/resource', 'uri' => 'file:///report.csv'],
+        ];
+
+        yield 'a static resource URI' => [
+            static fn(ServerBuilder $builder): ServerBuilder => $builder->addResource(
+                new Resource(name: 'static', uri: 'mem://static'),
+                static fn(string $uri): ReadResourceResult => new ReadResourceResult(
+                    contents: [],
+                    ttlMs: 0,
+                    cacheScope: CacheScope::Private,
+                ),
+            ),
+            ['type' => 'ref/resource', 'uri' => 'mem://static'],
+        ];
+
+        yield 'a prompt held by a store without a lookup' => [
+            static fn(ServerBuilder $builder): ServerBuilder => $builder->setPromptStore(
+                new class implements PromptStoreInterface {
+                    #[\Override]
+                    public function list(?Cursor $cursor): ListPromptsResult
+                    {
+                        return new ListPromptsResult(prompts: [], ttlMs: 0, cacheScope: CacheScope::Private);
+                    }
+
+                    #[\Override]
+                    public function get(string $name, ?array $arguments, ServerContext $context): GetPromptResult
+                    {
+                        return new GetPromptResult(messages: []);
+                    }
+                },
+            ),
+            ['type' => 'ref/prompt', 'name' => 'dynamic'],
+        ];
+
+        yield 'a template held by a store without a lookup' => [
+            static fn(ServerBuilder $builder): ServerBuilder => $builder->setResourceTemplateStore(
+                new class implements ResourceTemplateStoreInterface {
+                    #[\Override]
+                    public function list(?Cursor $cursor): ListResourceTemplatesResult
+                    {
+                        return new ListResourceTemplatesResult(
+                            resourceTemplates: [],
+                            ttlMs: 0,
+                            cacheScope: CacheScope::Private,
+                        );
+                    }
+
+                    #[\Override]
+                    public function read(string $uri, ServerContext $context): ReadResourceResult
+                    {
+                        return new ReadResourceResult(contents: [], ttlMs: 0, cacheScope: CacheScope::Private);
+                    }
+                },
+            ),
+            ['type' => 'ref/resource', 'uri' => 'file:///{dynamic}'],
+        ];
+    }
+
     public function testAnAllDigitPromptNameWithACompletionProviderBuilds(): void
     {
         $server = (new ServerBuilder())
@@ -2053,8 +2214,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
     public function testRegisterDiscoversCompletionProviders(): void
     {
-        $server = (new ServerBuilder())
-            ->setServerInfo('demo', '1.0.0')
+        $server = self::registerComposeAndFileTemplate((new ServerBuilder())->setServerInfo('demo', '1.0.0'))
             ->register(new CompletionHandlers())
             ->build()
         ;
@@ -2076,8 +2236,7 @@ final class ServerBuilderTest extends AbstractMcpTestCase
 
     public function testAnExplicitCompletionStoreWinsOverAddedCompletions(): void
     {
-        $builder = (new ServerBuilder())
-            ->setServerInfo('demo', '1.0.0')
+        $builder = self::registerComposeAndFileTemplate((new ServerBuilder())->setServerInfo('demo', '1.0.0'))
             ->addPromptCompletion(
                 'compose',
                 'tone',
@@ -3731,6 +3890,21 @@ final class ServerBuilderTest extends AbstractMcpTestCase
         }
 
         return $builder;
+    }
+
+    private static function registerComposeAndFileTemplate(ServerBuilder $builder): ServerBuilder
+    {
+        return $builder
+            ->addPrompt(new Prompt(name: 'compose'), static fn(): GetPromptResult => new GetPromptResult(messages: []))
+            ->addResourceTemplate(
+                new ResourceTemplate(name: 'files', uriTemplate: 'file:///{path}'),
+                static fn(): ReadResourceResult => new ReadResourceResult(
+                    contents: [],
+                    ttlMs: 0,
+                    cacheScope: CacheScope::Private,
+                ),
+            )
+        ;
     }
 
     /**
