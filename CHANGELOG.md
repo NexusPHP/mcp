@@ -50,6 +50,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- Over stdio, a response that cannot be encoded as JSON, such as text that is not valid UTF-8, is answered with
+  `-32603` and the transport stays open, as over HTTP. Previously, it closed the transport.
 - A task is bound to the authenticated caller that created it, and `tasks/get`, `tasks/update` and `tasks/cancel`
   refuse another caller's task with `-32602`. Previously, any caller holding a task ID could read, answer or cancel
   it. A custom store implements the new `OwnedTaskStoreInterface` to serve authenticated requests.

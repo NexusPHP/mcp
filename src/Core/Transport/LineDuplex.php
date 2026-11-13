@@ -22,12 +22,14 @@ use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyStartedException;
 use Nexus\Mcp\Core\Exception\TransportNotStartedException;
+use Nexus\Mcp\Core\Schema\Error\InternalError;
 use Nexus\Mcp\Core\Schema\Error\InvalidRequestError;
 use Nexus\Mcp\Core\Schema\Error\ParseError;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcMessage;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcNotification;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 
@@ -38,6 +40,8 @@ use Revolt\EventLoop;
  */
 final class LineDuplex
 {
+    private const int JSON_FLAGS = \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE;
+
     private TransportState $state = TransportState::Idle;
 
     /**
@@ -158,11 +162,10 @@ final class LineDuplex
             TransportState::Running => null,
         };
 
+        $line = $this->encodeLine($message);
+
         try {
-            $this->writable->write(json_encode(
-                $message,
-                \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE,
-            )."\n");
+            $this->writable->write($line);
             $this->logger->debug(
                 '{label} transport sent {kind}.',
                 ['label' => $this->label, 'kind' => $this->describe($message)],
@@ -299,6 +302,32 @@ final class LineDuplex
     public function onClose(\Closure $listener): ListenerHandleInterface
     {
         return $this->events->onClose($listener);
+    }
+
+    /**
+     * An unencodable response becomes an internal error, so the peer still gets an answer and the stream stays open.
+     *
+     * @throws \JsonException
+     */
+    private function encodeLine(JsonRpcMessage $message): string
+    {
+        try {
+            return json_encode($message, self::JSON_FLAGS)."\n";
+        } catch (\JsonException $e) {
+            if (! $message instanceof JsonRpcErrorResponse && ! $message instanceof JsonRpcResultResponse) {
+                throw $e;
+            }
+
+            $this->logger->error(
+                '{label} transport replaced an unencodable {kind} with an internal error: {reason}.',
+                ['label' => $this->label, 'kind' => $this->describe($message), 'reason' => $e->getMessage()],
+            );
+
+            return json_encode(new JsonRpcErrorResponse(
+                id: $message->id,
+                error: new InternalError(message: 'The response could not be encoded.'),
+            ), self::JSON_FLAGS)."\n";
+        }
     }
 
     /**

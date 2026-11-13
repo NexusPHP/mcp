@@ -25,6 +25,8 @@ use Amp\DeferredFuture;
 use Nexus\Mcp\Core\Exception\TransportAlreadyClosedException;
 use Nexus\Mcp\Core\Exception\TransportAlreadyStartedException;
 use Nexus\Mcp\Core\Exception\TransportNotStartedException;
+use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
+use Nexus\Mcp\Core\Schema\Error\InternalError;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcErrorResponse;
 use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcMessage;
 use Nexus\Mcp\Core\Schema\Notification\CancelledNotification;
@@ -32,6 +34,7 @@ use Nexus\Mcp\Core\Schema\NotificationParams\CancelledNotificationParams;
 use Nexus\Mcp\Core\Schema\Request\DiscoverRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
 use Nexus\Mcp\Core\Schema\RequestParams\EmptyRequestParams;
+use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\EmptyResult;
 use Nexus\Mcp\Core\Schema\ResultResponse\GenericResultResponse;
 use Nexus\Mcp\Core\Transport\LineDuplex;
@@ -1181,6 +1184,84 @@ final class LineDuplexTest extends AbstractMcpTestCase
             json_encode($message, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE)."\n",
             $writable->buffer(),
         );
+    }
+
+    /**
+     * @param \Closure(RequestId): JsonRpcMessage $build
+     */
+    #[DataProvider('provideAnUnencodableResponseIsAnsweredWithAnInternalErrorCases')]
+    public function testAnUnencodableResponseIsAnsweredWithAnInternalError(\Closure $build, string $kind): void
+    {
+        $writable = new WritableBuffer();
+        $logger = new ArrayLogger();
+        $duplex = $this->buildDuplex($logger);
+
+        $duplex->start(new ReadableBuffer(''), $writable);
+        $duplex->send($build(new RequestId(id: 7)));
+        $duplex->send(new GenericResultResponse(id: new RequestId(id: 8), result: new EmptyResult()));
+        EventLoop::run();
+        $writable->close();
+
+        self::assertSame(
+            '{"jsonrpc":"2.0","id":7,"error":{"code":-32603,"message":"The response could not be encoded."}}'."\n"
+            .'{"jsonrpc":"2.0","id":8,"result":{"resultType":"complete"}}'."\n",
+            $writable->buffer(),
+        );
+
+        $records = $logger->recordsMatching(
+            LogLevel::ERROR,
+            '{label} transport replaced an unencodable {kind} with an internal error: {reason}.',
+        );
+        self::assertCount(1, $records);
+        self::assertSame(
+            ['label' => 'demo', 'kind' => $kind, 'reason' => 'Malformed UTF-8 characters, possibly incorrectly encoded'],
+            $records[0]['context'],
+        );
+    }
+
+    /**
+     * @return iterable<string, array{\Closure(RequestId): JsonRpcMessage, string}>
+     */
+    public static function provideAnUnencodableResponseIsAnsweredWithAnInternalErrorCases(): iterable
+    {
+        yield 'a result' => [
+            static fn(RequestId $id): JsonRpcMessage => new GenericResultResponse(
+                id: $id,
+                result: new CallToolResult(content: [new TextContent(text: "\xB1")]),
+            ),
+            'a response envelope',
+        ];
+
+        yield 'an error' => [
+            static fn(RequestId $id): JsonRpcMessage => new JsonRpcErrorResponse(
+                id: $id,
+                error: new InternalError(message: "\xB1"),
+            ),
+            'a response envelope',
+        ];
+    }
+
+    public function testAnUnencodableNotificationThrowsWithoutClosing(): void
+    {
+        $writable = new WritableBuffer();
+        $duplex = $this->buildDuplex();
+
+        $duplex->start(new ReadableBuffer(''), $writable);
+
+        try {
+            $duplex->send(new CancelledNotification(params: new CancelledNotificationParams(
+                requestId: new RequestId(id: 1),
+                reason: "\xB1",
+            )));
+            self::fail('The unencodable notification should have thrown.');
+        } catch (\JsonException) {
+        }
+
+        $duplex->send(new GenericResultResponse(id: new RequestId(id: 8), result: new EmptyResult()));
+        EventLoop::run();
+        $writable->close();
+
+        self::assertSame('{"jsonrpc":"2.0","id":8,"result":{"resultType":"complete"}}'."\n", $writable->buffer());
     }
 
     public function testSendEmitsUnescapedSlashesAndUnicode(): void
