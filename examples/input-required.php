@@ -14,6 +14,7 @@ declare(strict_types=1);
 require __DIR__.'/bootstrap.php';
 
 use Nexus\Mcp\Client\ClientBuilder;
+use Nexus\Mcp\Core\Schema\ClientCapabilities;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Elicitation\BooleanSchema;
 use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequest;
@@ -81,6 +82,7 @@ $server = (new ServerBuilder())
 $client = (new ClientBuilder())
     ->setLogger(new PsrLogger())
     ->setClientInfo(name: 'nexus-input-required-example-client', version: '0.1.0')
+    ->setClientCapabilities(new ClientCapabilities(elicitation: ['form' => []]))
     ->build()
 ;
 

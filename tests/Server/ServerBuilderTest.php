@@ -3163,7 +3163,13 @@ final class ServerBuilderTest extends AbstractMcpTestCase
             ->build()
         ;
 
-        $result = $this->dispatch($server, 'tools/call', ['name' => 'ask', 'arguments' => []]);
+        $result = $this->dispatch($server, 'tools/call', [
+            'name' => 'ask',
+            'arguments' => [],
+            '_meta' => RequestMetaObjectFactory::shape(clientCapabilities: new ClientCapabilities(
+                elicitation: ['form' => []],
+            )),
+        ]);
 
         self::assertInstanceOf(InputRequiredResult::class, $result);
 

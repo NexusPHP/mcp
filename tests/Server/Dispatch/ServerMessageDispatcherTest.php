@@ -27,6 +27,10 @@ use Nexus\Mcp\Core\Handler\Notification\CancelledNotificationHandler;
 use Nexus\Mcp\Core\Handler\NotificationHandlerInterface;
 use Nexus\Mcp\Core\Handler\RequestHandlerInterface;
 use Nexus\Mcp\Core\JsonRpc\JsonRpcMessageParser;
+use Nexus\Mcp\Core\Schema\ClientCapabilities;
+use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequest;
+use Nexus\Mcp\Core\Schema\Elicitation\ElicitRequestedSchema;
+use Nexus\Mcp\Core\Schema\Elicitation\StringSchema;
 use Nexus\Mcp\Core\Schema\Enum\ProtocolErrorCode;
 use Nexus\Mcp\Core\Schema\Enum\SdkErrorCode;
 use Nexus\Mcp\Core\Schema\Error\UnsupportedProtocolVersionError;
@@ -41,6 +45,8 @@ use Nexus\Mcp\Core\Schema\ProgressToken;
 use Nexus\Mcp\Core\Schema\ProtocolVersion;
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestFormParams;
+use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestUrlParams;
 use Nexus\Mcp\Core\Schema\Result;
 use Nexus\Mcp\Core\Schema\Result\CallToolResult;
 use Nexus\Mcp\Core\Schema\Result\DiscoverResult;
@@ -724,6 +730,105 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
 
         self::assertInstanceOf(ServerContext::class, $seen);
         self::assertNull($seen->requestStateSigner);
+    }
+
+    /**
+     * @param null|array{form?: array<string, mixed>, url?: array<string, mixed>} $elicitation
+     * @param list<non-empty-string>                                              $modes
+     */
+    #[DataProvider('provideAnInputRequestNeedsTheDeclaredElicitationModeCases')]
+    public function testAnInputRequestNeedsTheDeclaredElicitationMode(
+        ?array $elicitation,
+        array $modes,
+        ?string $missing,
+    ): void {
+        $inputRequests = [];
+
+        foreach ($modes as $mode) {
+            $inputRequests[$mode] = new ElicitRequest(params: 'url' === $mode
+                ? new ElicitRequestUrlParams(message: 'Pay.', mode: 'url', url: 'https://pay.example.com/s')
+                : new ElicitRequestFormParams(
+                    message: 'Who are you?',
+                    requestedSchema: new ElicitRequestedSchema(properties: ['name' => new StringSchema()]),
+                ));
+        }
+
+        $transport = new RecordingTransport();
+        $dispatcher = $this->buildDispatcher(requestHandlers: [
+            'tools/call' => new ClosureRequestHandler(
+                static fn(): Result => new InputRequiredResult(inputRequests: $inputRequests),
+            ),
+        ]);
+        $envelope = [
+            'jsonrpc' => '2.0',
+            'id' => 1,
+            'method' => 'tools/call',
+            'params' => [
+                '_meta' => RequestMetaObjectFactory::shape(
+                    clientCapabilities: new ClientCapabilities(elicitation: $elicitation),
+                ),
+                'name' => 'deploy',
+            ],
+        ];
+
+        $dispatcher->dispatch($envelope, $transport, new ReceiveContext());
+        $dispatcher->flushPending();
+
+        if (null === $missing) {
+            self::assertInstanceOf(InputRequiredResult::class, $this->readSentResult($transport));
+
+            return;
+        }
+
+        self::assertCount(1, $transport->sent);
+        $message = $transport->sent[0]['message'];
+        self::assertInstanceOf(JsonRpcErrorResponse::class, $message);
+        self::assertSame(ProtocolErrorCode::MissingRequiredClientCapability->value, $message->error->code);
+        self::assertSame(
+            \sprintf('This request requires client capabilities the client did not declare: %s.', $missing),
+            $message->error->message,
+        );
+    }
+
+    /**
+     * @return iterable<string, array{null|array{form?: array<string, mixed>, url?: array<string, mixed>}, list<non-empty-string>, null|string}>
+     */
+    public static function provideAnInputRequestNeedsTheDeclaredElicitationModeCases(): iterable
+    {
+        yield 'form with form declared' => [['form' => []], ['form'], null];
+
+        yield 'form with an empty capability' => [[], ['form'], null];
+
+        yield 'url with url declared' => [['url' => []], ['url'], null];
+
+        yield 'both with both declared' => [['form' => [], 'url' => []], ['form', 'url'], null];
+
+        yield 'form with nothing declared' => [null, ['form'], 'elicitation.form'];
+
+        yield 'url with nothing declared' => [null, ['url'], 'elicitation.url'];
+
+        yield 'url with an empty capability' => [[], ['url'], 'elicitation.url'];
+
+        yield 'form with url declared' => [['url' => []], ['form'], 'elicitation.form'];
+
+        yield 'url with form declared' => [['form' => []], ['url'], 'elicitation.url'];
+
+        yield 'both with nothing declared' => [null, ['form', 'url'], 'elicitation.form, elicitation.url'];
+    }
+
+    public function testAnInputRequiredResultWithoutInputRequestsNeedsNoCapability(): void
+    {
+        $transport = new RecordingTransport();
+        $dispatcher = $this->buildDispatcher(requestHandlers: [
+            'tools/call' => new ClosureRequestHandler(
+                static fn(): Result => new InputRequiredResult(requestState: 'round-1'),
+            ),
+        ]);
+
+        $dispatcher->dispatch($this->buildToolsCallEnvelope(1, null), $transport, new ReceiveContext());
+        $dispatcher->flushPending();
+
+        self::assertInstanceOf(InputRequiredResult::class, $this->readSentResult($transport));
     }
 
     public function testAHandlerAnsweringWithAForeignRequestStateIsAnInternalError(): void

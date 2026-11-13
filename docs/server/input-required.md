@@ -183,9 +183,12 @@ new ElicitRequest(params: new ElicitRequestUrlParams(
 ))
 ```
 
-A client declares which modes it supports under its `elicitation` capability: `form`, `url`, or both. The
-request's `_meta` carries that declaration per request, so check `$context->meta->clientCapabilities->elicitation`
-before you choose a mode.
+A client declares which modes it supports under its `elicitation` capability: `form`, `url`, or both, and an empty
+`elicitation` declares form only. The request's `_meta` carries that declaration per request, so check
+`$context->meta->clientCapabilities->elicitation` before you choose a mode.
+
+The server enforces it. An `InputRequiredResult` that asks for a mode the client did not declare is answered
+`-32021` (`MissingRequiredClientCapability`), naming the missing mode, in place of the result.
 
 [`examples/input-required.php`](../../examples/input-required.php) runs the round trip in one process.
 [`conformance/MultiRoundServer.php`](../../conformance/MultiRoundServer.php) is the fuller worked example. It
