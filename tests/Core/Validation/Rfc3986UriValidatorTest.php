@@ -58,6 +58,24 @@ final class Rfc3986UriValidatorTest extends AbstractMcpTestCase
         yield 'mailto' => ['mailto:user@example.com'];
 
         yield 'percent-encoded path' => ['https://example.com/r%C3%A9sum%C3%A9'];
+
+        yield 'underscore in the host' => ['https://my_host.example/pay'];
+
+        yield 'userinfo and port' => ['https://user:pw@example.com:8443/p'];
+
+        yield 'empty port' => ['https://example.com:/p'];
+
+        yield 'IPv6 literal' => ['https://[2001:db8::1]:8443/'];
+
+        yield 'IPvFuture literal' => ['https://[v1.fe80::a+en1]/'];
+
+        yield 'IPvFuture literal with an uppercase flag' => ['https://[V1.fe80::a+en1]/'];
+
+        yield 'slash and question mark in query and fragment' => ['https://example.com/p?q=/a?b#f/?g'];
+
+        yield 'data uri' => ['data:image/png;base64,iVBORw0KGgo+/='];
+
+        yield 'absolute path, no authority' => ['urn:/a/b'];
     }
 
     /**
@@ -122,5 +140,33 @@ final class Rfc3986UriValidatorTest extends AbstractMcpTestCase
             'resource contents "uri"',
             '/\Aresource contents "uri" must be a valid RFC 3986/',
         ];
+
+        $malformed = static fn(string $uri): array => [
+            $uri,
+            'resource "uri"',
+            \sprintf('/\Aresource "uri" must be a valid RFC 3986 absolute URI, %s given\.\z/', preg_quote(var_export($uri, true), '/')),
+        ];
+
+        yield 'a delimiter in the host' => $malformed('https://exa<mple.com/');
+
+        yield 'an unclosed IP literal' => $malformed('https://[broken/');
+
+        yield 'an empty IP literal' => $malformed('https://[]/');
+
+        yield 'an IP literal that is not IPv6' => $malformed('https://[::g]/');
+
+        yield 'an IPv4 address as an IP literal' => $malformed('https://[1.2.3.4]/');
+
+        yield 'a zone identifier in the IP literal' => $malformed('https://[fe80::1%eth0]/');
+
+        yield 'a non-digit port' => $malformed('https://example.com:8a/');
+
+        yield 'a malformed percent-encoding' => $malformed('https://example.com/%zz');
+
+        yield 'a bracket in the query' => $malformed('https://example.com/p?x=[1]');
+
+        yield 'a second fragment' => $malformed('https://example.com/a#b#c');
+
+        yield 'a backslash in the path' => $malformed('https://example.com/a\b');
     }
 }

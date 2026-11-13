@@ -16,8 +16,7 @@ namespace Nexus\Mcp\Core\Validation;
 use Nexus\Assert\Assert;
 
 /**
- * Enforces the RFC 3986 absolute-URI shape on a string: ASCII-printable only, with a scheme plus optional
- * authority and path/query/fragment.
+ * Validator for the RFC 3986 `URI` grammar with a required scheme, IP literals included.
  *
  * @internal
  *
@@ -25,6 +24,19 @@ use Nexus\Assert\Assert;
  */
 final class Rfc3986UriValidator
 {
+    private const string PCT_ENCODED = '%[0-9A-Fa-f]{2}';
+    private const string UNRESERVED_OR_SUB_DELIM = 'A-Za-z0-9\-._~!$&\'()*+,;=';
+    private const string PCHAR = '(?:['.self::UNRESERVED_OR_SUB_DELIM.':@]|'.self::PCT_ENCODED.')';
+    private const string ABSOLUTE_URI = '{\A[A-Za-z][A-Za-z0-9+.\-]*:'
+        .'(?://(?:(?:['.self::UNRESERVED_OR_SUB_DELIM.':]|'.self::PCT_ENCODED.')*@)?'
+        .'(?:\[(?<literal>[^\]]*)\]|(?:['.self::UNRESERVED_OR_SUB_DELIM.']|'.self::PCT_ENCODED.')*)'
+        .'(?::[0-9]*)?(?:/'.self::PCHAR.'*)*'
+        .'|/(?:'.self::PCHAR.'+(?:/'.self::PCHAR.'*)*)?'
+        .'|'.self::PCHAR.'+(?:/'.self::PCHAR.'*)*)?'
+        .'(?:\?(?:'.self::PCHAR.'|[/?])*)?'
+        .'(?:\#(?:'.self::PCHAR.'|[/?])*)?\z}';
+    private const string IP_FUTURE = '{\A[vV][0-9A-Fa-f]+\.['.self::UNRESERVED_OR_SUB_DELIM.':]+\z}';
+
     /**
      * @param non-empty-string $context Label prefix for the error message (e.g. "Resource", "ResourceContents")
      *
@@ -43,10 +55,40 @@ final class Rfc3986UriValidator
                     $context,
                 ),
             )
-            ->matchesRegularExpression(
-                '/\A[A-Za-z][A-Za-z0-9+.\-]*:(?:\/\/[^\/?#]*)?[^?#]*(?:\?[^#]*)?(?:#.*)?\z/',
-                \sprintf('%s must be a valid RFC 3986 absolute URI, {value} given.', $context),
-            )
         ;
+
+        if (preg_match(self::ABSOLUTE_URI, $uri, $matches, \PREG_UNMATCHED_AS_NULL) !== 1) {
+            self::refuse($uri, $context);
+        }
+
+        $literal = $matches['literal'];
+
+        if (null !== $literal && ! self::isIpv6Address($literal) && preg_match(self::IP_FUTURE, $literal) !== 1) {
+            self::refuse($uri, $context);
+        }
+    }
+
+    /**
+     * RFC 3986 §3.2.2: an IPv6 literal carries no zone identifier, which `inet_pton()` would otherwise accept.
+     */
+    private static function isIpv6Address(string $literal): bool
+    {
+        $address = inet_pton($literal);
+
+        return false !== $address
+            && \strlen($address) === 16
+            && preg_match('/\A[0-9A-Fa-f:.]+\z/', $literal) === 1;
+    }
+
+    /**
+     * @throws \InvalidArgumentException
+     */
+    private static function refuse(string $uri, string $context): never
+    {
+        throw new \InvalidArgumentException(\sprintf(
+            '%s must be a valid RFC 3986 absolute URI, %s given.',
+            $context,
+            var_export($uri, true),
+        ));
     }
 }

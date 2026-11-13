@@ -171,7 +171,9 @@ defensively, as the example above does with `$answer instanceof ElicitResult`.
 ## URL mode
 
 A form is one of two elicitation modes. `ElicitRequestUrlParams` instead sends the user to a URL named by the
-server, such as a checkout page or a device-authorization screen. The client answers once the visit is done:
+server, such as a checkout page or a device-authorization screen. The URL must be an RFC 3986 absolute URI, as the
+spec's `uri` format requires. Which schemes a host is willing to open is the host's decision, not the SDK's. The
+client answers once the visit is done:
 
 ```php
 use Nexus\Mcp\Core\Schema\RequestParams\ElicitRequestUrlParams;

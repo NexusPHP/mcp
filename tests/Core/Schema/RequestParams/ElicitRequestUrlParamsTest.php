@@ -100,12 +100,66 @@ final class ElicitRequestUrlParamsTest extends AbstractMcpTestCase
         new ElicitRequestUrlParams(message: 'm', mode: 'url', url: '');
     }
 
-    public function testConstructorRejectsInvalidUrl(): void
+    /**
+     * @param non-empty-string $url
+     */
+    #[DataProvider('provideConstructorRejectsAUrlThatIsNotAnAbsoluteUriCases')]
+    public function testConstructorRejectsAUrlThatIsNotAnAbsoluteUri(string $url, string $message): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('"params.url" must be a valid URL.');
+        $this->expectExceptionMessageIs($message);
 
-        new ElicitRequestUrlParams(message: 'm', mode: 'url', url: 'not a url');
+        new ElicitRequestUrlParams(message: 'm', mode: 'url', url: $url);
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string, string}>
+     */
+    public static function provideConstructorRejectsAUrlThatIsNotAnAbsoluteUriCases(): iterable
+    {
+        yield 'whitespace' => [
+            'not a url',
+            '"params.url" must be ASCII printable without whitespace or control characters, \'not a url\' given.',
+        ];
+
+        yield 'a relative reference' => [
+            'relative/path',
+            '"params.url" must be a valid RFC 3986 absolute URI, \'relative/path\' given.',
+        ];
+
+        yield 'a delimiter in the host' => [
+            'https://exa<mple.com/',
+            '"params.url" must be a valid RFC 3986 absolute URI, \'https://exa<mple.com/\' given.',
+        ];
+
+        yield 'an unclosed IP literal' => [
+            'https://[broken/',
+            '"params.url" must be a valid RFC 3986 absolute URI, \'https://[broken/\' given.',
+        ];
+    }
+
+    /**
+     * @param non-empty-string $url
+     */
+    #[DataProvider('provideConstructorAcceptsAnyAbsoluteUriCases')]
+    public function testConstructorAcceptsAnyAbsoluteUri(string $url): void
+    {
+        self::assertSame($url, (new ElicitRequestUrlParams(message: 'm', mode: 'url', url: $url))->url);
+        self::assertSame($url, ElicitRequestUrlParams::fromArray(['message' => 'm', 'mode' => 'url', 'url' => $url])->url);
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string}>
+     */
+    public static function provideConstructorAcceptsAnyAbsoluteUriCases(): iterable
+    {
+        yield 'https' => ['https://pay.example.com/session/8f3a'];
+
+        yield 'an underscore in the host' => ['https://my_host.example/pay'];
+
+        yield 'a urn' => ['urn:example:payment:123'];
+
+        yield 'an IPvFuture literal with an uppercase flag' => ['https://[V1.fe80::a+en1]/'];
     }
 
     public function testConstructorRejectsWrongMode(): void
@@ -137,6 +191,16 @@ final class ElicitRequestUrlParamsTest extends AbstractMcpTestCase
         yield 'missing message' => [
             ['mode' => 'url', 'url' => 'https://example.com'],
             '"params" is missing the required "message" key.',
+        ];
+
+        yield 'malformed url authority' => [
+            ['message' => 'm', 'mode' => 'url', 'url' => 'https://exa<mple.com/'],
+            '"params.url" must be a valid RFC 3986 absolute URI, \'https://exa<mple.com/\' given.',
+        ];
+
+        yield 'unclosed IP literal in url' => [
+            ['message' => 'm', 'mode' => 'url', 'url' => 'https://[broken/'],
+            '"params.url" must be a valid RFC 3986 absolute URI, \'https://[broken/\' given.',
         ];
 
         yield 'message not a string' => [

@@ -71,6 +71,10 @@ in `0.x`, minor releases may include breaking changes.
   undecodable.
 - `AppClient::findAppTools()` logs a warning for each tool it skips because its `_meta.ui` is invalid, to the new
   `$logger` argument. Previously, it skipped silently.
+- `ElicitRequestUrlParams` accepts any RFC 3986 absolute URI as its `url`, such as a host with an underscore or a
+  `urn:`. Previously, it applied PHP's `FILTER_VALIDATE_URL`, which refused them when built and when decoded.
+- A resource, resource link, icon or elicitation URI is held to the full RFC 3986 grammar. A malformed authority,
+  IP literal, port or percent-encoding is refused. Previously, only the scheme was checked.
 - With `AppsServerExtension` enabled, `build()` refuses a `ui://` resource or template without the
   `text/html;profile=mcp-app` mime type, that mime type outside `ui://`, and a tool or resource whose `_meta.ui` does
   not decode. Previously, only `UiResource` and `UiToolMeta` checked them.

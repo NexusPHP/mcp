@@ -21,6 +21,10 @@ use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 )
 ```
 
+A resource URI must match the [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986) grammar with a scheme. The
+SDK refuses a malformed one, such as a bad authority, port or percent-encoding, when you register it and when a peer
+sends it.
+
 Binary contents ride `BlobResourceContents`, whose `blob` is the base64-encoded bytes:
 
 ```php

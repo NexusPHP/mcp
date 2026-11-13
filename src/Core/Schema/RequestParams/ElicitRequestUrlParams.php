@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Core\Schema\RequestParams;
 
 use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
+use Nexus\Mcp\Core\Validation\Rfc3986UriValidator;
 
 /**
  * The parameters for a request to elicit information from the user via a URL in the client.
@@ -39,10 +40,7 @@ final readonly class ElicitRequestUrlParams implements Arrayable, ElicitRequestP
         public string $url,
     ) {
         Assert::that($message)->isNonEmptyString('"params.message" must be a non-empty string.');
-        Assert::that($url)
-            ->isNonEmptyString('"params.url" must be a non-empty string.')
-            ->isUrl('"params.url" must be a valid URL.')
-        ;
+        Rfc3986UriValidator::validate($url, '"params.url"');
         Assert::that($mode)->isIdentical(self::MODE, '"params.mode" must be {other}, {value} given.');
     }
 
