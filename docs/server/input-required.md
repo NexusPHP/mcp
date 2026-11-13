@@ -131,7 +131,8 @@ states by hand.
 
 The spec's `InputRequest` union also admits `sampling/createMessage` and `roots/list`. Both are deprecated as of
 2026-07-28 (SEP-2577), and this SDK does not model them. `ElicitRequest` is the only thing that a handler can put
-in `inputRequests`.
+in `inputRequests`. A peer's `InputRequiredResult` that carries one of the other two fails to decode as a whole,
+since skipping the entry would leave the server waiting for an answer that the client cannot give.
 
 ## The field vocabulary
 

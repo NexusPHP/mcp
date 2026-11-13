@@ -67,6 +67,9 @@ form only where it authors the value itself. A peer's one odd value must not mak
 undecodable, and the judgement about what to do with that value belongs to the host that renders, opens, or
 otherwise acts on it.
 
+Decoding reads only the keys that the SDK models. A `Result` drops an unknown top-level key and keeps just `_meta`
+and capability `extras`.
+
 ## Empty optional strings are absent
 
 The spec types most optional descriptive strings as `?: string`, so an empty string is technically a legal value.
@@ -79,7 +82,9 @@ object model has exactly one representation for "no value": `null`. The rule hol
 `new CancelledNotificationParams(reason: '')`.
 
 This is the one place the SDK is deliberately stricter than the spec. Value-bearing string fields are exempt,
-because there an empty string is a real value rather than a missing one. A JSON Schema `default` of `""` keeps its
+because there an empty string is a real value rather than a missing one. A required string field, such as
+`Error.message`, `Implementation.version` or the `data` of an image, must still be non-empty, and a peer that sends
+`""` for one is refused. A JSON Schema `default` of `""` keeps its
 plain `?string` typing. The SDK's own emitters degrade gracefully instead of surfacing the rejection, so
 `ServerContext::reportProgress(..., message: '')` sends no message rather than throw.
 
