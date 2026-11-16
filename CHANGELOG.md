@@ -8,14 +8,16 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+## [v1.5.0](https://github.com/NexusPHP/mcp/compare/v1.4.0...v1.5.0) - 2026-11-16
+
 ### Added
 
 - `AuthorizationOptions::$skipOfflineAccessConsent` leaves `prompt=consent` out of an authorization request asking
   for `offline_access`, for authorization servers that refuse a forced consent screen.
 - `RequestStateSigner` takes a list of keys as a key ring, so its key rotates without failing a state in flight.
-- Input schemas generated from a parameter type cover `true`, `false`, float literals, unions of constrained members
-  such as `string|false` (as `anyOf`), `non-falsy-string`, `numeric-string`, quoted and integer shape keys, and
-  optional tuple items.
+- Input schemas generated from a parameter type cover `true`, `false`, float literals, unions of constrained
+  members such as `string|false` (as `anyOf`), `non-falsy-string`, `numeric-string`, quoted and integer shape
+  keys, and optional tuple items.
 - An enum inside a `@param` collection, shape or tuple type (`list<Suit>`, `array{suit: Suit}`) reaches the handler
   as its case. Previously, it arrived as the raw value.
 - A constructor parameter typed as an instantiable class expands into a nested object in a tool's input schema.
@@ -26,9 +28,9 @@ in `0.x`, minor releases may include breaking changes.
   Previously, the argument arrived as raw values.
 - `OperationScopes` holds the scopes of each tool, prompt and resource, and both `OperationScopeMiddleware` and
   `TasksServerExtension` take it.
-- `IdentityAssertionGrant` takes an `$idpCredential`, a `ClientSecretCredential` or a `PrivateKeyJwtCredential`, to
-  authenticate the token exchange at an enterprise IdP that requires client authentication. A credential bound to an
-  `issuer` is refused unless `$idpIssuer` names the same IdP.
+- `IdentityAssertionGrant` takes an `$idpCredential`, a `ClientSecretCredential` or a `PrivateKeyJwtCredential`,
+  to authenticate the token exchange at an enterprise IdP that requires client authentication. A credential bound
+  to an `issuer` is refused unless `$idpIssuer` names the same IdP.
 - `RegistrationValidatorInterface` lets a server extension check the tools, resources and templates registered on
   the builder when `build()` runs.
 - `IdentityAssertionGrant` takes a `$resourceCredential` to authenticate with `private_key_jwt` at the resource
@@ -89,7 +91,8 @@ in `0.x`, minor releases may include breaking changes.
   refuse another caller's task with `-32602`. Previously, any caller holding a task ID could read, answer or cancel
   it. A custom store implements the new `OwnedTaskStoreInterface` to serve authenticated requests.
 - `tasks/get`, `tasks/update` and `tasks/cancel` refuse a token that lacks a scope its task's tool declares, once
-  `TasksServerExtension` is given the `OperationScopes`. Previously, a caller whose scope was removed after creating a task could still resume the tool through it.
+  `TasksServerExtension` is given the `OperationScopes`. Previously, a caller whose scope was removed after
+  creating a task could still resume the tool through it.
 - A continuation state's default binding encodes the caller, method, target and arguments unambiguously.
   Previously, two callers whose identities joined to the same bytes could replay each other's state, and a
   state minted before the upgrade no longer verifies.
@@ -146,8 +149,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Added
 
-- `AuthorizationOptions::$sendScopeOnRefresh` names the token's scopes on a refresh-token request, for authorization
-  servers that refuse a refresh without them.
+- `AuthorizationOptions::$sendScopeOnRefresh` names the token's scopes on a refresh-token request,
+  for authorization servers that refuse a refresh without them.
 
 ### Fixed
 
@@ -210,7 +213,8 @@ in `0.x`, minor releases may include breaking changes.
 
 - The skills extension (SEP-2640): `SkillsServerExtension` serves skill directories as `skill://` resources, and
   `SkillClient` lists skills and verifies each file it reads.
-- `OptionalClientDeclarationInterface`, for a server extension whose methods a client may call without declaring it.
+- `OptionalClientDeclarationInterface`, for a server extension whose methods a client may call without
+  declaring it.
 - `ClientSecretCredential` and `PrivateKeyJwtCredential` take an optional `issuer`. `ClientCredentialsGrant`
   refuses a credential bound to an authorization server other than the one the protected resource names.
 - `OperationScopeMiddleware` and `SecuredHttpEndpoint`'s `operationScopes` argument: scopes a single tool,
