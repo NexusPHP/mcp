@@ -32,7 +32,8 @@ final readonly class JsonHttpExchange
     public const int MAX_RESPONSE_BYTES = 65_536;
 
     /**
-     * @param non-empty-string $label What the endpoint is called in a malformed-response diagnostic
+     * @param non-empty-string $label   What the endpoint is called in a malformed-response diagnostic
+     * @param positive-float   $timeout
      */
     public function __construct(
         private DelegateHttpClient $client,

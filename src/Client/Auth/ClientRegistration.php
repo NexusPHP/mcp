@@ -23,9 +23,9 @@ use Nexus\Mcp\Core\Auth\TokenEndpointAuthMethod;
 final readonly class ClientRegistration
 {
     /**
-     * @param string           $clientId              The `client_id`, either pre-registered, dynamically registered, or a Client ID Metadata Document URL
-     * @param null|string      $issuer                The authorization server that this identifier belongs to, or null to leave it unbound.
-     * @param null|int<0, max> $clientSecretExpiresAt Seconds since the epoch at which `client_secret` expires, `0` when it never does, or null when the server named none.
+     * @param string                $clientId              The `client_id`, either pre-registered, dynamically registered, or a Client ID Metadata Document URL
+     * @param null|string           $issuer                The authorization server that this identifier belongs to, or null to leave it unbound.
+     * @param null|non-negative-int $clientSecretExpiresAt Seconds since the epoch at which `client_secret` expires, `0` when it never does, or null when the server named none.
      *
      * @see https://datatracker.ietf.org/doc/html/rfc7591#section-3.2.1
      */

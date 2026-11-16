@@ -206,6 +206,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageMatches('/^The request timeout must be positive or null, /');
 
+        // @phpstan-ignore argument.type
         (new ClientBuilder())->setRequestTimeout($seconds);
     }
 
@@ -215,6 +216,7 @@ final class ClientBuilderTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageMatches('/^The maximum request timeout must be positive or null, /');
 
+        // @phpstan-ignore argument.type
         (new ClientBuilder())->setMaxRequestTimeout($seconds);
     }
 

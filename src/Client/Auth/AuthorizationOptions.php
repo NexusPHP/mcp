@@ -31,7 +31,7 @@ final readonly class AuthorizationOptions
      * @param bool                    $requestOfflineAccess        Whether to ask for `offline_access`, and with it a refresh token, where the authorization server offers it
      * @param list<non-empty-string>  $defaultScopes               Scopes to ask for when no challenge names any, in place of everything advertised by the resource
      * @param InsufficientScopePolicy $onInsufficientScope         Whether an insufficient-scope answer steps the scopes up or is reported to the caller
-     * @param float                   $timeout                     Seconds that a single authorization round trip may take
+     * @param positive-float          $timeout                     Seconds that a single authorization round trip may take
      * @param bool                    $allowInsecureLoopback       Admits an authorization server reached over cleartext HTTP on a loopback host, which the spec does not exempt. For local development and conformance runs, never production
      * @param bool                    $sendScopeOnRefresh          Whether a refresh-token request names the token's scopes
      * @param bool                    $skipOfflineAccessConsent    Whether an authorization request asking for `offline_access` omits `prompt=consent`

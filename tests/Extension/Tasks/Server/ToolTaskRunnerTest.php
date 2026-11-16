@@ -468,7 +468,7 @@ final class ToolTaskRunnerTest extends AbstractMcpTestCase
     }
 
     /**
-     * @param int<1, max> $maxRunningTasks
+     * @param positive-int $maxRunningTasks
      *
      * @return array{InMemoryTaskStore, ToolTaskRunner}
      */

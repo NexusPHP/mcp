@@ -44,6 +44,7 @@ final readonly class IdentityAssertionExchanger
     /**
      * @param non-empty-string      $tokenEndpoint The enterprise IdP's token endpoint
      * @param null|non-empty-string $clientId      The client's identifier at the enterprise IdP, sent when given
+     * @param positive-float        $timeout
      */
     public function __construct(
         private string $tokenEndpoint,

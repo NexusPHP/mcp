@@ -1260,6 +1260,7 @@ final class StreamableHttpClientTransportTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageMatches('/^Streamable HTTP client read timeout must be positive, /');
 
+        // @phpstan-ignore argument.type
         new StreamableHttpClientTransport('https://mcp.test/mcp', new RecordingHttpClient(), readTimeout: $timeout);
     }
 

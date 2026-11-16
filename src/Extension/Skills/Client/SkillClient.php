@@ -43,7 +43,7 @@ use Nexus\Mcp\Extension\Skills\Skills;
 final readonly class SkillClient implements SkillClientInterface
 {
     /**
-     * @param int<1, max> $maxFileBytes Size in bytes above which a file is refused
+     * @param positive-int $maxFileBytes Size in bytes above which a file is refused
      */
     public function __construct(
         private Client $client,

@@ -696,6 +696,9 @@ final class StdioClientTransportTest extends AbstractMcpTestCase
         self::assertSame(['USERPROFILE' => 'C:\\Users\\me'], $environment);
     }
 
+    /**
+     * @param positive-float $shutdownTimeout
+     */
     private function buildTransport(
         ScriptedSubprocessLauncher $launcher,
         ?ArrayLogger $logger = null,

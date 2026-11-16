@@ -51,7 +51,7 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
     }
 
     /**
-     * @param int<1, max> $expiresAt
+     * @param positive-int $expiresAt
      */
     #[DataProvider('provideAnExpiredTokenIsRefusedCases')]
     public function testAnExpiredTokenIsRefused(int $expiresAt): void
@@ -67,7 +67,7 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
     }
 
     /**
-     * @return iterable<string, array{0: int<1, max>}>
+     * @return iterable<string, array{0: positive-int}>
      */
     public static function provideAnExpiredTokenIsRefusedCases(): iterable
     {

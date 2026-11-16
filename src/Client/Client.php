@@ -157,6 +157,8 @@ final class Client
     /**
      * @param \Closure(): (int|non-empty-string)              $requestIdFactory
      * @param \Closure(): (int|non-empty-string)              $progressTokenFactory
+     * @param null|positive-float                             $requestTimeout
+     * @param null|positive-float                             $maxRequestTimeout
      * @param array<non-empty-string, non-empty-string>       $extensionMethods
      * @param null|\Closure(): array<non-empty-string, mixed> $metaExtrasFactory
      */
@@ -576,6 +578,7 @@ final class Client
      *
      * @param JsonRpcRequest<non-empty-string> $request
      * @param class-string<TResponse>          $response
+     * @param null|positive-float              $timeout
      *
      * @return TResponse
      *
@@ -985,7 +988,7 @@ final class Client
     }
 
     /**
-     * @param null|float $timeout Overrides the configured idle deadline for one request
+     * @param null|positive-float $timeout Overrides the configured idle deadline for one request
      */
     private function openDeadline(?float $timeout = null): ?RequestDeadline
     {

@@ -55,12 +55,21 @@ final class ClientBuilder
     private ?Implementation $clientInfo = null;
     private ClientCapabilities $clientCapabilities;
     private LoggerInterface $logger;
+
+    /**
+     * @var null|positive-float
+     */
     private ?float $requestTimeout = Client::DEFAULT_REQUEST_TIMEOUT;
+
+    /**
+     * @var null|positive-float
+     */
     private ?float $maxRequestTimeout = Client::DEFAULT_MAX_REQUEST_TIMEOUT;
+
     private bool $retryLostRequests = false;
 
     /**
-     * @var null|int<1, max>
+     * @var null|positive-int
      */
     private ?int $maxInFlight = self::DEFAULT_MAX_IN_FLIGHT;
 
@@ -176,6 +185,8 @@ final class ClientBuilder
 
     /**
      * Seconds a request may go unanswered before it is abandoned, or `null` to wait indefinitely.
+     *
+     * @param null|positive-float $seconds
      */
     public function setRequestTimeout(?float $seconds): self
     {
@@ -195,6 +206,8 @@ final class ClientBuilder
 
     /**
      * Seconds a request may run in total however much progress arrives, or `null` to leave it unbounded.
+     *
+     * @param null|positive-float $seconds
      */
     public function setMaxRequestTimeout(?float $seconds): self
     {

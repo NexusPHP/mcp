@@ -34,9 +34,9 @@ use Nexus\Mcp\Extension\Tasks\Schema\Enum\TaskStatus;
  *   status: non-empty-string,
  *   createdAt: non-empty-string,
  *   lastUpdatedAt: non-empty-string,
- *   ttlMs: null|int<0, max>,
+ *   ttlMs: null|non-negative-int,
  *   statusMessage?: non-empty-string,
- *   pollIntervalMs?: int<0, max>,
+ *   pollIntervalMs?: non-negative-int,
  * }>
  *
  * @see https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/2663-tasks-extension.md
@@ -47,9 +47,9 @@ final readonly class CreateTaskResult extends Result implements ServerResult, Ta
      * @param non-empty-string      $taskId
      * @param non-empty-string      $createdAt
      * @param non-empty-string      $lastUpdatedAt
-     * @param null|int<0, max>      $ttlMs
+     * @param null|non-negative-int $ttlMs
      * @param null|non-empty-string $statusMessage
-     * @param null|int<0, max>      $pollIntervalMs
+     * @param null|non-negative-int $pollIntervalMs
      */
     public function __construct(
         public string $taskId,

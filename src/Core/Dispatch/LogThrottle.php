@@ -21,12 +21,12 @@ namespace Nexus\Mcp\Core\Dispatch;
 final class LogThrottle
 {
     /**
-     * @var int<0, max>
+     * @var non-negative-int
      */
     private int $count = 0;
 
     /**
-     * @param int<1, max> $interval
+     * @param positive-int $interval
      */
     public function __construct(private readonly int $interval = 100)
     {
@@ -45,7 +45,7 @@ final class LogThrottle
     /**
      * How many occurrences have been recorded, logged or suppressed.
      *
-     * @return int<0, max>
+     * @return non-negative-int
      */
     public function count(): int
     {

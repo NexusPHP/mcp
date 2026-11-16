@@ -14,6 +14,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/src/Core/Dispatch/ResponseSender.php',
 ];
 $ignoreErrors[] = [
+	'rawMessage' => 'Parameter $priority of class Nexus\\Mcp\\Core\\Schema\\Annotations constructor expects float<0.0, 1.0>|null, float|null given.',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/src/Core/Schema/Annotations.php',
+];
+$ignoreErrors[] = [
 	'rawMessage' => 'Method Nexus\\Mcp\\Core\\Schema\\ServerCapabilities::extractListChangedOnly() should return array{listChanged?: bool, ...<string, mixed>}|null but returns array<string, mixed>.',
 	'identifier' => 'return.type',
 	'count' => 1,

@@ -22,8 +22,8 @@ use Nexus\Assert\Assert;
  *   type: 'string',
  *   title?: non-empty-string,
  *   description?: non-empty-string,
- *   minLength?: int<0, max>,
- *   maxLength?: int<0, max>,
+ *   minLength?: non-negative-int,
+ *   maxLength?: non-negative-int,
  *   format?: 'date'|'date-time'|'email'|'uri',
  *   default?: string,
  * }>
@@ -41,8 +41,8 @@ final readonly class StringSchema implements PrimitiveSchemaDefinition
     /**
      * @param null|non-empty-string                 $title
      * @param null|non-empty-string                 $description
-     * @param null|int<0, max>                      $minLength
-     * @param null|int<0, max>                      $maxLength
+     * @param null|non-negative-int                 $minLength
+     * @param null|non-negative-int                 $maxLength
      * @param null|'date'|'date-time'|'email'|'uri' $format
      */
     public function __construct(

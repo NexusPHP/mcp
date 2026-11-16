@@ -2124,7 +2124,7 @@ final class ServerMessageDispatcherTest extends AbstractMcpTestCase
     /**
      * @param array<non-empty-string, RequestHandlerInterface<non-empty-string, Result, ServerContext>> $requestHandlers
      * @param array<non-empty-string, NotificationHandlerInterface<non-empty-string>>                   $notificationHandlers
-     * @param null|int<1, max>                                                                          $maxInFlight
+     * @param null|positive-int                                                                         $maxInFlight
      */
     private function buildDispatcher(
         array $requestHandlers = [],

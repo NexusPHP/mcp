@@ -40,8 +40,8 @@ final readonly class TaskBrokeringCallToolHandler implements RequestHandlerInter
      * @param RequestHandlerInterface<non-empty-string, Result, ServerContext> $inner
      * @param non-empty-string                                                 $identifier
      * @param array<non-empty-string, ToolTaskPolicy>                          $toolPolicies
-     * @param null|int<0, max>                                                 $defaultTtlMs
-     * @param int<0, max>                                                      $defaultPollIntervalMs
+     * @param null|non-negative-int                                            $defaultTtlMs
+     * @param non-negative-int                                                 $defaultPollIntervalMs
      */
     public function __construct(
         private RequestHandlerInterface $inner,

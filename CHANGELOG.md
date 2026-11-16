@@ -35,6 +35,8 @@ in `0.x`, minor releases may include breaking changes.
   authorization server.
 - Input schemas generated from a parameter type cover `positive-float`, `negative-float`, `non-negative-float`,
   `non-positive-float`, `finite-float` and float ranges such as `float<0, 1>`.
+- `Annotations::$priority`, the client, transport and authorization timeouts, the SSE keep-alive interval and the
+  supervised transport's restart delay and window declare their float ranges for static analysis.
 
 ### Changed
 

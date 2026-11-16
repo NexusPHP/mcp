@@ -808,8 +808,8 @@ final class TaskClientTest extends AbstractMcpTestCase
     }
 
     /**
-     * @param null|int<1, max> $stallCeiling
-     * @param null|int<1, max> $minPollIntervalMs
+     * @param null|positive-int $stallCeiling
+     * @param null|positive-int $minPollIntervalMs
      *
      * @return array{TaskClient, RecordingTransport}
      */

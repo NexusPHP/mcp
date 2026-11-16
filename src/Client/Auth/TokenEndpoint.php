@@ -47,6 +47,9 @@ final readonly class TokenEndpoint
     private JsonHttpExchange $exchange;
     private MetadataReader $reader;
 
+    /**
+     * @param positive-float $timeout
+     */
     public function __construct(
         DelegateHttpClient $client,
         float $timeout = 10.0,

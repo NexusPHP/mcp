@@ -339,7 +339,7 @@ final class SecuredHttpEndpointTest extends AbstractMcpTestCase
     /**
      * @param list<non-empty-string> $allowedOrigins
      * @param list<non-empty-string> $allowedHosts
-     * @param null|int<0, max>       $maxBodyBytes
+     * @param null|non-negative-int  $maxBodyBytes
      */
     private function buildEndpoint(
         RecordingRequestHandler $handler,

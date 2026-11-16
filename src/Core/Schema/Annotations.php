@@ -35,7 +35,8 @@ final readonly class Annotations implements Arrayable
     public ?\DateTimeImmutable $lastModified;
 
     /**
-     * @param null|list<Role> $audience
+     * @param null|list<Role>  $audience
+     * @param null|float<0, 1> $priority
      */
     public function __construct(
         public ?array $audience = null,

@@ -39,6 +39,9 @@ final readonly class ClientRegistrar
     private JsonHttpExchange $exchange;
     private MetadataReader $reader;
 
+    /**
+     * @param positive-float $timeout
+     */
     public function __construct(
         DelegateHttpClient $client,
         private ClientRegistrationStoreInterface $store,

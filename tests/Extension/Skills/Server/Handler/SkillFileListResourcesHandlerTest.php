@@ -140,8 +140,8 @@ final class SkillFileListResourcesHandlerTest extends AbstractMcpTestCase
     }
 
     /**
-     * @param int<0, max> $innerTtlMs
-     * @param int<0, max> $skillTtlMs
+     * @param non-negative-int $innerTtlMs
+     * @param non-negative-int $skillTtlMs
      */
     #[DataProvider('provideTheJoinedPageTakesTheStricterCachePolicyCases')]
     public function testTheJoinedPageTakesTheStricterCachePolicy(
@@ -165,7 +165,7 @@ final class SkillFileListResourcesHandlerTest extends AbstractMcpTestCase
     }
 
     /**
-     * @return iterable<string, array{int<0, max>, CacheScope, int<0, max>, CacheScope, int, CacheScope}>
+     * @return iterable<string, array{non-negative-int, CacheScope, non-negative-int, CacheScope, int, CacheScope}>
      */
     public static function provideTheJoinedPageTakesTheStricterCachePolicyCases(): iterable
     {
@@ -235,8 +235,8 @@ final class SkillFileListResourcesHandlerTest extends AbstractMcpTestCase
     }
 
     /**
-     * @param int<1, max> $pageSize
-     * @param int<0, max> $ttlMs
+     * @param positive-int     $pageSize
+     * @param non-negative-int $ttlMs
      */
     private function buildStore(
         int $pageSize = 50,

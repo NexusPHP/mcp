@@ -43,7 +43,7 @@ final class TransportEvents
     private array $closeListeners = [];
 
     /**
-     * @param null|\Closure('close'|'drain'|'error'|'message', 'dispose'|'register', int<0, max>): void $onChange
+     * @param null|\Closure('close'|'drain'|'error'|'message', 'dispose'|'register', non-negative-int): void $onChange
      */
     public function __construct(private readonly ?\Closure $onChange = null)
     {
@@ -163,7 +163,7 @@ final class TransportEvents
     /**
      * @param 'close'|'drain'|'error'|'message' $kind
      * @param 'dispose'|'register'              $action
-     * @param int<0, max>                       $count
+     * @param non-negative-int                  $count
      */
     private function notify(string $kind, string $action, int $count): void
     {

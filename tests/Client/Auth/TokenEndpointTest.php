@@ -604,6 +604,9 @@ final class TokenEndpointTest extends AbstractMcpTestCase
         $this->exchange($http);
     }
 
+    /**
+     * @param positive-float $timeout
+     */
     private function exchange(
         RecordingHttpClient $http,
         ?ClientRegistration $registration = null,

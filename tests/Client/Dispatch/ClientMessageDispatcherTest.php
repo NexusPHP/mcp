@@ -1863,7 +1863,7 @@ final class ClientMessageDispatcherTest extends AbstractMcpTestCase
     /**
      * @param array<non-empty-string, RequestHandlerInterface<non-empty-string, Result, ClientContext>> $requestHandlers
      * @param array<non-empty-string, NotificationHandlerInterface<non-empty-string>>                   $notificationHandlers
-     * @param null|int<1, max>                                                                          $maxInFlight
+     * @param null|positive-int                                                                         $maxInFlight
      */
     private function buildDispatcher(
         PendingOutboundRequests $outbound,

@@ -44,7 +44,7 @@ final class InMemoryTaskStore implements OwnedTaskStoreInterface
     private array $terminalAt = [];
 
     /**
-     * @param int<1, max> $maxRecords Records held at once, settled ones included
+     * @param positive-int $maxRecords Records held at once, settled ones included
      */
     public function __construct(
         private readonly Clock $clock = new SystemClock(),

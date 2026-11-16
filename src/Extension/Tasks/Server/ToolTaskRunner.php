@@ -49,7 +49,7 @@ final class ToolTaskRunner
     private ?RequestHandlerInterface $inner = null;
 
     /**
-     * @param int<1, max> $maxRunningTasks
+     * @param positive-int $maxRunningTasks
      */
     public function __construct(
         private readonly TaskStoreInterface $store,

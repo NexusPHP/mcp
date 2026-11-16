@@ -22,7 +22,7 @@ use Nexus\Mcp\Core\Schema\Arrayable;
  * @implements Arrayable<array{
  *   uri: non-empty-string,
  *   digest: non-empty-string,
- *   size: int<0, max>,
+ *   size: non-negative-int,
  * }>
  *
  * @see https://github.com/modelcontextprotocol/ext-skills/blob/main/specification/beta/skills.mdx
@@ -35,7 +35,7 @@ final readonly class SkillResource implements Arrayable
     /**
      * @param non-empty-string $uri
      * @param non-empty-string $digest `sha256:` and the 64 lowercase hexadecimal characters of the file's SHA-256
-     * @param int<0, max>      $size   Byte length of the file's raw content
+     * @param non-negative-int $size   Byte length of the file's raw content
      */
     public function __construct(
         public string $uri,

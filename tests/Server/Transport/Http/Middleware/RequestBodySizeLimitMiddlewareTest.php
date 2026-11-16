@@ -144,7 +144,7 @@ final class RequestBodySizeLimitMiddlewareTest extends AbstractMcpTestCase
     }
 
     /**
-     * @param int<0, max> $maxBytes
+     * @param non-negative-int $maxBytes
      */
     private function buildMiddleware(int $maxBytes): RequestBodySizeLimitMiddleware
     {

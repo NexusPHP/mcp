@@ -23,8 +23,8 @@ use Nexus\Assert\Assert;
  *   items: array{type: 'string', enum: list<non-empty-string>},
  *   title?: non-empty-string,
  *   description?: non-empty-string,
- *   minItems?: int<0, max>,
- *   maxItems?: int<0, max>,
+ *   minItems?: non-negative-int,
+ *   maxItems?: non-negative-int,
  *   default?: list<string>,
  * }>
  *
@@ -39,8 +39,8 @@ final readonly class UntitledMultiSelectEnumSchema implements MultiSelectEnumSch
      * @param list<non-empty-string> $items       The inner `enum` values
      * @param null|non-empty-string  $title
      * @param null|non-empty-string  $description
-     * @param null|int<0, max>       $minItems
-     * @param null|int<0, max>       $maxItems
+     * @param null|non-negative-int  $minItems
+     * @param null|non-negative-int  $maxItems
      * @param null|list<string>      $default
      */
     public function __construct(

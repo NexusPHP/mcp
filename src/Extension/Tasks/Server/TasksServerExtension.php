@@ -46,9 +46,9 @@ final readonly class TasksServerExtension implements RequestHandlerDecoratorInte
 
     /**
      * @param array<non-empty-string, ToolTaskPolicy> $toolPolicies          Keyed by tool name, absence meaning always-synchronous
-     * @param null|int<0, max>                        $defaultTtlMs          Retention after a terminal transition, `null` for unlimited
-     * @param int<0, max>                             $defaultPollIntervalMs
-     * @param int<1, max>                             $maxRunningTasks       Tasks running at once before a further one is refused
+     * @param null|non-negative-int                   $defaultTtlMs          Retention after a terminal transition, `null` for unlimited
+     * @param non-negative-int                        $defaultPollIntervalMs
+     * @param positive-int                            $maxRunningTasks       Tasks running at once before a further one is refused
      * @param null|OperationScopes                    $operationScopes       The scopes of each tool, which `tasks/get`, `tasks/update` and `tasks/cancel` require of a task's tool
      */
     public function __construct(

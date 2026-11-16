@@ -3634,6 +3634,7 @@ final class ClientTest extends AbstractMcpTestCase
     /**
      * @param list<SupervisableRecordingTransport>                $spawned
      * @param null|\Closure(SupervisableRecordingTransport): void $onSpawn
+     * @param non-negative-float                                  $restartDelay
      */
     private function buildSupervisedTransport(
         array &$spawned,

@@ -41,6 +41,9 @@ final readonly class MetadataDiscovery
     private const string AUTHORIZATION_SERVER_PATH = '/.well-known/oauth-authorization-server';
     private const string OPENID_CONFIGURATION_PATH = '/.well-known/openid-configuration';
 
+    /**
+     * @param positive-float $timeout
+     */
     public function __construct(
         private DelegateHttpClient $client,
         private float $timeout = 10.0,

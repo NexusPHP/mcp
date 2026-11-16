@@ -34,9 +34,9 @@ use Nexus\Mcp\Extension\Tasks\Schema\Enum\TaskStatus;
  *   status: non-empty-string,
  *   createdAt: non-empty-string,
  *   lastUpdatedAt: non-empty-string,
- *   ttlMs: null|int<0, max>,
+ *   ttlMs: null|non-negative-int,
  *   statusMessage?: non-empty-string,
- *   pollIntervalMs?: int<0, max>,
+ *   pollIntervalMs?: non-negative-int,
  *   result?: array<array-key, mixed>,
  *   error?: array<array-key, mixed>,
  *   inputRequests?: array<int|non-empty-string, array<string, mixed>>,
@@ -55,12 +55,12 @@ final readonly class GetTaskResult extends Result implements ServerResult
      * @param non-empty-string                               $taskId
      * @param non-empty-string                               $createdAt
      * @param non-empty-string                               $lastUpdatedAt
-     * @param null|int<0, max>                               $ttlMs
+     * @param null|non-negative-int                          $ttlMs
      * @param null|array<array-key, mixed>                   $result
      * @param null|array<array-key, mixed>                   $error
      * @param null|array<int|non-empty-string, InputRequest> $inputRequests
      * @param null|non-empty-string                          $statusMessage
-     * @param null|int<0, max>                               $pollIntervalMs
+     * @param null|non-negative-int                          $pollIntervalMs
      */
     public function __construct(
         public string $taskId,

@@ -59,6 +59,7 @@ final class AnnotationsTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('"annotations.priority" must be between 0.0 and 1.0.');
 
+        // @phpstan-ignore argument.type
         new Annotations(priority: $priority);
     }
 

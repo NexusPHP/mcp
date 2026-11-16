@@ -2013,6 +2013,7 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageMatches('/^The SSE keep-alive interval must be positive, 0 given\.$/');
 
+        // @phpstan-ignore argument.type
         new StreamableHttpServerTransport($factory, $factory, keepAliveInterval: 0.0);
     }
 
@@ -2102,7 +2103,8 @@ final class StreamableHttpServerTransportTest extends AbstractMcpTestCase
     }
 
     /**
-     * @param int<1, max> $maxBufferedBytes
+     * @param positive-float $keepAliveInterval
+     * @param positive-int   $maxBufferedBytes
      */
     private function makeTransport(
         ?ArrayLogger $logger = null,

@@ -487,7 +487,7 @@ final class SkillClientTest extends AbstractMcpTestCase
     }
 
     /**
-     * @param null|int<1, max> $maxFileBytes
+     * @param null|positive-int $maxFileBytes
      *
      * @return array{SkillClient, RecordingTransport}
      */

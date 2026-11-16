@@ -70,7 +70,7 @@ final readonly class ClientMessageDispatcher implements MessageDispatcherInterfa
     /**
      * @param HandlerRegistry<RequestHandlerInterface<non-empty-string, Result, ClientContext>> $requestHandlers
      * @param HandlerRegistry<NotificationHandlerInterface<non-empty-string>>                   $notificationHandlers
-     * @param null|int<1, max>                                                                  $maxInFlight          Inbound messages processed at once before further ones are shed, or null for no cap
+     * @param null|positive-int                                                                 $maxInFlight          Inbound messages processed at once before further ones are shed, or null for no cap
      */
     public function __construct(
         private HandlerRegistry $requestHandlers,

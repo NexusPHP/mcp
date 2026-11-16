@@ -79,6 +79,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
 
         new SupervisedTransport(
             static fn(): SupervisableTransportInterface => new SupervisableRecordingTransport(),
+            // @phpstan-ignore argument.type
             restartDelay: -1.0,
         );
     }
@@ -910,6 +911,7 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
 
         new SupervisedTransport(
             static fn(): SupervisableTransportInterface => new SupervisableRecordingTransport(),
+            // @phpstan-ignore argument.type
             restartWindow: 0.0,
         );
     }
@@ -1374,6 +1376,8 @@ final class SupervisedTransportTest extends AbstractMcpTestCase
 
     /**
      * @param list<SupervisableRecordingTransport> $spawned
+     * @param non-negative-float                   $restartDelay
+     * @param positive-float                       $restartWindow
      */
     private function buildTransport(
         array &$spawned,

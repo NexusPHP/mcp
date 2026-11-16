@@ -30,6 +30,10 @@ final class RequestDeadline
     private string $idleCallbackId;
     private readonly ?string $ceilingCallbackId;
 
+    /**
+     * @param positive-float      $timeout
+     * @param null|positive-float $maxTimeout
+     */
     public function __construct(
         private readonly float $timeout,
         ?float $maxTimeout = null,
@@ -70,6 +74,9 @@ final class RequestDeadline
         }
     }
 
+    /**
+     * @param positive-float $seconds
+     */
     private function arm(float $seconds): string
     {
         $callbackId = EventLoop::delay($seconds, function () use ($seconds): void {

@@ -65,8 +65,8 @@ final readonly class SkillStore implements SkillStoreInterface
     /**
      * @param list<DirectorySkill>        $skills   The skills enumerated by `skills/list`
      * @param null|SkillProviderInterface $provider Source of the skills left out of the listing
-     * @param int<1, max>                 $pageSize
-     * @param int<0, max>                 $ttlMs
+     * @param positive-int                $pageSize
+     * @param non-negative-int            $ttlMs
      */
     public function __construct(
         array $skills = [],
@@ -245,7 +245,7 @@ final readonly class SkillStore implements SkillStoreInterface
      * @param string                $segment  The percent-encoded final path segment of the URI
      * @param non-empty-string      $uri
      * @param null|non-empty-string $mimeType
-     * @param null|int<0, max>      $size
+     * @param null|non-negative-int $size
      */
     private function describe(string $segment, string $uri, ?string $mimeType, ?int $size = null): Resource
     {

@@ -553,7 +553,7 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
     }
 
     /**
-     * @param null|int<0, max> $expiresAt
+     * @param null|non-negative-int $expiresAt
      */
     #[DataProvider('provideAStoredRegistrationSurvivesUnlessItsSecretHasExpiredCases')]
     public function testAStoredRegistrationSurvivesUnlessItsSecretHasExpired(?string $secret, ?int $expiresAt): void
@@ -583,7 +583,7 @@ final class ClientRegistrarTest extends AbstractMcpTestCase
     }
 
     /**
-     * @return iterable<string, array{null|string, null|int<0, max>}>
+     * @return iterable<string, array{null|string, null|non-negative-int}>
      */
     public static function provideAStoredRegistrationSurvivesUnlessItsSecretHasExpiredCases(): iterable
     {

@@ -578,7 +578,7 @@ final class InMemoryTaskStoreTest extends AbstractMcpTestCase
     }
 
     /**
-     * @param int<1, max> $maxRecords
+     * @param positive-int $maxRecords
      */
     private function buildStore(int $maxRecords = InMemoryTaskStore::DEFAULT_MAX_RECORDS): InMemoryTaskStore
     {

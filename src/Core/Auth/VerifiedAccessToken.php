@@ -29,7 +29,7 @@ final readonly class VerifiedAccessToken
 
     /**
      * @param list<string>           $audience  Resources that the token was issued for, at least one of which must be this server
-     * @param int<1, max>            $expiresAt Unix timestamp at which the token expires
+     * @param positive-int           $expiresAt Unix timestamp at which the token expires
      * @param list<non-empty-string> $scopes    Scopes granted to the token
      * @param null|non-empty-string  $subject   Principal that the token acts for, absent when it carries no non-empty `sub` claim
      * @param null|non-empty-string  $clientId  OAuth client that the token was issued to, absent when it names none

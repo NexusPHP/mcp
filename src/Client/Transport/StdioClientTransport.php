@@ -78,7 +78,7 @@ final class StdioClientTransport implements SupervisableTransportInterface
     /**
      * @param non-empty-list<string>     $command         Subprocess argv (no shell interpretation).
      * @param null|array<string, string> $env             Subprocess environment (`null` prunes to a safe allowlist).
-     * @param float                      $shutdownTimeout Seconds to wait for the subprocess to exit on close before killing it
+     * @param positive-float             $shutdownTimeout Seconds to wait for the subprocess to exit on close before killing it
      */
     public function __construct(
         private readonly array $command,
