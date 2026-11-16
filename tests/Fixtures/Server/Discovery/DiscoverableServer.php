@@ -122,6 +122,7 @@ final class DiscoverableServer
         uriTemplate: 'users://{id}',
         name: 'user_profile',
         description: 'A user profile.',
+        mimeType: 'text/plain',
         annotations: new Annotations(priority: 0.7),
         meta: ['versioned' => true],
     )]

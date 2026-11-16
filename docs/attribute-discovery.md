@@ -146,7 +146,7 @@ A handler may return the full result object (`CallToolResult`, `GetPromptResult`
 | --- | --- |
 | tool | a `string` (wrapped as `TextContent`), a content block, a list of content blocks, or a string-keyed array (treated as `structuredContent`) |
 | prompt | a `string` (wrapped as a `User` `TextContent` message), a `PromptMessage`, or a list of `PromptMessage` |
-| resource | a `string` (wrapped as `TextResourceContents` bound to the URI), a `ResourceContents`, or a list of `ResourceContents` |
+| resource | a `string` (wrapped as `TextResourceContents` bound to the URI, or `BlobResourceContents` when not valid UTF-8, with the attribute's `mimeType`), a `ResourceContents`, or a list of `ResourceContents` |
 | completion | a list of strings (wrapped as the `values` of a `CompleteResult`), so returning the full `CompleteResult` is only needed for `total` or `hasMore` |
 
 A tool that declares an `outputSchema` must use the array shorthand or a `CallToolResult` carrying

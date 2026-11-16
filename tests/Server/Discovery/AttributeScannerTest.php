@@ -18,6 +18,7 @@ use Nexus\Mcp\Core\Exception\LogicException;
 use Nexus\Mcp\Core\Schema\Prompt\Prompt;
 use Nexus\Mcp\Core\Schema\Prompt\PromptArgument;
 use Nexus\Mcp\Core\Schema\RequestId;
+use Nexus\Mcp\Core\Schema\Result\ReadResourceResult;
 use Nexus\Mcp\Server\Attribute\AsCompletion;
 use Nexus\Mcp\Server\Attribute\AsPrompt;
 use Nexus\Mcp\Server\Attribute\AsResource;
@@ -256,6 +257,7 @@ final class AttributeScannerTest extends AbstractMcpTestCase
 
         self::assertSame('users://{id}', $template->uriTemplate);
         self::assertSame('A user profile.', $template->description);
+        self::assertSame('text/plain', $template->mimeType);
         self::assertSame(0.7, $template->annotations->priority);
         self::assertSame(['versioned' => true], $template->meta->extras);
     }
@@ -277,6 +279,17 @@ final class AttributeScannerTest extends AbstractMcpTestCase
             ReflectedTemplatedResourceReader::class,
             $this->buildTemplateEntry('user_profile')->reader,
         );
+    }
+
+    public function testResourceReadersLabelWrappedContentsWithTheDeclaredMimeType(): void
+    {
+        $resource = $this->buildResourceEntry('app_config')->reader->read('config://app', $this->makeContext());
+        $template = $this->buildTemplateEntry('user_profile')->reader->read('users://7', ['id' => '7'], $this->makeContext());
+
+        self::assertInstanceOf(ReadResourceResult::class, $resource);
+        self::assertInstanceOf(ReadResourceResult::class, $template);
+        self::assertSame('application/json', ($resource->contents[0] ?? null)?->mimeType);
+        self::assertSame('text/plain', ($template->contents[0] ?? null)?->mimeType);
     }
 
     public function testMethodsWithoutAttributesAreSkipped(): void

@@ -97,9 +97,9 @@ final class AppResources
 ```
 
 A string return is wrapped as `TextResourceContents` bound to the URI, or as base64 `BlobResourceContents` when it
-is not valid UTF-8. A `ResourceContents`, a list of them, or a full `ReadResourceResult` passes through. Adapted
-returns carry the conservative cache hints (`ttlMs: 0`, `CacheScope::Private`), so return a `ReadResourceResult` to
-set your own. See [Attribute discovery](../attribute-discovery.md) for the full binding rules.
+is not valid UTF-8, and either one carries the attribute's `mimeType`. A `ResourceContents`, a list of them, or a full
+`ReadResourceResult` passes through. Adapted returns carry the conservative cache hints (`ttlMs: 0`,
+`CacheScope::Private`), so return a `ReadResourceResult` to set your own. See [Attribute discovery](../attribute-discovery.md) for the full binding rules.
 
 ## Cache hints
 

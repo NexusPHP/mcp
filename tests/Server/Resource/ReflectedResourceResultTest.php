@@ -57,11 +57,20 @@ final class ReflectedResourceResultTest extends AbstractMcpTestCase
 
     public function testWrapsAStringThatIsNotUtf8AsBlobResourceContents(): void
     {
-        $contents = $this->adapt("\x89PNG\r\n\x1a\n\xff", 'mem://image')->contents[0] ?? null;
+        $contents = $this->adapt("\x89PNG\r\n\x1a\n\xff", 'mem://image', 'image/png')->contents[0] ?? null;
 
         self::assertInstanceOf(BlobResourceContents::class, $contents);
         self::assertSame('mem://image', $contents->uri);
         self::assertSame(base64_encode("\x89PNG\r\n\x1a\n\xff"), $contents->blob);
+        self::assertSame('image/png', $contents->mimeType);
+    }
+
+    public function testLabelsWrappedTextWithTheDeclaredMimeType(): void
+    {
+        $contents = $this->adapt('# Title', 'mem://readme', 'text/markdown')->contents[0] ?? null;
+
+        self::assertInstanceOf(TextResourceContents::class, $contents);
+        self::assertSame('text/markdown', $contents->mimeType);
     }
 
     public function testWrapsSingleResourceContents(): void
@@ -119,14 +128,16 @@ final class ReflectedResourceResultTest extends AbstractMcpTestCase
     }
 
     /**
-     * @param non-empty-string $uri
+     * @param non-empty-string      $uri
+     * @param null|non-empty-string $mimeType
      */
-    private function adapt(mixed $result, string $uri = 'mem://resource'): ReadResourceResult
+    private function adapt(mixed $result, string $uri = 'mem://resource', ?string $mimeType = null): ReadResourceResult
     {
         $adapted = ReflectedResourceResult::adapt(
             $result,
             $uri,
             new \ReflectionMethod(ReflectedHandlers::class, 'resourceResult'),
+            $mimeType,
         );
 
         self::assertInstanceOf(ReadResourceResult::class, $adapted);

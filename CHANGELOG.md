@@ -51,6 +51,8 @@ in `0.x`, minor releases may include breaking changes.
 - `BearerAuthenticationMiddleware` answers `503` with `Retry-After` and no challenge when the validator throws the
   new `AccessTokenValidationUnavailableException`, as `JwksAccessTokenValidator` does when the JWKS cannot be
   fetched. Previously, such a token was refused with `401 invalid_token`.
+- The contents wrapped around a string returned by a discovered resource handler carry the `mimeType` of its
+  `#[AsResource]` or `#[AsResourceTemplate]`. Previously, they carried none.
 
 ### Deprecated
 
