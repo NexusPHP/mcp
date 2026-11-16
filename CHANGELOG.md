@@ -48,6 +48,9 @@ in `0.x`, minor releases may include breaking changes.
 - `ToolStore` answers tool arguments that fail the `inputSchema`, or an `InvalidParamsException` thrown by the
   executor, with a `CallToolResult` whose `isError` is true. Previously, it answered `-32602` with
   `data.validation_errors`.
+- `BearerAuthenticationMiddleware` answers `503` with `Retry-After` and no challenge when the validator throws the
+  new `AccessTokenValidationUnavailableException`, as `JwksAccessTokenValidator` does when the JWKS cannot be
+  fetched. Previously, such a token was refused with `401 invalid_token`.
 
 ### Deprecated
 

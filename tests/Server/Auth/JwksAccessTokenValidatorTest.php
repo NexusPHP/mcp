@@ -16,7 +16,9 @@ namespace Nexus\Mcp\Tests\Server\Auth;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Nexus\Mcp\Server\Auth\JwksAccessTokenValidator;
+use Nexus\Mcp\Server\Exception\AccessTokenValidationUnavailableException;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
+use Nexus\Mcp\Tests\Fixtures\Server\Auth\ThrowingKeySet;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -249,35 +251,93 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
         self::assertNull($this->buildValidator()->validate($token));
     }
 
-    public function testATokenNamingAListedKeyThatCannotBeReadIsRefused(): void
+    #[DataProvider('provideATokenNamingAListedKeyThatCannotBeReadIsRefusedCases')]
+    public function testATokenNamingAListedKeyThatCannotBeReadIsRefused(\Throwable $readFailure): void
     {
-        $keys = new class implements \ArrayAccess {
-            #[\Override]
-            public function offsetExists(mixed $offset): bool
-            {
-                return true;
-            }
-
-            #[\Override]
-            public function offsetGet(mixed $offset): mixed
-            {
-                return null;
-            }
-
-            #[\Override]
-            public function offsetSet(mixed $offset, mixed $value): void
-            {
-            }
-
-            #[\Override]
-            public function offsetUnset(mixed $offset): void
-            {
-            }
-        };
-
-        $validator = new JwksAccessTokenValidator($keys, self::ISSUER, self::RESOURCE);
+        $validator = new JwksAccessTokenValidator(new ThrowingKeySet(readFailure: $readFailure), self::ISSUER, self::RESOURCE);
 
         self::assertNull($validator->validate($this->encodeForThisServer(['sub' => 'user-7'])));
+    }
+
+    /**
+     * @return iterable<string, array{\Throwable}>
+     */
+    public static function provideATokenNamingAListedKeyThatCannotBeReadIsRefusedCases(): iterable
+    {
+        yield 'unsupported key type' => [new \TypeError('Return value must be of type Firebase\JWT\Key, null returned')];
+
+        yield 'malformed key' => [new \DomainException('Unable to read key')];
+    }
+
+    public function testATokenNamingAnUnlistedKeyIsRefused(): void
+    {
+        $token = JWT::encode($this->buildClaims(), self::SECRET, 'HS256', 'another-key');
+
+        self::assertNull($this->buildValidator()->validate($token));
+    }
+
+    public function testAKeySetThatCannotBeFetchedMakesValidationUnavailable(): void
+    {
+        $failure = new \UnexpectedValueException('HTTP Error: 502 Bad Gateway for URI "https://idp.example.test/jwks"');
+        $validator = new JwksAccessTokenValidator(new ThrowingKeySet($failure), self::ISSUER, self::RESOURCE);
+
+        try {
+            $validator->validate($this->encodeForThisServer(['sub' => 'user-7']));
+            self::fail('Expected AccessTokenValidationUnavailableException.');
+        } catch (AccessTokenValidationUnavailableException $e) {
+            self::assertSame('The JWKS signing keys could not be fetched.', $e->getMessage());
+            self::assertSame($failure, $e->getPrevious());
+        }
+    }
+
+    public function testAHeaderOfTheWrongShapeIsRefused(): void
+    {
+        $token = \sprintf(
+            '%s.%s.%s',
+            JWT::urlsafeB64Encode((string) json_encode(['alg' => ['HS256'], 'kid' => self::KID])),
+            JWT::urlsafeB64Encode((string) json_encode($this->buildClaims())),
+            JWT::urlsafeB64Encode('signature'),
+        );
+
+        self::assertNull($this->buildValidator()->validate($token));
+    }
+
+    public function testAMalformedTokenIsRefusedWithoutALookup(): void
+    {
+        $validator = new JwksAccessTokenValidator(
+            new ThrowingKeySet(new \LogicException('The key set was looked up.')),
+            self::ISSUER,
+            self::RESOURCE,
+        );
+
+        self::assertNull($validator->validate(JWT::urlsafeB64Encode((string) json_encode(['kid' => 'random']))));
+    }
+
+    /**
+     * @param null|array<string, list<string>|string> $header
+     */
+    #[DataProvider('provideATokenNamingNoUsableKeyIdIsRefusedWithoutALookupCases')]
+    public function testATokenNamingNoUsableKeyIdIsRefusedWithoutALookup(?string $keyId, ?array $header): void
+    {
+        $validator = new JwksAccessTokenValidator(
+            new ThrowingKeySet(new \LogicException('The key set was looked up.')),
+            self::ISSUER,
+            self::RESOURCE,
+        );
+
+        self::assertNull($validator->validate(JWT::encode($this->buildClaims(), self::SECRET, 'HS256', $keyId, $header)));
+    }
+
+    /**
+     * @return iterable<string, array{null|string, null|array<string, list<string>|string>}>
+     */
+    public static function provideATokenNamingNoUsableKeyIdIsRefusedWithoutALookupCases(): iterable
+    {
+        yield 'absent' => [null, null];
+
+        yield 'empty' => ['', null];
+
+        yield 'not a string' => [null, ['kid' => [self::KID]]];
     }
 
     public function testGarbageIsRefused(): void
@@ -376,7 +436,17 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
      */
     private function encodeForThisServer(array $claims): string
     {
-        return $this->encodeExactly($claims + ['iss' => self::ISSUER, 'aud' => self::RESOURCE, 'exp' => time() + 60]);
+        return $this->encodeExactly($this->buildClaims($claims));
+    }
+
+    /**
+     * @param array<string, mixed> $claims
+     *
+     * @return array<string, mixed>
+     */
+    private function buildClaims(array $claims = []): array
+    {
+        return $claims + ['iss' => self::ISSUER, 'aud' => self::RESOURCE, 'exp' => time() + 60];
     }
 
     /**

@@ -18,6 +18,7 @@ use Nexus\Clock\SystemClock;
 use Nexus\Mcp\Core\Auth\VerifiedAccessToken;
 use Nexus\Mcp\Core\Auth\WwwAuthenticateChallenge;
 use Nexus\Mcp\Server\Auth\AccessTokenValidatorInterface;
+use Nexus\Mcp\Server\Exception\AccessTokenValidationUnavailableException;
 use Nexus\Mcp\Server\Transport\Http\Middleware\BearerAuthenticationMiddleware;
 use Nexus\Mcp\Tests\AbstractMcpTestCase;
 use Nexus\Mcp\Tests\Fixtures\Server\Http\RecordingRequestHandler;
@@ -419,6 +420,22 @@ final class BearerAuthenticationMiddlewareTest extends AbstractMcpTestCase
         ;
 
         self::assertSame(['Padded-Token'], $presented);
+    }
+
+    public function testAValidatorThatCannotRunAnswersServiceUnavailableWithoutAChallenge(): void
+    {
+        $validator = self::createStub(AccessTokenValidatorInterface::class);
+        $validator->method('validate')->willThrowException(new AccessTokenValidationUnavailableException());
+        $handler = $this->buildHandler();
+
+        $response = (new BearerAuthenticationMiddleware($validator, self::RESOURCE, self::METADATA_URL, new Psr17Factory()))
+            ->process($this->buildRequest('the-token'), $handler)
+        ;
+
+        self::assertSame(503, $response->getStatusCode());
+        self::assertSame('10', $response->getHeaderLine('Retry-After'));
+        self::assertFalse($response->hasHeader('WWW-Authenticate'));
+        self::assertFalse($handler->called);
     }
 
     /**

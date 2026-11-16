@@ -45,6 +45,11 @@ named, whose `aud` does not name the resource, or which carries no `exp` at all.
 A key set may sign for several issuers, so the issuer is what bounds the tenant rather than the audience alone.
 A token minted with no expiry would otherwise be a permanent credential.
 
+A JWKS that cannot be fetched refuses nothing. The validator throws `AccessTokenValidationUnavailableException`,
+and `BearerAuthenticationMiddleware` answers `503` with `Retry-After` and no challenge, so a client retries
+instead of reauthorizing. Your own validator throws the same exception when its introspection endpoint or key
+source is down.
+
 The validator maps the claim spellings used by the common providers: `scope` or `scp` (string or list) for scopes,
 and `azp`, `client_id`, or `cid` for the authorizing client. The [provider recipes](../authorization.md#guide)
 name each provider's JWKS URL and quirks.

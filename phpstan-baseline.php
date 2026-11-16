@@ -50,6 +50,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/src/Extension/Tasks/Server/ToolTaskRunner.php',
 ];
 $ignoreErrors[] = [
+	'rawMessage' => 'Dead catch - Nexus\\Mcp\\Server\\Exception\\AccessTokenValidationUnavailableException is never thrown in the try block.',
+	'identifier' => 'catch.neverThrown',
+	'count' => 1,
+	'path' => __DIR__ . '/src/Server/Auth/JwksAccessTokenValidator.php',
+];
+$ignoreErrors[] = [
 	'rawMessage' => 'Dead catch - TypeError is never thrown in the try block.',
 	'identifier' => 'catch.neverThrown',
 	'count' => 1,
