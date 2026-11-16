@@ -26,15 +26,15 @@ final class Rfc3986UriValidator
 {
     private const string PCT_ENCODED = '%[0-9A-Fa-f]{2}';
     private const string UNRESERVED_OR_SUB_DELIM = 'A-Za-z0-9\-._~!$&\'()*+,;=';
-    private const string PCHAR = '(?:['.self::UNRESERVED_OR_SUB_DELIM.':@]|'.self::PCT_ENCODED.')';
-    private const string ABSOLUTE_URI = '{\A[A-Za-z][A-Za-z0-9+.\-]*:'
-        .'(?://(?:(?:['.self::UNRESERVED_OR_SUB_DELIM.':]|'.self::PCT_ENCODED.')*@)?'
-        .'(?:\[(?<literal>[^\]]*)\]|(?:['.self::UNRESERVED_OR_SUB_DELIM.']|'.self::PCT_ENCODED.')*)'
-        .'(?::[0-9]*)?(?:/'.self::PCHAR.'*)*'
-        .'|/(?:'.self::PCHAR.'+(?:/'.self::PCHAR.'*)*)?'
-        .'|'.self::PCHAR.'+(?:/'.self::PCHAR.'*)*)?'
-        .'(?:\?(?:'.self::PCHAR.'|[/?])*)?'
-        .'(?:\#(?:'.self::PCHAR.'|[/?])*)?\z}';
+    private const string PCHAR = '(?:['.self::UNRESERVED_OR_SUB_DELIM.':@]++|'.self::PCT_ENCODED.')';
+    private const string ABSOLUTE_URI = '{\A[A-Za-z][A-Za-z0-9+.\-]*+:'
+        .'(?://(?:(?:['.self::UNRESERVED_OR_SUB_DELIM.':]|'.self::PCT_ENCODED.')*+@)?+'
+        .'(?:\[(?<literal>[^\]]*+)\]|(?:['.self::UNRESERVED_OR_SUB_DELIM.']|'.self::PCT_ENCODED.')*+)'
+        .'(?::[0-9]*+)?+(?:/'.self::PCHAR.'*+)*+'
+        .'|/(?:'.self::PCHAR.'++(?:/'.self::PCHAR.'*+)*+)?+'
+        .'|'.self::PCHAR.'++(?:/'.self::PCHAR.'*+)*+)?+'
+        .'(?:\?(?:'.self::PCHAR.'|[/?])*+)?+'
+        .'(?:\#(?:'.self::PCHAR.'|[/?])*+)?+\z}';
     private const string IP_FUTURE = '{\A[vV][0-9A-Fa-f]+\.['.self::UNRESERVED_OR_SUB_DELIM.':]+\z}';
 
     /**

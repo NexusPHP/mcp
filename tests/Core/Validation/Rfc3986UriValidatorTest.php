@@ -76,6 +76,16 @@ final class Rfc3986UriValidatorTest extends AbstractMcpTestCase
         yield 'data uri' => ['data:image/png;base64,iVBORw0KGgo+/='];
 
         yield 'absolute path, no authority' => ['urn:/a/b'];
+
+        yield 'data uri of 64 KiB' => ['data:image/png;base64,'.str_repeat('A', 65_536)];
+
+        yield 'percent-encoded path of 64 KiB' => ['https://example.com/'.str_repeat('%41', 21_846)];
+
+        yield 'query and fragment of 64 KiB each' => [\sprintf(
+            'https://example.com/?%s#%s',
+            str_repeat('q/', 32_768),
+            str_repeat('f?', 32_768),
+        )];
     }
 
     /**

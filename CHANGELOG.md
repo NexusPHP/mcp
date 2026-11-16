@@ -8,6 +8,11 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+### Fixed
+
+- A URI whose path, query or fragment runs past about 8 KB, such as a `data:` URI icon, is accepted. Previously,
+  matching it exhausted the PCRE JIT stack and it was refused as an invalid URI.
+
 ## [v1.5.0](https://github.com/NexusPHP/mcp/compare/v1.4.0...v1.5.0) - 2026-11-16
 
 ### Added
