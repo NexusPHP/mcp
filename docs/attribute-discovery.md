@@ -68,7 +68,9 @@ also how extension metadata attaches, such as an [MCP Apps](server/apps.md) `_me
 
 For a tool, the SDK generates the `inputSchema` from the parameter types and the `@param` docblock lines. Native
 and docblock types map to JSON Schema. The `@param` text becomes the property description. Constraints such as
-`non-empty-string`, `non-falsy-string`, `numeric-string` or `int<1, 5>` are carried through. Override or extend the result per parameter, or for the whole method, with `#[InputSchema(...)]`.
+`non-empty-string`, `non-falsy-string`, `numeric-string`, `positive-int`, `int<1, 5>`, `positive-float` or
+`float<0, 1>` are carried through. Override or extend the result per parameter, or for the whole method, with
+`#[InputSchema(...)]`.
 
 ### Prompts and resources
 

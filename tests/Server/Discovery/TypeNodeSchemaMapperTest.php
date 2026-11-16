@@ -328,6 +328,31 @@ final class TypeNodeSchemaMapperTest extends AbstractMcpTestCase
             ['type' => 'integer', 'maximum' => 0],
         ];
 
+        yield 'finite-float' => [
+            'finite-float',
+            ['type' => 'number'],
+        ];
+
+        yield 'positive-float' => [
+            'positive-float',
+            ['type' => 'number', 'exclusiveMinimum' => 0],
+        ];
+
+        yield 'negative-float' => [
+            'negative-float',
+            ['type' => 'number', 'exclusiveMaximum' => 0],
+        ];
+
+        yield 'non-negative-float' => [
+            'non-negative-float',
+            ['type' => 'number', 'minimum' => 0],
+        ];
+
+        yield 'non-positive-float' => [
+            'non-positive-float',
+            ['type' => 'number', 'maximum' => 0],
+        ];
+
         yield 'nullable non-empty-string keeps constraint' => [
             '?non-empty-string',
             ['type' => ['null', 'string'], 'minLength' => 1],
@@ -351,6 +376,31 @@ final class TypeNodeSchemaMapperTest extends AbstractMcpTestCase
         yield 'int range max sentinel' => [
             'int<50, max>',
             ['type' => 'integer', 'minimum' => 50],
+        ];
+
+        yield 'float range fractional bounds' => [
+            'float<-0.5, 1.5>',
+            ['type' => 'number', 'minimum' => -0.5, 'maximum' => 1.5],
+        ];
+
+        yield 'float range integer bounds' => [
+            'float<0, 1>',
+            ['type' => 'number', 'minimum' => 0, 'maximum' => 1],
+        ];
+
+        yield 'float range integer bounds beyond the int range' => [
+            'float<-100000000000000000000, 100000000000000000000>',
+            ['type' => 'number', 'minimum' => -1.0E20, 'maximum' => 1.0E20],
+        ];
+
+        yield 'int range bound beyond the int range' => [
+            'int<-100000000000000000000, 100000000000000000000>',
+            ['type' => 'integer', 'minimum' => \PHP_INT_MIN, 'maximum' => \PHP_INT_MAX],
+        ];
+
+        yield 'float range sentinels' => [
+            'float<min, max>',
+            ['type' => 'number'],
         ];
 
         yield 'object shape' => [
@@ -597,6 +647,22 @@ final class TypeNodeSchemaMapperTest extends AbstractMcpTestCase
         yield 'int range non-integer bound' => [
             'int<string, 100>',
         ];
+
+        yield 'int range fractional bound' => [
+            'int<0, 1.5>',
+        ];
+
+        yield 'float range single argument' => [
+            'float<0>',
+        ];
+
+        yield 'float range non-numeric bound' => [
+            'float<0, string>',
+        ];
+
+        yield 'float range infinite bound' => [
+            'float<0, 1e400>',
+        ];
     }
 
     public function testRejectsAllNullUnion(): void
@@ -826,6 +892,18 @@ final class TypeNodeSchemaMapperTest extends AbstractMcpTestCase
             $resolver->parseNativeType('int'),
             $resolver->parseNativeType('int<0, 100>'),
             'int<0, 100>',
+        ];
+
+        yield 'docblock refines native float base' => [
+            $resolver->parseNativeType('float'),
+            $resolver->parseNativeType('positive-float'),
+            'positive-float',
+        ];
+
+        yield 'docblock float range refines native float' => [
+            $resolver->parseNativeType('float'),
+            $resolver->parseNativeType('float<0, 1>'),
+            'float<0, 1>',
         ];
 
         yield 'docblock object shape refines native object' => [

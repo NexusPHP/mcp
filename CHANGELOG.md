@@ -33,6 +33,8 @@ in `0.x`, minor releases may include breaking changes.
   the builder when `build()` runs.
 - `IdentityAssertionGrant` takes a `$resourceCredential` to authenticate with `private_key_jwt` at the resource
   authorization server.
+- Input schemas generated from a parameter type cover `positive-float`, `negative-float`, `non-negative-float`,
+  `non-positive-float`, `finite-float` and float ranges such as `float<0, 1>`.
 
 ### Changed
 
