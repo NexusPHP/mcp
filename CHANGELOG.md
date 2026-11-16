@@ -62,7 +62,9 @@ in `0.x`, minor releases may include breaking changes.
 - `JwksAccessTokenValidator` refuses a token naming a JWKS key whose type or curve `firebase/php-jwt` cannot read,
   such as `AKP` or `P-521`. Previously, the `TypeError` escaped the validator.
 - An integral float beyond the `int` range, passed to an `int` parameter of a discovered handler, is reported as
-  invalid arguments naming the parameter. Previously, it failed as a generic tool execution error.
+  invalid arguments naming the parameter.
+- The error for an unsupported tool return value names the arrays it accepts, a list of content blocks or a
+  string-keyed array. Previously, a refused list read as "must return ... or an array, array given". Previously, it failed as a generic tool execution error.
 - The client refuses an authorization URL with a backslash, whitespace or control character, so
   `http://evil.example\@localhost` no longer passes as loopback. It also refuses a percent-encoded or non-ASCII
   host, `0.0.0.0`, `::`, an IPv4-mapped IPv6 address and a non-canonical IPv4 form such as `127.1`.
