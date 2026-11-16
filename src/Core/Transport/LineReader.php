@@ -49,7 +49,7 @@ final readonly class LineReader
             while (str_contains($buffer, "\n")) {
                 [$rawLine, $buffer] = explode("\n", $buffer, 2);
 
-                $this->guardLineBytes(\strlen($rawLine));
+                $this->guardLineBytes($rawLine);
 
                 $line = rtrim($rawLine, "\r");
 
@@ -58,7 +58,7 @@ final readonly class LineReader
                 }
             }
 
-            $this->guardLineBytes(\strlen($buffer));
+            $this->guardLineBytes($buffer);
 
             $chunk = $this->source->read();
         }
@@ -70,9 +70,9 @@ final readonly class LineReader
         }
     }
 
-    private function guardLineBytes(int $size): void
+    private function guardLineBytes(string $line): void
     {
-        if ($this->maxLineBytes < $size) {
+        if ($this->maxLineBytes < \strlen($line) - (str_ends_with($line, "\r") ? 1 : 0)) {
             throw new \RuntimeException(\sprintf(
                 'Line exceeded the %d-byte cap before a delimiter was found.',
                 $this->maxLineBytes,

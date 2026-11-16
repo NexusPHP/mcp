@@ -99,6 +99,27 @@ final class LineReaderTest extends AbstractMcpTestCase
         self::assertSame([$line], iterator_to_array($reader->getLines(), false));
     }
 
+    public function testAcceptsACrlfLineAtExactlyTheConfiguredCap(): void
+    {
+        $line = str_repeat('a', 64);
+        $reader = new LineReader(
+            new ReadableIterableStream(new \ArrayIterator([$line."\r", "\n".$line."\r\n"])),
+            maxLineBytes: 64,
+        );
+
+        self::assertSame([$line, $line], iterator_to_array($reader->getLines(), false));
+    }
+
+    public function testCountsAllButOneTrailingCarriageReturnAgainstTheCap(): void
+    {
+        $reader = new LineReader(new ReadableBuffer(str_repeat('a', 64)."\r\r\n"), maxLineBytes: 64);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessageIs('Line exceeded the 64-byte cap before a delimiter was found.');
+
+        iterator_to_array($reader->getLines(), false);
+    }
+
     public function testThrowsWhenPendingBufferExceedsCapBeforeDelimiter(): void
     {
         $reader = new LineReader(
