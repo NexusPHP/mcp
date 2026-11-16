@@ -26,7 +26,8 @@
             "onInsufficientScope",
             "timeout",
             "allowInsecureLoopback",
-            "sendScopeOnRefresh"
+            "sendScopeOnRefresh",
+            "skipOfflineAccessConsent"
         ]
     },
     "Nexus\\Mcp\\Client\\Auth\\AuthorizationRedirect": {
@@ -327,7 +328,8 @@
             "env",
             "logger",
             "maxLineBytes",
-            "launcher"
+            "launcher",
+            "shutdownTimeout"
         ],
         "onClose": [
             "listener"
@@ -486,7 +488,8 @@
     "Nexus\\Mcp\\Core\\Dispatch\\RequestBoundSender": {
         "__construct": [
             "transport",
-            "requestId"
+            "requestId",
+            "cancellation"
         ],
         "sendNotification": [
             "notification"
@@ -1726,7 +1729,8 @@
     "Nexus\\Mcp\\Extension\\Apps\\Client\\AppClient": {
         "__construct": [
             "client",
-            "mimeTypes"
+            "mimeTypes",
+            "logger"
         ],
         "findAppTools": [
             "result"
@@ -1796,6 +1800,13 @@
             "data"
         ]
     },
+    "Nexus\\Mcp\\Extension\\Apps\\Server\\AppsServerExtension": {
+        "validateRegistrations": [
+            "tools",
+            "resources",
+            "templates"
+        ]
+    },
     "Nexus\\Mcp\\Extension\\Apps\\Server\\UiResource": {
         "__construct": [
             "name",
@@ -1845,7 +1856,11 @@
             "idpTokenEndpoint",
             "assertions",
             "idpClientId",
-            "allowInsecureLoopback"
+            "allowInsecureLoopback",
+            "idpCredential",
+            "idpIssuer",
+            "clock",
+            "resourceCredential"
         ],
         "grant": [
             "context",
@@ -2256,7 +2271,8 @@
     "Nexus\\Mcp\\Extension\\Tasks\\Server\\Handler\\CancelTaskRequestHandler": {
         "__construct": [
             "store",
-            "cancellations"
+            "cancellations",
+            "scopes"
         ],
         "handle": [
             "request",
@@ -2265,7 +2281,8 @@
     },
     "Nexus\\Mcp\\Extension\\Tasks\\Server\\Handler\\GetTaskRequestHandler": {
         "__construct": [
-            "store"
+            "store",
+            "scopes"
         ],
         "handle": [
             "request",
@@ -2275,7 +2292,8 @@
     "Nexus\\Mcp\\Extension\\Tasks\\Server\\Handler\\UpdateTaskRequestHandler": {
         "__construct": [
             "store",
-            "runner"
+            "runner",
+            "scopes"
         ],
         "handle": [
             "request",
@@ -2286,6 +2304,13 @@
         "__construct": [
             "clock",
             "maxRecords"
+        ],
+        "createOwnedTask": [
+            "toolName",
+            "arguments",
+            "ttlMs",
+            "pollIntervalMs",
+            "owner"
         ],
         "createTask": [
             "toolName",
@@ -2337,7 +2362,8 @@
             "inputResponses",
             "requestState",
             "issuedInputKeys",
-            "statusMessage"
+            "statusMessage",
+            "owner"
         ]
     },
     "Nexus\\Mcp\\Extension\\Tasks\\Server\\TasksServerExtension": {
@@ -2347,7 +2373,8 @@
             "defaultTtlMs",
             "defaultPollIntervalMs",
             "logger",
-            "maxRunningTasks"
+            "maxRunningTasks",
+            "operationScopes"
         ]
     },
     "Nexus\\Mcp\\Extension\\Tasks\\Server\\ToolTaskPolicy": {
@@ -2451,6 +2478,22 @@
         ],
         "validate": [
             "token"
+        ]
+    },
+    "Nexus\\Mcp\\Server\\Auth\\OperationScopes": {
+        "__construct": [
+            "tools",
+            "prompts",
+            "resources"
+        ],
+        "forPrompt": [
+            "name"
+        ],
+        "forResource": [
+            "uri"
+        ],
+        "forTool": [
+            "name"
         ]
     },
     "Nexus\\Mcp\\Server\\Completion\\ClosureCompletionProvider": {
@@ -2584,7 +2627,8 @@
     },
     "Nexus\\Mcp\\Server\\Handler\\Request\\CompleteRequestHandler": {
         "__construct": [
-            "store"
+            "store",
+            "isRegistered"
         ],
         "handle": [
             "request",
@@ -2690,6 +2734,9 @@
             "arguments",
             "context"
         ],
+        "isRegistered": [
+            "key"
+        ],
         "list": [
             "cursor"
         ],
@@ -2785,7 +2832,8 @@
         "__construct": [
             "handler",
             "method",
-            "binder"
+            "binder",
+            "mimeType"
         ],
         "read": [
             "uri",
@@ -2796,7 +2844,8 @@
         "__construct": [
             "handler",
             "method",
-            "binder"
+            "binder",
+            "mimeType"
         ],
         "read": [
             "uri",
@@ -2820,6 +2869,9 @@
         "addResource": [
             "resource",
             "reader"
+        ],
+        "isRegistered": [
+            "key"
         ],
         "list": [
             "cursor"
@@ -2851,6 +2903,9 @@
         "addResourceTemplate": [
             "template",
             "reader"
+        ],
+        "isRegistered": [
+            "key"
         ],
         "list": [
             "cursor"
@@ -3142,7 +3197,8 @@
             "tools",
             "prompts",
             "resources",
-            "endpointScopes"
+            "endpointScopes",
+            "operationScopes"
         ],
         "process": [
             "request",
