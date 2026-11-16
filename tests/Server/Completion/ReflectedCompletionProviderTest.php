@@ -150,6 +150,23 @@ final class ReflectedCompletionProviderTest extends AbstractMcpTestCase
         $this->buildProvider($source)->complete('eu', null, $this->makeContext());
     }
 
+    public function testReadsStringsUnderIntegerKeysInOrder(): void
+    {
+        $source = new class {
+            /**
+             * @return array<int, string>
+             */
+            public function complete(string $value): array
+            {
+                return [1 => $value.'/a', 2 => $value.'/b'];
+            }
+        };
+
+        $result = $this->buildProvider($source)->complete('eu', null, $this->makeContext());
+
+        self::assertSame(['eu/a', 'eu/b'], $result->completion['values']);
+    }
+
     public function testRejectsAStringKeyedMapOfStrings(): void
     {
         $source = new class {

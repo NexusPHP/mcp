@@ -190,6 +190,17 @@ final class ReflectedHandlers
         return 7;
     }
 
+    /**
+     * @return array<int, TextContent>
+     */
+    public function toolFilteredBlocks(): array
+    {
+        return array_filter(
+            [new TextContent(text: 'dropped'), new TextContent(text: 'kept')],
+            static fn(TextContent $block): bool => 'kept' === $block->text,
+        );
+    }
+
     public function toolSingleBlock(): ImageContent
     {
         return new ImageContent(data: 'aW1n', mimeType: 'image/png');
@@ -253,6 +264,14 @@ final class ReflectedHandlers
         return [1 => 'x'];
     }
 
+    /**
+     * @return array<int|string, string>
+     */
+    public function toolMixedKeyedArray(): array
+    {
+        return ['name' => 'x', 0 => 'y'];
+    }
+
     public function promptResult(): GetPromptResult
     {
         return new GetPromptResult(messages: [new PromptMessage(
@@ -293,6 +312,14 @@ final class ReflectedHandlers
     public function promptMapOfMessages(): array
     {
         return ['x' => new PromptMessage(role: Role::User, content: new TextContent(text: 'm'))];
+    }
+
+    /**
+     * @return array<int, PromptMessage>
+     */
+    public function promptFilteredMessages(): array
+    {
+        return [3 => new PromptMessage(role: Role::User, content: new TextContent(text: 'kept'))];
     }
 
     /**

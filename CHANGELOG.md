@@ -68,6 +68,8 @@ in `0.x`, minor releases may include breaking changes.
   invalid arguments naming the parameter. Previously, it failed as a generic tool execution error.
 - An integral float such as `1.0` passed to an int-backed enum parameter of a discovered tool resolves to its case.
   Previously, it was refused although the tool's input schema admitted it.
+- A discovered handler may return its content blocks, prompt messages, resource contents or completion values under
+  integer keys out of sequence, such as from `array_filter()`. Previously, only a list was accepted.
 - The error for an unsupported tool return value names the arrays it accepts, a list of content blocks or a
   string-keyed array. Previously, a refused list read as "must return ... or an array, array given".
 - A discovered resource handler returning a string that is not valid UTF-8 is answered as base64

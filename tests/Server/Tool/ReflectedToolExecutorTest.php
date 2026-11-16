@@ -135,6 +135,24 @@ final class ReflectedToolExecutorTest extends AbstractMcpTestCase
         $this->execute('toolIntKeyedArray');
     }
 
+    public function testRejectsAnArrayMixingStringAndIntegerKeys(): void
+    {
+        $this->expectException(UnsupportedReturnValueException::class);
+        $this->expectExceptionMessageIs(ReflectedHandlers::class.'::toolMixedKeyedArray() must return a '.CallToolResult::class.', a string, a content block, a list of content blocks, or a string-keyed array, array given.');
+
+        $this->execute('toolMixedKeyedArray');
+    }
+
+    public function testReadsContentBlocksUnderIntegerKeysInOrder(): void
+    {
+        $result = $this->execute('toolFilteredBlocks');
+
+        self::assertCount(1, $result->content);
+        self::assertArrayHasKey(0, $result->content);
+        self::assertInstanceOf(TextContent::class, $result->content[0]);
+        self::assertSame('kept', $result->content[0]->text);
+    }
+
     public function testThrowsOnUnsupportedReturn(): void
     {
         $this->expectException(UnsupportedReturnValueException::class);

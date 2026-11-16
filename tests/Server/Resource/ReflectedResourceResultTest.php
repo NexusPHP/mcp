@@ -98,6 +98,13 @@ final class ReflectedResourceResultTest extends AbstractMcpTestCase
         self::assertSame(CacheScope::Private, $result->cacheScope);
     }
 
+    public function testReadsContentsUnderIntegerKeys(): void
+    {
+        $contents = new TextResourceContents(uri: 'mem://t', text: 't');
+
+        self::assertSame([$contents], $this->adapt([4 => $contents])->contents);
+    }
+
     public function testThrowsOnMapOfContents(): void
     {
         $this->expectException(UnsupportedReturnValueException::class);

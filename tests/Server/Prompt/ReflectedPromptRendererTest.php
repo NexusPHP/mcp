@@ -75,6 +75,14 @@ final class ReflectedPromptRendererTest extends AbstractMcpTestCase
         self::assertSame(Role::User, $this->readFirstMessage($result)->role);
     }
 
+    public function testReadsMessagesUnderIntegerKeys(): void
+    {
+        $result = $this->render('promptFilteredMessages', null);
+
+        self::assertCount(1, $result->messages);
+        self::assertSame('kept', $this->readFirstMessage($result)->content->text ?? null);
+    }
+
     public function testThrowsOnMapOfMessages(): void
     {
         $this->expectException(UnsupportedReturnValueException::class);

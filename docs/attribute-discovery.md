@@ -149,6 +149,8 @@ A handler may return the full result object (`CallToolResult`, `GetPromptResult`
 | resource | a `string` (wrapped as `TextResourceContents` bound to the URI, or `BlobResourceContents` when not valid UTF-8, with the attribute's `mimeType`), a `ResourceContents`, or a list of `ResourceContents` |
 | completion | a list of strings (wrapped as the `values` of a `CompleteResult`), so returning the full `CompleteResult` is only needed for `total` or `hasMore` |
 
+A list may carry integer keys out of sequence, as `array_filter()` leaves them, and is read in order.
+
 A tool that declares an `outputSchema` must use the array shorthand or a `CallToolResult` carrying
 `structuredContent`. The other shorthands produce content-only results, which fail the call as missing structured
 content.
