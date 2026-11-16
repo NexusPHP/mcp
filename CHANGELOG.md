@@ -8,6 +8,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ## [Unreleased](https://github.com/NexusPHP/mcp/commits/1.x)
 
+## [v1.5.1](https://github.com/NexusPHP/mcp/compare/v1.5.0...v1.5.1) - 2026-11-16
+
 ### Fixed
 
 - A URI whose path, query or fragment runs past about 8 KB, such as a `data:` URI icon, is accepted. Previously,
