@@ -44,7 +44,8 @@ in `0.x`, minor releases may include breaking changes.
 - `StreamableHttpClientTransport`'s default client follows no redirect, and any client's answer from another
   origin fails the exchange with `RedirectRefusedException`. Previously, the default client followed redirects and
   resent the request body to wherever they led.
-- `TasksServerExtension` refuses a negative `$defaultTtlMs` or `$defaultPollIntervalMs`. Previously, it accepted one.
+- `TasksServerExtension` refuses a negative `$defaultTtlMs` or `$defaultPollIntervalMs`.
+  Previously, it accepted one.
 - `ToolStore` answers tool arguments that fail the `inputSchema`, or an `InvalidParamsException` thrown by the
   executor, with a `CallToolResult` whose `isError` is true. Previously, it answered `-32602` with
   `data.validation_errors`.
@@ -65,6 +66,8 @@ in `0.x`, minor releases may include breaking changes.
   such as `AKP` or `P-521`. Previously, the `TypeError` escaped the validator.
 - An integral float beyond the `int` range, passed to an `int` parameter of a discovered handler, is reported as
   invalid arguments naming the parameter. Previously, it failed as a generic tool execution error.
+- An integral float such as `1.0` passed to an int-backed enum parameter of a discovered tool resolves to its case.
+  Previously, it was refused although the tool's input schema admitted it.
 - The error for an unsupported tool return value names the arrays it accepts, a list of content blocks or a
   string-keyed array. Previously, a refused list read as "must return ... or an array, array given".
 - A discovered resource handler returning a string that is not valid UTF-8 is answered as base64
@@ -80,21 +83,20 @@ in `0.x`, minor releases may include breaking changes.
   refuse another caller's task with `-32602`. Previously, any caller holding a task ID could read, answer or cancel
   it. A custom store implements the new `OwnedTaskStoreInterface` to serve authenticated requests.
 - `tasks/get`, `tasks/update` and `tasks/cancel` refuse a token that lacks a scope its task's tool declares, once
-  `TasksServerExtension` is given the `OperationScopes`. Previously, a caller whose scope was removed after creating a
-  task could still resume the tool through it.
-- A continuation state's default binding encodes the caller, method, target and arguments unambiguously. Previously,
-  two callers whose identities joined to the same bytes could replay each other's state, and a state minted before
-  the upgrade no longer verifies.
+  `TasksServerExtension` is given the `OperationScopes`. Previously, a caller whose scope was removed after creating a task could still resume the tool through it.
+- A continuation state's default binding encodes the caller, method, target and arguments unambiguously.
+  Previously, two callers whose identities joined to the same bytes could replay each other's state, and a
+  state minted before the upgrade no longer verifies.
 - The client-credentials grant works against an authorization server that does not advertise PKCE. Previously,
   discovery refused it, and only the authorization-code grant needs PKCE.
-- The SSE frame size limit counts each frame separately, whatever the chunking. Previously, several small frames in one
-  chunk could trip it and a frame split across chunks could exceed it.
+- The SSE frame size limit counts each frame separately, whatever the chunking. Previously, several small
+  frames in one chunk could trip it and a frame split across chunks could exceed it.
 - A redirect URI on a loopback host must use `http`. Previously, any scheme was accepted.
 - The input schema for an unsealed shape (`array{a: int, ...<string, int>}`, `list{int, ...}`) allows the extra
   entries. Previously, it rejected them or ignored their type.
-- A UI resource permission (`camera`, `microphone`, `geolocation`, `clipboardWrite`) counts as requested when its key
-  holds any value other than `null` or `false`. Previously, a value that was not an object made the resource
-  undecodable.
+- A UI resource permission (`camera`, `microphone`, `geolocation`, `clipboardWrite`) counts as requested when
+  its key holds any value other than `null` or `false`. Previously, a value that was not an object made the
+  resource undecodable.
 - `AppClient::findAppTools()` logs a warning for each tool it skips because its `_meta.ui` is invalid, to the new
   `$logger` argument. Previously, it skipped silently.
 - `ElicitRequestUrlParams` accepts any RFC 3986 absolute URI as its `url`, such as a host with an underscore or a
@@ -102,20 +104,20 @@ in `0.x`, minor releases may include breaking changes.
 - A resource, resource link, icon or elicitation URI is held to the full RFC 3986 grammar. A malformed authority,
   IP literal, port or percent-encoding is refused. Previously, only the scheme was checked.
 - With `AppsServerExtension` enabled, `build()` refuses a `ui://` resource or template without the
-  `text/html;profile=mcp-app` mime type, that mime type outside `ui://`, and a tool or resource whose `_meta.ui` does
-  not decode. Previously, only `UiResource` and `UiToolMeta` checked them.
+  `text/html;profile=mcp-app` mime type, that mime type outside `ui://`, and a tool or resource whose
+  `_meta.ui` does not decode. Previously, only `UiResource` and `UiToolMeta` checked them.
 - A request's progress notifications, from `reportProgress()` or sent through `$context->sender`, are dropped when
   the value is not above the last one sent, or once the request has completed or been cancelled. Previously, they
   were sent.
-- `completion/complete` answers `-32602` for a ref naming no registered prompt, resource or template. Previously, it
-  answered an empty list. A custom store opts in through the new `RegistrationLookupInterface`, which the built-in
-  prompt, resource and template stores implement.
+- `completion/complete` answers `-32602` for a ref naming no registered prompt, resource or template.
+  Previously, it answered an empty list. A custom store opts in through the new `RegistrationLookupInterface`,
+  which the built-in prompt, resource and template stores implement.
 - A server answers a legacy `initialize` with a `-32601` that names the supported protocol versions, in the message
   and in `data.supported`. Previously, it sent the generic method-not-found error.
-- A server answers `-32021` when an `InputRequiredResult` asks for an elicitation mode that the client did not declare,
-  with an empty `elicitation` declaring form only. Previously, it sent the request anyway.
-- `DirectorySkill` accepts a prefix segment starting with `_` in a skill path. Previously, it required a letter or
-  a digit.
+- A server answers `-32021` when an `InputRequiredResult` asks for an elicitation mode that the client did
+  not declare, with an empty `elicitation` declaring form only. Previously, it sent the request anyway.
+- `DirectorySkill` accepts a prefix segment starting with `_` in a skill path. Previously, it required a
+  letter or a digit.
 - A task result with a `ttlMs` or `pollIntervalMs` of `0` is accepted when decoded. Previously, it was refused.
 - `DirectorySkill` refuses a `SKILL.md` frontmatter over the Agent Skills limits: a `description` over 1024
   characters, a `compatibility` outside 1-500 characters, or `metadata` with a value that is not a string.
@@ -129,10 +131,10 @@ in `0.x`, minor releases may include breaking changes.
 - The enterprise-managed authorization grant sends the requested scopes in the token exchange with the IdP as well.
   Previously, it sent them only to the MCP server's authorization server.
 - A failed task carries its error message as `statusMessage` in `tasks/get`. Previously, it carried none.
-- `StdioClientTransport::close()` waits for the server subprocess to exit after closing its stdin, and kills it only
-  after `$shutdownTimeout` seconds (default 2). Previously, it killed the subprocess at once.
-- The client reads a Bearer challenge from any `WWW-Authenticate` header line. Previously, it read only the first, and
-  missed a Bearer challenge sent after another scheme's.
+- `StdioClientTransport::close()` waits for the server subprocess to exit after closing its stdin, and kills
+  it only after `$shutdownTimeout` seconds (default 2). Previously, it killed the subprocess at once.
+- The client reads a Bearer challenge from any `WWW-Authenticate` header line. Previously, it read only the
+  first, and missed a Bearer challenge sent after another scheme's.
 
 ## [v1.4.0](https://github.com/NexusPHP/mcp/compare/v1.3.0...v1.4.0) - 2026-10-27
 

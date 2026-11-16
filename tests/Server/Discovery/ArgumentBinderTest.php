@@ -114,6 +114,27 @@ final class ArgumentBinderTest extends AbstractMcpTestCase
         self::assertSame([BackedIntEnum::One], $this->bind('backedInt', ['level' => 1]));
     }
 
+    public function testHydratesBackedIntEnumFromAnIntegralFloat(): void
+    {
+        self::assertSame([BackedIntEnum::One], $this->bind('backedInt', ['level' => 1.0]));
+    }
+
+    public function testRefusesAFractionalFloatForABackedIntEnum(): void
+    {
+        $this->expectException(InvalidParamsException::class);
+        $this->expectExceptionMessageIs('"level" must be one of [1, 2], 1.5 given.');
+
+        $this->bind('backedInt', ['level' => 1.5]);
+    }
+
+    public function testRefusesAFloatForABackedStringEnum(): void
+    {
+        $this->expectException(InvalidParamsException::class);
+        $this->expectExceptionMessageIs('"color" must be one of [\'a\', \'b\'], 0.0 given.');
+
+        $this->bind('backedString', ['color' => 0.0]);
+    }
+
     public function testHydratesPureEnumByCaseName(): void
     {
         self::assertSame([PureEnum::Yes], $this->bind('pureCase', ['flag' => 'Yes']));
