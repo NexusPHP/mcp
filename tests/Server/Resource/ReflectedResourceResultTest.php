@@ -55,6 +55,15 @@ final class ReflectedResourceResultTest extends AbstractMcpTestCase
         self::assertSame(CacheScope::Private, $result->cacheScope);
     }
 
+    public function testWrapsAStringThatIsNotUtf8AsBlobResourceContents(): void
+    {
+        $contents = $this->adapt("\x89PNG\r\n\x1a\n\xff", 'mem://image')->contents[0] ?? null;
+
+        self::assertInstanceOf(BlobResourceContents::class, $contents);
+        self::assertSame('mem://image', $contents->uri);
+        self::assertSame(base64_encode("\x89PNG\r\n\x1a\n\xff"), $contents->blob);
+    }
+
     public function testWrapsSingleResourceContents(): void
     {
         $blob = new BlobResourceContents(uri: 'mem://b', blob: 'YmJi');
