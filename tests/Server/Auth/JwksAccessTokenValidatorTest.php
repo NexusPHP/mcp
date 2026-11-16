@@ -249,6 +249,37 @@ final class JwksAccessTokenValidatorTest extends AbstractMcpTestCase
         self::assertNull($this->buildValidator()->validate($token));
     }
 
+    public function testATokenNamingAListedKeyThatCannotBeReadIsRefused(): void
+    {
+        $keys = new class implements \ArrayAccess {
+            #[\Override]
+            public function offsetExists(mixed $offset): bool
+            {
+                return true;
+            }
+
+            #[\Override]
+            public function offsetGet(mixed $offset): mixed
+            {
+                return null;
+            }
+
+            #[\Override]
+            public function offsetSet(mixed $offset, mixed $value): void
+            {
+            }
+
+            #[\Override]
+            public function offsetUnset(mixed $offset): void
+            {
+            }
+        };
+
+        $validator = new JwksAccessTokenValidator($keys, self::ISSUER, self::RESOURCE);
+
+        self::assertNull($validator->validate($this->encodeForThisServer(['sub' => 'user-7'])));
+    }
+
     public function testGarbageIsRefused(): void
     {
         self::assertNull($this->buildValidator()->validate('not-a-jwt'));

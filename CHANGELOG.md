@@ -56,6 +56,8 @@ in `0.x`, minor releases may include breaking changes.
 
 ### Fixed
 
+- `JwksAccessTokenValidator` refuses a token naming a JWKS key whose type or curve `firebase/php-jwt` cannot read,
+  such as `AKP` or `P-521`. Previously, the `TypeError` escaped the validator.
 - The client refuses an authorization URL with a backslash, whitespace or control character, so
   `http://evil.example\@localhost` no longer passes as loopback. It also refuses a percent-encoded or non-ASCII
   host, `0.0.0.0`, `::`, an IPv4-mapped IPv6 address and a non-canonical IPv4 form such as `127.1`.

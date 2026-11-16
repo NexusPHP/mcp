@@ -50,6 +50,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/src/Extension/Tasks/Server/ToolTaskRunner.php',
 ];
 $ignoreErrors[] = [
+	'rawMessage' => 'Dead catch - TypeError is never thrown in the try block.',
+	'identifier' => 'catch.neverThrown',
+	'count' => 1,
+	'path' => __DIR__ . '/src/Server/Auth/JwksAccessTokenValidator.php',
+];
+$ignoreErrors[] = [
 	'rawMessage' => 'Offset non-empty-string might not exist on array<non-empty-string, int>.',
 	'identifier' => 'offsetAccess.notFound',
 	'count' => 1,
