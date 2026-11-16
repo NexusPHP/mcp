@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Nexus\Mcp\Tests\Server\Handler\Request;
 
 use Amp\NullCancellation;
-use Nexus\Mcp\Core\Exception\InvalidParamsException;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\Request\CallToolRequest;
@@ -223,40 +222,6 @@ final class CallToolRequestHandlerTest extends AbstractMcpTestCase
                 LogLevel::ERROR,
                 'Uncaught tool executor exception. Returning generic error to peer.',
             ),
-        );
-    }
-
-    public function testInvalidArgumentsPropagateAsInvalidParamsException(): void
-    {
-        $store = new ToolStore([
-            'search' => new ToolEntry(
-                new Tool(name: 'search', inputSchema: [
-                    'type' => 'object',
-                    'properties' => ['q' => ['type' => 'string']],
-                    'required' => ['q'],
-                ]),
-                new ClosureToolExecutor(
-                    static fn(?array $arguments, ServerContext $context): CallToolResult => new CallToolResult(
-                        content: [],
-                    ),
-                ),
-            ),
-        ]);
-        $handler = new CallToolRequestHandler($store);
-
-        $this->expectException(InvalidParamsException::class);
-        $this->expectExceptionMessageIs('Invalid arguments for tool "search": "q" must be a string, int given.');
-
-        $handler->handle(
-            new CallToolRequest(
-                id: new RequestId(id: 1),
-                params: new CallToolRequestParams(
-                    name: 'search',
-                    meta: RequestMetaObjectFactory::create(),
-                    arguments: ['q' => 123],
-                ),
-            ),
-            $this->makeContext(),
         );
     }
 

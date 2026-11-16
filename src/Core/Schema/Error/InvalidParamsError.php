@@ -22,12 +22,13 @@ use Nexus\Mcp\Core\Schema\Error;
  *
  * In MCP, this error is returned in various contexts when request parameters fail validation:
  *
- * - **Tools**: Unknown tool name or invalid tool arguments
+ * - **Tools**: Unknown tool name, or a request that does not satisfy the `CallToolRequest` schema. Invalid tool
+ *   arguments are instead reported as tool execution errors, with `isError` set to true
  * - **Prompts**: Unknown prompt name or missing required arguments
  * - **Pagination**: Invalid or expired cursor values
- * - **Logging**: Invalid log level
+ * - **Logging** (deprecated): Invalid log level
  * - **Elicitation**: Server requests an elicitation mode not declared in client capabilities
- * - **Sampling**: Missing tool result or tool results mixed with other content
+ * - **Sampling** (deprecated): Missing tool result or tool results mixed with other content
  *
  * @extends Error<array{code: -32602, message: non-empty-string, data?: mixed}>
  *

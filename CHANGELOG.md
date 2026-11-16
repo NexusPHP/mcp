@@ -45,6 +45,9 @@ in `0.x`, minor releases may include breaking changes.
   origin fails the exchange with `RedirectRefusedException`. Previously, the default client followed redirects and
   resent the request body to wherever they led.
 - `TasksServerExtension` refuses a negative `$defaultTtlMs` or `$defaultPollIntervalMs`. Previously, it accepted one.
+- `ToolStore` answers tool arguments that fail the `inputSchema`, or an `InvalidParamsException` thrown by the
+  executor, with a `CallToolResult` whose `isError` is true. Previously, it answered `-32602` with
+  `data.validation_errors`.
 
 ### Deprecated
 

@@ -69,15 +69,13 @@ not-found exceptions map to -32602 too, because the named entity is treated as a
 ### The `data` slot
 
 Any of them may also carry an `errorData` payload. It becomes the error response's `data` slot, and the slot is
-omitted when the payload is null. Three producers ship with the SDK:
+omitted when the payload is null. Two producers ship with the SDK:
 
 - `ResourceNotFoundException` and `ResourceNotRegisteredException` carry the `data.uri` shown in the spec's
   resource-not-found example.
-- A `tools/call` argument failure carries the `data.validation_errors` list described under
-  [Diagnostic message conventions](#diagnostic-message-conventions).
 - `MissingRequiredClientCapabilityException` carries the `data.requiredCapabilities` required by its code.
 
-Only the last is required. The spec defines `data` as "defined by the sender", so the URI echo is this SDK's
+Only the second is required. The spec defines `data` as "defined by the sender", so the URI echo is this SDK's
 choice. The SDK echoes the URI whole, so a client can match it against the URI it sent. That is safe, because
 decode already confines `params.uri` to printable ASCII by the RFC 3986 grammar and to 8192 bytes. The echo
 carries no control bytes, and it is never longer than the URI sent by the peer itself.
@@ -262,10 +260,6 @@ Tool argument and `structuredContent` conformance failures follow the same shape
 `ValidationErrorFormatter` renders each leaf schema violation with the dotted data path double-quoted and the
 `<type> given.` idiom. At the root the path is bare, because the `Invalid arguments for tool "x": ...` wrapper
 supplies the scope.
-
-An argument failure also lists each violation under `data.validation_errors` with its RFC 6901 pointer. The list
-is capped at eight entries and sanitised like the message, since an undeclared key name or an `enum` value is the
-peer's own text.
 
 `ArgumentBinder`'s failures speak the same grammar, and the owning store wraps them with the same feature
 identity.

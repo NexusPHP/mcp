@@ -185,7 +185,7 @@ final class ToolStoreTest extends AbstractMcpTestCase
         $store->call('missing', null, $this->makeContext());
     }
 
-    public function testCallThrowsInvalidParamsWhenArgumentsViolateInputSchema(): void
+    public function testCallReportsArgumentsViolatingInputSchemaAsAToolError(): void
     {
         $store = new ToolStore([
             'search' => new ToolEntry(
@@ -198,13 +198,13 @@ final class ToolStoreTest extends AbstractMcpTestCase
             ),
         ]);
 
-        $this->expectException(InvalidParamsException::class);
-        $this->expectExceptionMessageIs('Invalid arguments for tool "search": "q" must be a string, int given.');
-
-        $store->call('search', ['q' => 123], $this->makeContext());
+        self::assertSame(
+            'Invalid arguments for tool "search": "q" must be a string, int given.',
+            $this->readToolError($store->call('search', ['q' => 123], $this->makeContext())),
+        );
     }
 
-    public function testCallListsEachArgumentViolationWithItsPointer(): void
+    public function testCallReportsEveryArgumentViolation(): void
     {
         $store = new ToolStore([
             'search' => new ToolEntry(
@@ -217,92 +217,30 @@ final class ToolStoreTest extends AbstractMcpTestCase
             ),
         ]);
 
-        try {
-            $store->call('search', ['q' => 123, 'limit' => 'ten'], $this->makeContext());
-            self::fail('Expected InvalidParamsException.');
-        } catch (InvalidParamsException $e) {
-            self::assertSame(
-                ['validation_errors' => [
-                    ['pointer' => '/q', 'message' => '"q" must be a string, int given.'],
-                    ['pointer' => '/limit', 'message' => '"limit" must be an integer, string given.'],
-                ]],
-                $e->errorData,
-            );
-        }
-    }
-
-    public function testCallReportsAtMostEightViolations(): void
-    {
-        $store = $this->buildClosedSchemaStore();
-        $arguments = [];
-
-        for ($i = 0; $i < 12; ++$i) {
-            $arguments['undeclared'.$i] = $i;
-        }
-
-        try {
-            $store->call('search', $arguments, $this->makeContext());
-            self::fail('Expected InvalidParamsException.');
-        } catch (InvalidParamsException $e) {
-            self::assertIsArray($e->errorData);
-            self::assertArrayHasKey('validation_errors', $e->errorData);
-            self::assertIsArray($e->errorData['validation_errors']);
-            self::assertCount(8, $e->errorData['validation_errors']);
-            self::assertArrayHasKey(0, $e->errorData['validation_errors']);
-            self::assertSame(
-                ['pointer' => '', 'message' => 'carries the undeclared "undeclared0" key.'],
-                $e->errorData['validation_errors'][0],
-            );
-        }
-    }
-
-    public function testCallSanitisesAPeerPropertyNameInTheViolationList(): void
-    {
-        $store = $this->buildClosedSchemaStore();
-
-        try {
-            $store->call('search', ["ev\x1b[2K\x07il" => 1, str_repeat('A', 300) => 2], $this->makeContext());
-            self::fail('Expected InvalidParamsException.');
-        } catch (InvalidParamsException $e) {
-            self::assertIsArray($e->errorData);
-            self::assertArrayHasKey('validation_errors', $e->errorData);
-            self::assertIsArray($e->errorData['validation_errors']);
-            self::assertArrayHasKey(0, $e->errorData['validation_errors']);
-            self::assertArrayHasKey(1, $e->errorData['validation_errors']);
-            [$escaped, $bounded] = $e->errorData['validation_errors'];
-            self::assertSame(['pointer' => '', 'message' => 'carries the undeclared "ev\x1b[2K\x07il" key.'], $escaped);
-            self::assertIsArray($bounded);
-            self::assertArrayHasKey('message', $bounded);
-            self::assertIsString($bounded['message']);
-            self::assertSame(256, \strlen($bounded['message']));
-            self::assertStringEndsWith('...', $bounded['message']);
-        }
+        self::assertSame(
+            'Invalid arguments for tool "search": "q" must be a string, int given. "limit" must be an integer, string given.',
+            $this->readToolError($store->call('search', ['q' => 123, 'limit' => 'ten'], $this->makeContext())),
+        );
     }
 
     public function testCallBoundsAPeerPropertyNameQuotedByTheValidator(): void
     {
         $store = $this->buildClosedSchemaStore();
 
-        try {
-            $store->call('search', [str_repeat('A', 200_000) => 1], $this->makeContext());
-            self::fail('Expected InvalidParamsException.');
-        } catch (InvalidParamsException $e) {
-            self::assertSame(256, \strlen($e->getMessage()));
-            self::assertStringEndsWith('...', $e->getMessage());
-        }
+        $text = $this->readToolError($store->call('search', [str_repeat('A', 200_000) => 1], $this->makeContext()));
+
+        self::assertSame(256, \strlen($text));
+        self::assertStringEndsWith('...', $text);
     }
 
     public function testCallEscapesControlBytesInAPeerPropertyName(): void
     {
         $store = $this->buildClosedSchemaStore();
 
-        try {
-            $store->call('search', ["ev\x1b[2K\x07il" => 1], $this->makeContext());
-            self::fail('Expected InvalidParamsException.');
-        } catch (InvalidParamsException $e) {
-            self::assertStringContainsString('ev\\x1b[2K\\x07il', $e->getMessage());
-            self::assertDoesNotMatchRegularExpression('/[^\x20-\x7E]/', $e->getMessage());
-        }
+        $text = $this->readToolError($store->call('search', ["ev\x1b[2K\x07il" => 1], $this->makeContext()));
+
+        self::assertStringContainsString('ev\\x1b[2K\\x07il', $text);
+        self::assertDoesNotMatchRegularExpression('/[^\x20-\x7E]/', $text);
     }
 
     public function testCallAcceptsArgumentsSatisfyingRequiredInputSchema(): void
@@ -714,26 +652,38 @@ final class ToolStoreTest extends AbstractMcpTestCase
             ),
         );
 
-        $this->expectException(InvalidParamsException::class);
-
-        $store->call('digit', ['a' => 'b'], $this->makeContext());
+        self::assertSame(
+            'Invalid arguments for tool "digit": missing the required "0" key.',
+            $this->readToolError($store->call('digit', ['a' => 'b'], $this->makeContext())),
+        );
     }
 
-    public function testCallWrapsABindingFailureWithTheToolName(): void
+    public function testCallReportsABindingFailureAsAToolErrorNamingTheTool(): void
     {
         $store = new ToolStore([
             'search' => new ToolEntry(
                 $this->makeTool('search'),
                 new ClosureToolExecutor(static function (?array $arguments, ServerContext $context): CallToolResult {
-                    throw new InvalidParamsException($context->requestId, 'missing the required "q" key.');
+                    throw new InvalidParamsException($context->requestId, "missing the required \"q\x07\" key.");
                 }),
             ),
         ]);
 
-        $this->expectException(InvalidParamsException::class);
-        $this->expectExceptionMessageIs('Invalid arguments for tool "search": missing the required "q" key.');
+        self::assertSame(
+            'Invalid arguments for tool "search": missing the required "q\x07" key.',
+            $this->readToolError($store->call('search', [], $this->makeContext())),
+        );
+    }
 
-        $store->call('search', [], $this->makeContext());
+    private function readToolError(CallToolResult|InputRequiredResult $result): string
+    {
+        self::assertInstanceOf(CallToolResult::class, $result);
+        self::assertTrue($result->isError);
+        self::assertCount(1, $result->content);
+        self::assertArrayHasKey(0, $result->content);
+        self::assertInstanceOf(TextContent::class, $result->content[0]);
+
+        return $result->content[0]->text;
     }
 
     /**

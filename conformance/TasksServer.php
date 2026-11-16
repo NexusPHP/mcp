@@ -11,7 +11,7 @@ declare(strict_types=1);
  * the LICENSE file that was distributed with this source code.
  */
 
-use Nexus\Mcp\Core\Exception\InvalidParamsException;
+use Nexus\Mcp\Core\Exception\InvalidRequestException;
 use Nexus\Mcp\Core\Schema\ContentBlock\TextContent;
 use Nexus\Mcp\Core\Schema\Elicitation\BooleanSchema;
 use Nexus\Mcp\Core\Schema\Elicitation\StringSchema;
@@ -64,7 +64,7 @@ final class TasksServer
     #[AsTool(name: 'protocol_error_job', description: 'Fails at the protocol level.')]
     public function protocolErrorJob(ServerContext $context): never
     {
-        throw new InvalidParamsException($context->requestId, 'This job fails at the protocol level.');
+        throw new InvalidRequestException($context->requestId, 'This job fails at the protocol level.');
     }
 
     /**

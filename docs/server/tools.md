@@ -56,8 +56,8 @@ executor: static function (?array $args, ServerContext $context): CallToolResult
 
 > [!WARNING]
 > The generic-text wrap above only covers the `\Throwable` arm. Messages thrown through
-> `AbstractJsonRpcProtocolException` subclasses (`InvalidParamsException` and similar) are surfaced
-> **verbatim** in the JSON-RPC `error.message` field. Keep those strings free of paths, credentials,
+> `AbstractJsonRpcProtocolException` subclasses are surfaced **verbatim**: an `InvalidParamsException` in the
+> tool error text, and any other in the JSON-RPC `error.message` field. Keep those strings free of paths, credentials,
 > connection strings, and any other sensitive data. The recommended pattern for surfacing tool errors is
 > `return new CallToolResult(content: [...], isError: true)`, not throwing a protocol exception.
 
@@ -153,8 +153,10 @@ through untouched.
 
 The SDK validates a tool call against the tool's schemas on the way in and on the way out.
 
-On the way in, it validates the call `arguments` against the tool's `inputSchema`. A non-conforming payload fails
-the call with a JSON-RPC `InvalidParams` error before the executor runs.
+On the way in, it validates the call `arguments` against the tool's `inputSchema`. A non-conforming payload is
+answered before the executor runs with a `CallToolResult` whose `isError` is true and whose text lists each
+violation, so the model can correct its arguments and retry. An `InvalidParamsException` thrown out of the
+executor is answered the same way.
 
 On the way out, when the tool declares an `outputSchema`, a non-error result must carry a `structuredContent`
 that conforms to it. A non-conforming or missing one is logged on the server side and surfaced to the client as a
