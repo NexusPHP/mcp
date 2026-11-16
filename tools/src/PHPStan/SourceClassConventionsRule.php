@@ -318,7 +318,7 @@ final class SourceClassConventionsRule implements Rule
             return [];
         }
 
-        if ([] === $reflection->getInterfaceNames()) {
+        if ($reflection->getInterfaceNames() === []) {
             return [];
         }
 

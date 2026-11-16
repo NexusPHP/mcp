@@ -148,7 +148,7 @@ final class TestClassConventionsRule implements Rule
     {
         $reflection = $class->getNativeReflection();
 
-        if ([] !== $reflection->getAttributes(CoversNothing::class)) {
+        if ($reflection->getAttributes(CoversNothing::class) !== []) {
             return [];
         }
 

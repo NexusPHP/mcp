@@ -72,6 +72,11 @@ final class NoFunctionCallYodaComparisonRule implements Rule
                 $this->exprPrinter->printExpr($node),
             ))
                 ->identifier('nexusMcp.functionCallYodaComparison')
+                ->fixNode($node, static function (Node\Expr\BinaryOp $node): Node {
+                    $binaryOp = $node::class;
+
+                    return new $binaryOp($node->right, $node->left);
+                })
                 ->build(),
         ];
     }
@@ -79,9 +84,8 @@ final class NoFunctionCallYodaComparisonRule implements Rule
     private function isLiteral(Node\Expr $expr): bool
     {
         if (
-            $expr instanceof Node\Scalar\String_
-            || $expr instanceof Node\Scalar\Int_
-            || $expr instanceof Node\Scalar\Float_
+            $expr instanceof Node\Scalar
+            || $expr instanceof Node\Expr\Array_
         ) {
             return true;
         }

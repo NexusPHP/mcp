@@ -56,8 +56,8 @@ final readonly class UiResourceMeta implements Arrayable
     ) {
         Assert::that($domain)->nullOr()->isNonEmptyString('"_meta.ui.domain" must be a non-empty string or null.');
 
-        $this->csp = null === $csp || [] === $csp->toArray() ? null : $csp;
-        $this->permissions = null === $permissions || [] === $permissions->toArray() ? null : $permissions;
+        $this->csp = null === $csp || $csp->toArray() === [] ? null : $csp;
+        $this->permissions = null === $permissions || $permissions->toArray() === [] ? null : $permissions;
     }
 
     #[\Override]
