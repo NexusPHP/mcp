@@ -87,6 +87,11 @@ final readonly class Annotations implements Arrayable
 
         if (null !== $priority) {
             $priority = self::parseNumber($priority, '"annotations.priority" must be a number or null, {type} given.');
+            Assert::that($priority)->isBetween(
+                0.0,
+                1.0,
+                message: '"annotations.priority" must be a number between 0.0 and 1.0, {value} given.',
+            );
         }
 
         $lastModified = $data['lastModified'] ?? null;

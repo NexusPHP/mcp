@@ -193,6 +193,28 @@ final class AnnotationsTest extends AbstractMcpTestCase
         Annotations::fromArray(['lastModified' => 20_260_309]);
     }
 
+    #[DataProvider('provideAnnotationsFromArrayRejectsOutOfRangePriorityCases')]
+    public function testAnnotationsFromArrayRejectsOutOfRangePriority(float|int $priority, string $rendered): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs(\sprintf(
+            '"annotations.priority" must be a number between 0.0 and 1.0, %s given.',
+            $rendered,
+        ));
+
+        Annotations::fromArray(['priority' => $priority]);
+    }
+
+    /**
+     * @return iterable<string, array{float|int, string}>
+     */
+    public static function provideAnnotationsFromArrayRejectsOutOfRangePriorityCases(): iterable
+    {
+        yield 'below lower boundary' => [-0.5, '-0.5'];
+
+        yield 'above upper boundary' => [2, '2.0'];
+    }
+
     public function testAnnotationsFromArrayCoercesIntPriority(): void
     {
         $annotations = Annotations::fromArray(['priority' => 1]);
