@@ -90,6 +90,20 @@ final class ArgumentBinderTest extends AbstractMcpTestCase
         $this->bind('requiredString', []);
     }
 
+    public function testCastsAnIntegralFloatInRangeForAnIntParameter(): void
+    {
+        self::assertSame([9], $this->bind('withDefault', ['count' => 9.0]));
+        self::assertSame([\PHP_INT_MIN], $this->bind('withDefault', ['count' => (float) \PHP_INT_MIN]));
+    }
+
+    public function testRefusesAnIntegralFloatBeyondTheIntRangeForAnIntParameter(): void
+    {
+        $this->expectException(InvalidParamsException::class);
+        $this->expectExceptionMessageIs('"count" must be an integer between PHP_INT_MIN and PHP_INT_MAX, float given.');
+
+        $this->bind('withDefault', ['count' => (float) \PHP_INT_MAX]);
+    }
+
     public function testHydratesBackedStringEnum(): void
     {
         self::assertSame([BackedStringEnum::A], $this->bind('backedString', ['color' => 'a']));
