@@ -17,6 +17,7 @@ use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcResultResponse;
 use Nexus\Mcp\Core\Transport\InMemoryTransport;
 use PhpParser\Node;
 use PHPStan\Analyser\Scope;
+use PHPStan\DependencyInjection\RegisteredRule;
 use PHPStan\Node\InClassNode;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Rules\IdentifierRuleError;
@@ -30,6 +31,7 @@ use PHPStan\Rules\RuleErrorBuilder;
  *
  * @internal
  */
+#[RegisteredRule(level: 0)]
 final class SourceClassConventionsRule implements Rule
 {
     private const int DOCBLOCK_SUMMARY_MAX_WIDTH = 120;

@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Tools\PHPStan;
 
 use PhpParser\Node;
 use PHPStan\Analyser\Scope;
+use PHPStan\DependencyInjection\RegisteredRule;
 use PHPStan\Node\Printer\ExprPrinter;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
@@ -26,6 +27,7 @@ use PHPStan\Rules\RuleErrorBuilder;
  *
  * @internal
  */
+#[RegisteredRule(level: 0)]
 final class NativeAssertConditionRule implements Rule
 {
     public function __construct(private readonly ExprPrinter $exprPrinter)

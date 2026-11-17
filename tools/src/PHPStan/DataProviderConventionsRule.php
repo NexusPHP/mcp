@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Tools\PHPStan;
 
 use PhpParser\Node;
 use PHPStan\Analyser\Scope;
+use PHPStan\DependencyInjection\RegisteredRule;
 use PHPStan\Node\InClassMethodNode;
 use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\Rule;
@@ -27,6 +28,7 @@ use PHPStan\Rules\RuleErrorBuilder;
  *
  * @internal
  */
+#[RegisteredRule(level: 0)]
 final class DataProviderConventionsRule implements Rule
 {
     #[\Override]

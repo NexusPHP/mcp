@@ -16,6 +16,7 @@ namespace Nexus\Mcp\Tools\PHPStan;
 use PhpParser\Node;
 use PhpParser\NodeFinder;
 use PHPStan\Analyser\Scope;
+use PHPStan\DependencyInjection\RegisteredRule;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
 
@@ -26,6 +27,7 @@ use PHPStan\Rules\RuleErrorBuilder;
  *
  * @internal
  */
+#[RegisteredRule(level: 0)]
 final class PromotableConstructorPropertyRule implements Rule
 {
     #[\Override]

@@ -41,13 +41,5 @@ parameters:
   editorUrl: 'vscode://file/%%file%%:%%line%%'
   editorUrlTitle: '%%relFile%%:%%line%%'
 
-rules:
-  - Nexus\Mcp\Tools\PHPStan\DataProviderConventionsRule
-  - Nexus\Mcp\Tools\PHPStan\NativeAssertConditionRule
-  - Nexus\Mcp\Tools\PHPStan\NoAssignmentInCallArgumentRule
-  - Nexus\Mcp\Tools\PHPStan\NoAssignmentInControlFlowExpressionRule
-  - Nexus\Mcp\Tools\PHPStan\NoFunctionCallYodaComparisonRule
-  - Nexus\Mcp\Tools\PHPStan\PromotableConstructorPropertyRule
-  - Nexus\Mcp\Tools\PHPStan\SourceClassConventionsRule
-  - Nexus\Mcp\Tools\PHPStan\TestClassConventionsRule
-  - Nexus\Mcp\Tools\PHPStan\TraitNamingRule
+attributeServicesDirectories:
+  - tools/src/PHPStan

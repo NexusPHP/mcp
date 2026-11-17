@@ -15,6 +15,7 @@ namespace Nexus\Mcp\Tools\PHPStan;
 
 use PhpParser\Node;
 use PHPStan\Analyser\Scope;
+use PHPStan\DependencyInjection\RegisteredRule;
 use PHPStan\Node\InClassNode;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\ReflectionProvider;
@@ -32,6 +33,7 @@ use PHPUnit\Framework\Attributes\Group;
  *
  * @internal
  */
+#[RegisteredRule(level: 0)]
 final class TestClassConventionsRule implements Rule
 {
     private const array RECOGNISED_GROUP_NAMES = [
