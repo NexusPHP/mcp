@@ -19,10 +19,21 @@ namespace Nexus\Mcp\Tools;
 final class McpSchemaProcessor
 {
     public const string LATEST_SCHEMA_JSON_URL = 'https://raw.githubusercontent.com/modelcontextprotocol/modelcontextprotocol/main/schema/2026-07-28/schema.json';
-    public const string LATEST_SCHEMA_JSON_PATH = __DIR__.'/../../latest-schema.json';
+    public const string LATEST_SCHEMA_JSON_PATH = __DIR__.'/../../schema/2026-07-28/schema.json';
     public const string SORTED_SCHEMA_JSON_PATH = __DIR__.'/../../sorted-schema.json';
     public const string LATEST_SCHEMA_TS_URL = 'https://raw.githubusercontent.com/modelcontextprotocol/modelcontextprotocol/main/schema/2026-07-28/schema.ts';
-    public const string LATEST_SCHEMA_TS_PATH = __DIR__.'/../../latest-schema.ts';
+    public const string LATEST_SCHEMA_TS_PATH = __DIR__.'/../../schema/2026-07-28/schema.ts';
+
+    /**
+     * Directories holding each extension's `schema.json` and `schema.ts`, keyed by its directory under `src/Extension/`.
+     */
+    public const array EXTENSION_SCHEMAS = [
+        'Skills' => [
+            'url' => 'https://raw.githubusercontent.com/modelcontextprotocol/ext-skills/main/schema/beta',
+            'path' => __DIR__.'/../../schema/ext-skills/beta',
+        ],
+    ];
+
     private const array INLINED_SPEC_DEFS = [
         'JSONValue',
         'JSONObject',
@@ -33,66 +44,37 @@ final class McpSchemaProcessor
 
     public static function fetchAndSaveLatestSchemaTs(): void
     {
-        $schemaTs = file_get_contents(self::LATEST_SCHEMA_TS_URL);
+        $sources = [self::LATEST_SCHEMA_TS_URL => self::LATEST_SCHEMA_TS_PATH];
 
-        if (false === $schemaTs) {
-            throw new \RuntimeException(\sprintf(
-                'Failed to fetch the latest schema.ts from %s',
-                self::LATEST_SCHEMA_TS_URL,
-            ));
+        foreach (self::EXTENSION_SCHEMAS as ['url' => $url, 'path' => $path]) {
+            $sources[$url.'/schema.ts'] = $path.'/schema.ts';
         }
 
-        file_put_contents(self::LATEST_SCHEMA_TS_PATH, $schemaTs);
+        foreach ($sources as $url => $path) {
+            $schemaTs = file_get_contents($url);
+
+            if (false === $schemaTs) {
+                throw new \RuntimeException(\sprintf('Failed to fetch the schema.ts from %s', $url));
+            }
+
+            file_put_contents($path, $schemaTs);
+        }
     }
 
     /**
-     * Fetches when `MCP_FETCH_LATEST_SCHEMA` is truthy or the local cache is absent, and reads it otherwise.
+     * Core defs plus the extensions' own, each schema fetched when `MCP_FETCH_LATEST_SCHEMA` is truthy or uncached.
      *
      * @return array<string, mixed>
      */
     public static function fetchAndSaveLatestSchema(): array
     {
-        $forceFetch = filter_var(getenv('MCP_FETCH_LATEST_SCHEMA'), \FILTER_VALIDATE_BOOL);
-        $schemaJson = $forceFetch ? false : @file_get_contents(self::LATEST_SCHEMA_JSON_PATH);
-        $fetched = false === $schemaJson;
+        $defs = self::fetchAndSaveSchemaDefs(self::LATEST_SCHEMA_JSON_URL, self::LATEST_SCHEMA_JSON_PATH);
 
-        if ($fetched) {
-            $schemaJson = file_get_contents(self::LATEST_SCHEMA_JSON_URL);
-
-            if (false === $schemaJson) {
-                throw new \RuntimeException(\sprintf(
-                    'Failed to fetch the latest schema from %s',
-                    self::LATEST_SCHEMA_JSON_URL,
-                ));
-            }
-
-            file_put_contents(self::LATEST_SCHEMA_JSON_PATH, $schemaJson);
+        foreach (self::EXTENSION_SCHEMAS as ['url' => $url, 'path' => $path]) {
+            $defs += self::fetchAndSaveSchemaDefs($url.'/schema.json', $path.'/schema.json');
         }
 
-        $decodedSchema = json_decode($schemaJson, true, flags: \JSON_THROW_ON_ERROR);
-
-        if (! \is_array($decodedSchema)) {
-            throw new \RuntimeException('The decoded schema is not a valid array.');
-        }
-
-        if (! \array_key_exists('$defs', $decodedSchema) || ! \is_array($decodedSchema['$defs'])) {
-            throw new \RuntimeException('The latest schema does not contain valid $defs.');
-        }
-
-        /** @var array<string, mixed> $schemaDefs */
-        $schemaDefs = $decodedSchema['$defs'];
-        $resolvedDefs = self::resolveLinks($schemaDefs);
-        $decodedSchema['$defs'] = $resolvedDefs;
-
-        if ($fetched) {
-            $schemaJson = json_encode(
-                self::convertEmptyArraysToObjects($decodedSchema),
-                \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE | \JSON_THROW_ON_ERROR,
-            );
-            file_put_contents(self::LATEST_SCHEMA_JSON_PATH, $schemaJson);
-        }
-
-        return self::resolveRefAliases($resolvedDefs);
+        return self::resolveRefAliases($defs);
     }
 
     /**
@@ -111,13 +93,17 @@ final class McpSchemaProcessor
         $processedSchema = [];
         $internalSchema = [];
 
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator(
-                __DIR__.'/../../src/Core/Schema/',
-                \RecursiveDirectoryIterator::SKIP_DOTS | \RecursiveDirectoryIterator::UNIX_PATHS,
-            ),
-            \RecursiveIteratorIterator::CHILD_FIRST,
-        );
+        $iterator = new \AppendIterator();
+
+        foreach (['Core', ...array_map(static fn(string $name): string => 'Extension/'.$name, array_keys(self::EXTENSION_SCHEMAS))] as $package) {
+            $iterator->append(new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator(
+                    __DIR__.'/../../src/'.$package.'/Schema/',
+                    \RecursiveDirectoryIterator::SKIP_DOTS | \RecursiveDirectoryIterator::UNIX_PATHS,
+                ),
+                \RecursiveIteratorIterator::CHILD_FIRST,
+            ));
+        }
 
         $rootSrc = realpath(__DIR__.'/../../src/');
         \assert(false !== $rootSrc, 'Could not determine root src directory path.');
@@ -180,6 +166,40 @@ final class McpSchemaProcessor
         }
 
         return $sortedSchema;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function fetchAndSaveSchemaDefs(string $url, string $path): array
+    {
+        $forceFetch = filter_var(getenv('MCP_FETCH_LATEST_SCHEMA'), \FILTER_VALIDATE_BOOL);
+        $schemaJson = $forceFetch ? false : @file_get_contents($path);
+
+        if (false === $schemaJson) {
+            $schemaJson = file_get_contents($url);
+
+            if (false === $schemaJson) {
+                throw new \RuntimeException(\sprintf('Failed to fetch the schema from %s', $url));
+            }
+
+            file_put_contents($path, $schemaJson);
+        }
+
+        $decodedSchema = json_decode($schemaJson, true, flags: \JSON_THROW_ON_ERROR);
+
+        if (! \is_array($decodedSchema)) {
+            throw new \RuntimeException(\sprintf('The decoded schema from %s is not a valid array.', $url));
+        }
+
+        if (! \array_key_exists('$defs', $decodedSchema) || ! \is_array($decodedSchema['$defs'])) {
+            throw new \RuntimeException(\sprintf('The schema from %s does not contain valid $defs.', $url));
+        }
+
+        /** @var array<string, mixed> $schemaDefs */
+        $schemaDefs = $decodedSchema['$defs'];
+
+        return self::resolveLinks($schemaDefs);
     }
 
     /**
@@ -295,25 +315,5 @@ final class McpSchemaProcessor
         }
 
         return $defs;
-    }
-
-    /**
-     * @param array<array-key, mixed> $value
-     *
-     * @return array<array-key, mixed>|\stdClass
-     */
-    private static function convertEmptyArraysToObjects(array $value): array|\stdClass
-    {
-        if ([] === $value) {
-            return new \stdClass();
-        }
-
-        foreach ($value as $key => $item) {
-            if (\is_array($item)) {
-                $value[$key] = self::convertEmptyArraysToObjects($item);
-            }
-        }
-
-        return $value;
     }
 }

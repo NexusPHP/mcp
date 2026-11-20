@@ -20,7 +20,7 @@ use Nexus\Mcp\Core\Schema\MetaObject\PayloadMetaObject;
 use Nexus\Mcp\Extension\Skills\Skills;
 
 /**
- * One skill served by a server, as described by `skills/list` and `skills/get`.
+ * The entry for a single skill.
  *
  * @phpstan-type Frontmatter array{name: non-empty-string, description: non-empty-string, ...<string, mixed>}
  *

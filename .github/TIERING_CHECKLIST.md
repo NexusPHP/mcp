@@ -37,7 +37,7 @@ Full-sweep totals: **89/96 scenarios, 620/633 checks (97.9%)**, split 511/515 sp
 
 Both tier-scored legs pass outright at 100%. Scored against the frozen 2026-07-28 requirement set instead of the `active` suite, as the tier audit does, the server leg is 33/37 (89.2%) and the client leg 32/32. The 7 failing full-sweep scenarios are the seven entries in [`conformance/expected-failures.yaml`](../conformance/expected-failures.yaml), none of which sit in the `active` suite, so they do not bear on the tier score. The three client entries are the DPoP and WIF scenarios, whose SEPs are open proposals.
 
-The four server entries need the server to emit an `InputRequest` for `sampling/createMessage` or `roots/list`, both of which `latest-schema.ts` marks `@deprecated` as of 2026-07-28 (SEP-2577). The upstream resolution is tracked at [conformance#439](https://github.com/modelcontextprotocol/conformance/issues/439).
+The four server entries need the server to emit an `InputRequest` for `sampling/createMessage` or `roots/list`, both of which `schema/2026-07-28/schema.ts` marks `@deprecated` as of 2026-07-28 (SEP-2577). The upstream resolution is tracked at [conformance#439](https://github.com/modelcontextprotocol/conformance/issues/439).
 
 Reproduce with `composer conformance:server`, `composer conformance:client`, then `composer conformance:score`. The referee exits non-zero on an unlisted failure and on a stale baseline entry, so the list burns down rather than rotting.
 

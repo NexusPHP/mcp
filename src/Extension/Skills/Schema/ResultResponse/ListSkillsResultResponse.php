@@ -27,6 +27,8 @@ use Nexus\Mcp\Extension\Skills\Schema\Result\ListSkillsResult;
  *   id: int|non-empty-string,
  *   result: array<string, mixed>,
  * }>
+ *
+ * @see https://github.com/modelcontextprotocol/ext-skills/blob/main/specification/beta/skills.mdx
  */
 final readonly class ListSkillsResultResponse extends JsonRpcResultResponse
 {

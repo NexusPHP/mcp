@@ -2,6 +2,7 @@
 
 /conformance/badges/*.json                         linguist-generated=true
 /phpstan-baseline.php                              linguist-generated=true
+/schema/**                                         linguist-vendored=true
 /tests/AutoReview/data/public-parameter-names.json linguist-generated=true
 /tests/AutoReview/data/spec-anchors.json           linguist-generated=true
 
@@ -11,6 +12,7 @@
 /conformance/                               export-ignore
 /docs/                                      export-ignore
 /examples/                                  export-ignore
+/schema/                                    export-ignore
 /stubs/                                     export-ignore
 /tests/                                     export-ignore
 /tools/                                     export-ignore

@@ -25,6 +25,7 @@ use Nexus\Mcp\Core\Schema\Enum\SdkErrorCode;
 use Nexus\Mcp\Core\Schema\Error;
 use Nexus\Mcp\Core\Schema\Error\UnknownProtocolError;
 use Nexus\Mcp\Core\Schema\Icons;
+use Nexus\Mcp\Core\Schema\JsonRpc\JsonRpcRequest;
 use Nexus\Mcp\Core\Schema\MetaObject\GenericResultMetaObject;
 use Nexus\Mcp\Core\Schema\MetaObject\PayloadMetaObject;
 use Nexus\Mcp\Core\Schema\Notification;
@@ -79,6 +80,7 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
     ];
     private const string SCHEMA_ANCHOR_BASE_URL = 'https://modelcontextprotocol.io/specification/2026-07-28/schema#';
     private const string JSON_RPC_ERROR_OBJECT_URL = 'https://www.jsonrpc.org/specification#error_object';
+    private const string SKILLS_SPEC_URL = 'https://github.com/modelcontextprotocol/ext-skills/blob/main/specification/beta/skills.mdx';
     private const string TS_SCHEMA_FILE_URL = 'https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2026-07-28/schema.ts';
     private const array NON_SCHEMA_ANCHOR_SEE_URLS = [
         BaseMetadata::class => self::TS_SCHEMA_FILE_URL,
@@ -389,21 +391,22 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
         });
     }
 
-    public function testProtocolSchemaExistsOnlyInCore(): void
+    public function testProtocolSchemaExistsOnlyInCoreOrItsExtension(): void
     {
-        foreach (self::getProtocolSchemasForTesting() as [$schema, $schemaClass]) {
-            $parts = explode('\\', $schemaClass);
-            self::assertArrayHasKey(2, $parts);
+        $packages = ['Core\Schema'];
 
-            $package = $parts[2];
-            self::assertSame(
-                'Core',
-                $package,
+        foreach (array_keys(McpSchemaProcessor::EXTENSION_SCHEMAS) as $extension) {
+            $packages[] = 'Extension\\'.$extension;
+        }
+
+        foreach (self::getProtocolSchemasForTesting() as [$schema, $schemaClass]) {
+            self::assertContains(
+                implode('\\', \array_slice(explode('\\', $schemaClass), 2, 2)),
+                $packages,
                 \sprintf(
-                    'Protocol schema "%s" (class: %s) must be defined in Core, not %s.',
+                    'Protocol schema "%s" (class: %s) must be defined in Core or in an extension with a schema source.',
                     $schema,
                     $schemaClass,
-                    $package,
                 ),
             );
         }
@@ -484,6 +487,12 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
     {
         foreach (self::getProtocolSchemasForTesting() as $basename => [, $schemaClass]) {
             if (\array_key_exists($schemaClass, self::NON_SCHEMA_ANCHOR_SEE_URLS)) {
+                continue;
+            }
+
+            if (str_starts_with($schemaClass, 'Nexus\Mcp\Extension\Skills\\')) {
+                yield $basename => [$schemaClass, self::SKILLS_SPEC_URL];
+
                 continue;
             }
 
@@ -713,7 +722,8 @@ final class SchemaConformanceTest extends AbstractMcpTestCase
         self::assertIsArray($unionData);
 
         $licensed = \in_array($implementerBasename, $unionData['members'], true)
-            || ($unionData['allowsResultSubclass'] && is_subclass_of($implementer, Result::class));
+            || ($unionData['allowsResultSubclass'] && is_subclass_of($implementer, Result::class))
+            || (! str_starts_with($implementer, 'Nexus\Mcp\Core\\') && is_subclass_of($implementer, JsonRpcRequest::class));
 
         if (! $licensed) {
             foreach ($unionData['members'] as $memberBasename) {

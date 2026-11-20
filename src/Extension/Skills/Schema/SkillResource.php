@@ -17,7 +17,7 @@ use Nexus\Assert\Assert;
 use Nexus\Mcp\Core\Schema\Arrayable;
 
 /**
- * One file of a skill's manifest.
+ * A file belonging to a skill, with the digest and size of its content.
  *
  * @implements Arrayable<array{
  *   uri: non-empty-string,

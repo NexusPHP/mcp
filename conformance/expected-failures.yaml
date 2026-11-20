@@ -19,7 +19,7 @@ server:
   # Server-side MRTR (SEP-2322) is served, and these four are what remains. Each needs
   # the server to emit an `InputRequest` for `sampling/createMessage` or `roots/list`.
   # The spec's `InputRequest` union is closed to `CreateMessageRequest | ListRootsRequest
-  # | ElicitRequest`, and `latest-schema.ts` marks the first two `@deprecated` as of
+  # | ElicitRequest`, and `schema/2026-07-28/schema.ts` marks the first two `@deprecated` as of
   # 2026-07-28 (SEP-2577) while leaving `ElicitRequest` unmarked. This SDK dropped both
   # under that deprecation, so it can ask for elicitation and nothing else.
   #
